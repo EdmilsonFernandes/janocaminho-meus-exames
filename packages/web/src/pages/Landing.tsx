@@ -930,7 +930,7 @@ export const LandingPage = () => {
       <Box sx={{ bgcolor: 'background.default', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 4, md: 5 } }}>
         <Container maxWidth="md" sx={{ textAlign: 'center' }}>
           <Typography sx={{ fontSize: { xs: 17, md: 19 }, fontWeight: 800, color: 'text.primary', fontFamily: '"Poppins",sans-serif' }}>
-            É médico? Veja o <Box component="span" sx={{ ...SERIF_I, color: '#b88a54' }}>brief de cada paciente</Box> — e atenda por vídeo sem sair do Dr. Exame.
+            É médico? Veja o <Box component="span" sx={{ ...SERIF_I, color: '#b88a54' }}>brief de cada paciente</Box>, atenda por vídeo e <Box component="span" sx={{ ...SERIF_I, color: '#b88a54' }}>receba no PIX</Box> — sem sair do Dr. Exame.
           </Typography>
           <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 0.75, mb: 0.5, maxWidth: 560, mx: 'auto', lineHeight: 1.55 }}>
             Valores alterados em destaque, sinais vitais do smartwatch, risco com tendência, rascunho SOAP e as perguntas que o paciente fez no app — gerados por IA, revisados por você. Na teleconsulta, o QuickNote vai direto pro prontuário, você define o valor e o paciente paga por PIX no card da consulta.
@@ -941,8 +941,8 @@ export const LandingPage = () => {
           <Typography variant="caption" sx={{ display: 'block', mb: 1.75, color: 'text.secondary', fontWeight: 600 }}>
             Grátis pra começar · Dr. Exame Pro por R$ 29,90/mês
           </Typography>
-          <Button variant="outlined" onClick={() => navigate('/doctor')} sx={{ borderRadius: '999px', px: 3, textTransform: 'none', fontWeight: 700, borderColor: 'rgba(212,165,116,.5)', color: '#b88a54', '&:hover': { borderColor: '#b88a54', bgcolor: 'rgba(212,165,116,.08)' } }}>
-            Conhecer o Portal do Médico →
+          <Button variant="outlined" onClick={() => navigate('/para-medicos')} sx={{ borderRadius: '999px', px: 3, textTransform: 'none', fontWeight: 700, borderColor: 'rgba(212,165,116,.5)', color: '#b88a54', '&:hover': { borderColor: '#b88a54', bgcolor: 'rgba(212,165,116,.08)' } }}>
+            Como funciona para médicos →
           </Button>
         </Container>
       </Box>
@@ -1217,7 +1217,7 @@ export const LandingPage = () => {
 
           {/* Links como <a> de verdade */}
           <Stack direction="row" spacing={3} justifyContent="center" useFlexGap sx={{ flexWrap: 'wrap', rowGap: 1.25 }}>
-            {[{ l: 'Portal do Médico', h: '#/doctor' }, { l: 'Como validamos', h: '#/como-validamos' }, { l: 'Todos os recursos', h: '#/features' }, { l: 'API para devs', h: '#/api-docs' }, { l: 'Dúvidas frequentes', h: '#/faq' }, { l: 'Termos e LGPD', h: '#/termos' }, { l: 'Criar conta', h: '#/registrar' }, { l: 'Entrar', h: '#/entrar' }].map((x) => (
+            {[{ l: 'Para médicos', h: '#/para-medicos' }, { l: 'Encontrar especialistas', h: '#/encontrar' }, { l: 'Como validamos', h: '#/como-validamos' }, { l: 'Todos os recursos', h: '#/features' }, { l: 'API para devs', h: '#/api-docs' }, { l: 'Dúvidas frequentes', h: '#/faq' }, { l: 'Termos e LGPD', h: '#/termos' }, { l: 'Criar conta', h: '#/registrar' }, { l: 'Entrar', h: '#/entrar' }].map((x) => (
               <Box key={x.l} component="a" href={x.h} sx={{ color: '#5fc9c3', fontSize: 14, fontWeight: 700, textDecoration: 'none', transition: 'color .15s ease', '&:hover': { color: '#ffffff', textDecoration: 'underline' } }}>{x.l}</Box>
             ))}
           </Stack>

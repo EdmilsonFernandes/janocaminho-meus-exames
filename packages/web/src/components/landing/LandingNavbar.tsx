@@ -105,13 +105,14 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
       },
     },
     {
-      title: 'Portal do Médico',
-      desc: 'Área dedicada a médicos e nutricionistas',
+      title: 'Para médicos',
+      desc: 'Agenda, brief clínico e PIX por consulta — comece com seu CRM',
       icon: <MedicalServicesIcon sx={{ color: TEAL_DARK, fontSize: 20 }} />,
+      tag: 'Novo',
       action: () => {
         setMenuOpen(false);
         setMobileOpen(false);
-        navigate('/doctor');
+        navigate('/para-medicos');
       },
     },
   ];
@@ -284,7 +285,7 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
               Planos
             </Button>
             <Button
-              onClick={() => navigate('/doctor')}
+              onClick={() => navigate('/para-medicos')}
               sx={{ color: 'text.primary', fontWeight: 600, fontSize: 14, textTransform: 'none', px: 1.5, py: 1, borderRadius: '10px', '&:hover': { bgcolor: 'rgba(32,178,170,0.08)', color: TEAL_DARK } }}
             >
               Para Médicos
@@ -436,7 +437,7 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
             <Button
               fullWidth
               startIcon={<MedicalServicesIcon sx={{ color: TEAL_DARK }} />}
-              onClick={() => { setMobileOpen(false); navigate('/doctor'); }}
+              onClick={() => { setMobileOpen(false); navigate('/para-medicos'); }}
               sx={{ justifyContent: 'flex-start', minHeight: 48, fontWeight: 700, color: 'text.primary', textTransform: 'none', fontSize: 15 }}
             >
               Para Médicos & Nutricionistas

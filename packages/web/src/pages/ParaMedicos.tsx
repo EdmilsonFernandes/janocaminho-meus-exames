@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Container, Typography, Button, Card, CardContent, Chip, Stack, Slider, MenuItem, TextField, Avatar, useTheme, alpha } from '@mui/material';
+import { Box, Container, Typography, Button, Card, CardContent, Chip, Stack, Slider, MenuItem, TextField, Avatar, useTheme, alpha, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { DrExame } from '../components/DrExame';
@@ -21,6 +21,8 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ShareIcon from '@mui/icons-material/Share';
+import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const TEAL = '#20b2aa';
 /** Box com display:grid — substitui MuiGrid (alias local no topo: componente usa em JSX). */
@@ -404,12 +406,15 @@ export const ParaMedicosPage: React.FC = () => {
                 Seus pacientes continuam seus
               </Typography>
               <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 560, mx: 'auto', mb: 3 }}>
-                O Dr. Exame é sua ferramenta, não concorre com você: não listamos médicos, não direcionamos pacientes.
+                O Dr. Exame é sua ferramenta, não concorre com você: quem chega até você vem por convite.
+                E médicos com portal ativo aparecem na busca <b>Encontrar especialistas</b> do app —
+                para o paciente que ainda não tem um médico.
               </Typography>
               <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" useFlexGap>
                 <Chip icon={<GppGoodOutlinedIcon />} label="Não somos marketplace" variant="outlined" sx={{ borderRadius: '10px', fontWeight: 600, borderColor: 'divider', '& .MuiChip-icon': { color: tealText(t.palette.mode) } }} />
                 <Chip icon={<CalendarMonthIcon />} label="Agenda é sua" variant="outlined" sx={{ borderRadius: '10px', fontWeight: 600, borderColor: 'divider', '& .MuiChip-icon': { color: tealText(t.palette.mode) } }} />
                 <Chip icon={<ShareIcon />} label="Paciente quem convida" variant="outlined" sx={{ borderRadius: '10px', fontWeight: 600, borderColor: 'divider', '& .MuiChip-icon': { color: tealText(t.palette.mode) } }} />
+                <Chip icon={<TravelExploreRoundedIcon />} label="Você aparece na busca do app" variant="outlined" sx={{ borderRadius: '10px', fontWeight: 600, borderColor: 'divider', '& .MuiChip-icon': { color: tealText(t.palette.mode) } }} />
               </Stack>
             </CardContent>
           </Card>
@@ -538,6 +543,57 @@ export const ParaMedicosPage: React.FC = () => {
             </Card>
           </Reveal>
         </Grid>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', maxWidth: 640, mx: 'auto', mt: 3, lineHeight: 1.65 }}>
+          Como a cobrança funciona: você define o valor da consulta e o paciente paga por PIX —
+          no Grátis a plataforma retém <b>20% só quando você recebe</b> (R$ 120 vira R$ 96, repasse
+          automático via Asaas). O Pro soma as ferramentas de prontuário por R$ 29,90/mês.
+          Regra prática: comece grátis hoje; quando o brief e o SOAP estiverem devolvendo tempo
+          entre consultas, o Pro se paga sozinho.
+        </Typography>
+      </Section>
+
+      {/* ---------- FAQ médico — objeções reais antes do cadastro ---------- */}
+      <Section id="faq">
+        <SectionTitle sub="O que médico pergunta antes de entrar — respondido sem rodeio.">
+          Perguntas frequentes de médicos
+        </SectionTitle>
+        <Box sx={{ maxWidth: 720, mx: 'auto' }}>
+          {[
+            {
+              q: 'Preciso validar meu CRM?',
+              a: 'Sim. A conta é criada com CRM e validamos o registro antes de liberar o atendimento — só médico real atende. Sua área fica pronta em minutos; a validação roda enquanto você configura agenda e PIX.',
+            },
+            {
+              q: 'Quanto custa, na prática?',
+              a: 'Comece grátis: agenda, brief clínico e cobrança por PIX — a plataforma retém 20% só quando você recebe (R$ 120 vira R$ 96). O Pro (R$ 29,90/mês) soma pré-consulta ilimitada, SOAP da transcrição e export em PDF. Sem taxa de instalação, sem fidelidade.',
+            },
+            {
+              q: 'Quando o PIX cai na minha conta?',
+              a: 'O pagamento é processado pelo Asaas — instituição de pagamento regulada pelo Banco Central — com repasse automático para a sua conta. Cada repasse aparece no seu portal, consulta por consulta.',
+            },
+            {
+              q: 'Quem são os pacientes que vou atender?',
+              a: 'Primeiro, os seus: você envia um convite por link e o paciente entra no app já compartilhando os exames com você. Além disso, médicos com portal ativo aparecem na busca Encontrar especialistas — um canal a mais para quem ainda não tem médico.',
+            },
+            {
+              q: 'A IA substitui o médico?',
+              a: 'Não. A IA organiza os exames, monta o brief e rascunha o prontuário; diagnóstico e conduta são seus. O uso de IA como apoio fica registrado no documento, conforme a Res. CFM 2.454/2026 — você já entra regularizado.',
+            },
+          ].map((f, i) => (
+            <Accordion key={f.q} defaultExpanded={i === 0} elevation={0} disableGutters sx={{
+              mb: 1.25, borderRadius: '16px !important', overflow: 'hidden',
+              border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper',
+              '&:before': { display: 'none' },
+            }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: { xs: 2, sm: 2.5 }, minHeight: 56, '& .MuiAccordionSummary-content': { my: 1 } }}>
+                <Typography sx={{ fontWeight: 700, fontSize: 15.5 }}>{f.q}</Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: { xs: 2, sm: 2.5 }, pb: 2.5, pt: 0 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.65 }}>{f.a}</Typography>
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </Box>
       </Section>
 
       {/* ---------- 8. CTA final + footer ---------- */}
