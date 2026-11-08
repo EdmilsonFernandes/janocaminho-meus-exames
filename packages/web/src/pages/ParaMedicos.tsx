@@ -146,7 +146,7 @@ const HeroConsole = () => {
         { label: 'Brief clínico', value: 'Pronto', tone: 'teal' },
         { label: 'Alterados', value: '3 de 17' },
         { label: 'Próxima consulta', value: '15:30' },
-        { label: 'PIX desta consulta', value: 'R$ 96', tone: 'ok' },
+        { label: 'PIX desta consulta', value: 'R$ 114', tone: 'ok' },
       ]}
     >
       <Grid sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.15fr 0.85fr' }, gap: 2.5 }}>
@@ -174,7 +174,7 @@ const HeroConsole = () => {
             <PixIcon sx={{ fontSize: 18, color: '#7bd88f' }} />
             <Box>
               <Typography sx={{ color: '#e8eef0', fontSize: 13.5, fontWeight: 700 }}>PIX pago · R$ 120</Typography>
-              <Typography variant="caption" sx={{ color: 'rgba(155,196,192,0.7)' }}>R$ 96 líquidos · repasse automático</Typography>
+              <Typography variant="caption" sx={{ color: 'rgba(155,196,192,0.7)' }}>R$ 114 líquidos · repasse automático</Typography>
             </Box>
           </Stack>
         </Box>
@@ -228,7 +228,7 @@ const CUES = [
     kpis: [
       { label: 'Brief', value: 'Pré-consulta', tone: 'teal' as const },
       { label: 'SOAP', value: 'Rascunho' },
-      { label: 'PIX R$ 120', value: 'R$ 96 líquidos', tone: 'ok' as const },
+      { label: 'PIX R$ 120', value: 'R$ 114 líquidos', tone: 'ok' as const },
     ],
     rows: [
       { icon: 'fact', primary: 'Brief: 3 alterados em destaque', secondary: 'glicose, TSH e colesterol com contexto do histórico' },
@@ -402,7 +402,7 @@ const Calculator = () => {
   const t = useTheme();
   const [consultas, setConsultas] = useState(12);
   const [valor, setValor] = useState(150);
-  const ganho = useMemo(() => Math.round(consultas * 4.33 * valor * 0.8), [consultas, valor]);
+  const ganho = useMemo(() => Math.round(consultas * 4.33 * valor * 0.95), [consultas, valor]);
   return (
     <Card elevation={0} sx={{ borderRadius: '20px', maxWidth: 640, mx: 'auto' }}>
       <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
@@ -452,7 +452,7 @@ const Calculator = () => {
             </Typography>
             <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center">
               <PixIcon sx={{ fontSize: 16, color: tealText(t.palette.mode) }} />
-              <Typography variant="caption" color="text.secondary">(80% após taxa de plataforma de 20%)</Typography>
+              <Typography variant="caption" color="text.secondary">(95% — taxa Fundador de 5%, primeiros 50 médicos)</Typography>
             </Stack>
           </Box>
         </Stack>
@@ -503,7 +503,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Quanto custa, na prática?',
-    a: 'Comece grátis: agenda, brief clínico e cobrança por PIX — a plataforma retém 20% só quando você recebe (R$ 120 vira R$ 96). O Pro (R$ 29,90/mês) soma pré-consulta ilimitada, SOAP da transcrição e export em PDF. Sem taxa de instalação, sem fidelidade.',
+    a: 'Comece grátis: agenda, brief clínico e cobrança por PIX. Somos lançamento: os primeiros 50 médicos têm taxa Fundador de 5% (R$ 120 vira R$ 114 no seu PIX). Depois, taxa padrão de 20% — ou 10% no Pro (R$ 29,90/mês; fundador fica nos 5%), que ainda soma pré-consulta ilimitada, SOAP e export em PDF. Sem taxa de instalação, sem fidelidade.',
   },
   {
     q: 'Quando o PIX cai na minha conta?',
@@ -641,8 +641,9 @@ export const ParaMedicosPage: React.FC = () => {
             </Stack>
             <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" useFlexGap>
               {trustChip('CRM validado antes de atender', 't1')}
-              {trustChip('Repasse automático · Asaas', 't2')}
-              {trustChip('Res. CFM 2.454/2026', 't3')}
+              {trustChip('Taxa Fundador de 5% — primeiros 50 médicos', 't2')}
+              {trustChip('Repasse automático · Asaas', 't3')}
+              {trustChip('Res. CFM 2.454/2026', 't4')}
             </Stack>
           </Box>
           <Reveal delay={150}>
@@ -706,10 +707,10 @@ export const ParaMedicosPage: React.FC = () => {
             delay={180}
             icon={<PixIcon sx={{ fontSize: 24 }} />}
             title="PIX embutido na consulta"
-            metric="R$ 96"
-            metricLabel="por consulta de R$ 120"
+            metric="R$ 114"
+            metricLabel="em R$ 120 · Fundador"
             strong="Cobrança disparada junto com o agendamento, repasse automático."
-            soft="Sem maquininha, sem fila, sem «depois eu te mando». Você define o valor; o paciente paga no card da consulta."
+            soft="Sem maquininha, sem fila, sem «depois eu te mando». Você define o valor; o paciente paga no card da consulta. Taxa de lançamento de 5% pros primeiros 50 médicos — depois 20%, ou 10% no Pro."
           />
           <ActCard
             delay={270}
@@ -736,7 +737,7 @@ export const ParaMedicosPage: React.FC = () => {
         <Container maxWidth="lg" sx={{ px: '0 !important' }}>
           <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="center" alignItems={{ sm: 'stretch' }} spacing={{ xs: 3.5, sm: 2 }} flexWrap="wrap" useFlexGap>
             <StatCounter value={12451} label="códigos CID-10" sub="base oficial DATASUS no prontuário" />
-            <StatCounter value={96} prefix="R$ " label="líquidos por consulta" sub="em R$ 120 cobrados — taxa de 20% só quando você recebe" />
+            <StatCounter value={114} prefix="R$ " label="líquidos por consulta" sub="em R$ 120 cobrados — taxa Fundador de 5% (padrão 20% · Pro 10%)" />
             <StatCounter value={5} decimals={1} label="na Google Play" sub="o app que seus pacientes já usam" />
           </Stack>
         </Container>
@@ -823,7 +824,7 @@ export const ParaMedicosPage: React.FC = () => {
                   <Box component="span" sx={{ fontFamily: (th: Theme) => th.typography.h4.fontFamily, fontWeight: 800, fontSize: '2rem' }}>R$ 0</Box>
                 </Box>
                 <Stack spacing={1.25} sx={{ mb: 3.5, flex: 1 }}>
-                  {['Brief clínico dos exames compartilhados', 'Agenda de consultas', 'Cobrança PIX por consulta (taxa 20%)', 'Perguntas dos pacientes'].map((f) => (
+                  {['Brief clínico dos exames compartilhados', 'Agenda de consultas', 'Cobrança PIX por consulta (taxa padrão de 20%)', 'Perguntas dos pacientes'].map((f) => (
                     <Stack key={f} direction="row" spacing={1} alignItems="flex-start">
                       <CheckIcon sx={{ fontSize: 18, mt: 0.25, color: tealText(t.palette.mode) }} />
                       <Typography variant="body2">{f}</Typography>
@@ -861,7 +862,7 @@ export const ParaMedicosPage: React.FC = () => {
                   <Box component="span" color="text.secondary" sx={{ fontSize: 15 }}>/mês</Box>
                 </Box>
                 <Stack spacing={1.25} sx={{ mb: 3.5, flex: 1 }}>
-                  {['Tudo do plano Grátis', 'Pré-consulta ilimitada (brief + histórico)', 'SOAP da transcrição com revisão', 'Export do prontuário (PDF)'].map((f) => (
+                  {['Tudo do plano Grátis', 'Taxa de consulta reduzida (10% — fundador mantém os 5%)', 'Pré-consulta ilimitada (brief + histórico)', 'SOAP da transcrição com revisão', 'Export do prontuário (PDF)'].map((f) => (
                     <Stack key={f} direction="row" spacing={1} alignItems="flex-start">
                       <CheckIcon sx={{ fontSize: 18, mt: 0.25, color: copperText(t.palette.mode) }} />
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>{f}</Typography>
@@ -875,12 +876,13 @@ export const ParaMedicosPage: React.FC = () => {
             </Card>
           </Reveal>
         </Grid>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', maxWidth: 640, mx: 'auto', mt: 3, lineHeight: 1.65 }}>
-          Como a cobrança funciona: você define o valor da consulta e o paciente paga por PIX —
-          no Grátis a plataforma retém <b>20% só quando você recebe</b> (R$ 120 vira R$ 96, repasse
-          automático via Asaas). O Pro soma as ferramentas de prontuário por R$ 29,90/mês.
-          Regra prática: comece grátis hoje; quando o brief e o SOAP estiverem devolvendo tempo
-          entre consultas, o Pro se paga sozinho.
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', maxWidth: 660, mx: 'auto', mt: 3, lineHeight: 1.65 }}>
+          Como a cobrança funciona: você define o valor da consulta e o paciente paga por PIX —{' '}
+          <b>taxa de lançamento de 5% para os primeiros 50 médicos</b> (R$ 120 vira R$ 114, repasse
+          automático via Asaas). Depois da coorte Fundador, taxa padrão de 20% — ou <b>10% no Pro</b>{' '}
+          (R$ 29,90/mês; fundador mantém seus 5%), que também soma as ferramentas de prontuário. Regra prática: entre agora
+          como Fundador; quando o brief e o SOAP estiverem devolvendo tempo entre consultas, o Pro
+          se paga sozinho.
         </Typography>
         <Stack direction="row" spacing={1.5} justifyContent="center" flexWrap="wrap" useFlexGap sx={{ mt: 2.5 }}>
           {['Comece grátis', 'Sem cartão', 'Sem fidelidade', 'Cancele quando quiser'].map((s) => (

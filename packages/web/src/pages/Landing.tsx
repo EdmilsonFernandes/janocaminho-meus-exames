@@ -953,7 +953,7 @@ export const LandingPage = () => {
           </Button>
         </Stack>
         <Typography variant="caption" sx={{ color: 'rgba(232,238,240,0.55)', fontWeight: 600 }}>
-          Grátis pra começar · Pro R$ 29,90/mês · taxa de 20% só quando você recebe
+          Grátis pra começar · Taxa Fundador de 5% pros primeiros 50 médicos · Pro com 10%
         </Typography>
       </Box>
 

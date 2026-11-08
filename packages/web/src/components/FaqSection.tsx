@@ -75,7 +75,7 @@ export const FAQ_MEDICO_ITEMS = [
   },
   {
     q: 'Como recebo pelas consultas?',
-    a: 'Você define o valor e o paciente paga por PIX no card da consulta — R$ 120 vira R$ 96 no seu PIX, com repasse automático via Asaas (instituição de pagamento regulada pelo Banco Central). No plano Grátis a taxa é de 20%, só quando você recebe; o Pro (R$ 29,90/mês) soma prontuário, SOAP e export em PDF.',
+    a: 'Você define o valor e o paciente paga por PIX no card da consulta, com repasse automático via Asaas (instituição de pagamento regulada pelo Banco Central). Lançamento: os primeiros 50 médicos têm taxa Fundador de 5% (R$ 120 vira R$ 114). Depois, taxa padrão de 20% — ou 10% assinando o Pro (R$ 29,90/mês; fundador fica nos 5%).',
   },
   {
     q: 'A IA escreve o prontuário no meu lugar?',
