@@ -83,3 +83,44 @@ export function coerceSnapshot(raw: unknown): CommissionSnapshot {
 export function computeReleaseEligibleAt(paidAt: Date, snapshot: CommissionSnapshot): Date {
   return new Date(paidAt.getTime() + snapshot.releaseDelayDays * 86_400_000);
 }
+
+// §Coorte Fundador — promessa da landing /para-medicos: os primeiros N médicos
+// aprovados têm taxa reduzida PARA SEMPRE (regra individual é imune à regra geral).
+// O cap é contado pelas regras individuais ativas com platformBps = FOUNDER_BPS.
+export const FOUNDER_BPS = 500; // 5% ("taxa Fundador de 5%")
+export const FOUNDER_LIMIT = 50; // "primeiros 50 médicos"
+
+export type FounderRuleOutcome =
+  | { created: true; reason: 'created'; founderCount: number }
+  | { created: false; reason: 'already' | 'full'; founderCount?: number };
+
+/** Garante a regra individual Fundador (500 bps) para um médico recém-aprovado.
+ *  Idempotente (já tem regra específica ativa → 'already'); respeita o cap da
+ *  coorte ('full'). Sem transação: aprovação é evento raro e manual; a corrida
+ *  teórica de dois approvals simultâneos só poderia estourar o cap em 1. */
+export async function ensureFounderRule(doctorId: string, now: Date = new Date()): Promise<FounderRuleOutcome> {
+  const specific = await prisma.commissionRule.findFirst({
+    where: { doctorId, validFrom: { lte: now }, OR: [{ validTo: null }, { validTo: { gt: now } }] },
+  });
+  if (specific) return { created: false, reason: 'already' };
+  const founderCount = await prisma.commissionRule.count({
+    where: {
+      doctorId: { not: null },
+      platformBps: FOUNDER_BPS,
+      validFrom: { lte: now },
+      OR: [{ validTo: null }, { validTo: { gt: now } }],
+    },
+  });
+  if (founderCount >= FOUNDER_LIMIT) return { created: false, reason: 'full', founderCount };
+  await prisma.commissionRule.create({
+    data: {
+      doctorId,
+      platformBps: FOUNDER_BPS,
+      feeBearer: DEFAULT_COMMISSION_RULE.feeBearer,
+      releaseDelayDays: DEFAULT_COMMISSION_RULE.releaseDelayDays,
+      minPayoutCents: DEFAULT_COMMISSION_RULE.minPayoutCents,
+      validFrom: now,
+    },
+  });
+  return { created: true, reason: 'created', founderCount: founderCount + 1 };
+}

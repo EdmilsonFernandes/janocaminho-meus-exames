@@ -25,6 +25,7 @@ import { cpfFingerprint, maskStoredCpf, revealStoredCpf } from '../utils/cpf';
 import { getSubscriptionColumnSupport } from '../utils/subscriptionCompat';
 import { DEFAULT_COMMISSION_RULE } from '../finance/rules';
 import { approvePayout, getAsaasBalanceCached } from '../finance/payout';
+import { ensureFounderRule, FOUNDER_BPS, FOUNDER_LIMIT } from '../finance/rules';
 import { payoutAutoEnabled } from '../utils/settings';
 import { maskPixKey } from './doctor.routes';
 import { getLastReconciliationAt } from '../jobs/reconciliation';
@@ -1213,7 +1214,21 @@ router.post('/doctors/:id/verification/approve', async (req: AuthedRequest, res,
     if ('unchanged' in out) { res.json({ ok: true, status: 'approved', unchanged: true }); return; }
     void audit('DOCTOR_VERIFICATION_DECIDED', req, { targetType: 'DOCTOR', targetId: id, before: { status: out.doc.verificationStatus }, after: { status: 'approved', crm: out.doc.crm, note } });
     void notifyDoctorKyc(out.doc, 'approved'); // e-mail premium "Sua conta foi aprovada"
-    res.json({ ok: true, status: 'approved' });
+    // Coorte Fundador (landing /para-medicos): regra individual 5% criada JÁ na aprovação —
+    // antes do 1º agendamento, que congela o snapshot (doctor.routes resolve no booking).
+    // Falhar aqui NÃO derruba a aprovação: volta no response pro dono criar manual na tela de regras.
+    let founderRule: { created: boolean; reason: string; founderCount?: number };
+    try {
+      founderRule = await ensureFounderRule(id);
+      if (founderRule.created) {
+        console.log(`[founder] regra ${FOUNDER_BPS}bps criada p/ médico ${id} (${founderRule.founderCount}/${FOUNDER_LIMIT})`);
+        void audit('FOUNDER_RULE_CREATED', req, { targetType: 'DOCTOR', targetId: id, after: { platformBps: FOUNDER_BPS, founderCount: founderRule.founderCount } });
+      }
+    } catch (e: any) {
+      founderRule = { created: false, reason: 'error' };
+      console.error('[founder] falha ao criar regra fundador (criar manual):', id, e?.message);
+    }
+    res.json({ ok: true, status: 'approved', founderRule });
   } catch (e) { next(e); }
 });
 
