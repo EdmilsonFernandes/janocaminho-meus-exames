@@ -20,6 +20,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { Title, useNotify, useRedirect, useRefresh, useLogout } from 'react-admin';
 import { API_URL, token, fetchPublicConfig } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
+import { PreSendChecklist, shouldShowPreSendCheck, markPdfCheckSeen } from '../../components/PreSendChecklist';
 import { useSelectedPatient } from '../../patient-context';
 import { CREDIT_COSTS } from '../../components/CreditBadge';
 import { takeExamFiles } from '../../utils/examHandoff';
@@ -168,6 +169,9 @@ export const ExamCreate = () => {
   const [consentChecked, setConsentChecked] = useState(false);
   // Duplicata detectada → dialog PROEMINENTE (não um toast fraco) pra o usuário entender que o doc já existe.
   const [dupInfo, setDupInfo] = useState<{ dups: string[]; elsewhere: string[]; sent: number } | null>(null);
+  // Popup inteligente pré-envio (caso real 09/11: foto-salva-como-PDF, 3 chars extraíveis):
+  // resultado≠pedido + nitidez ANTES de gastar upload e extração. Imagem sempre; PDF só na 1ª vez.
+  const [pendingCheck, setPendingCheck] = useState<{ files: File[]; kind: 'image' | 'pdf' } | null>(null);
   // Banner de 1º exame: mostra só se o user ainda NÃO tem nenhum exame (incentivo p/ o upload +
   // o bônus de créditos). bonus vem do /public/config (freeSignup) → sempre bate c/ o server.
   const [isFirstExam, setIsFirstExam] = useState<boolean | null>(null);
@@ -288,8 +292,19 @@ export const ExamCreate = () => {
     const arr = Array.from(list);
     const tooBig = arr.filter((f) => f.size > MAX_BYTES).map((f) => f.name);
     const ok = arr.filter((f) => f.size <= MAX_BYTES);
-    setFiles((prev) => [...prev, ...ok]);
     if (tooBig.length) notify(`${tooBig.length} arquivo(s) acima de 32MB foram ignorados.`, { type: 'warning' });
+    if (!ok.length) return;
+    // Checklist pré-envio: só segura o fluxo quando vale (foto sempre; PDF na 1ª vez).
+    const kind = shouldShowPreSendCheck(ok);
+    if (kind) { setPendingCheck({ files: ok, kind }); return; }
+    setFiles((prev) => [...prev, ...ok]);
+  };
+
+  const confirmPendingCheck = () => {
+    if (!pendingCheck) return;
+    if (pendingCheck.kind === 'pdf') markPdfCheckSeen();
+    setFiles((prev) => [...prev, ...pendingCheck.files]);
+    setPendingCheck(null);
   };
 
   const takePhoto = async () => {
@@ -1086,6 +1101,14 @@ export const ExamCreate = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Popup inteligente pré-envio: resultado≠pedido + nitidez (imagem sempre, PDF 1ª vez) */}
+      <PreSendChecklist
+        open={!!pendingCheck}
+        kind={pendingCheck?.kind ?? 'image'}
+        onConfirm={confirmPendingCheck}
+        onBack={() => setPendingCheck(null)}
+      />
 
       <Dialog open={consentOpen} onClose={() => setConsentOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 800, color: 'text.primary' }}>Antes de enviar seu exame</DialogTitle>
