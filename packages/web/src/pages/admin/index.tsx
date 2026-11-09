@@ -43,6 +43,7 @@ import { ExamsTab } from './ExamsTab';
 import { IaTab } from './IaTab';
 import { UsageTab } from './UsageTab';
 import { UsabilityTab } from './UsabilityTab';
+import { SessionsTab } from './SessionsTab';
 import { ReferralTab } from './ReferralTab';
 import { TechTab } from './TechTab';
 import { AuditTab } from './AuditTab';
@@ -60,6 +61,7 @@ import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlin
 import VideoCameraFrontOutlinedIcon from '@mui/icons-material/VideoCameraFrontOutlined';
 import HandshakeOutlinedIcon from '@mui/icons-material/HandshakeOutlined';
 import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
+import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined';
 
 /** Backoffice Dr. Exame — ISOLADO do app do paciente (/admin é noLayout).
  *  Shell próprio (topbar + sidebar categorizada) com 20 módulos de controle.
@@ -67,6 +69,7 @@ import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
 export type ModuleId =
   | 'overview'
   | 'usabilidade'
+  | 'sessoes'
   | 'referrals'
   | 'users'
   | 'doctors'
@@ -102,6 +105,7 @@ const MODULES: AdminModule[] = [
   // 1. Visão Geral & Growth
   { id: 'overview', label: 'Dashboard Executivo', short: 'Dashboard', icon: <DashboardOutlinedIcon />, group: 'Visão Geral & Growth' },
   { id: 'usabilidade', label: 'Adoção de Funcionalidades', short: 'Adoção', icon: <InsightsOutlinedIcon />, group: 'Visão Geral & Growth' },
+  { id: 'sessoes', label: 'Sessões & Logins', short: 'Sessões', icon: <LoginOutlinedIcon />, group: 'Visão Geral & Growth' },
   { id: 'referrals', label: 'Indicações & MGM', short: 'Indicações', icon: <CardGiftcardOutlinedIcon />, group: 'Visão Geral & Growth' },
   { id: 'feedback', label: 'Opiniões dos Usuários', short: 'Opiniões', icon: <RateReviewOutlinedIcon />, group: 'Visão Geral & Growth' },
 
@@ -574,6 +578,7 @@ export const AdminPage = () => {
           <Container maxWidth="xl" sx={{ px: { xs: 1.5, sm: 2.5, md: 3 }, py: { xs: 2, md: 3 }, maxWidth: '100% !important' }}>
             {mod === 'overview' && <OverviewTab />}
             {mod === 'usabilidade' && <UsabilityTab />}
+            {mod === 'sessoes' && <SessionsTab />}
             {mod === 'referrals' && <ReferralTab onGoToConfig={() => select('config')} />}
             {mod === 'users' && <UsersTab />}
             {mod === 'doctors' && <DoctorsTab />}

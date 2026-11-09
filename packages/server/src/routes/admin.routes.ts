@@ -1102,6 +1102,107 @@ router.post('/users/:id/reset-mfa', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// ===== SESSÕES & LOGINS — histórico de acesso no admin (Fase 1: só leitura) =====
+// audit_log já registra LOGIN_SUCCESS/FAILED/BLOCKED (usuário e médico) com hora,
+// IP e aparelho — aqui só agregamos. Tempo de sessão ("quanto tempo ficou no app")
+// exige heartbeat (Fase 2: lastActiveAt throttled + migration aditiva).
+router.get('/logins/overview', async (req, res, next) => {
+  try {
+    const days = Math.min(90, Math.max(7, Number(req.query.days) || 30));
+    const since = new Date(Date.now() - days * 86_400_000);
+    const rows = await prisma.auditLog.findMany({
+      where: { action: { in: ['LOGIN_SUCCESS', 'LOGIN_FAILED', 'LOGIN_BLOCKED'] }, createdAt: { gte: since } },
+      select: { action: true, actorType: true, actorId: true, createdAt: true, after: true },
+      orderBy: { createdAt: 'asc' },
+      take: 50_000,
+    });
+    const dayMap = new Map<string, { success: number; failed: number }>();
+    const byHour = Array.from({ length: 24 }, () => 0);
+    const byWeekday = Array.from({ length: 7 }, () => 0);
+    const failReasons = new Map<string, number>();
+    const users = new Set<string>();
+    let success = 0, failed = 0, doctors = 0;
+    for (const r of rows) {
+      const ok = r.action === 'LOGIN_SUCCESS';
+      if (ok) {
+        success++;
+        if (r.actorId) users.add(`${r.actorType}:${r.actorId}`);
+        byHour[r.createdAt.getHours()]++;
+        byWeekday[r.createdAt.getDay()]++;
+        if (r.actorType === 'DOCTOR') doctors++;
+      } else {
+        failed++;
+        const reason = String((r.after as any)?.reason ?? 'outro');
+        failReasons.set(reason, (failReasons.get(reason) ?? 0) + 1);
+      }
+      const k = r.createdAt.toISOString().slice(0, 10);
+      const d = dayMap.get(k) ?? { success: 0, failed: 0 };
+      if (ok) d.success++; else d.failed++;
+      dayMap.set(k, d);
+    }
+    // Dias vazios preenchidos — o gráfico não pode ter buraco.
+    const perDay: { day: string; success: number; failed: number }[] = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const k = new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10);
+      perDay.push({ day: k, ...(dayMap.get(k) ?? { success: 0, failed: 0 }) });
+    }
+    res.json({
+      days,
+      totals: { success, failed, users: users.size, doctors },
+      perDay,
+      byHour: byHour.map((count, hour) => ({ hour, count })),
+      byWeekday: byWeekday.map((count, weekday) => ({ weekday, count })), // 0 = domingo
+      failReasons: [...failReasons.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([reason, count]) => ({ reason, count })),
+    });
+  } catch (e) { next(e); }
+});
+
+// Busca de usuário por nome/e-mail (pra abrir a timeline de sessões dele).
+router.get('/logins/user-search', async (req, res, next) => {
+  try {
+    const q = String(req.query.q ?? '').trim();
+    if (q.length < 2) { res.json({ users: [] }); return; }
+    // ADMIN (staff) não aparece na busca. OWNER = dono da conta (o paciente) — aparece.
+    // Filtro em JS: simples e sem ginástica de enum/null no Prisma (máx. 20 linhas).
+    const found = await prisma.user.findMany({
+      where: { OR: [{ email: { contains: q, mode: 'insensitive' } }, { name: { contains: q, mode: 'insensitive' } }] },
+      select: { id: true, name: true, email: true, role: true, lastActiveDay: true, createdAt: true },
+      take: 20,
+      orderBy: { createdAt: 'desc' },
+    });
+    const users = found.filter((u) => u.role !== 'ADMIN').slice(0, 10);
+    res.json({ users });
+  } catch (e) { next(e); }
+});
+
+// Timeline de LOGIN_* de um usuário (últimos 150 eventos, mais recente primeiro).
+router.get('/logins/user/:id', async (req, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const [user, events] = await Promise.all([
+      prisma.user.findUnique({ where: { id }, select: { id: true, name: true, email: true, role: true, lastActiveDay: true, createdAt: true } }),
+      prisma.auditLog.findMany({
+        where: { actorId: id, action: { startsWith: 'LOGIN_' } },
+        select: { action: true, actorType: true, after: true, ip: true, userAgent: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+        take: 150,
+      }),
+    ]);
+    if (!user) { res.status(404).json({ error: 'Usuário não encontrado.' }); return; }
+    res.json({
+      user,
+      events: events.map((e) => ({
+        at: e.createdAt,
+        action: e.action,
+        via: (e.after as any)?.via ?? null,
+        reason: (e.after as any)?.reason ?? null,
+        ip: e.ip,
+        ua: e.userAgent,
+      })),
+    });
+  } catch (e) { next(e); }
+});
+
 // ===== BACKOFFICE — endpoints read-only dos novos módulos (todos atrás de requireAdmin) =====
 
 // MÉDICOS — lista CRM/UF + validação e-mail + pacientes compartilhados ativos + status de bloqueio.
