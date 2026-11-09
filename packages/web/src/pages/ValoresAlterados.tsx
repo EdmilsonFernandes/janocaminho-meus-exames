@@ -22,6 +22,7 @@ import { fmtVal, unitSuffix, plural } from '../utils/format';
 import { refLabel, categorize } from '../utils/medicalData';
 import { priorityOf, maxPriority, isStaleExam, refScaleSuspect, PRIORITY_META, PRIORITY_RANK, priorityText } from '../utils/alertPriority';
 import { CappedExamMarkers } from '../components/CappedExamMarkers';
+import { celebrate } from '../hooks/useCelebrate';
 import { RADIUS } from '../theme';
 import { Frame, FramePanel, FrameFooter } from '@/components/reui/frame';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
@@ -35,6 +36,11 @@ export const ValoresAlteradosPage = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
   const [items, setItems] = useState<AbnItem[]>([]);
+  // Estado atual por analito (dono 09/11): TSH alterado há 3 meses que normalizou
+  // NÃO pode continuar na lista como se estivesse alterado agora. `items` (flat,
+  // todas as ocorrências) continua valendo pro histórico completo.
+  const [current, setCurrent] = useState<any[] | null>(null);
+  const [normalized, setNormalized] = useState<any[]>([]);
   const [examCount, setExamCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [sevFilter, setSevFilter] = useState<'all' | 'importante' | 'moderada' | 'leve'>('all');
@@ -47,7 +53,11 @@ export const ValoresAlteradosPage = () => {
     const h = { Authorization: `Bearer ${token()}` };
     fetch(`${API_URL}/items/abnormal${pid ? `?patientId=${pid}` : ''}`, { headers: h })
       .then((r) => r.json())
-      .then((d) => setItems(d.items ?? []))
+      .then((d) => {
+        setItems(d.items ?? []);
+        setCurrent(d.current ?? null); // null = backend antigo → fallback pro flat
+        setNormalized(d.normalized ?? []);
+      })
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
     fetch(`${API_URL}/exams?_start=0&_end=1${pid ? `&patientId=${pid}` : ''}`, { headers: h })
@@ -56,25 +66,50 @@ export const ValoresAlteradosPage = () => {
       .catch(() => setExamCount(0));
   }, [pid]);
 
-  const groups = useMemo(() => {
+  // FOCO = estado atual (último valor por analito). Fallback pro flat se o backend
+  // ainda não devolver `current` (deploy defasado).
+  const focusItems: AbnItem[] = useMemo(() => (current ?? items) as AbnItem[], [current, items]);
+
+  const groupBy = (list: AbnItem[]) => {
     const map = new Map<string, { examId: string; examTitle: string; performedAt: string | null; requestingDoctor: string | null; items: AbnItem[] }>();
-    for (const it of items) {
+    for (const it of list) {
       if (sevFilter !== 'all' && priorityOf(it) !== sevFilter) continue;
       if (!map.has(it.examId)) map.set(it.examId, { examId: it.examId, examTitle: it.examTitle, performedAt: it.performedAt, requestingDoctor: it.requestingDoctor, items: [] });
       map.get(it.examId)!.items.push(it);
     }
     for (const g of map.values()) g.items.sort((a, b) => PRIORITY_RANK[priorityOf(b)] - PRIORITY_RANK[priorityOf(a)] || categorize(a.nameCanonical).key.localeCompare(categorize(b.nameCanonical).key));
     return [...map.values()].sort((a, b) => PRIORITY_RANK[maxPriority(b.items)] - PRIORITY_RANK[maxPriority(a.items)] || (b.performedAt ?? '').localeCompare(a.performedAt ?? ''));
-  }, [items, sevFilter]);
+  };
+  const groups = useMemo(() => groupBy(focusItems), [focusItems, sevFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Histórico completo (todas as ocorrências alteradas, inclusive as que normalizaram).
+  const histGroups = useMemo(() => groupBy(items), [items, sevFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Resumo por prioridade (contagem total). Itens com faixa suspeita (escala errada) NÃO entram
+  // Resumo por prioridade do ESTADO ATUAL. Itens com faixa suspeita (escala errada) NÃO entram
   // na contagem de prioridade — são exibidos à parte como "conferir faixa" (nunca como 🔴).
   const { counts, suspectCount } = useMemo(() => {
     const c = { importante: 0, moderada: 0, leve: 0 };
     let sc = 0;
-    for (const it of items) { if (refScaleSuspect(it)) { sc++; continue; } c[priorityOf(it)]++; }
+    for (const it of focusItems) { if (refScaleSuspect(it)) { sc++; continue; } c[priorityOf(it)]++; }
     return { counts: c, suspectCount: sc };
-  }, [items]);
+  }, [focusItems]);
+
+  // Normalizações recentes (janela de 90 dias definida pelo server) — momento de celebrar.
+  const normalizedRecent = useMemo(() => normalized.filter((n) => n.withinWindow !== false), [normalized]);
+
+  // ✨ Celebração de normalização (dono 09/11: "parabéns com animação, igual conquista"):
+  // dispara 1× por normalização nova (dedup por paciente+marcador+data do exame que
+  // normalizou). O barramento useCelebrate já tem anti-spam global de 30s.
+  useEffect(() => {
+    if (loading || normalizedRecent.length === 0) return;
+    const seenKey = (n: any) => `dx:normseen:${pid ?? 'me'}:${n.nameCanonical}:${n.normalizedPerformedAt ?? ''}`;
+    const fresh = normalizedRecent.filter((n) => {
+      try { return !localStorage.getItem(seenKey(n)); } catch { return false; }
+    });
+    if (!fresh.length) return;
+    for (const n of fresh) { try { localStorage.setItem(seenKey(n), '1'); } catch { /* ignore */ } }
+    celebrate('marker_normalized', { count: fresh.length, names: fresh[0]?.name });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, normalizedRecent]);
 
   const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
   // "há 2 meses", "há 6 dias", "hoje" — referência relativa pra saber quando foi pedido
@@ -89,11 +124,7 @@ export const ValoresAlteradosPage = () => {
     return `há ${years} ${years === 1 ? 'ano' : 'anos'}`;
   };
 
-  const INITIAL_LIMIT = 3;
   const [showAll, setShowAll] = useState(false);
-
-  const initialGroups = useMemo(() => groups.slice(0, INITIAL_LIMIT), [groups]);
-  const hiddenGroups = useMemo(() => groups.slice(INITIAL_LIMIT), [groups]);
 
   const renderExamAccordion = (g: (typeof groups)[number]) => {
     const mp = maxPriority(g.items);
@@ -163,12 +194,27 @@ export const ValoresAlteradosPage = () => {
         />
       ) : (
         <>
+          {/* Nada fora da faixa AGORA — o momento positivo (antes era só silêncio) */}
+          {focusItems.length === 0 && (
+            <Card sx={{ mb: 2, borderRadius: RADIUS.card, border: '1px solid rgba(32,178,170,0.35)', background: (t) => (t.palette.mode === 'dark' ? 'linear-gradient(135deg, rgba(32,178,170,0.14), rgba(26,36,36,0.9))' : 'linear-gradient(135deg, rgba(32,178,170,0.10), rgba(255,255,255,0.9))') }}>
+              <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                <Typography sx={{ fontWeight: 800, fontSize: 20, fontFamily: 'Poppins, sans-serif' }}>
+                  Nada fora da faixa <Box component="span" sx={{ fontStyle: 'italic', fontFamily: "'Instrument Serif', Georgia, serif", color: 'primary.main' }}>agora</Box> ✨
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  O último valor de cada marcador está dentro da referência. Histórico completo logo abaixo.
+                </Typography>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Painel de Triagem por Prioridade (ReUI Frame) com filtro interativo */}
+          {focusItems.length > 0 && (
           <Frame variant="default" className="mb-3">
             <FramePanel className="p-3.5 sm:p-4 space-y-3">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {([
-                  { key: 'all', label: 'Todos alterados', count: items.length, dot: '#178f89' },
+                  { key: 'all', label: 'Fora da faixa agora', count: focusItems.length, dot: '#178f89' },
                   { key: 'importante', label: 'Importantes', count: counts.importante, dot: '#ef4444' },
                   { key: 'moderada', label: 'Moderadas', count: counts.moderada, dot: '#f59e0b' },
                   { key: 'leve', label: 'Leves', count: counts.leve, dot: '#eab308' },
@@ -208,35 +254,46 @@ export const ValoresAlteradosPage = () => {
                 : 'Nenhum marcador crítico — comente sobre os ajustes moderados ou leves na próxima consulta.'}
             </FrameFooter>
           </Frame>
-
-          {/* Cabeçalho de Contexto & Foco */}
-          {groups.length > INITIAL_LIMIT && (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 0.5, py: 0.75 }}>
-              <Stack direction="row" spacing={0.75} alignItems="center">
-                <AutoAwesomeIcon sx={{ fontSize: 16, color: 'primary.main' }} />
-                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                  {showAll ? `Histórico Completo (${groups.length} exames)` : `Foco: 3 mais relevantes`}
-                </Typography>
-              </Stack>
-              <Chip
-                size="small"
-                label={showAll ? `Exibindo todos (${groups.length})` : `3 de ${groups.length} exames`}
-                sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: (t) => alpha(t.palette.primary.main, 0.1), color: 'primary.main' }}
-              />
-            </Box>
           )}
 
-          {/* Lista com os 3 principais */}
+          {/* ✨ VOLTARAM AO NORMAL — o melhor momento do produto, antes invisível */}
+          {normalizedRecent.length > 0 && (
+            <Card sx={{ mb: 2, borderRadius: RADIUS.card, border: '1px solid rgba(56,189,139,0.4)', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(56,189,139,0.06)' : 'rgba(56,189,139,0.05)') }}>
+              <CardContent sx={{ pb: '16px !important' }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.25 }}>
+                  <AutoAwesomeIcon sx={{ fontSize: 18, color: '#38bd8b' }} />
+                  <Typography sx={{ fontWeight: 800, fontSize: 15.5 }}>
+                    {normalizedRecent.length === 1 ? 'Voltou ao normal' : `${normalizedRecent.length} voltaram ao normal`}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">· dentro da faixa no exame mais recente</Typography>
+                </Stack>
+                <Stack spacing={0.75}>
+                  {normalizedRecent.map((n) => (
+                    <Stack key={n.nameCanonical} direction="row" spacing={1.5} alignItems="center" sx={{ py: 0.6, flexWrap: 'wrap', rowGap: 0.5 }}>
+                      <Typography sx={{ fontWeight: 700, fontSize: 14, minWidth: 110 }}>{n.name}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ '& b': { color: 'text.primary' } }}>
+                        {n.from?.valueText ?? '—'} <Box component="span" sx={{ opacity: 0.6 }}>({fmtDate(n.from?.performedAt)})</Box> → <b>{n.to?.valueText ?? n.to?.valueNumeric ?? '—'}{n.to?.unit ? ` ${n.to.unit}` : ''}</b> ({fmtDate(n.to?.performedAt)})
+                      </Typography>
+                      <Chip size="small" label="de volta à faixa ✨" sx={{ height: 22, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: 'rgba(56,189,139,0.14)', color: '#2b9a6e' }} />
+                    </Stack>
+                  ))}
+                </Stack>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ESTADO ATUAL — todos os exames com algo fora da faixa AGORA (sem fantasmas) */}
           <Stack spacing={1}>
-            {initialGroups.map(renderExamAccordion)}
+            {groups.map(renderExamAccordion)}
           </Stack>
 
-          {/* Exames ocultos com animação de expansão suave */}
-          {hiddenGroups.length > 0 && (
+          {/* Histórico completo — todas as ocorrências alteradas, inclusive as que
+              normalizaram (nada se perde; só deixa de assustar). */}
+          {histGroups.length > 0 && (
             <>
               <Collapse in={showAll} unmountOnExit timeout={300}>
-                <Stack spacing={1} sx={{ pt: 1 }}>
-                  {hiddenGroups.map(renderExamAccordion)}
+                <Stack spacing={1} sx={{ pt: 1, opacity: 0.88 }}>
+                  {histGroups.map(renderExamAccordion)}
                 </Stack>
               </Collapse>
 
@@ -281,17 +338,17 @@ export const ValoresAlteradosPage = () => {
                       </Box>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.25 }}>
-                          {showAll ? 'Recolher para os 3 mais relevantes' : `Histórico de alterações (+${hiddenGroups.length})`}
+                          {showAll ? 'Recolher histórico' : `Histórico de alterações (${histGroups.length} ${histGroups.length === 1 ? 'exame' : 'exames'})`}
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: 11.5 }}>
-                          {showAll ? 'Exibindo todos os exames alterados' : `Toque para expandir todo o histórico`}
+                          {showAll ? 'Exibindo todas as ocorrências, inclusive as que normalizaram' : 'Todas as ocorrências alteradas, inclusive as de antes de normalizar'}
                         </Typography>
                       </Box>
                     </Stack>
                     <Chip
                       size="small"
                       icon={showAll ? <KeyboardArrowUpIcon sx={{ '&&': { fontSize: 16 } }} /> : <KeyboardArrowDownIcon sx={{ '&&': { fontSize: 16 } }} />}
-                      label={showAll ? 'Recolher' : `+${hiddenGroups.length}`}
+                      label={showAll ? 'Recolher' : 'Ver tudo'}
                       color="primary"
                       variant={showAll ? 'outlined' : 'filled'}
                       sx={{

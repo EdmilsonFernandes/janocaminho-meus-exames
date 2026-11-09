@@ -718,7 +718,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     const wantExams = pScopes.includes('exams');
     await Promise.allSettled([
       ...(wantExams ? [get('/exams').then((d) => { if (d && mine()) setExams(d.items ?? []); })] : []),
-      ...(wantExams ? [get('/items/abnormal').then((d) => { if (d && mine()) setAbnormalItems(d.items ?? []); })] : []),
+      ...(wantExams ? [get('/items/abnormal').then((d) => { if (d && mine()) setAbnormalItems(d.current ?? d.items ?? []); })] : []),
       // Atividade 30d (Health Connect do paciente) p/ o tile do resumo — silencioso se não houver.
       ...(wantExams ? [get('/activity').then((d) => { if (d && mine()) setActivity(d?.days ? d : null); })] : []),
       // §12.4: análise de risco + flag "dados novos desde a última análise" (banner no prontuário).
@@ -760,7 +760,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     const wantExams = pScopes.includes('exams');
     await Promise.allSettled([
       ...(wantExams ? [get('/exams').then((d) => { if (d) setExams(d.items ?? []); })] : []),
-      ...(wantExams ? [get('/items/abnormal').then((d) => { if (d) setAbnormalItems(d.items ?? []); })] : []),
+      ...(wantExams ? [get('/items/abnormal').then((d) => { if (d) setAbnormalItems(d.current ?? d.items ?? []); })] : []),
       ...(wantExams ? [get('/activity').then((d) => { if (d) setActivity(d?.days ? d : null); })] : []),
       ...(wantExams ? [get('/risk').then((d) => { if (d) setRiskInfo({ newDataReceived: !!d.newDataReceived, createdAt: d.createdAt ?? null }); })] : []),
       get('/questions').then((d) => { if (d) setQuestions(d.items ?? []); }),

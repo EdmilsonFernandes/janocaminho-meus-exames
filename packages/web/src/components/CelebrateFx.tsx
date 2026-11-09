@@ -42,6 +42,15 @@ const CONFIG: Record<Exclude<CelebrationTrigger, 'first_exam' | 'credits_earned'
     emoji: '⚡',
     title: (d) => (d.delta && d.delta > 0 ? `Score de saúde +${d.delta} desde sua última visita!` : 'Seu score de saúde subiu!'),
   },
+  marker_normalized: {
+    emoji: '✨',
+    title: (d) =>
+      d.count && d.count > 1
+        ? `${d.count} valores voltaram ao normal! Parabéns`
+        : d.names
+          ? `${d.names} voltou ao normal! Parabéns`
+          : 'Valor voltou ao normal! Parabéns',
+  },
 };
 
 export const CelebrateFx = () => {

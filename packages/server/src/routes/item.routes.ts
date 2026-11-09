@@ -346,7 +346,60 @@ router.get('/abnormal', async (req: AuthedRequest, res, next) => {
       include: { exam: { select: { id: true, title: true, performedAt: true, sourceLab: true, requestingDoctor: true, rawExtraction: true } } },
       take: 300,
     })).filter((r) => !isCpfMismatch((r.exam as any).rawExtraction));
-    res.json({ items: rows.map((i) => ({ id: i.id, examId: i.exam.id, name: i.name, nameCanonical: i.nameCanonical, valueText: i.valueText, valueNumeric: i.valueNumeric, unit: i.unit, flag: i.flag, refText: i.refText, refLow: i.refLow, refHigh: i.refHigh, examTitle: i.exam.title, performedAt: i.exam.performedAt, requestingDoctor: i.exam.requestingDoctor || (i.exam.rawExtraction as any)?.requestingDoctor || null })) });
+    const items = rows.map((i) => ({ id: i.id, examId: i.exam.id, name: i.name, nameCanonical: i.nameCanonical, valueText: i.valueText, valueNumeric: i.valueNumeric, unit: i.unit, flag: i.flag, refText: i.refText, refLow: i.refLow, refHigh: i.refHigh, examTitle: i.exam.title, performedAt: i.exam.performedAt, requestingDoctor: i.exam.requestingDoctor || (i.exam.rawExtraction as any)?.requestingDoctor || null }));
+
+    // ── ESTADO ATUAL POR ANALITO (dono 09/11: "TSH alterado há 3 meses não pode
+    // ficar na lista depois que normalizou"). `items` flat segue p/ consumidores
+    // existentes (ExamList/Timeline/Sports); `current`/`normalized` são a visão
+    // smart: último valor por nameCanonical — igual à régua do portal do médico.
+    const allItems = await prisma.examItem.findMany({
+      where: { exam: { patientId: scope, status: 'EXTRACTED' } },
+      orderBy: [{ exam: { performedAt: 'desc' } }, { exam: { createdAt: 'desc' } }],
+      select: { id: true, name: true, nameCanonical: true, valueText: true, valueNumeric: true, unit: true, flag: true, refText: true, refLow: true, refHigh: true, isAbnormal: true, examId: true, exam: { select: { title: true, performedAt: true } } },
+    });
+    type Row = (typeof allItems)[number];
+    const byCanonical = new Map<string, Row[]>();
+    for (const r of allItems) {
+      const k = (r.nameCanonical || '').toUpperCase().trim();
+      if (!k) continue;
+      if (!byCanonical.has(k)) byCanonical.set(k, []);
+      byCanonical.get(k)!.push(r); // desc: [0] é o mais recente
+    }
+    const NORMALIZED_WINDOW_DAYS = 90; // comemora por 90d; depois vira só histórico
+    const current: any[] = [];
+    const normalized: any[] = [];
+    for (const [k, hist] of byCanonical) {
+      const latest = hist[0];
+      if (!latest.isAbnormal) {
+        // última ocorrência ALTERADA antes do latest (pode não existir → nunca alterou)
+        const priorAbn = hist.find((h) => h.isAbnormal);
+        if (priorAbn) {
+          const days = latest.exam.performedAt ? Math.floor((Date.now() - new Date(latest.exam.performedAt).getTime()) / 86_400_000) : null;
+          normalized.push({
+            name: latest.name, nameCanonical: k,
+            from: { valueText: priorAbn.valueText, performedAt: priorAbn.exam.performedAt, flag: priorAbn.flag },
+            to: { valueText: latest.valueText, valueNumeric: latest.valueNumeric, unit: latest.unit, refText: latest.refText, performedAt: latest.exam.performedAt, examTitle: latest.exam.title },
+            normalizedPerformedAt: latest.exam.performedAt,
+            withinWindow: days === null ? true : days <= NORMALIZED_WINDOW_DAYS,
+            abnormalCount: hist.filter((h) => h.isAbnormal).length,
+          });
+        }
+        continue;
+      }
+      const prior = hist[1];
+      current.push({
+        id: latest.id, examId: latest.examId, name: latest.name, nameCanonical: k,
+        valueText: latest.valueText, valueNumeric: latest.valueNumeric, unit: latest.unit,
+        flag: latest.flag, refText: latest.refText, refLow: latest.refLow, refHigh: latest.refHigh,
+        examTitle: latest.exam.title, performedAt: latest.exam.performedAt,
+        prev: prior ? { valueText: prior.valueText, performedAt: prior.exam.performedAt, isAbnormal: prior.isAbnormal } : null,
+        abnormalStreak: (() => { let n = 0; for (const h of hist) { if (h.isAbnormal) n++; else break; } return n; })(),
+        spark: hist.filter((h) => h.valueNumeric != null).slice(0, 6).map((h) => ({ d: h.exam.performedAt, v: h.valueNumeric, abn: h.isAbnormal })).reverse(),
+      });
+    }
+    current.sort((a, b) => (b.performedAt ?? '').localeCompare(a.performedAt ?? ''));
+    normalized.sort((a, b) => (b.normalizedPerformedAt ?? '').localeCompare(a.normalizedPerformedAt ?? ''));
+    res.json({ items, current, normalized });
   } catch (e) { next(e); }
 });
 

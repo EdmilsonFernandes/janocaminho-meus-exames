@@ -32,7 +32,9 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
   // E5.3 — reviews do médico por examItemId (estado de achado; upsert nunca apaga).
   const [reviews, setReviews] = useState<Record<string, ReviewLike>>({});
   const [pendingOnly, setPendingOnly] = useState(false);
-  const [hideNormalized, setHideNormalized] = useState(false);
+  // Foco clínico por padrão (dono 09/11): alterado antigo que JÁ normalizou não
+  // entra na visão inicial — histórico completo continua a 1 clique de distância.
+  const [hideNormalized, setHideNormalized] = useState(true);
 
   useEffect(() => {
     setLoading(true);
@@ -83,10 +85,15 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
     });
   }, [visibleItems]);
 
+  // Contagem pelo ESTADO ATUAL (sem os já normalizados) — resumo nunca conta fantasma.
   const { counts, suspectCount } = useMemo(() => {
     const c = { importante: 0, moderada: 0, leve: 0 };
     let sc = 0;
-    for (const it of items) { if (refScaleSuspect(it)) { sc++; continue; } c[priorityOf(it)]++; }
+    for (const it of items) {
+      if (it.isNormalizedInNewerExam) continue;
+      if (refScaleSuspect(it)) { sc++; continue; }
+      c[priorityOf(it)]++;
+    }
     return { counts: c, suspectCount: sc };
   }, [items]);
 

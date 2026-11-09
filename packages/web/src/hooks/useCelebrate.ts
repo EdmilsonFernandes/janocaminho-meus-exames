@@ -21,6 +21,7 @@ export type CelebrationTrigger =
   | 'goal_reached'      // meta de passos do Health Connect batida HOJE
   | 'premium_activated' // plano premium ativado (compra aprovada de plano)
   | 'score_improved'    // score de saúde subiu desde a última visita
+  | 'marker_normalized' // marcador que estava alterado voltou à faixa (dono 09/11)
   | 'first_exam';       // 1º exame — modal Celebration dedicado (fora do barramento)
 
 export interface CelebrationData {
@@ -30,6 +31,8 @@ export interface CelebrationData {
   delta?: number;
   /** créditos ganhos (credits_earned) */
   amount?: number;
+  /** nome do marcador (marker_normalized, singular) */
+  names?: string;
 }
 
 /** Evento p/ o CelebrateFx escutar (exportado p/ testes). */
