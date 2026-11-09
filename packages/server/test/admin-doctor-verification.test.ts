@@ -118,7 +118,9 @@ describe('admin — KYC do médico (spec §3)', () => {
 
     const first = await api().post(approveUrl(doctor.id)).set(authHeader(a1.token)).send({});
     expect(first.status).toBe(200);
-    expect(first.body).toEqual({ ok: true, status: 'approved' });
+    // Coorte Fundador (landing /para-medicos): o 1º approval cria a regra individual
+    // de 5% junto — o 2º (unchanged) não recria nem regrava nada.
+    expect(first.body).toMatchObject({ ok: true, status: 'approved', founderRule: { created: true, reason: 'created' } });
     await waitMails(email, 'já pode atender', 1);
     await waitAudits(doctor.id, 1);
     const afterFirst = await kycRow(doctor.id);
