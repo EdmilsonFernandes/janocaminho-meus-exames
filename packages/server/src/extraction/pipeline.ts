@@ -5,6 +5,7 @@ import { ExamKind, type ItemFlag } from '@prisma/client';
 import { readPdf, classifyKind, looksLikeMedical } from './pdfutil';
 import { classifyDoc } from './docPatterns';
 import { extractLabPanel, extractLabPanels, extractImaging } from './claude';
+import { ocrPdfPages } from './ocrPdf';
 import { imageToText } from './imageToText';
 import { canonicalName, reconcileScaleFlag, parseNumeric, normalizeUnit, sanitizeUnitInText } from '../utils/normalize';
 import { invalidateHealthSummary } from '../analysis/hs-cache';
@@ -110,6 +111,18 @@ async function runExtractionOnce(examId: string): Promise<void> {
     if (media === 'application/pdf') {
       const r = await readPdf(buffer);
       pageCount = r.pageCount; text = r.text;
+      // PDF-foto (sem camada de texto): rasteriza + OCR por página ANTES de classificar —
+      // caso real 09/11: 14 páginas legíveis, 3 chars no pdftotext → rejeitado sem nem
+      // tentar OCR. O texto OCRizado vira precomputedText da extração (sem retrabalho).
+      if (text.trim().length < 50) {
+        try {
+          const ocr = await ocrPdfPages(buffer);
+          if (ocr.trim().length > 50) {
+            console.log(`[extraction] ${examId}: PDF sem texto → OCR de ${ocr.length} chars (foto-PDF)`);
+            text = ocr;
+          }
+        } catch (e) { console.warn('[extraction] OCR de PDF-foto falhou:', (e as Error).message); }
+      }
     } else {
       try { text = await imageToText(buffer); } catch (e) { console.warn('[extraction] OCR no pre-check falhou:', (e as Error).message); }
     }
@@ -117,7 +130,7 @@ async function runExtractionOnce(examId: string): Promise<void> {
 
     // RAG de padrões: rejeita cedo (msg específica) documentos que claramente NÃO são
     // exame (receita, nota fiscal, RG, rótulo...) — antes de gastar IA.
-    const cls = classifyDoc(text);
+    const cls = classifyDoc(text, { isPdf: media === 'application/pdf' });
     if (!cls.accept && cls.strong) {
       await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: 'not_a_document', extractionError: cls.reason } });
       await refundUploadOnFailure(examId);

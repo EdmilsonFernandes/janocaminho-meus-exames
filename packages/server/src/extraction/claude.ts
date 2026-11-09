@@ -12,6 +12,7 @@ import { pdfToText } from './pdfToText';
 import { imageToText } from './imageToText';
 
 import { pdfToImages } from './pdfToImages';
+import { ocrPdfPages } from './ocrPdf';
 
 /**
  * Cria os blocos de conteúdo (image) a partir do buffer.
@@ -115,7 +116,7 @@ async function createJson(buffer: Buffer, mediaType: string, instruction: string
     let text = precomputedText ?? '';
     if (isPdf) {
       if (!text || text.trim().length < 50) { try { text = await pdfToText(buffer); } catch { /* não é PDF válido */ } }
-      if (!text || text.trim().length < 50) { try { const ocr = await imageToText(buffer); if (ocr && ocr.trim().length > 50) { console.log('[extraction] PDF sem texto → OCR fallback,', ocr.length, 'chars'); text = ocr; } } catch { /* sem tesseract */ } }
+      if (!text || text.trim().length < 50) { try { const ocr = await ocrPdfPages(buffer); if (ocr.trim().length > 50) { console.log('[extraction] PDF sem texto → OCR por páginas,', ocr.length, 'chars'); text = ocr; } } catch { /* sem poppler/tesseract */ } }
     } else {
       if (!text) { try { text = await imageToText(buffer); } catch (e) { console.warn('[extraction] OCR falhou:', (e as Error).message); } }
       if (text && text.trim().length > 50) console.log('[extraction] imagem OCRizada,', text.length, 'chars');

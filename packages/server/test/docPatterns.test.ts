@@ -94,4 +94,12 @@ describe('classifyDoc — indefinidos', () => {
     expect(r.accept).toBe(false);
     expect(r.strong).toBe(true);
   });
+
+  it('vazio em PDF → mensagem de foto-salva-como-PDF (NÃO pede "envie um PDF")', () => {
+    const r = classifyDoc('', { isPdf: true });
+    expect(r.accept).toBe(false);
+    expect(r.strong).toBe(true);
+    expect(r.reason).toMatch(/foto de exame salva como PDF/i);
+    expect(r.reason).not.toMatch(/envie um PDF/);
+  });
 });

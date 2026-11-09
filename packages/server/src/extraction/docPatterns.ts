@@ -35,9 +35,16 @@ const VALID_MEDICAL: RegExp = /(valor(es)? de refer[eê]ncia|faixa de refer|refe
 
 export interface DocClass { accept: boolean; strong: boolean; reason?: string }
 
-export function classifyDoc(text: string): DocClass {
+export function classifyDoc(text: string, opts?: { isPdf?: boolean }): DocClass {
   const t = (text || '').trim();
-  if (!t) return { accept: false, strong: true, reason: 'Não conseguimos ler seu exame 😕 — a imagem ficou difícil de decifrar. Tente o Escanear (a câmera ajusta borda, luz e nitido pra você) ou envie um PDF.' };
+  if (!t) {
+    // Caso real 09/11: PDF de 4,6MB com 3 caracteres extraíveis — FOTO SALVA COMO PDF.
+    // A mensagem antiga pedia "envie um PDF"… e o usuário TINHA enviado um PDF.
+    if (opts?.isPdf) {
+      return { accept: false, strong: true, reason: 'Não conseguimos ler esse PDF 😕 — ele parece ser uma foto de exame salva como PDF (sem texto). Exporte o PDF direto do portal do laboratório, ou use o Escanear (câmera) / foto nítida.' };
+    }
+    return { accept: false, strong: true, reason: 'Não conseguimos ler seu exame 😕 — a imagem ficou difícil de decifrar. Tente o Escanear (a câmera ajusta borda, luz e nitido pra você) ou envie um PDF.' };
+  }
   // 1. Aceita PRIMEIRO se há sinais fortes de exame/laudo — mesmo que o texto
   //    tenha alguma palavra de rejeição (ex.: exame que cita "CPF"/"RG" do paciente).
   //    (Antes checava REJECT antes → exame real caía em "parece RG" = falso positivo.)
