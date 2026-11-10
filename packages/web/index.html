@@ -156,6 +156,24 @@
       .MuiTableContainer-root { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
       /* Evita zoom de inputs no iOS */
       input, select, textarea { font-size: 16px; }
+      /* Prevenção de autofill azul-acinzentado datado no Chrome / Android — estética HealthTech clean */
+      input:-webkit-autofill,
+      input:-webkit-autofill:hover,
+      input:-webkit-autofill:focus,
+      input:-webkit-autofill:active,
+      textarea:-webkit-autofill,
+      textarea:-webkit-autofill:hover,
+      textarea:-webkit-autofill:focus,
+      textarea:-webkit-autofill:active,
+      select:-webkit-autofill,
+      select:-webkit-autofill:hover,
+      select:-webkit-autofill:focus,
+      select:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+        -webkit-text-fill-color: #0f172a !important;
+        caret-color: #0f172a !important;
+        transition: background-color 5000s ease-in-out 0s;
+      }
       /* Menu lateral: labels NUNCA cortam — quebram de linha em vez de truncar */
       .MuiDrawer-paper .MuiListItemText-primary { white-space: normal !important; word-break: break-word !important; overflow: visible !important; text-overflow: clip !important; }
       .MuiDrawer-paper .MuiListItemButton-root { padding-right: 10px; }

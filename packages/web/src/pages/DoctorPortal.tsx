@@ -2095,41 +2095,55 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             />
 
             {supportedTabs.length > 0 && (
-              <Box id="patient-tabs-section" sx={{ position: 'sticky', top: 'env(safe-area-inset-top)', zIndex: 10, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', mx: -2, px: 2, mt: { xs: -0.5, lg: 0 }, mb: 2 }}>
+              <Box id="patient-tabs-section" sx={{ position: 'sticky', top: 'env(safe-area-inset-top)', zIndex: 10, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', mx: -2, px: { xs: 1, sm: 2 }, mt: { xs: -0.5, lg: 0 }, mb: 2 }}>
                 <Tabs
                   /* A aba ativa pode ser um destino de TILE (questions/notes) que não está na
                      barra — value=false evita warning do MUI e mantém nenhuma aba marcada. */
                   value={supportedTabs.includes(tab) ? tab : false}
                   onChange={(_, v) => { setTab(v); setSelExam(null); }}
-                  variant="fullWidth"
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  allowScrollButtonsMobile
                   aria-label="Abas do paciente"
                   sx={{
-                    minHeight: 58,
+                    minHeight: 56,
                     // Assinatura do portal médico: aba ativa em COBRE (no app do paciente é teal).
-                    '& .MuiTabs-indicator': { height: 3, borderRadius: '3px', bgcolor: COPPER.deep },
+                    '& .MuiTabs-indicator': { height: 3, borderRadius: '3px 3px 0 0', bgcolor: COPPER.deep },
                     '& .MuiTabs-scroller': { py: 0.5 },
-                    '& .MuiTabs-flexContainer': { justifyContent: 'space-between' },
+                    '& .MuiTabs-flexContainer': { gap: { xs: 0.5, sm: 1 }, px: { xs: 0.5, sm: 1 } },
                     '& .MuiTab-root': {
-                      // 4 abas agora: MAIORES, com rótulo SEMPRE visível (ícone em cima,
-                      // descrição embaixo) — alvo confortável + clareza de destino.
-                      // minWidth 0 no xs: o padrão do MUI (90px/aba) soma 360px fixos e
-                      // CORTA "Relatório" fora da tela em viewports ≤358px (bug mobile
-                      // reportado: itens da barra inacessíveis à direita). fullWidth +
-                      // minWidth 0 deixa as 4 se dividirem no que houver.
-                      minHeight: 58, px: { xs: 0.5, sm: 1.5 }, py: 1,
-                      minWidth: { xs: 0, sm: 90 }, flex: '1 1 0',
-                      textTransform: 'none', fontWeight: 700,
-                      color: 'text.secondary', flexDirection: 'column', gap: 0.5,
-                      '& .MuiTab-icon': { fontSize: 26 },
-                      '&.Mui-selected': { color: (t: Theme) => copperText(t.palette.mode) },
+                      minHeight: 54,
+                      px: { xs: 1.5, sm: 2 },
+                      py: 0.75,
+                      minWidth: 'auto',
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap',
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      color: 'text.secondary',
+                      flexDirection: 'column',
+                      gap: 0.35,
+                      borderRadius: '8px',
+                      transition: 'all 0.15s ease',
+                      '&:hover': {
+                        bgcolor: 'rgba(0,0,0,0.02)',
+                      },
+                      '& .MuiTab-icon': { fontSize: 22, mb: 0 },
+                      '&.Mui-selected': {
+                        color: (t: Theme) => copperText(t.palette.mode),
+                        fontWeight: 800,
+                      },
+                    },
+                    '& .MuiTabScrollButton-root': {
+                      width: 28,
+                      opacity: 0.7,
+                      '&.Mui-disabled': { opacity: 0.15 },
                     },
                   }}
                 >
                   {supportedTabs.map((s) => {
                     const meta = SCOPE_META[s] || { icon: <DescriptionIcon />, label: s };
                     const count = s === 'exams' ? exams.length : s === 'alterados' ? abnormalStats.total : 0;
-                    // 4 abas: rótulo SEMPRE visível (era icon-only no xs p/ caber 6) — ícone em
-                    // cima, descrição embaixo, contador como sup discreto.
                     return (
                       <Tab
                         key={s}
@@ -2139,14 +2153,24 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         aria-label={`${meta.label}${count > 0 ? ` (${count})` : ''}`}
                         title={meta.label}
                         label={
-                          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, fontSize: { xs: 12, sm: 13 }, lineHeight: 1.2 }}>
+                          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6, fontSize: { xs: 12.5, sm: 13 }, lineHeight: 1.2, whiteSpace: 'nowrap' }}>
                             <Box component="span">{meta.label}</Box>
                             {count > 0 && (
-                              <Box component="sup" sx={{
-                                fontSize: 12, fontWeight: 800, lineHeight: 1,
-                                color: s === 'alterados' && abnormalStats.total > 0 ? 'error.main' : 'text.secondary',
-                                ml: 0.25,
-                              }}>{count}</Box>
+                              <Box
+                                component="span"
+                                sx={{
+                                  fontSize: 11,
+                                  fontWeight: 800,
+                                  lineHeight: 1,
+                                  px: 0.65,
+                                  py: 0.2,
+                                  borderRadius: '999px',
+                                  bgcolor: s === 'alterados' && abnormalStats.total > 0 ? 'rgba(239, 68, 68, 0.12)' : 'rgba(100, 116, 139, 0.12)',
+                                  color: s === 'alterados' && abnormalStats.total > 0 ? 'error.main' : 'text.secondary',
+                                }}
+                              >
+                                {count}
+                              </Box>
                             )}
                           </Box>
                         }

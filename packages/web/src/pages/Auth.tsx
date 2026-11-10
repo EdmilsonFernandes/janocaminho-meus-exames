@@ -105,22 +105,22 @@ const Shell = ({ children, subtitle }: { children: ReactNode; subtitle?: string 
     {/* folha (sheet) — sobe sobre a faixa, cantos arredondados no topo */}
     <Box sx={{
       width: '100%', maxWidth: 430, mx: 'auto', flexGrow: 1,
-      bgcolor: 'background.paper',
-      borderTopLeftRadius: 32, borderTopRightRadius: 32,
+      bgcolor: '#ffffff',
+      borderTopLeftRadius: { xs: 28, sm: 32 }, borderTopRightRadius: { xs: 28, sm: 32 },
       borderTop: '1px solid', borderLeft: '1px solid', borderRight: '1px solid',
-      borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,.07)' : 'rgba(32,178,170,.14)'),
-      boxShadow: '0 -14px 44px rgba(0,60,55,.22)',
+      borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,.07)' : '#e2e8f0'),
+      boxShadow: '0 -10px 30px rgba(15,23,42,0.06)',
       px: { xs: 2.5, sm: 4 }, pt: { xs: 2.5, sm: 3 }, pb: 3,
       animation: `${sheetIn} .5s cubic-bezier(.16,1,.3,1) both`,
     }}>
       {children}
-      <Box sx={{ mt: 3, p: 1.25, borderRadius: '12px', bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-          <Box sx={{ mt: '2px', flexShrink: 0 }}><I.Shield /></Box>
-          <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.primary', lineHeight: 1.45 }}>{translate('auth.lgpd')}</Typography>
+      <Box sx={{ mt: 3, p: 1.5, borderRadius: '12px', bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Box sx={{ flexShrink: 0, display: 'flex', color: '#0d9488' }}><I.Shield /></Box>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#0f172a', lineHeight: 1.45 }}>{translate('auth.lgpd')}</Typography>
         </Box>
-        <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.45, mt: 0.75 }}>
-          <strong>{translate('auth.disclaimer_strong')}</strong> {translate('auth.disclaimer')}
+        <Typography sx={{ fontSize: 11.5, color: '#64748b', lineHeight: 1.5, mt: 0.5 }}>
+          <strong style={{ color: '#475569' }}>{translate('auth.disclaimer_strong')}</strong> {translate('auth.disclaimer')}
         </Typography>
       </Box>
     </Box>
@@ -130,22 +130,68 @@ const Shell = ({ children, subtitle }: { children: ReactNode; subtitle?: string 
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '12px', bgcolor: 'background.paper',
-    '& fieldset': { borderColor: 'divider' },
-    '&:hover fieldset': { borderColor: '#7fcfc6' },
-    '&.Mui-focused fieldset': { borderColor: '#178f89', borderWidth: '1.5px' },
+    borderRadius: '12px',
+    bgcolor: '#ffffff',
+    transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
+    '& fieldset': { borderColor: '#e2e8f0', borderWidth: '1px' },
+    '&:hover fieldset': { borderColor: '#94a3b8' },
+    '&.Mui-focused fieldset': { borderColor: '#0d9488', borderWidth: '1.5px' },
+    '&.Mui-focused': {
+      boxShadow: '0 0 0 3px rgba(13, 148, 136, 0.12)',
+    },
+    '& input': {
+      color: '#0f172a',
+      fontSize: 15,
+      fontWeight: 500,
+      '&:-webkit-autofill': {
+        WebkitBoxShadow: '0 0 0 1000px #ffffff inset !important',
+        WebkitTextFillColor: '#0f172a !important',
+        caretColor: '#0f172a !important',
+      },
+    },
+  },
+  '& .MuiInputLabel-root': {
+    color: '#64748b',
+    fontSize: 14.5,
+    '&.Mui-focused': { color: '#0d9488', fontWeight: 600 },
   },
 } as const;
 
 const primaryBtnSx = {
-  borderRadius: '12px', py: 1.35, fontWeight: 800, textTransform: 'none', fontSize: 16,
-  background: CTA_BG, boxShadow: '0 6px 18px rgba(0,105,92,.32)',
-  '&:hover': { background: CTA_BG_HOVER, boxShadow: '0 8px 22px rgba(0,105,92,.4)' },
+  borderRadius: '12px',
+  py: 1.4,
+  fontWeight: 700,
+  textTransform: 'none',
+  fontSize: 15.5,
+  letterSpacing: '-0.01em',
+  background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+  color: '#ffffff',
+  boxShadow: '0 4px 14px rgba(13, 148, 136, 0.28)',
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    background: 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)',
+    boxShadow: '0 6px 20px rgba(13, 148, 136, 0.38)',
+    transform: 'translateY(-1px)',
+  },
+  '&:active': { transform: 'translateY(0)' },
 } as const;
 
 const tokenBtnSx = {
-  borderRadius: '12px', py: 1.2, fontWeight: 700, textTransform: 'none', fontSize: 15, color: LINK, borderColor: '#178f89',
-  '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(0,121,107,.06)' },
+  borderRadius: '12px',
+  py: 1.25,
+  fontWeight: 700,
+  textTransform: 'none',
+  fontSize: 14.5,
+  color: '#0d9488',
+  borderColor: '#0d9488',
+  borderWidth: '1.5px',
+  bgcolor: '#ffffff',
+  transition: 'all 0.18s ease',
+  '&:hover': {
+    borderColor: '#0f766e',
+    borderWidth: '1.5px',
+    bgcolor: 'rgba(13, 148, 136, 0.05)',
+  },
 } as const;
 
 export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) => {
@@ -348,22 +394,64 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
     <Shell subtitle={role === 'medico' ? translate('auth.doctor_portal') : undefined}>
       {mode === 'password' ? (
         <>
-        {/* Toggle Paciente / Médico — segmented control. Ativo CHAPADO em #178f89 (branco
-            5.3:1 ✓ WCAG, SEM gradiente/shadow) para não disputar o posto de ação primária
-            com o botão Entrar — era o defeito real do toggle antigo. */}
-        <Box sx={{ display: 'flex', p: 0.5, mb: 2, gap: 0.5, borderRadius: '999px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
-          <Button onClick={() => { setRole('paciente'); setErrs({}); }} startIcon={<I.User />} fullWidth
-            sx={{ py: 1.25, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 14, minHeight: 44, transition: 'all .2s',
-              background: role === 'paciente' ? '#178f89' : 'transparent',
-              color: role === 'paciente' ? '#fff' : '#0e6f68',
-              '&:hover': { background: role === 'paciente' ? '#0f766e' : 'rgba(0,121,107,.08)' } }}>
+        {/* Toggle Paciente / Médico — segmented control moderno estilo iOS nativo */}
+        <Box
+          sx={{
+            display: 'flex',
+            p: '4px',
+            mb: 2.5,
+            gap: '4px',
+            borderRadius: '14px',
+            bgcolor: '#f1f5f9',
+            border: '1px solid #e2e8f0',
+          }}
+        >
+          <Button
+            onClick={() => { setRole('paciente'); setErrs({}); }}
+            startIcon={<I.User />}
+            fullWidth
+            disableRipple
+            sx={{
+              py: 1.1,
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: role === 'paciente' ? 700 : 500,
+              fontSize: 14,
+              minHeight: 40,
+              transition: 'all .2s cubic-bezier(0.4, 0, 0.2, 1)',
+              background: role === 'paciente' ? '#ffffff' : 'transparent',
+              color: role === 'paciente' ? '#0f172a' : '#64748b',
+              boxShadow: role === 'paciente' ? '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' : 'none',
+              '&:hover': {
+                background: role === 'paciente' ? '#ffffff' : 'rgba(0,0,0,0.03)',
+                color: role === 'paciente' ? '#0f172a' : '#334155',
+              },
+            }}
+          >
             Paciente
           </Button>
-          <Button onClick={() => { setRole('medico'); setErrs({}); }} startIcon={<I.Doctor />} fullWidth
-            sx={{ py: 1.25, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 14, minHeight: 44, transition: 'all .2s',
-              background: role === 'medico' ? '#178f89' : 'transparent',
-              color: role === 'medico' ? '#fff' : '#0e6f68',
-              '&:hover': { background: role === 'medico' ? '#0f766e' : 'rgba(0,121,107,.08)' } }}>
+          <Button
+            onClick={() => { setRole('medico'); setErrs({}); }}
+            startIcon={<I.Doctor />}
+            fullWidth
+            disableRipple
+            sx={{
+              py: 1.1,
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: role === 'medico' ? 700 : 500,
+              fontSize: 14,
+              minHeight: 40,
+              transition: 'all .2s cubic-bezier(0.4, 0, 0.2, 1)',
+              background: role === 'medico' ? '#ffffff' : 'transparent',
+              color: role === 'medico' ? '#0f766e' : '#64748b',
+              boxShadow: role === 'medico' ? '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' : 'none',
+              '&:hover': {
+                background: role === 'medico' ? '#ffffff' : 'rgba(0,0,0,0.03)',
+                color: role === 'medico' ? '#0f766e' : '#334155',
+              },
+            }}
+          >
             Médico
           </Button>
         </Box>

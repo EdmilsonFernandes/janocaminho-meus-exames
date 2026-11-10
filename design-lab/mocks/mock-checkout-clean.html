@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dr. Exame — Mock Checkout Clean (Inspirado no Stripe Link)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --border-focus: #0d9488;
+      --teal-primary: #0d9488;
+      --teal-hover: #0f766e;
+      --teal-light: rgba(13, 148, 136, 0.08);
+      --green-cta: #10b981;
+      --green-hover: #059669;
+      --radius: 20px;
+      --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
+    }
+
+    [data-theme="dark"] {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #1f2937;
+      --border-focus: #14b8a6;
+      --teal-primary: #14b8a6;
+      --teal-hover: #0d9488;
+      --teal-light: rgba(20, 184, 166, 0.12);
+      --green-cta: #10b981;
+      --green-hover: #059669;
+      --shadow-card: 0 16px 36px -6px rgba(0, 0, 0, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px 16px 48px;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* BARRA SUPERIOR DE CONTROLE DO MOCK */
+    .mock-toolbar {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 10px 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+
+    .mock-toolbar .brand-tag {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--teal-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .theme-toggle-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .theme-toggle-btn:hover {
+      background: var(--teal-light);
+      border-color: var(--teal-primary);
+    }
+
+    /* CONTAINER DO CHECKOUT */
+    .checkout-wrapper {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* CARD DE RESUMO DO PACOTE (TOP) */
+    .order-summary-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+
+    .order-summary-card .pack-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .pack-icon-tile {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0d9488, #059669);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+    }
+
+    .pack-title {
+      font-weight: 800;
+      font-size: 15px;
+      line-height: 1.25;
+      color: var(--text-main);
+    }
+
+    .pack-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pack-tag {
+      background: rgba(16, 185, 129, 0.12);
+      color: #059669;
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 1px 7px;
+      border-radius: 999px;
+    }
+
+    .pack-price {
+      text-align: right;
+    }
+
+    .price-val {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      color: var(--teal-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .price-strike {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    /* CARD PRINCIPAL (ESTILO STRIPE LINK) */
+    .link-checkout-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+    }
+
+    /* HEADER LINK NO CARD */
+    .link-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+
+    .link-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--teal-primary);
+    }
+
+    .link-badge svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .secure-pill {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* CAMPO DE E-MAIL */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .field-input {
+      width: 100%;
+      height: 48px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text-main);
+      padding: 0 14px;
+      font-size: 14px;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .field-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+    }
+
+    /* FORMAS DE PAGAMENTO: LISTA SEGMENTADA CLEAN */
+    .payment-methods-box {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--card-bg);
+    }
+
+    .payment-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.15s ease;
+      position: relative;
+    }
+
+    .payment-option:not(:last-child) {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .payment-option:hover {
+      background-color: var(--teal-light);
+    }
+
+    .payment-option.active {
+      background-color: var(--teal-light);
+    }
+
+    /* RADIO CUSTOMIZADO */
+    .custom-radio {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+
+    .payment-option.active .custom-radio {
+      border-color: var(--teal-primary);
+      background-color: var(--teal-primary);
+    }
+
+    .custom-radio::after {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ffffff;
+      transform: scale(0);
+      transition: transform 0.2s ease;
+    }
+
+    .payment-option.active .custom-radio::after {
+      transform: scale(1);
+    }
+
+    .method-icon {
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-main);
+    }
+
+    .method-title {
+      font-weight: 700;
+      font-size: 14.5px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .method-badge {
+      font-size: 10.5px;
+      font-weight: 800;
+      background: rgba(16, 185, 129, 0.12);
+      color: #059669;
+      padding: 1px 7px;
+      border-radius: 999px;
+    }
+
+    /* LOGOS DE BANDEIRA NO CARTÃO — ESTILO STRIPE ELEMENTS ULTRA PREMIUM */
+    .card-brands {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-badge {
+      width: 40px;
+      height: 26px;
+      border-radius: 5px;
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+
+    .brand-badge:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+      border-color: rgba(0, 0, 0, 0.2);
+    }
+
+    .brand-badge svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    [data-theme="dark"] .brand-badge {
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* FORMULÁRIO DE CARTÃO INLINE (EXPANDE QUANDO CARTÃO É SELECIONADO) */
+    .card-inline-fields {
+      display: none;
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      background: var(--card-bg);
+      animation: expandIn 0.25s ease-out forwards;
+    }
+
+    .card-inline-fields.show {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    @keyframes expandIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .card-num-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .detected-brand-icon {
+      position: absolute;
+      right: 12px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--teal-primary);
+      background: var(--teal-light);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(13, 148, 136, 0.2);
+    }
+
+    .inline-hint {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* BOTÃO PRINCIPAL DE PAGAMENTO */
+    .pay-cta-btn {
+      width: 100%;
+      height: 52px;
+      border-radius: 14px;
+      border: none;
+      background: var(--green-cta);
+      color: #ffffff;
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .pay-cta-btn:hover {
+      background: var(--green-hover);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .pay-cta-btn:active {
+      transform: scale(0.99);
+    }
+
+    /* RODAPÉ DO CHECKOUT */
+    .checkout-footer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+      padding: 0 10px;
+    }
+
+    .footer-terms {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .footer-terms a {
+      color: var(--teal-primary);
+      text-decoration: underline;
+    }
+
+    .vendor-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-top: 4px;
+    }
+
+    /* MODAL DE SUCESSO PIX SIMULADO */
+    .pix-preview-box {
+      display: none;
+      padding: 16px;
+      border-radius: 14px;
+      background: var(--teal-light);
+      border: 1px dashed var(--teal-primary);
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    .pix-preview-box.show {
+      display: block;
+      animation: expandIn 0.25s ease-out;
+    }
+
+    .pix-qr-mock {
+      width: 140px;
+      height: 140px;
+      background: #ffffff;
+      border-radius: 10px;
+      margin: 10px auto;
+      padding: 8px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border);
+    }
+
+    .pix-qr-mock img {
+      width: 100%;
+      height: 100%;
+    }
+
+    .pix-copy-btn {
+      background: var(--teal-primary);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA DE CONTROLE DO MOCK -->
+  <div class="mock-toolbar">
+    <div class="brand-tag">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+      Dr. Exame Checkout Link
+    </div>
+    <button class="theme-toggle-btn" onclick="toggleTheme()">
+      <span id="theme-icon">🌙</span>
+      <span id="theme-text">Modo Escuro</span>
+    </button>
+  </div>
+
+  <div class="checkout-wrapper">
+
+    <!-- RESUMO DO PACOTE -->
+    <div class="order-summary-card">
+      <div class="pack-info">
+        <div class="pack-icon-tile">⚡</div>
+        <div>
+          <div class="pack-title">140 Créditos de IA</div>
+          <div class="pack-sub">
+            14 laudos ou ~70 chats
+            <span class="pack-tag">Mais Popular</span>
+          </div>
+        </div>
+      </div>
+      <div class="pack-price">
+        <div class="price-strike">R$ 34,90</div>
+        <div class="price-val">R$ 24,90</div>
+      </div>
+    </div>
+
+    <!-- CONTAINER CHECKOUT ESTILO LINK -->
+    <div class="link-checkout-card">
+
+      <!-- HEADER LINK -->
+      <div class="link-header">
+        <div class="link-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+          link
+        </div>
+        <div class="secure-pill">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          Checkout Criptografado SSL
+        </div>
+      </div>
+
+      <!-- CAMPO DE E-MAIL -->
+      <div class="field-group">
+        <label class="field-label" for="email">E-mail para recibo e créditos</label>
+        <input class="field-input" type="email" id="email" value="edmilson@exemplo.com" placeholder="seu-email@exemplo.com">
+      </div>
+
+      <!-- FORMAS DE PAGAMENTO -->
+      <div class="field-group">
+        <label class="field-label">Forma de pagamento</label>
+        
+        <div class="payment-methods-box">
+          <!-- OPÇÃO 1: PIX -->
+          <div class="payment-option active" id="opt-pix" onclick="selectMethod('pix')">
+            <div class="custom-radio"></div>
+            <div class="method-icon" style="color: #32BCAD;">
+              <!-- Ícone Oficial Banco Central PIX -->
+              <svg width="22" height="22" viewBox="0 0 512 512" fill="#32BCAD">
+                <path d="M112.57 391.19c20.37 0 39.52-7.93 53.93-22.34l75.48-75.48c5.44-5.44 14.3-5.44 19.74 0l75.87 75.87c14.41 14.41 33.56 22.34 53.93 22.34h17.95l-82.72-82.72c-17.47-17.47-17.47-45.9 0-63.37l83.12-83.12h-18.35c-20.37 0-39.52 7.93-53.93 22.34l-75.87 75.87c-5.44 5.44-14.3 5.44-19.74 0l-75.48-75.48c-14.41-14.41-33.56-22.34-53.93-22.34H94.22l83.12 83.12c17.47 17.47 17.47 45.9 0 63.37l-82.72 82.72h17.95z"/>
+                <path d="M391.52 122.37c-17.47-17.47-45.9-17.47-63.37 0l-16.14 16.14 79.51 79.51 16.14-16.14c17.47-17.47 17.47-45.9 0-63.37l-16.14-16.14zm-271.04 0l-16.14 16.14c-17.47 17.47-17.47 45.9 0 63.37l16.14 16.14 79.51-79.51-16.14-16.14c-17.47-17.47-45.9-17.47-63.37 0zm0 267.26c17.47 17.47 45.9 17.47 63.37 0l16.14-16.14-79.51-79.51-16.14 16.14c-17.47 17.47-17.47 45.9 0 63.37zm271.04 0c17.47-17.47 17.47-45.9 0-63.37l-16.14-16.14-79.51 79.51 16.14 16.14c17.47 17.47 45.9 17.47 63.37 0z"/>
+              </svg>
+            </div>
+            <div class="method-title">
+              Pix
+              <span class="method-badge">⚡ Instantâneo</span>
+            </div>
+          </div>
+
+          <!-- ÁREA DO PIX QUANDO ATIVO -->
+          <div class="pix-preview-box show" id="pix-content">
+            <p style="font-size: 13px; font-weight: 700; color: var(--text-main);">Pague via QR Code ou Copia e Cola</p>
+            <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">Seus créditos caem na sua conta em até 10 segundos após a confirmação.</p>
+            <div class="pix-qr-mock">
+              <!-- QR Code demonstrativo svg -->
+              <svg viewBox="0 0 100 100" width="100%" height="100%">
+                <rect x="10" y="10" width="30" height="30" fill="#0d9488" rx="4"/>
+                <rect x="16" y="16" width="18" height="18" fill="#fff" rx="2"/>
+                <rect x="20" y="20" width="10" height="10" fill="#0d9488"/>
+                <rect x="60" y="10" width="30" height="30" fill="#0d9488" rx="4"/>
+                <rect x="66" y="16" width="18" height="18" fill="#fff" rx="2"/>
+                <rect x="70" y="20" width="10" height="10" fill="#0d9488"/>
+                <rect x="10" y="60" width="30" height="30" fill="#0d9488" rx="4"/>
+                <rect x="16" y="66" width="18" height="18" fill="#fff" rx="2"/>
+                <rect x="20" y="70" width="10" height="10" fill="#0d9488"/>
+                <rect x="50" y="50" width="12" height="12" fill="#0d9488"/>
+                <rect x="70" y="60" width="14" height="10" fill="#0d9488"/>
+                <rect x="60" y="75" width="24" height="12" fill="#0d9488"/>
+              </svg>
+            </div>
+            <button class="pix-copy-btn" onclick="alert('Código Pix copiado!')">
+              📋 Copiar código Pix
+            </button>
+          </div>
+
+          <!-- OPÇÃO 2: CARTÃO ÚNICO (SEM SEPARAR CRÉDITO/DÉBITO) -->
+          <div class="payment-option" id="opt-card" onclick="selectMethod('card')">
+            <div class="custom-radio"></div>
+            <div class="method-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                <line x1="2" y1="10" x2="22" y2="10"></line>
+              </svg>
+            </div>
+            <div class="method-title">
+              Cartão
+            </div>
+            <div class="card-brands">
+              <!-- VISA OFICIAL (120x80) -->
+              <div class="brand-badge" title="Visa">
+                <svg viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="120" height="80" rx="4" fill="white"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M86.6666 44.9375L90.3239 35.0625L92.3809 44.9375H86.6666ZM100.952 52.8375L95.8086 27.1625H88.7383C86.3525 27.1625 85.7723 29.0759 85.7723 29.0759L76.1904 52.8375H82.8868L84.2269 49.0244H92.3947L93.1479 52.8375H100.952Z" fill="#1434CB"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M77.1866 33.5711L78.0952 28.244C78.0952 28.244 75.2896 27.1625 72.3648 27.1625C69.2031 27.1625 61.6955 28.5638 61.6955 35.3738C61.6955 41.7825 70.5071 41.8621 70.5071 45.2266C70.5071 48.5912 62.6034 47.9901 59.9955 45.8676L59.0476 51.4362C59.0476 51.4362 61.8919 52.8375 66.2397 52.8375C70.5869 52.8375 77.1467 50.5544 77.1467 44.3455C77.1467 37.8964 68.2552 37.296 68.2552 34.4921C68.2552 31.6882 74.4602 32.0484 77.1866 33.5711Z" fill="#1434CB"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M54.6517 52.8375H47.6191L52.0144 27.1625H59.0477L54.6517 52.8375Z" fill="#1434CB"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M42.3113 27.1625L35.9217 44.8213L35.1663 41.0185L35.167 41.0199L32.9114 29.4749C32.9114 29.4749 32.6394 27.1625 29.7324 27.1625H19.1709L19.0476 27.5966C19.0476 27.5966 22.2782 28.2669 26.057 30.5326L31.8793 52.8375H38.8617L49.5238 27.1625H42.3113Z" fill="#1434CB"/>
+                </svg>
+              </div>
+
+              <!-- MASTERCARD OFICIAL (120x80) -->
+              <div class="brand-badge" title="Mastercard">
+                <svg viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="120" height="80" rx="4" fill="white"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M49.6521 58.595H70.3479V21.4044H49.6521V58.595Z" fill="#FF5F00"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M98.2675 40.0003C98.2675 53.063 87.6791 63.652 74.6171 63.652C69.0996 63.652 64.0229 61.7624 60 58.5956C65.5011 54.2646 69.0339 47.5448 69.0339 40.0003C69.0339 32.4552 65.5011 25.7354 60 21.4044C64.0229 18.2376 69.0996 16.348 74.6171 16.348C87.6791 16.348 98.2675 26.937 98.2675 40.0003Z" fill="#F79E1B"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M50.966 40.0003C50.966 32.4552 54.4988 25.7354 59.9999 21.4044C55.977 18.2376 50.9003 16.348 45.3828 16.348C32.3208 16.348 21.7324 26.937 21.7324 40.0003C21.7324 53.063 32.3208 63.652 45.3828 63.652C50.9003 63.652 55.977 61.7624 59.9999 58.5956C54.4988 54.2646 50.966 47.5448 50.966 40.0003Z" fill="#EB001B"/>
+                </svg>
+              </div>
+
+              <!-- ELO OFICIAL (120x80) -->
+              <div class="brand-badge" title="Elo">
+                <svg viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="120" height="80" rx="4" fill="black"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M27.708 30.5C28.695 30.1667 29.7508 29.9857 30.8495 29.9857C35.6441 29.9857 39.6435 33.4274 40.561 37.9996L47.3554 36.5996C45.7964 28.8289 38.9996 22.9796 30.8495 22.9796C28.9835 22.9796 27.1874 23.2868 25.5107 23.8527L27.708 30.5Z" fill="#FFF200"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M19.6909 52.7489L24.2846 47.5005C22.2341 45.6653 20.9399 42.9861 20.9399 39.9996C20.9399 37.0154 22.2329 34.3361 24.2828 32.5023L19.6867 27.2545C16.2025 30.3725 14.0068 34.9269 14.0068 39.9996C14.0068 45.0749 16.2057 49.631 19.6909 52.7489Z" fill="#00A4E0"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M40.5582 42.0099C39.6375 46.5784 35.6401 50.0137 30.8491 50.0137C29.7498 50.0137 28.6918 49.8323 27.7046 49.4981L25.5039 56.1447C27.1834 56.713 28.9803 57.0204 30.8491 57.0204C38.9928 57.0204 45.7859 51.1787 47.3513 43.416L40.5582 42.0099Z" fill="#EF4123"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M69.9706 46.706C68.8486 47.8089 67.3272 48.4809 65.6473 48.4568C64.4959 48.4373 63.429 48.0889 62.5219 47.5084L60.2731 51.1297C61.8132 52.1136 63.6292 52.6957 65.5869 52.7264C68.4367 52.7692 71.0341 51.6378 72.9227 49.7697L69.9706 46.706ZM59.7284 42.9824C59.7029 42.7418 59.6849 42.4951 59.6917 42.2461C59.7451 38.867 62.4965 36.1707 65.8375 36.2267C67.6561 36.2513 69.2709 37.0929 70.3625 38.3955L59.7284 42.9824ZM65.8988 31.9527C60.228 31.8648 55.5546 36.443 55.469 42.1784C55.4359 44.3279 56.0505 46.3378 57.1318 48.0084L75.7472 39.9676C74.6998 35.436 70.7119 32.029 65.8988 31.9527ZM81.5867 27.2724V47.3281L85.0304 48.7707L83.4013 52.7264L79.9958 51.2958C79.2301 50.9602 78.7119 50.4489 78.3181 49.8714C77.9401 49.2806 77.6598 48.473 77.6598 47.3833V27.2724H81.5867ZM94.0011 36.5405C94.6034 36.3362 95.2481 36.2266 95.9188 36.2266C98.8453 36.2266 101.286 38.3268 101.845 41.1183L105.993 40.2637C105.042 35.5205 100.893 31.9499 95.9188 31.9499C94.7791 31.9499 93.6838 32.1374 92.6611 32.4825L94.0011 36.5405ZM89.1084 50.12L91.9112 46.9168C90.6594 45.7968 89.8712 44.161 89.8712 42.3378C89.8712 40.5164 90.6594 38.8814 91.91 37.7622L89.1052 34.5591C86.9788 36.4623 85.6391 39.2432 85.6391 42.3378C85.6391 45.4363 86.9798 48.2162 89.1084 50.12ZM101.845 43.5654C101.283 46.3528 98.8426 48.4512 95.9187 48.4512C95.2475 48.4512 94.6024 48.3398 93.9991 48.1361L92.656 52.1926C93.6815 52.5394 94.7781 52.7275 95.9187 52.7275C100.888 52.7275 105.036 49.1617 105.992 44.4236L101.845 43.5654Z" fill="white"/>
+                </svg>
+              </div>
+
+              <!-- AMEX OFICIAL (120x80) -->
+              <div class="brand-badge" title="American Express">
+                <svg viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="120" height="80" rx="4" fill="#006FCF"/>
+                  <rect x="8" y="10" width="104" height="60" rx="3" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"/>
+                  <text x="60" y="47" font-family="'Arial Black', 'Impact', sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle" letter-spacing="2">AMEX</text>
+                </svg>
+              </div>
+
+              <!-- HIPERCARD OFICIAL (120x80) -->
+              <div class="brand-badge" title="Hipercard">
+                <svg viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="120" height="80" rx="4" fill="white"/>
+                  <path d="M90.2165 60.5524C94.9703 60.5524 99.1212 59.0903 100.076 54.3889C101.03 49.6875 107.242 19.4501 107.242 19.4501H29.7672C25.0095 19.4501 20.8433 21.1439 19.9061 25.611C18.9676 30.0768 12.7593 60.546 12.7593 60.546L90.2165 60.5524Z" fill="#B3131B"/>
+                  <text x="60" y="46" font-family="'Arial Black', sans-serif" font-weight="900" font-style="italic" font-size="14" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">HIPER</text>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- CAMPOS INLINE DE CARTÃO -->
+          <div class="card-inline-fields" id="card-fields">
+            <div class="field-group">
+              <label class="field-label" style="font-size: 12px;">Informações do cartão</label>
+              <div class="card-num-input-wrap">
+                <input class="field-input" type="text" id="card-num" placeholder="1234 5678 9012 3456" maxlength="19" oninput="handleCardInput(this)">
+                <span class="detected-brand-icon" id="brand-indicator">Detecção Auto</span>
+              </div>
+            </div>
+
+            <div class="input-row">
+              <div class="field-group" style="flex: 1;">
+                <input class="field-input" type="text" placeholder="MM / AA" maxlength="5" oninput="formatExpiry(this)">
+              </div>
+              <div class="field-group" style="flex: 1;">
+                <input class="field-input" type="password" placeholder="CVV" maxlength="4">
+              </div>
+            </div>
+
+            <div class="field-group">
+              <input class="field-input" type="text" placeholder="Nome impresso no cartão">
+            </div>
+
+            <div class="input-row">
+              <div class="field-group" style="flex: 1.2;">
+                <input class="field-input" type="text" placeholder="CPF do titular" maxlength="14" oninput="formatCpf(this)">
+              </div>
+              <div class="field-group" style="flex: 1;">
+                <input class="field-input" type="text" placeholder="CEP" maxlength="9" oninput="formatCep(this)">
+              </div>
+            </div>
+
+            <div class="inline-hint">
+              🔒 O tipo de cartão (crédito ou débito) e bandeira são identificados automaticamente pelo número.
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- BOTÃO PRINCIPAL DE PAGAMENTO -->
+      <button class="pay-cta-btn" id="pay-btn" onclick="handlePayAction()">
+        Pagar com Pix · R$ 24,90
+      </button>
+
+    </div>
+
+    <!-- RODAPÉ COMPACTO -->
+    <div class="checkout-footer">
+      <p class="footer-terms">
+        Ao confirmar seu pedido, você concorda com os <a href="#">Termos de Uso</a> e a <a href="#">Política de Privacidade</a> do Dr. Exame. Seus créditos não expiram.
+      </p>
+      <div class="vendor-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2.5">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Ambiente Seguro Dr. Exame & Asaas
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let activeMethod = 'pix';
+
+    function selectMethod(method) {
+      activeMethod = method;
+      const optPix = document.getElementById('opt-pix');
+      const optCard = document.getElementById('opt-card');
+      const pixContent = document.getElementById('pix-content');
+      const cardFields = document.getElementById('card-fields');
+      const payBtn = document.getElementById('pay-btn');
+
+      if (method === 'pix') {
+        optPix.classList.add('active');
+        optCard.classList.remove('active');
+        pixContent.classList.add('show');
+        cardFields.classList.remove('show');
+        payBtn.innerText = 'Pagar com Pix · R$ 24,90';
+        payBtn.style.background = 'var(--green-cta)';
+      } else {
+        optCard.classList.add('active');
+        optPix.classList.remove('active');
+        pixContent.classList.remove('show');
+        cardFields.classList.add('show');
+        payBtn.innerText = 'Pagar R$ 24,90';
+        payBtn.style.background = 'var(--teal-primary)';
+      }
+    }
+
+    function handleCardInput(el) {
+      let v = el.value.replace(/\D/g, '').slice(0, 16);
+      v = v.replace(/(\d{4})(?=\d)/g, '$1 ');
+      el.value = v;
+
+      const raw = v.replace(/\s/g, '');
+      const ind = document.getElementById('brand-indicator');
+      if (raw.startsWith('4')) {
+        ind.innerText = 'VISA';
+        ind.style.color = '#1a1f71';
+      } else if (/^(5[1-5]|2[2-7])/.test(raw)) {
+        ind.innerText = 'MASTERCARD';
+        ind.style.color = '#eb001b';
+      } else if (/^(4011|4312|4389|4514|5041|5066|6277|6500)/.test(raw)) {
+        ind.innerText = 'ELO';
+        ind.style.color = '#00a4e8';
+      } else if (/^3[47]/.test(raw)) {
+        ind.innerText = 'AMEX';
+        ind.style.color = '#007bc1';
+      } else if (raw.length > 0) {
+        ind.innerText = 'Cartão Válido';
+        ind.style.color = 'var(--teal-primary)';
+      } else {
+        ind.innerText = 'Detecção Auto';
+        ind.style.color = 'var(--text-muted)';
+      }
+    }
+
+    function formatExpiry(el) {
+      let v = el.value.replace(/\D/g, '').slice(0, 4);
+      if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
+      el.value = v;
+    }
+
+    function formatCpf(el) {
+      let v = el.value.replace(/\D/g, '').slice(0, 11);
+      v = v.replace(/(\d{3})(\d)/, '$1.$2');
+      v = v.replace(/(\d{3})(\d)/, '$1.$2');
+      v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      el.value = v;
+    }
+
+    function formatCep(el) {
+      let v = el.value.replace(/\D/g, '').slice(0, 8);
+      if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
+      el.value = v;
+    }
+
+    function toggleTheme() {
+      const isDark = document.body.getAttribute('data-theme') === 'dark';
+      document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('theme-icon').innerText = isDark ? '🌙' : '☀️';
+      document.getElementById('theme-text').innerText = isDark ? 'Modo Escuro' : 'Modo Claro';
+    }
+
+    function handlePayAction() {
+      if (activeMethod === 'pix') {
+        alert('🎉 PIX selecionado! Em um ambiente real, o QR Code é verificado e os 140 créditos são liberados automaticamente no webhook.');
+      } else {
+        const num = document.getElementById('card-num').value;
+        if (!num || num.replace(/\s/g, '').length < 13) {
+          alert('Por favor, informe o número completo do cartão.');
+          return;
+        }
+        alert('💳 Pagamento processado com sucesso! Cartão aprovado via Asaas e 140 créditos adicionados à sua conta.');
+      }
+    }
+  </script>
+</body>
+</html>

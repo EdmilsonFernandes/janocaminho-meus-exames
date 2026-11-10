@@ -474,7 +474,7 @@ export const ClinicalRiskCard = ({
         )}
       </Box>
 
-      {/* FAIXA COMPACTA QUANDO RECOLHIDO — Botão e chips de alta affordance REUI */}
+      {/* LISTA DE ATENÇÃO PADRONIZADA (PADRÃO HEALTHTECH CLEAN) */}
       {!expanded && topCurrentHighlights.length > 0 && (
         <Box
           sx={{
@@ -484,87 +484,121 @@ export const ClinicalRiskCard = ({
           }}
         >
           <Box
-            sx={(t) => ({
-              p: 1.25,
+            sx={{
+              p: 1.5,
               borderRadius: '14px',
-              bgcolor: isDark ? alpha(t.palette.warning.main, 0.06) : alpha(t.palette.warning.main, 0.04),
+              bgcolor: isDark ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
               border: '1px solid',
-              borderColor: alpha(t.palette.warning.main, 0.25),
-              display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
-              alignItems: { xs: 'stretch', md: 'center' },
-              justifyContent: 'space-between',
-              gap: 1.25,
-            })}
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
+            }}
           >
-            {/* Lista dos primeiros marcadores alterados */}
-            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.65, flex: 1, minWidth: 0 }}>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', mr: 0.25, fontSize: 11.5, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-                <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'warning.main', display: 'inline-block' }} />
-                Fora da faixa ({riskAnalysis.totalCurrentAbnormal}):
+            {/* Cabeçalho da Lista de Atenção */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, pb: 0.75, borderBottom: '1px solid', borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 11, display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                <Box component="span" sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: 'error.main', display: 'inline-block' }} />
+                Lista de Atenção · Principais Marcadores
               </Typography>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'error.main', fontSize: 11.5 }}>
+                {riskAnalysis.totalCurrentAbnormal} fora da faixa
+              </Typography>
+            </Box>
+
+            {/* Linhas limpas (List.Item) escaneáveis em segundos */}
+            <Stack spacing={0.75}>
               {topCurrentHighlights.slice(0, 3).map((it: any) => {
                 const rawVal = String(it.valueText ?? it.valueNumeric ?? '').trim();
                 const rawUnit = String(it.unit ?? '').trim();
                 const valHasLetters = /[a-zA-Z%µ]/.test(rawVal);
                 const valAlreadyHasUnit = !!(rawUnit && rawVal.toLowerCase().includes(rawUnit.toLowerCase()));
                 const displayVal = (rawUnit && !valHasLetters && !valAlreadyHasUnit) ? `${rawVal} ${rawUnit}` : rawVal;
+
+                const vNum = Number(it.valueNumeric);
+                const rHi = Number(it.refHigh);
+                const rLo = Number(it.refLow);
+                const isHigh = Number.isFinite(vNum) && Number.isFinite(rHi) && vNum > rHi;
+                const isLow = Number.isFinite(vNum) && Number.isFinite(rLo) && vNum < rLo;
+
                 return (
-                  <Chip
+                  <Box
                     key={it.id || it.name}
-                    size="small"
-                    label={`${it.name}: ${displayVal}`.trim()}
                     sx={{
-                      height: 22,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      bgcolor: isDark ? alpha(theme.palette.warning.main, 0.15) : '#ffffff',
-                      color: 'text.primary',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      py: 0.65,
+                      px: 1.25,
+                      borderRadius: '8px',
+                      bgcolor: isDark ? 'rgba(255,255,255,0.02)' : '#ffffff',
                       border: '1px solid',
-                      borderColor: alpha(theme.palette.warning.main, 0.35),
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                      borderColor: isDark ? 'rgba(255,255,255,0.04)' : '#edf2f7',
                     }}
-                  />
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0, pr: 1 }}>
+                      <Box
+                        component="span"
+                        sx={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: '50%',
+                          flexShrink: 0,
+                          bgcolor: isHigh ? 'error.main' : isLow ? 'warning.main' : 'error.main',
+                        }}
+                      />
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: 13,
+                          color: 'text.primary',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {it.name}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 800, fontSize: 13, color: isHigh ? 'error.main' : 'text.primary' }}>
+                        {displayVal}
+                      </Typography>
+                      {isHigh && <Typography component="span" sx={{ fontSize: 13, fontWeight: 800, color: 'error.main', lineHeight: 1 }}>↑</Typography>}
+                      {isLow && <Typography component="span" sx={{ fontSize: 13, fontWeight: 800, color: 'warning.main', lineHeight: 1 }}>↓</Typography>}
+                    </Box>
+                  </Box>
                 );
               })}
-            </Box>
+            </Stack>
 
-            {/* BOTÃO PREMIUM REUI: Ação explícita pro médico clicar e ver todos */}
-            <Button
-              variant="contained"
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onNavigateToAlterados) {
-                  onNavigateToAlterados('alterados');
-                } else {
-                  setExpanded(true);
-                }
-              }}
-              sx={{
-                flexShrink: 0,
-                height: 32,
-                px: 1.75,
-                borderRadius: '999px',
-                textTransform: 'none',
-                fontWeight: 800,
-                fontSize: 11.5,
-                background: isDark
-                  ? `linear-gradient(135deg, ${COPPER.light}, ${COPPER.mid})`
-                  : `linear-gradient(135deg, ${COPPER.deep}, #b45309)`,
-                color: '#ffffff',
-                boxShadow: isDark
-                  ? '0 4px 12px rgba(217,119,6,0.25)'
-                  : '0 4px 12px rgba(180,83,9,0.20)',
-                '&:hover': {
-                  background: isDark
-                    ? `linear-gradient(135deg, ${COPPER.mid}, ${COPPER.deep})`
-                    : `linear-gradient(135deg, #b45309, #92400e)`,
-                },
-              }}
-            >
-              Ver {riskAnalysis.totalCurrentAbnormal} exames alterados →
-            </Button>
+            {/* Ação clean para ver todos sem poluição */}
+            <Box sx={{ mt: 1.25, pt: 0.75, borderTop: '1px solid', borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onNavigateToAlterados) {
+                    onNavigateToAlterados('alterados');
+                  } else {
+                    setExpanded(true);
+                  }
+                }}
+                endIcon={<ArrowForwardIcon sx={{ fontSize: 15 }} />}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  fontSize: 12.5,
+                  color: '#0d9488',
+                  p: '2px 8px',
+                  borderRadius: '6px',
+                  '&:hover': {
+                    bgcolor: 'rgba(13, 148, 136, 0.08)',
+                  },
+                }}
+              >
+                Ver todos os {riskAnalysis.totalCurrentAbnormal} exames alterados
+              </Button>
+            </Box>
           </Box>
         </Box>
       )}
