@@ -63,6 +63,28 @@ describe('admin — Sessões & Logins (Fase 1, leitura do audit_log)', () => {
     expect(t.body.events[1].action).toBe('LOGIN_BLOCKED');
   });
 
+  it('logins do dono (EXCLUDE_LOGIN_EMAILS) NÃO contam nas métricas', async () => {
+    process.env.EXCLUDE_LOGIN_EMAILS = 'dono@exemplo.com';
+    try {
+      const admin = await mkUser('ADMIN');
+      const dono = await prisma.user.create({
+        data: { email: 'dono@exemplo.com', name: 'Dono', passwordHash: 'x', credits: 0, emailVerified: true },
+        select: { id: true },
+      });
+      const u = await mkUser();
+      const at = new Date(Date.now() - 60_000);
+      await audit({ action: 'LOGIN_SUCCESS', actorType: 'USER', actorId: dono.id, targetType: 'USER', targetId: dono.id, after: { email: 'dono@exemplo.com' }, createdAt: at });
+      await audit({ action: 'LOGIN_SUCCESS', actorType: 'USER', actorId: u.id, targetType: 'USER', targetId: u.id, after: { email: u.email }, createdAt: at });
+      const r = await api().get('/api/admin/logins/overview?days=7').set(authTokenHeader(admin.id));
+      expect(r.body.totals).toMatchObject({ success: 1, users: 1 });
+      // o dia do gráfico também só tem o sucesso do usuário real
+      const last = r.body.perDay[6];
+      expect(last.success).toBe(1);
+    } finally {
+      delete process.env.EXCLUDE_LOGIN_EMAILS;
+    }
+  });
+
   it('exige admin (403 pra usuário comum)', async () => {
     const u = await mkUser();
     const r = await api().get('/api/admin/logins/overview').set(authTokenHeader(u.id));

@@ -1116,6 +1116,11 @@ router.get('/logins/overview', async (req, res, next) => {
       orderBy: { createdAt: 'asc' },
       take: 50_000,
     });
+    // Logins de STAFF/dono (testes diários) não contaminam as métricas — o gráfico
+    // conta USUÁRIO REAL. Configurável via env (lista de e-mails, vírgula); a
+    // timeline individual continua mostrando tudo (inclusive staff, p/ debug).
+    const EXCLUDED_EMAILS = (process.env.EXCLUDE_LOGIN_EMAILS ?? 'edmls2008@gmail.com')
+      .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
     const dayMap = new Map<string, { success: number; failed: number }>();
     const byHour = Array.from({ length: 24 }, () => 0);
     const byWeekday = Array.from({ length: 7 }, () => 0);
@@ -1123,6 +1128,8 @@ router.get('/logins/overview', async (req, res, next) => {
     const users = new Set<string>();
     let success = 0, failed = 0, doctors = 0;
     for (const r of rows) {
+      const rowEmail = String((r.after as any)?.email ?? '').toLowerCase();
+      if (rowEmail && EXCLUDED_EMAILS.includes(rowEmail)) continue;
       const ok = r.action === 'LOGIN_SUCCESS';
       if (ok) {
         success++;
