@@ -115,6 +115,15 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
   }, [items]);
 
   const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
+  const fmtDateShort = (d?: string | null) => {
+    if (!d) return 's/d';
+    try {
+      const dt = new Date(d);
+      return isNaN(dt.getTime()) ? 's/d' : dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    } catch {
+      return 's/d';
+    }
+  };
 
   // Carrossel vivo (dono 10/11): auto-avanço 3s com pausas + drag com mouse na web.
   const normRef = useRef<HTMLDivElement>(null);
@@ -384,30 +393,58 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
               }}>
                 {normalizedList.map((n) => (
                   <Card key={n.nameCanonical} sx={{
-                    scrollSnapAlign: 'center', flex: { xs: '0 0 76%', sm: '0 0 268px' }, maxWidth: 320,
-                    borderRadius: '16px', border: '1px solid rgba(56,189,139,0.35)',
+                    scrollSnapAlign: 'center',
+                    flex: { xs: '0 0 80%', sm: '0 0 280px' },
+                    minWidth: { xs: 260, sm: 275 },
+                    maxWidth: 320,
+                    borderRadius: '16px',
+                    border: '1px solid rgba(56,189,139,0.35)',
                     background: (t) => (t.palette.mode === 'dark'
                       ? 'linear-gradient(150deg, rgba(56,189,139,0.13), rgba(15,23,42,0.96))'
                       : 'linear-gradient(150deg, rgba(56,189,139,0.11), rgba(255,255,255,0.97))'),
+                    display: 'flex',
+                    flexDirection: 'column',
                   }}>
                     <CardContent sx={{ p: 2, '&:last-child': { pb: 2 }, display: 'flex', flexDirection: 'column', gap: 0.75, height: '100%' }}>
                       <Typography sx={{ fontWeight: 800, fontSize: 13, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={n.name}>
                         {n.name}
                       </Typography>
-                      <Stack direction="row" spacing={0.75} alignItems="baseline" flexWrap="wrap" sx={{ rowGap: 0.25 }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', textDecoration: 'line-through', textDecorationColor: 'rgba(239,68,68,0.55)' }}>
+                      <Stack direction="row" spacing={0.75} alignItems="baseline" flexWrap="nowrap" sx={{ rowGap: 0.25 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', textDecoration: 'line-through', textDecorationColor: 'rgba(239,68,68,0.55)', whiteSpace: 'nowrap' }}>
                           {n.from}
                         </Typography>
-                        <KeyboardArrowDownIcon sx={{ transform: 'rotate(-90deg)', fontSize: 13, color: '#059669', alignSelf: 'center' }} />
-                        <Typography sx={{ fontWeight: 800, fontSize: 15.5, color: '#059669', fontFamily: 'Poppins, sans-serif' }}>
+                        <KeyboardArrowDownIcon sx={{ transform: 'rotate(-90deg)', fontSize: 13, color: '#059669', alignSelf: 'center', flexShrink: 0 }} />
+                        <Typography sx={{ fontWeight: 800, fontSize: 15.5, color: '#059669', fontFamily: 'Poppins, sans-serif', whiteSpace: 'nowrap' }}>
                           {n.to}
                         </Typography>
                       </Stack>
-                      <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="space-between" sx={{ mt: 'auto' }}>
-                        <Typography variant="caption" color="text.secondary">
-                          {fmtDate(n.fromAt)} → <b style={{ color: 'text.primary' }}>{fmtDate(n.toAt)}</b>
+                      <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" sx={{ mt: 'auto', pt: 0.5 }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap', fontSize: '0.75rem', flexShrink: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {fmtDateShort(n.fromAt)} → <b style={{ color: 'text.primary' }}>{fmtDateShort(n.toAt)}</b>
                         </Typography>
-                        <Chip size="small" label="na faixa ✓" sx={{ height: 21, fontWeight: 800, borderRadius: '999px', bgcolor: 'rgba(16,185,129,0.14)', color: '#059669' }} />
+                        <Chip
+                          size="small"
+                          icon={<AutoAwesomeIcon sx={{ fontSize: '12px !important', color: '#059669 !important' }} />}
+                          label="Na faixa"
+                          sx={{
+                            height: 22,
+                            fontWeight: 800,
+                            fontSize: '0.72rem',
+                            borderRadius: '999px',
+                            bgcolor: 'rgba(16,185,129,0.14)',
+                            color: '#059669',
+                            flexShrink: 0,
+                            whiteSpace: 'nowrap',
+                            '& .MuiChip-label': {
+                              px: 0.75,
+                              whiteSpace: 'nowrap',
+                            },
+                            '& .MuiChip-icon': {
+                              ml: 0.75,
+                              mr: -0.25,
+                            },
+                          }}
+                        />
                       </Stack>
                     </CardContent>
                   </Card>

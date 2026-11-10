@@ -113,6 +113,15 @@ export const ValoresAlteradosPage = () => {
   }, [loading, normalizedRecent]);
 
   const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
+  const fmtDateShort = (d?: string | null) => {
+    if (!d) return 's/d';
+    try {
+      const dt = new Date(d);
+      return isNaN(dt.getTime()) ? 's/d' : dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    } catch {
+      return 's/d';
+    }
+  };
   // "há 2 meses", "há 6 dias", "hoje" — referência relativa pra saber quando foi pedido
   const timeAgo = (d?: string | null) => {
     if (!d) return '';
@@ -286,7 +295,8 @@ export const ValoresAlteradosPage = () => {
                 {normalizedRecent.map((n) => (
                   <Card key={n.nameCanonical} sx={{
                     scrollSnapAlign: 'center',
-                    flex: { xs: '0 0 76%', sm: '0 0 268px' },
+                    flex: { xs: '0 0 80%', sm: '0 0 280px' },
+                    minWidth: { xs: 260, sm: 275 },
                     maxWidth: 320,
                     borderRadius: RADIUS.card,
                     border: '1px solid rgba(56,189,139,0.35)',
@@ -300,20 +310,42 @@ export const ValoresAlteradosPage = () => {
                         {n.name}
                       </Typography>
                       {/* valueText JÁ vem com unidade — nunca concatenar de novo */}
-                      <Stack direction="row" spacing={0.75} alignItems="baseline" flexWrap="wrap" sx={{ rowGap: 0.25 }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', textDecoration: 'line-through', textDecorationColor: 'rgba(239,68,68,0.55)' }}>
+                      <Stack direction="row" spacing={0.75} alignItems="baseline" flexWrap="nowrap" sx={{ rowGap: 0.25 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', textDecoration: 'line-through', textDecorationColor: 'rgba(239,68,68,0.55)', whiteSpace: 'nowrap' }}>
                           {n.from?.valueText ?? '—'}
                         </Typography>
-                        <KeyboardArrowDownIcon sx={{ transform: 'rotate(-90deg)', fontSize: 14, color: '#2b9a6e', alignSelf: 'center' }} />
-                        <Typography sx={{ fontWeight: 800, fontSize: 16.5, color: '#2b9a6e', fontFamily: 'Poppins, sans-serif' }}>
+                        <KeyboardArrowDownIcon sx={{ transform: 'rotate(-90deg)', fontSize: 14, color: '#2b9a6e', alignSelf: 'center', flexShrink: 0 }} />
+                        <Typography sx={{ fontWeight: 800, fontSize: 16.5, color: '#2b9a6e', fontFamily: 'Poppins, sans-serif', whiteSpace: 'nowrap' }}>
                           {n.to?.valueText || [n.to?.valueNumeric, n.to?.unit].filter(Boolean).join(' ') || '—'}
                         </Typography>
                       </Stack>
-                      <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="space-between" sx={{ mt: 'auto' }}>
-                        <Typography variant="caption" color="text.secondary">
-                          {fmtDate(n.from?.performedAt)} → <b style={{ color: 'text.primary' }}>{fmtDate(n.to?.performedAt)}</b>
+                      <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" sx={{ mt: 'auto', pt: 0.5 }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap', fontSize: '0.75rem', flexShrink: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {fmtDateShort(n.from?.performedAt)} → <b style={{ color: 'text.primary' }}>{fmtDateShort(n.to?.performedAt)}</b>
                         </Typography>
-                        <Chip size="small" label="✨ na faixa" sx={{ height: 22, fontWeight: 800, borderRadius: RADIUS.pill, bgcolor: 'rgba(56,189,139,0.16)', color: '#2b9a6e' }} />
+                        <Chip
+                          size="small"
+                          icon={<AutoAwesomeIcon sx={{ fontSize: '12px !important', color: '#2b9a6e !important' }} />}
+                          label="Na faixa"
+                          sx={{
+                            height: 22,
+                            fontWeight: 800,
+                            fontSize: '0.72rem',
+                            borderRadius: RADIUS.pill,
+                            bgcolor: 'rgba(56,189,139,0.16)',
+                            color: '#2b9a6e',
+                            flexShrink: 0,
+                            whiteSpace: 'nowrap',
+                            '& .MuiChip-label': {
+                              px: 0.75,
+                              whiteSpace: 'nowrap',
+                            },
+                            '& .MuiChip-icon': {
+                              ml: 0.75,
+                              mr: -0.25,
+                            },
+                          }}
+                        />
                       </Stack>
                     </CardContent>
                   </Card>
