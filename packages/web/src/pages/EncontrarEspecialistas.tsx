@@ -48,6 +48,11 @@ export const EncontrarEspecialistasPage = () => {
 
   const [items, setItems] = useState<SpecialistItem[]>([]);
   const [total, setTotal] = useState(0);
+  // Paginação (dono 10/11: "2.000 na cidade e só 10 na lista — cadê o resto?"):
+  // lista é amostra (internos + 15 CNES por página); "Ver mais" appenda a próxima.
+  const [hasMore, setHasMore] = useState(false);
+  const [moreLoading, setMoreLoading] = useState(false);
+  const [page, setPage] = useState(0);
   // Facets: cidades que JÁ têm médicos no diretório (chips clicáveis)
   const [cities, setCities] = useState<{ city: string; count: number }[]>([]);
   const [cityNote, setCityNote] = useState<string | null>(null);
@@ -60,8 +65,9 @@ export const EncontrarEspecialistasPage = () => {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const doSearch = async () => {
-    setLoading(true); setError(null);
+  const doSearch = async (p = 0) => {
+    if (p > 0) setMoreLoading(true); else setLoading(true);
+    setError(null);
     try {
       const params = new URLSearchParams();
       if (q.trim()) params.set('q', q.trim());
@@ -70,17 +76,20 @@ export const EncontrarEspecialistasPage = () => {
       if (operator) params.set('operator', operator);
       if (withPrice) params.set('withPrice', 'true');
       if (claimedOnly) params.set('claimedOnly', 'true');
+      if (p > 0) params.set('page', String(p));
       const r = await fetch(`${API_URL}/specialists?${params}`, { headers: { Authorization: `Bearer ${token()}` } });
       if (!r.ok) throw new Error();
       const d = await r.json();
-      setItems(d.items ?? []);
+      setItems((prev) => (p > 0 ? [...prev, ...(d.items ?? [])] : (d.items ?? [])));
       setTotal(d.total ?? 0);
       setCities(d.cities ?? []);
       setCityNote(d.cityNote ?? null);
+      setHasMore(!!d.hasMore);
+      setPage(p);
     } catch {
       setError('A busca não retornou resultados no momento. Verifique sua conexão ou tente outros filtros.');
-      setItems([]);
-    } finally { setLoading(false); setSearched(true); }
+      if (p === 0) setItems([]);
+    } finally { setLoading(false); setMoreLoading(false); setSearched(true); }
   };
 
   // Primeira carga automática
@@ -421,11 +430,15 @@ export const EncontrarEspecialistasPage = () => {
         </Card>
       )}
 
-      {/* RESULTADOS */}
+      {/* RESULTADOS — contagem HONESTA (dono 10/11): "2.000 na cidade" é o universo da
+          base; a lista é amostra paginada. Dizemos quantos estamos mostrando e que há mais. */}
       {!loading && items.length > 0 && (
         <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
           <Typography variant="caption" sx={{ color: 'text.primary', fontWeight: 800, fontSize: 13.5 }}>
-            {items.length} {items.length === 1 ? 'especialista encontrado' : 'especialistas encontrados'}
+            {items.length} {items.length === 1 ? 'especialista em exibição' : 'especialistas em exibição'}
+            {total > items.length && (
+              <Box component="span" sx={{ color: 'text.secondary', fontWeight: 600 }}> · de {total.toLocaleString('pt-BR')} no filtro — toque em “Ver mais”</Box>
+            )}
           </Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
             Ordenados por perfil verificado e dados confirmados
@@ -642,6 +655,23 @@ export const EncontrarEspecialistasPage = () => {
           );
         })}
       </Box>
+
+      {/* VER MAIS (dono 10/11): a lista é paginada — página seguinte appenda na tela. */}
+      {!loading && hasMore && items.length > 0 && (
+        <Button
+          fullWidth
+          variant="outlined"
+          disabled={moreLoading}
+          onClick={() => void doSearch(page + 1)}
+          sx={{
+            mt: 2, minHeight: 48, borderRadius: '14px', textTransform: 'none', fontWeight: 800,
+            borderColor: 'rgba(32,178,170,0.45)', color: '#0f766e',
+            '&:hover': { bgcolor: 'rgba(32,178,170,0.06)', borderColor: '#0f766e' },
+          }}
+        >
+          {moreLoading ? 'Buscando mais…' : 'Ver mais especialistas'}
+        </Button>
+      )}
 
       {!loading && items.length > 0 && (
         <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2.5, color: 'text.disabled' }}>

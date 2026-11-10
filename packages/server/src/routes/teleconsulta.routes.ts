@@ -336,12 +336,18 @@ router.post('/:id/feedback', requireJoinIdentity, async (req: JoinRequest, res, 
     // Lifecycle (24/10): encerra com OUTCOME RESOLVIDO (1-toque não pode falhar por
     // regra): critério de completed atendido → 'completed'; senão honesto pela
     // presença (no_show/technical). Nunca 400 no feedback.
-    const events = await loadPresenceEvents(r.id);
+    // Presencial (type 'consulta', sem sala): avalia = atendimento ACONTECEU —
+    // marca done/endedAt direto (sem eventos de sala, sem outcome de video).
+    if (r.type !== 'teleconsulta') {
+      await prisma.reminder.update({ where: { id: r.id }, data: { done: true, endedAt: new Date() } }).catch(() => { /* best-effort */ });
+      await prisma.patientConsultation.updateMany({ where: { reminderId: r.id, status: 'scheduled' }, data: { status: 'completed' } }).catch(() => { /* best-effort */ });
+    }
+    const events = r.type === 'teleconsulta' ? await loadPresenceEvents(r.id) : [];
     const jointMs = computeJointMs(events, Date.now());
     const patientJoined = patientEverJoined(r, events);
     const doctorJoined = events.some((e) => e.action === 'TELECONSULTA_JOIN' && e.role === 'doctor') || !!r.doctorJoinedAt;
     const minJointMs = getTeleconsultaConfig().minJointSeconds * 1000;
-    const outcome = patientJoined && jointMs >= minJointMs ? 'completed' : resolveAutoOutcome(patientJoined);
+    const outcome = r.type !== 'teleconsulta' ? 'completed' : patientJoined && jointMs >= minJointMs ? 'completed' : resolveAutoOutcome(patientJoined);
     // §5 dono (26/10): feedback de consulta sem atendimento também registra quem faltou.
     await endTeleconsulta(r, { outcome, jointMs, noShowBy: outcome === 'no_show' ? resolveNoShowBy(patientJoined, doctorJoined) : null }).catch(() => { /* feedback não falha por lifecycle */ });
     const prev = ((existing?.after ?? {}) as Record<string, unknown>);
@@ -584,6 +590,8 @@ router.post('/:id/nudge', requireJoinIdentity, async (req: JoinRequest, res, nex
 
 interface TeleconsultaRef {
   id: string;
+  /** 'teleconsulta' | 'consulta' (presencial — avaliável desde 10/11). */
+  type: string;
   patientId: string;
   ownerId: string;
   /** §19 G2 (QA 24/10): médico que agendou — alimenta o doctor do /summary. */
@@ -613,7 +621,10 @@ async function loadAccessibleTeleconsulta(req: JoinRequest, res: Response): Prom
     .catch((e: any) => /column .* does not exist/i.test(String(e?.message))
       ? prisma.reminder.findUnique({ where: { id }, select: baseSelect })
       : Promise.reject(e));
-  if (!row || row.type !== 'teleconsulta') { res.status(404).json({ error: 'Teleconsulta não encontrada' }); return; }
+  // 'consulta' (presencial registrada pelo paciente) também pode ser avaliada — o
+  // "como foi o atendimento" vale pros dois modos (dono 10/11: avaliação de presencial
+  // não gravava porque o endpoint só aceitava tele). Lifecycle de sala é pulado no feedback.
+  if (!row || (row.type !== 'teleconsulta' && row.type !== 'consulta')) { res.status(404).json({ error: 'Consulta não encontrada' }); return; }
 
   if (req.joinRole === 'doctor') {
     // AUD-002 (revisão R2): mesma regra do /join — share ativo E não expirado vale para
@@ -634,6 +645,7 @@ async function loadAccessibleTeleconsulta(req: JoinRequest, res: Response): Prom
   }
   return {
     id: row.id,
+    type: row.type,
     patientId: row.patientId,
     ownerId: row.ownerId,
     // §19 G2 (QA 24/10): repassado p/ o /summary montar o doctor (nome/CRM/FOTO)

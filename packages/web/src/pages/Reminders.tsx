@@ -112,7 +112,10 @@ export const RemindersPage = () => {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('09:00');
   const [offsets, setOffsets] = useState<number[]>(DEFAULT_OFFSETS);
-  const [rtype, setRtype] = useState<string>('teleconsulta');
+  // Default 'consulta' (fix dono 10/11): era 'teleconsulta' — mas teleconsulta SAIU da
+  // lista de opções do paciente (:65) → quem não tocava nos chips criava lembrete
+  // "presencial" que nascia como teleconsulta na surdina.
+  const [rtype, setRtype] = useState<string>('consulta');
   const [recur, setRecur] = useState<string | null>(null);
   const [linkUrl, setLinkUrl] = useState('');
   const [err, setErr] = useState<string | null>(null);

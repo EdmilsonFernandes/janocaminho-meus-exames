@@ -23,6 +23,7 @@ import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { confirmDialog } from '../ConfirmDialog';
 import { ListSkeleton } from '../Skeleton';
+import { ConsultRating } from './ConsultRating';
 import { hapticLight } from '../../utils/haptic';
 import { PatientConsultationForm } from './PatientConsultationForm';
 import { CONSULTATION_STATUS_META, type PatientConsultationItem } from '../../types/consultations';
@@ -199,6 +200,12 @@ export const MinhasConsultasRegistradas = ({ prefillDoctor }: Props) => {
                 </Typography>
               )}
             </Stack>
+          )}
+
+          {/* Avaliação pós-consulta (dono 10/11): presencial também é atendimento —
+              mesma UI da tele, grava no MESMO endpoint (agora aceita type 'consulta'). */}
+          {!upcoming && (item as any).reminderId && (
+            <ConsultRating reminderId={(item as any).reminderId} />
           )}
         </CardContent>
       </Card>

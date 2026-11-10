@@ -56,6 +56,23 @@ async function getCityFacetRows(selfDeclaredOk: any): Promise<{ clinicCity: stri
  *  roda vários cenários com bancos diferentes) — beforeEach zera pra não vazar facet. */
 export const __resetCityFacetCache = (): void => { cityFacetCache = null; };
 
+// PERF (dono 10/11: "melhorar a performance do especialista"): o bloco CNES carregava
+// até 20k unidades completas do Postgres em TODA busca. Cache em memória por 6h — a
+// base muda apenas nos imports mensais (mesma premissa do cache de facets de cidade).
+type FacRow = { id: string; cnesCode: string | null; name: string; city: string | null; uf: string | null; address: string | null; district: string | null; phone: string | null; lat: string | null; lng: string | null; cityNorm: string };
+let facCache: { at: number; rows: FacRow[] } | null = null;
+const FAC_CACHE_MS = 6 * 3600_000;
+async function loadFacilitiesCached(): Promise<FacRow[]> {
+  if (facCache && Date.now() - facCache.at < FAC_CACHE_MS) return facCache.rows;
+  const rows = await prisma.directoryFacility.findMany({
+    select: { id: true, cnesCode: true, name: true, city: true, uf: true, address: true, district: true, phone: true, lat: true, lng: true },
+    take: 20000,
+  });
+  const out = { at: Date.now(), rows: rows.map((f) => ({ ...f, cityNorm: deaccent(f.city ?? '') })) };
+  facCache = out;
+  return out.rows;
+}
+
 router.get('/', async (req: AuthedRequest, res, next) => {
   try {
     const q = req.query as Record<string, string | undefined>;
@@ -67,6 +84,10 @@ router.get('/', async (req: AuthedRequest, res, next) => {
     const withPrice = q.withPrice === 'true';   // particular: preço publicado
     const claimedOnly = q.claimedOnly === 'true'; // teleconsulta: médico com portal ativo
     const take = Math.min(Number(q.take ?? 20) || 20, 30);
+    // PAGINAÇÃO (dono 10/11: "aparece 2.000 e traz só 10 — cadê o resto?"): a lista é
+    // amostra paginada (internos take + CNES 15/página); `page` 0-based, `hasMore` diz
+    // se tem próxima. `total` continua sendo o universo do filtro (contagem honesta).
+    const page = Math.max(0, Number(q.page ?? 0) || 0);
 
     const now = new Date();
     // Quem pode exibir dado AUTO-DECLARADO (telefone, clínica, cidade, preço, convênios): placeholder de paciente (não tem
@@ -182,23 +203,25 @@ router.get('/', async (req: AuthedRequest, res, next) => {
     // opcional no deploy (import por região) — ausência nunca quebra a busca.
     let cnesItems: any[] = [];
     let cnesMore = false;
+    let cnesTotalSample = 0;
     try {
       const hasCnes = await prisma.directoryFacility.findFirst({ select: { id: true } }).then((r) => !!r).catch(() => false);
       if (hasCnes && !operator && !withPrice && !claimedOnly) {
-        // Filtro de cidade: comparação pós-query com deaccent (Postgres ILIKE não
-        // remove acentos sem unaccent) — compatível com acentos nos testes e em produção.
-        const facs = await prisma.directoryFacility.findMany({
-          select: { id: true, cnesCode: true, name: true, city: true, uf: true, address: true, district: true, phone: true, lat: true, lng: true },
-          take: 20000,
-        });
+        // PERF (dono 10/11): carregar até 20k unidades COMPLETAS do Postgres em TODA
+        // busca era o gargalo da tela. Cache em memória 6h (mesmo padrão do
+        // getCityFacetRows — a base muda só em import mensal) + cityNorm pré-computado.
+        const facs = await loadFacilitiesCached();
         const facsIn = cityNorm
-          ? facs.filter((f) => f.city && deaccent(f.city).includes(cityNorm))
+          ? facs.filter((f) => f.cityNorm.includes(cityNorm))
           : facs;
         const facById = new Map(facsIn.map((f) => [f.id, f]));
         if (facsIn.length) {
+          // IN gigante (20k ids) derruba o planner: quando a lista segue grande, o
+          // filtro de facility é redundante (~todas) — consulta sem ele e casa depois.
+          const useFacilityFilter = facsIn.length <= 2000;
           let profs = await prisma.directoryProfessional.findMany({
             where: {
-              facilityId: { in: [...facById.keys()] },
+              ...(useFacilityFilter ? { facilityId: { in: [...facById.keys()] } } : {}),
               // SÓ MÉDICOS (dono 02/11): sem isto a busca trazia técnico de enfermagem
               // (203k!), enfermeiro, assistente administrativo etc. CNES grava o CBO em
               // CAIXA ALTA SEM ACENTO ("MEDICO CLINICO"); cargas podem vir acentuadas —
@@ -216,8 +239,10 @@ router.get('/', async (req: AuthedRequest, res, next) => {
             profs = profs.filter((p) => p.cboName && deaccent(p.cboName).includes(s));
           }
           cnesMore = profs.length >= 400;
-          cnesItems = profs.slice(0, 15).map((p) => {
-            const f = facById.get(p.facilityId)!;
+          cnesTotalSample = profs.length;
+          cnesItems = profs.slice(page * 15, page * 15 + 15).map((p) => {
+            const f = facById.get(p.facilityId);
+            if (!f) return null; // sem filtro de facility (lista grande): prof de unidade fora do cache — pula
             // tbConselhoClasse: '10' = CR MEDICINA → o vínculo traz o nº do CRM + UF.
             const isCrm = String(p.councilType ?? '').padStart(2, '0') === '10';
             return {
@@ -240,15 +265,16 @@ router.get('/', async (req: AuthedRequest, res, next) => {
                 updatedAt: p.importedAt,
               },
             };
-          });
+          }).filter(Boolean);
         }
       }
     } catch (e: any) {
       console.error('[specialists] bloco CNES falhou (segue só interno):', e?.message);
     }
 
-    const internal = filtered.slice(0, take);
+    const internal = filtered.slice(page * take, page * take + take);
     const allEmpty = internal.length === 0 && cnesItems.length === 0;
+    const hasMore = (page + 1) * take < filtered.length || cnesItems.length > 0 && (page + 1) * 15 < cnesTotalSample;
 
     res.json({
       items: [...internal, ...cnesItems],
@@ -259,6 +285,8 @@ router.get('/', async (req: AuthedRequest, res, next) => {
         : null,
       cnesCount: cnesItems.length,
       cnesMore,
+      page,
+      hasMore,
     });
   } catch (e) { next(e); }
 });
