@@ -156,6 +156,24 @@
       .MuiTableContainer-root { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
       /* Evita zoom de inputs no iOS */
       input, select, textarea { font-size: 16px; }
+      /* Prevenção de autofill azul-acinzentado datado no Chrome / Android — estética HealthTech clean */
+      input:-webkit-autofill,
+      input:-webkit-autofill:hover,
+      input:-webkit-autofill:focus,
+      input:-webkit-autofill:active,
+      textarea:-webkit-autofill,
+      textarea:-webkit-autofill:hover,
+      textarea:-webkit-autofill:focus,
+      textarea:-webkit-autofill:active,
+      select:-webkit-autofill,
+      select:-webkit-autofill:hover,
+      select:-webkit-autofill:focus,
+      select:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+        -webkit-text-fill-color: #0f172a !important;
+        caret-color: #0f172a !important;
+        transition: background-color 5000s ease-in-out 0s;
+      }
       /* Menu lateral: labels NUNCA cortam — quebram de linha em vez de truncar */
       .MuiDrawer-paper .MuiListItemText-primary { white-space: normal !important; word-break: break-word !important; overflow: visible !important; text-overflow: clip !important; }
       .MuiDrawer-paper .MuiListItemButton-root { padding-right: 10px; }
@@ -175,22 +193,22 @@
       /* Mobile: folga no rodapé do conteúdo pra o FAB do Dr. Exame não cobrir paginação/rodapé. */
       @media (max-width: 599px) { #main-content { padding-bottom: 84px !important; } }
     </style>
-    <script type="module" crossorigin src="./assets/index-CkfOLabV.js"></script>
+    <script type="module" crossorigin src="./assets/index-Cc_xk6Mg.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-QTnfLwEv.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-ui-D2jhBpjc.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-admin-DD9kuk8Y.js">
-    <link rel="modulepreload" crossorigin href="./assets/badge-C_-r8xQi.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-ui-CMTOqiqQ.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-admin-4MeY2psO.js">
+    <link rel="modulepreload" crossorigin href="./assets/badge-C5xq-dJg.js">
     <link rel="modulepreload" crossorigin href="./assets/dist-CjyBEm7C.js">
-    <link rel="modulepreload" crossorigin href="./assets/esm-BZ4AwCyy.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-charts-BaBUNenN.js">
-    <link rel="modulepreload" crossorigin href="./assets/createLucideIcon-1hjxyu1k.js">
-    <link rel="modulepreload" crossorigin href="./assets/utils-BCJaFbC5.js">
-    <link rel="modulepreload" crossorigin href="./assets/DrExame-DD787MlQ.js">
-    <link rel="modulepreload" crossorigin href="./assets/GradientButton-B8n5Hliu.js">
-    <link rel="modulepreload" crossorigin href="./assets/CreditRewardFx-B4tFsy8c.js">
+    <link rel="modulepreload" crossorigin href="./assets/esm-CnScBhux.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-charts-hLZqfzfr.js">
+    <link rel="modulepreload" crossorigin href="./assets/createLucideIcon-D-7Ie3nz.js">
+    <link rel="modulepreload" crossorigin href="./assets/utils-BjSqiJrN.js">
+    <link rel="modulepreload" crossorigin href="./assets/DrExame-Gqilqt3J.js">
+    <link rel="modulepreload" crossorigin href="./assets/GradientButton-C0FIRPnv.js">
+    <link rel="modulepreload" crossorigin href="./assets/CreditRewardFx-B4m0CLoE.js">
     <link rel="modulepreload" crossorigin href="./assets/config-DUQn7CRa.js">
-    <link rel="modulepreload" crossorigin href="./assets/useCredits-DNPIslTB.js">
-    <link rel="modulepreload" crossorigin href="./assets/theme-biCZWy7Y.js">
+    <link rel="modulepreload" crossorigin href="./assets/useCredits-B1ALsiRo.js">
+    <link rel="modulepreload" crossorigin href="./assets/theme-t8A6c3WK.js">
     <link rel="modulepreload" crossorigin href="./assets/haptic-pAnRyHYU.js">
     <link rel="stylesheet" crossorigin href="./assets/index-B0T2Wh55.css">
   </head>

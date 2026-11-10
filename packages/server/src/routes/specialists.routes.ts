@@ -54,7 +54,10 @@ async function getCityFacetRows(selfDeclaredOk: any): Promise<{ clinicCity: stri
 
 /** Testes: o cache module-level sobrevive entre requests do MESMO processo (vitest
  *  roda vários cenários com bancos diferentes) — beforeEach zera pra não vazar facet. */
-export const __resetCityFacetCache = (): void => { cityFacetCache = null; };
+export const __resetCityFacetCache = (): void => {
+  cityFacetCache = null;
+  facCache = null;
+};
 
 // PERF (dono 10/11: "melhorar a performance do especialista"): o bloco CNES carregava
 // até 20k unidades completas do Postgres em TODA busca. Cache em memória por 6h — a
