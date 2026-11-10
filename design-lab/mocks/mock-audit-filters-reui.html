@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReUI Audit Filter Bar · Dr. Exame</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Poppins', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-slate-200">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🛡️</span>
+          <h1 class="text-xl sm:text-2xl font-extrabold font-display text-slate-900 tracking-tight">Auditoria & Logs de Segurança</h1>
+          <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">17.551 eventos</span>
+        </div>
+        <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Rastreabilidade LGPD e registros de acessos em tempo real.</p>
+      </div>
+
+      <!-- Live Filters Status -->
+      <div id="filterStatusBadge" class="hidden items-center gap-2">
+        <span class="text-xs text-slate-500 font-medium">Filtro ativo:</span>
+        <div id="activeTagPill" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-bold shadow-sm">
+          <span id="activeTagName">Acesso à API</span>
+          <button id="removeActiveTag" class="hover:text-red-600 transition-colors">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ReUI Smart Filter Bar (Substitui a nuvem poluída de 40 chips!) -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
+      
+      <!-- Primary Search & Date Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+        <!-- Input de busca -->
+        <div class="sm:col-span-4 relative">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" placeholder="Buscar por usuário, e-mail ou ID..." class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium placeholder:text-slate-400">
+        </div>
+
+        <!-- Categoria Dropdown -->
+        <div class="sm:col-span-3">
+          <select class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700">
+            <option value="">Todas as categorias</option>
+            <option value="logins">🔐 Logins & Autenticação</option>
+            <option value="access">⚡ Acessos a rotas & API</option>
+            <option value="admin">⚙️ Operações administrativas</option>
+          </select>
+        </div>
+
+        <!-- Seletor de Ação Específica (Pesquisável) -->
+        <div class="sm:col-span-3">
+          <div class="relative">
+            <select id="actionSelect" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700">
+              <option value="">Todas as ações (42 tipos)</option>
+              <optgroup label="🔐 Autenticação">
+                <option value="LOGIN_SUCCESS">Login com sucesso (1.021)</option>
+                <option value="LOGIN_FAILED">Tentativa de login falhou (2.252)</option>
+                <option value="MFA_SUCCESS">MFA autenticado (24)</option>
+                <option value="BOT_BLOCKED">Automação / Bot bloqueado (166)</option>
+              </optgroup>
+              <optgroup label="🩺 Teleconsulta & Clínica">
+                <option value="TELECONSULTA_JOIN">Entrou na teleconsulta (86)</option>
+                <option value="TELECONSULTA_START">Teleconsulta iniciada (7)</option>
+                <option value="TELECONSULTA_END">Teleconsulta encerrada (28)</option>
+                <option value="TELECONSULTA_SUMMARY_GENERATE">Resumo IA gerado (1)</option>
+              </optgroup>
+              <optgroup label="⚡ Sistema & API">
+                <option value="ACCESS">Acesso à API (13.510)</option>
+                <option value="EXAM_DELETED">Exame excluído (47)</option>
+                <option value="ADMIN_CREDITS">Ajuste de créditos (2)</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        <!-- Botão Aplicar -->
+        <div class="sm:col-span-2">
+          <button class="w-full py-2.5 px-4 bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+            <span>Filtrar</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Action Pills (Top 5 Mais Frequentes + Botão Expandir Modal/Gaveta) -->
+      <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
+        
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Atalhos Frequentes:</span>
+          
+          <button data-action="ACCESS" class="pill-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-teal-50 hover:text-teal-700 border border-slate-200 transition-all">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+            Acesso à API <span class="text-slate-400 font-bold">13.5k</span>
+          </button>
+
+          <button data-action="LOGIN_FAILED" class="pill-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-amber-50 hover:text-amber-800 border border-slate-200 transition-all">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+            Tentativa de login falhou <span class="text-slate-400 font-bold">2.2k</span>
+          </button>
+
+          <button data-action="LOGIN_SUCCESS" class="pill-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 border border-slate-200 transition-all">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Login com sucesso <span class="text-slate-400 font-bold">1.0k</span>
+          </button>
+
+          <button data-action="BOT_BLOCKED" class="pill-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-rose-50 hover:text-rose-800 border border-slate-200 transition-all">
+            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+            Bot bloqueado <span class="text-slate-400 font-bold">166</span>
+          </button>
+
+          <button data-action="TELECONSULTA_JOIN" class="pill-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-teal-50 hover:text-teal-800 border border-slate-200 transition-all">
+            <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
+            Teleconsulta <span class="text-slate-400 font-bold">86</span>
+          </button>
+        </div>
+
+        <!-- Botão Ver Todas as Ações em Popover/Modal -->
+        <button id="openAllActionsBtn" class="inline-flex items-center gap-1 text-xs font-bold text-teal-700 hover:text-teal-800 hover:underline px-2 py-1">
+          <span>Ver todas as 42 ações</span>
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+      </div>
+
+      <!-- Gaveta Expansível de Todas as Ações Categorizadas (ReUI Filter Drawer) -->
+      <div id="allActionsDrawer" class="hidden pt-3 border-t border-slate-100 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-600">Catálogo Completo de Eventos Auditados</span>
+          <span class="text-xs text-slate-400">Clique para filtrar diretamente</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          
+          <!-- Coluna 1: Segurança & Acesso -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+            <div class="text-[11px] font-extrabold uppercase text-slate-500 tracking-wider flex items-center gap-1">
+              <span>🔐</span> Autenticação & Acessos
+            </div>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-teal-50">Login com sucesso (1021)</span>
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-amber-50">Login falhou (2252)</span>
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-slate-100">Encerramento (48)</span>
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-rose-50">Bot bloqueado (166)</span>
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-blue-50">Acesso à API (13510)</span>
+            </div>
+          </div>
+
+          <!-- Coluna 2: Teleconsulta & Atendimento -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+            <div class="text-[11px] font-extrabold uppercase text-slate-500 tracking-wider flex items-center gap-1">
+              <span>🩺</span> Telemedicina & Consultas
+            </div>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-teal-50">Entrou na sala (86)</span>
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-slate-100">Saiu da sala (13)</span>
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-teal-50">Iniciada (7)</span>
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-slate-100">Encerrada (28)</span>
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-blue-50">Resumo IA (1)</span>
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-amber-50">Avaliação (46)</span>
+            </div>
+          </div>
+
+          <!-- Coluna 3: Gestão & Administração -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+            <div class="text-[11px] font-extrabold uppercase text-slate-500 tracking-wider flex items-center gap-1">
+              <span>⚙️</span> Administração & LGPD
+            </div>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-teal-50">Médico CRM (3)</span>
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-amber-50">Ajuste créditos (2)</span>
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-rose-50">Exame excluído (47)</span>
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-slate-100">Busca por CPF (5)</span>
+              <span class="cursor-pointer text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded-md hover:bg-blue-50">Ticket suporte (1)</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Resultados Agrupados (Simulação) -->
+    <div class="space-y-3">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-sm">ED</div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-sm text-slate-900">Edmilson</span>
+              <span class="text-xs text-slate-400">edmis2008@gmail.com</span>
+              <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-200">Acesso à API: 3</span>
+            </div>
+            <div class="text-xs text-slate-500 mt-0.5">3 ações no total · 10/11/2026, 11:25:13 · mesmo minuto</div>
+          </div>
+        </div>
+        <button class="text-slate-400 hover:text-slate-600 p-1">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">CD</div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-sm text-slate-900">Conta Demo Revisao</span>
+              <span class="text-xs text-slate-400">demo.revisao@janocaminho.com.br</span>
+              <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-200">Acesso à API: 34</span>
+            </div>
+            <div class="text-xs text-slate-500 mt-0.5">34 ações no total · 10/11/2026, 11:24:54 · duração: 9 min</div>
+          </div>
+        </div>
+        <button class="text-slate-400 hover:text-slate-600 p-1">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const actionSelect = document.getElementById('actionSelect');
+    const filterStatusBadge = document.getElementById('filterStatusBadge');
+    const activeTagName = document.getElementById('activeTagName');
+    const removeActiveTag = document.getElementById('removeActiveTag');
+    const openAllActionsBtn = document.getElementById('openAllActionsBtn');
+    const allActionsDrawer = document.getElementById('allActionsDrawer');
+    const pillButtons = document.querySelectorAll('.pill-btn');
+
+    function applyFilter(actionName, label) {
+      actionSelect.value = actionName;
+      activeTagName.textContent = label;
+      filterStatusBadge.classList.remove('hidden');
+      filterStatusBadge.classList.add('inline-flex');
+
+      pillButtons.forEach(btn => {
+        if (btn.getAttribute('data-action') === actionName) {
+          btn.classList.add('bg-teal-600', 'text-white', 'border-teal-600');
+          btn.classList.remove('bg-slate-100', 'text-slate-700');
+        } else {
+          btn.classList.remove('bg-teal-600', 'text-white', 'border-teal-600');
+          btn.classList.add('bg-slate-100', 'text-slate-700');
+        }
+      });
+    }
+
+    function clearActionFilter() {
+      actionSelect.value = '';
+      filterStatusBadge.classList.add('hidden');
+      filterStatusBadge.classList.remove('inline-flex');
+      pillButtons.forEach(btn => {
+        btn.classList.remove('bg-teal-600', 'text-white', 'border-teal-600');
+        btn.classList.add('bg-slate-100', 'text-slate-700');
+      });
+    }
+
+    actionSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (!val) {
+        clearActionFilter();
+      } else {
+        const text = e.target.options[e.target.selectedIndex].text.split(' (')[0];
+        applyFilter(val, text);
+      }
+    });
+
+    pillButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const act = btn.getAttribute('data-action');
+        if (actionSelect.value === act) {
+          clearActionFilter();
+        } else {
+          const label = btn.textContent.trim().split(' ')[0] + ' ' + (btn.textContent.trim().split(' ')[1] || '');
+          applyFilter(act, label);
+        }
+      });
+    });
+
+    removeActiveTag.addEventListener('click', () => {
+      clearActionFilter();
+    });
+
+    openAllActionsBtn.addEventListener('click', () => {
+      allActionsDrawer.classList.toggle('hidden');
+      if (allActionsDrawer.classList.contains('hidden')) {
+        openAllActionsBtn.querySelector('span').textContent = 'Ver todas as 42 ações';
+      } else {
+        openAllActionsBtn.querySelector('span').textContent = 'Recolher catálogo de ações';
+      }
+    });
+  </script>
+</body>
+</html>
+

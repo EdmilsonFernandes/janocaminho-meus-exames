@@ -396,10 +396,10 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, c
 
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, px: { xs: 2.5, sm: 3 } }}>
         <Stack direction="row" spacing={1} alignItems="center">
-          {method === 'card' ? <CreditCardIcon sx={{ color: '#0369a1' }} /> : <AccountBalanceIcon sx={{ color: '#178f89' }} />}
+          <CreditCardIcon sx={{ color: '#0d9488' }} />
           <Box>
-            <Typography sx={{ fontWeight: 800 }}>{method === 'card' ? 'Cartão de crédito' : 'Cartão de débito'}</Typography>
-            <Typography variant="caption" color="text.secondary">{packLabel}</Typography>
+            <Typography sx={{ fontWeight: 800 }}>Cartão</Typography>
+            <Typography variant="caption" color="text.secondary">{packLabel} · Crédito ou Débito</Typography>
           </Box>
         </Stack>
         <IconButton onClick={close} size="small" disabled={submitting}><CloseIcon /></IconButton>

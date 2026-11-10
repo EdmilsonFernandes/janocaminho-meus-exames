@@ -12,6 +12,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 import { fetchPublicConfig, API_URL, token } from '../config';
 import { CreditCardForm } from './CreditCardForm';
+import { CardBrandBadges, PixBacenLogo } from './CreditCardBadges';
 
 /** Seletor de forma de pagamento premium (padrão Revolut/Nubank bottom-sheet):
  *  PIX (QR inline) | Cartão | Débito — cartão/débito são INLINE via Asaas
@@ -22,16 +23,16 @@ import { CreditCardForm } from './CreditCardForm';
  *  trust badges profissionais (sem logos de processador), order summary
  *  com tradução de valor, bottom-sheet layout no mobile. */
 
-type PayMethod = 'pix' | 'card' | 'debit';
+type PayMethod = 'pix' | 'card';
 const METHODS: Record<PayMethod, { title: string; sub: string; trust: string; ctaVerb: string; color: string; bgLight: string }> = {
-  pix:   { title: 'PIX',               sub: 'Aprovação em segundos · QR Code ou copia-e-cola',       trust: 'Criptografia de ponta a ponta',              ctaVerb: 'PIX',    color: '#20b2aa', bgLight: 'rgba(32,178,170,.08)' },
-  card:  { title: 'Cartão de crédito',  sub: 'Visa, Mastercard, Elo, Amex · à vista',                trust: 'Dados vão direto ao processador — não são salvos', ctaVerb: 'cartão',  color: '#2563eb', bgLight: 'rgba(37,99,235,.07)' },
-  debit: { title: 'Cartão de débito',   sub: 'Débito à vista · sai direto da conta',                 trust: 'Dados vão direto ao processador — não são salvos', ctaVerb: 'débito',  color: '#7c3aed', bgLight: 'rgba(124,58,237,.07)' },
+  pix:   { title: 'Pix',               sub: 'Aprovação instantânea · QR Code ou Copia e Cola',       trust: 'Criptografia de ponta a ponta',              ctaVerb: 'Pix',    color: '#0d9488', bgLight: 'rgba(13,148,136,.08)' },
+  card:  { title: 'Cartão',            sub: 'Crédito ou Débito à vista · Detecção automática',       trust: 'Dados vão direto ao processador — não são salvos', ctaVerb: 'Cartão', color: '#0d9488', bgLight: 'rgba(13,148,136,.08)' },
+
 };
 const METHOD_ICON: Record<PayMethod, React.ReactNode> = {
-  pix:   <QrCode2Icon />,
+  pix:   <PixBacenLogo size={22} />,
   card:  <CreditCardIcon />,
-  debit: <AccountBalanceIcon />,
+
 };
 
 /** Extrai créditos numéricos do packLabel ("140 créditos • R$ 24,90" OU "14 leituras • R$ 24,90"
@@ -248,7 +249,7 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, on
 
         {/* ── Payment options (radio cards) ── */}
         <Stack spacing={1.25} sx={{ px: 2.5 }} role="radiogroup" aria-label="Forma de pagamento">
-          {(['pix', ...(cardEnabled ? ['card', 'debit'] as const : [])] as PayMethod[]).map((key) => {
+          {(['pix', ...(cardEnabled ? ['card'] as const : [])] as PayMethod[]).map((key) => {
             const opt = METHODS[key];
             const on = selected === key;
             return (
@@ -301,7 +302,8 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, on
 
                 {/* Text */}
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Stack direction="row" alignItems="center" spacing={1}>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ width: '100%', flexWrap: 'wrap', gap: 0.5 }}>
+                    <Stack direction="row" alignItems="center" spacing={1}>
                     <Typography sx={{ fontWeight: 700, fontSize: 14.5 }}>{opt.title}</Typography>
                     {key === 'pix' && (
                       <Box sx={{
@@ -313,6 +315,8 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, on
                         ⚡ Instantâneo
                       </Box>
                     )}
+                  </Stack>
+                  {key === 'card' && <CardBrandBadges />}
                   </Stack>
                   <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: '1px', lineHeight: 1.35 }}>
                     {opt.sub}

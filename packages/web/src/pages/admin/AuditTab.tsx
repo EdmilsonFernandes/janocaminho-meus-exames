@@ -17,6 +17,9 @@ import {
   alpha,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import PersonIcon from '@mui/icons-material/Person';
@@ -120,6 +123,52 @@ export const AuditTab = () => {
   const [to, setTo] = useState('');
   const [skip, setSkip] = useState(0);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [showAllActions, setShowAllActions] = useState(false);
+
+  // Ordenação das ações por frequência para atalhos rápidos ReUI
+  const sortedActions = useMemo(() => {
+    return [...(d?.byAction || [])].sort((a: any, b: any) => b._count - a._count);
+  }, [d?.byAction]);
+
+  const topActions = useMemo(() => sortedActions.slice(0, 5), [sortedActions]);
+
+  // Agrupamento semântico ReUI do catálogo completo de ações
+  const categorizedActions = useMemo(() => {
+    if (!d?.byAction) return { auth: [], tele: [], admin: [] };
+    const auth: any[] = [];
+    const tele: any[] = [];
+    const admin: any[] = [];
+
+    for (const a of d.byAction) {
+      const act = a.action || '';
+      if (
+        act.includes('LOGIN') ||
+        act.includes('MFA') ||
+        act.includes('PASSWORD') ||
+        act.includes('BOT') ||
+        act.includes('BLOCK') ||
+        act.includes('SIGNUP') ||
+        act.includes('REGISTER') ||
+        act.includes('LOGOUT')
+      ) {
+        auth.push(a);
+      } else if (
+        act.includes('TELECONSULTA') ||
+        act.includes('CONSENT') ||
+        act.includes('TICKET') ||
+        act.includes('FEEDBACK')
+      ) {
+        tele.push(a);
+      } else {
+        admin.push(a);
+      }
+    }
+    return {
+      auth: auth.sort((a, b) => b._count - a._count),
+      tele: tele.sort((a, b) => b._count - a._count),
+      admin: admin.sort((a, b) => b._count - a._count),
+    };
+  }, [d?.byAction]);
 
   const load = useCallback(() => {
     setErr(false);
@@ -347,7 +396,7 @@ export const AuditTab = () => {
   return (
     <Box sx={{ width: '100%', maxWidth: '100%' }}>
       {/* CABEÇALHO */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1} sx={{ mb: 2 }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1.5} sx={{ mb: 2 }}>
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 800, fontSize: { xs: 17, sm: 19 }, display: 'flex', alignItems: 'center', gap: 1 }}>
             🛡️ Auditoria & Logs de Segurança
@@ -356,28 +405,43 @@ export const AuditTab = () => {
             Rastreabilidade LGPD: {d.count} evento(s) registrado(s)
           </Typography>
         </Box>
-        {hasActiveFilters && (
-          <Button
-            size="small"
-            variant="outlined"
-            color="secondary"
-            onClick={clearFilters}
-            startIcon={<FilterAltOffIcon sx={{ fontSize: 16 }} />}
-            sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 700 }}
-          >
-            Limpar filtros
-          </Button>
-        )}
+        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+          {selectedAction && (
+            <Chip
+              size="small"
+              color={color(selectedAction)}
+              label={`Ação: ${actionLabel(selectedAction)}`}
+              onDelete={() => setSelectedAction('')}
+              deleteIcon={<CloseIcon sx={{ fontSize: 14 }} />}
+              sx={{ fontWeight: 700, borderRadius: '999px', fontSize: 11.5 }}
+            />
+          )}
+          {hasActiveFilters && (
+            <Button
+              size="small"
+              variant="outlined"
+              color="secondary"
+              onClick={clearFilters}
+              startIcon={<FilterAltOffIcon sx={{ fontSize: 15 }} />}
+              sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 700, fontSize: 12 }}
+            >
+              Limpar filtros
+            </Button>
+          )}
+        </Stack>
       </Stack>
 
-      {/* FILTROS INTERATIVOS */}
+      {/* FILTROS INTERATIVOS — ReUI Smart Filter Bar */}
       <Card
         variant="outlined"
         sx={{
-          borderRadius: '14px',
+          borderRadius: '16px',
           mb: 2.5,
           p: 2,
-          bgcolor: isDark ? alpha(theme.palette.background.paper, 0.6) : '#fafafa',
+          bgcolor: isDark ? alpha(theme.palette.background.paper, 0.7) : '#ffffff',
+          boxShadow: isDark ? '0 4px 14px rgba(0,0,0,0.25)' : '0 1px 3px rgba(0,0,0,0.03)',
+          border: '1px solid',
+          borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
         }}
       >
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems="stretch">
@@ -396,7 +460,7 @@ export const AuditTab = () => {
                 </InputAdornment>
               ),
             }}
-            sx={{ flex: 1.5, minWidth: { xs: '100%', sm: 220 } }}
+            sx={{ flex: 1.5, minWidth: { xs: '100%', sm: 200 } }}
           />
 
           <TextField
@@ -408,11 +472,30 @@ export const AuditTab = () => {
               setKind(e.target.value);
               setSkip(0);
             }}
-            sx={{ minWidth: { xs: '100%', sm: 180 } }}
+            sx={{ minWidth: { xs: '100%', sm: 160 } }}
           >
             {KINDS.map((k) => (
               <MenuItem key={k.v} value={k.v}>
                 {k.l}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            select
+            size="small"
+            label="Ação específica"
+            value={selectedAction}
+            onChange={(e) => {
+              setSelectedAction(e.target.value);
+              setSkip(0);
+            }}
+            sx={{ minWidth: { xs: '100%', sm: 200 } }}
+          >
+            <MenuItem value="">Todas as ações</MenuItem>
+            {sortedActions.map((a: any) => (
+              <MenuItem key={a.action} value={a.action}>
+                {actionLabel(a.action)} ({a._count})
               </MenuItem>
             ))}
           </TextField>
@@ -454,46 +537,176 @@ export const AuditTab = () => {
             sx={{
               fontWeight: 800,
               textTransform: 'none',
-              borderRadius: '8px',
+              borderRadius: '10px',
               px: 3,
               minHeight: 40,
+              bgcolor: '#0d9488',
+              '&:hover': { bgcolor: '#0f766e' },
             }}
           >
             Filtrar
           </Button>
         </Stack>
 
-        {/* RESUMO INTERATIVO POR AÇÃO — Clicar filtra na hora */}
-        {d.byAction?.length > 0 && (
+        {/* ATALHOS RÁPIDOS REUI — Substitui a nuvem de 40 chips por navegação limpa */}
+        {sortedActions.length > 0 && (
           <Box sx={{ mt: 2, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="caption" sx={{ display: 'block', mb: 1, fontWeight: 700, color: 'text.secondary' }}>
-              Filtrar por ação (clique para aplicar):
-            </Typography>
-            <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-              {d.byAction.map((a: any) => {
-                const isSelected = selectedAction === a.action;
-                return (
-                  <Chip
-                    key={a.action}
-                    size="small"
-                    variant={isSelected ? 'filled' : 'outlined'}
-                    color={color(a.action)}
-                    onClick={() => {
-                      setSelectedAction(isSelected ? '' : a.action);
-                      setSkip(0);
-                    }}
-                    label={`${actionLabel(a.action)} (${a._count})`}
-                    sx={{
-                      cursor: 'pointer',
-                      fontWeight: isSelected ? 800 : 600,
-                      fontSize: 11.5,
-                      boxShadow: isSelected ? '0 2px 6px rgba(0,0,0,0.2)' : 'none',
-                      transition: 'all .2s ease',
-                    }}
-                  />
-                );
-              })}
+            <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
+              <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap" useFlexGap sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: 10.5, mr: 0.5 }}>
+                  Atalhos rápidos:
+                </Typography>
+                {topActions.map((a: any) => {
+                  const isSelected = selectedAction === a.action;
+                  return (
+                    <Chip
+                      key={a.action}
+                      size="small"
+                      variant={isSelected ? 'filled' : 'outlined'}
+                      color={color(a.action)}
+                      onClick={() => {
+                        setSelectedAction(isSelected ? '' : a.action);
+                        setSkip(0);
+                      }}
+                      label={`${actionLabel(a.action)} (${a._count})`}
+                      sx={{
+                        cursor: 'pointer',
+                        fontWeight: isSelected ? 800 : 600,
+                        fontSize: 11,
+                        borderRadius: '999px',
+                        transition: 'all .15s ease',
+                        boxShadow: isSelected ? '0 2px 6px rgba(0,0,0,0.15)' : 'none',
+                      }}
+                    />
+                  );
+                })}
+              </Stack>
+
+              <Button
+                size="small"
+                onClick={() => setShowAllActions((v) => !v)}
+                endIcon={showAllActions ? <KeyboardArrowUpIcon sx={{ fontSize: 16 }} /> : <KeyboardArrowDownIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  fontSize: 12,
+                  color: '#0d9488',
+                  p: '2px 8px',
+                  borderRadius: '8px',
+                  '&:hover': { bgcolor: 'rgba(13, 148, 136, 0.08)' },
+                }}
+              >
+                {showAllActions ? 'Recolher catálogo' : `Ver todas as ações (${sortedActions.length})`}
+              </Button>
             </Stack>
+
+            {/* GAVETA CATEGORIZADA REUI COM TODAS AS AÇÕES */}
+            <Collapse in={showAllActions} timeout={250} unmountOnExit>
+              <Box sx={{ mt: 2, pt: 1.5, borderTop: '1px dashed', borderColor: 'divider' }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 1.5 }}>
+                  Catálogo categorizado de eventos auditados (clique para aplicar filtro):
+                </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 1.5 }}>
+                  
+                  {/* Coluna 1: Autenticação & Acesso */}
+                  <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', border: '1px solid', borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 0.5, mb: 1, textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: 10.5 }}>
+                      🔐 Autenticação & Acessos ({categorizedActions.auth.length})
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.65 }}>
+                      {categorizedActions.auth.map((a: any) => {
+                        const isSelected = selectedAction === a.action;
+                        return (
+                          <Chip
+                            key={a.action}
+                            size="small"
+                            variant={isSelected ? 'filled' : 'outlined'}
+                            color={color(a.action)}
+                            onClick={() => {
+                              setSelectedAction(isSelected ? '' : a.action);
+                              setSkip(0);
+                            }}
+                            label={`${actionLabel(a.action)} (${a._count})`}
+                            sx={{
+                              cursor: 'pointer',
+                              fontWeight: isSelected ? 800 : 500,
+                              fontSize: 10.5,
+                              height: 24,
+                              bgcolor: isSelected ? undefined : (isDark ? 'rgba(255,255,255,0.04)' : '#ffffff'),
+                            }}
+                          />
+                        );
+                      })}
+                    </Box>
+                  </Box>
+
+                  {/* Coluna 2: Teleconsulta & Atendimento */}
+                  <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', border: '1px solid', borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 0.5, mb: 1, textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: 10.5 }}>
+                      🩺 Telemedicina & Consultas ({categorizedActions.tele.length})
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.65 }}>
+                      {categorizedActions.tele.map((a: any) => {
+                        const isSelected = selectedAction === a.action;
+                        return (
+                          <Chip
+                            key={a.action}
+                            size="small"
+                            variant={isSelected ? 'filled' : 'outlined'}
+                            color={color(a.action)}
+                            onClick={() => {
+                              setSelectedAction(isSelected ? '' : a.action);
+                              setSkip(0);
+                            }}
+                            label={`${actionLabel(a.action)} (${a._count})`}
+                            sx={{
+                              cursor: 'pointer',
+                              fontWeight: isSelected ? 800 : 500,
+                              fontSize: 10.5,
+                              height: 24,
+                              bgcolor: isSelected ? undefined : (isDark ? 'rgba(255,255,255,0.04)' : '#ffffff'),
+                            }}
+                          />
+                        );
+                      })}
+                    </Box>
+                  </Box>
+
+                  {/* Coluna 3: Gestão & Sistema */}
+                  <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', border: '1px solid', borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 0.5, mb: 1, textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: 10.5 }}>
+                      ⚙️ Gestão & Sistema ({categorizedActions.admin.length})
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.65 }}>
+                      {categorizedActions.admin.map((a: any) => {
+                        const isSelected = selectedAction === a.action;
+                        return (
+                          <Chip
+                            key={a.action}
+                            size="small"
+                            variant={isSelected ? 'filled' : 'outlined'}
+                            color={color(a.action)}
+                            onClick={() => {
+                              setSelectedAction(isSelected ? '' : a.action);
+                              setSkip(0);
+                            }}
+                            label={`${actionLabel(a.action)} (${a._count})`}
+                            sx={{
+                              cursor: 'pointer',
+                              fontWeight: isSelected ? 800 : 500,
+                              fontSize: 10.5,
+                              height: 24,
+                              bgcolor: isSelected ? undefined : (isDark ? 'rgba(255,255,255,0.04)' : '#ffffff'),
+                            }}
+                          />
+                        );
+                      })}
+                    </Box>
+                  </Box>
+
+                </Box>
+              </Box>
+            </Collapse>
           </Box>
         )}
       </Card>
