@@ -6,6 +6,7 @@ import { readPdf, classifyKind, looksLikeMedical } from './pdfutil';
 import { classifyDoc } from './docPatterns';
 import { extractLabPanel, extractLabPanels, extractImaging } from './claude';
 import { ocrPdfPages } from './ocrPdf';
+import { explainNonExamDoc } from './nonExamExplain';
 import { imageToText } from './imageToText';
 import { canonicalName, reconcileScaleFlag, parseNumeric, normalizeUnit, sanitizeUnitInText } from '../utils/normalize';
 import { invalidateHealthSummary } from '../analysis/hs-cache';
@@ -195,11 +196,15 @@ async function runExtractionOnce(examId: string): Promise<void> {
     // REDE DE SEGURANÇA (caso real 10/11, anti-HTLV): o KB pode não conhecer a frase
     // do pedido, mas IA devolvendo 0 painéis num documento "lab" = não havia resultados.
     // EXTRACTED com 0 itens parece bug pro usuário — rejeita com educação + reembolso.
+    // Camada conversacional (dono 10/11): se o doc escapou do KB, a IA LÊ e responde
+    // personalizado (2 frases citando detalhe do papel); falha → texto fixo.
     if (kind !== 'IMAGING' && items.length === 0 && !dryRun) {
-      const reason = 'Não encontramos resultados de exame neste documento 😕 — se for o PEDIDO/agendamento (comprovante de coleta), ele ainda não tem valores: espere o resultado sair no portal do laboratório e envie ele. Se for um resultado de verdade, uma foto mais nítida (ou o PDF do laboratório) resolve.';
+      const generic = 'Não encontramos resultados de exame neste documento 😕 — se for o PEDIDO/agendamento (comprovante de coleta), ele ainda não tem valores: espere o resultado sair no portal do laboratório e envie ele. Se for um resultado de verdade, uma foto mais nítida (ou o PDF do laboratório) resolve.';
+      const conversational = await explainNonExamDoc(text);
+      const reason = conversational ?? generic;
       await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: 'not_a_document', extractionError: reason } });
       await refundUploadOnFailure(examId);
-      console.log(`[extraction] ${examId} rejeitado (0 itens): documento sem resultados`);
+      console.log(`[extraction] ${examId} rejeitado (0 itens)${conversational ? ' (explicação conversacional da IA)' : ''}: documento sem resultados`);
       void NotificationService.examFailed({ userId: patient?.ownerId ?? undefined, patientName: patient?.fullName ?? undefined, examTitle: exam.title ?? '—', reason });
       return;
     }
