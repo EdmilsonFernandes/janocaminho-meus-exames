@@ -16,6 +16,29 @@ const REJECT: { test: RegExp; reason: string }[] = [
   // ("Solicitação de Exame(s)", "Hipótese Diagnóstica", "procedimento solicitado").
   { test: /(solicita[cç][aã]o de exames?|exames? solicitad|hip[oó]tese diagn[oó]stica|procedimento[s]? solicitad|guia de (solicita[cç][aã]o|encaminhamento)|pedido m[eé]dico)/i,
     reason: 'Isso é um PEDIDO de exame (solicitação do médico), não o resultado. Envie o resultado quando estiver pronto — crie um Lembrete para não esquecer de buscá-lo.' },
+  // TICKET/COMPROVANTE de agendamento (caso real 10/11, anti-HTLV): o lab entrega um
+  // comprovante com preparo/jejum/"exames por agendar" — sem nenhum resultado. O usuário
+  // fotografa achando que já é o exame. Frases REAIS do documento.
+  { test: /(exames? por agendar|preparo do paciente para realiza|localizador de exames|guarde este documento at[eé][^.\n]{0,40}(entrega|coleta)|resultados? estar[aã]o dispon[ií]veis|documento de identidade ser[aá] exigido para realiza)/i,
+    reason: 'Isso é o COMPROVANTE de agendamento do exame (com preparo e jejum), ainda sem resultado. Busque o resultado no portal do laboratório quando estiver pronto e envie ele — crie um Lembrete para não esquecer.' },
+  // ATESTADO MÉDICO (afastamento/condição) — frequentemente anexado junto com pedidos.
+  { test: /(atestado m[eé]dico|atesto (que|para)|dias? de afastamento|afastamento de \d+ |dever[aá] permanecer afastado)/i,
+    reason: 'Isso é um ATESTADO MÉDICO (afastamento/condição de saúde), não um resultado de exame. Guarde-o para apresentação — o Dr. Exame lê resultados de exames.' },
+  // CARTEIRINHA/dados do convênio.
+  { test: /(cart[eē]irinha|cart[aã]o do (plano|conv[eê]nio)|n[uú]mero da carteira|validade da carteira)/i,
+    reason: 'Isso é a CARTEIRINHA/cartão do plano de saúde, não um resultado de exame.' },
+  // AUTORIZAÇÃO de procedimento (senha do convênio).
+  { test: /(autoriza[cç][aã]o de (procedimento|exame|servi[cç]o)|senha de autoriza[cç][aã]o|procedimento autorizado)/i,
+    reason: 'Isso é uma AUTORIZAÇÃO de procedimento (aprovação do convênio), não o resultado. O resultado sai depois de o exame ser realizado — crie um Lembrete.' },
+  // CONFIRMAÇÃO de agendamento (e-mail/WhatsApp do lab).
+  { test: /(confirma[cç][aã]o de agendamento|seu exame est[aá] agendado|agendamento confirmado|agendado para \d{2}\/\d{2})/i,
+    reason: 'Isso é a CONFIRMAÇÃO do agendamento, não o resultado. Envie o resultado quando sair no portal do laboratório.' },
+  // COMPROVANTE DE VACINA.
+  { test: /(cart[aã]o de vacina|comprovante de vacina|dose aplicada|lote da vacina|fabricante da vacina|imuniza[cç][aã]o realizada)/i,
+    reason: 'Isso é um COMPROVANTE DE VACINA, não um exame. Registre suas vacinas na aba Vacinas do app.' },
+  // TERMO/CONSENTIMENTO.
+  { test: /(termo de consentimento|termo de ci[eê]ncia)/i,
+    reason: 'Isso é um TERMO/CONSENTIMENTO, não um resultado de exame.' },
   { test: /(receitu[aá]rio|receita m[eé]dica|prescri[cç][aã]o(?! de exame)|uso oral|tomar\s+\d*\s*comprimido|via oral\s*\d|posologia|1 comprimido|de \d+\s*em\s*\d+\s*horas|farm[aá]cia|clorado|xarope)/i,
     reason: 'Isso parece uma RECEITA/PRESCRIÇÃO de medicamento, não um resultado de exame. Envie o exame de sangue, imagem ou laudo.' },
   { test: /(nota fiscal|recibo(?! médico)|cnpj|forma de pagamento|valor (total )?(a )?pagar|linha digit[aá]vel|c[oó]digo de barras(?! de coleta)|d[aá]vida ativa|boleto)/i,

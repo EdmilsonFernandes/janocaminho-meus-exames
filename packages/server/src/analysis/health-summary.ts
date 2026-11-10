@@ -1,5 +1,5 @@
 import { getLlm, getModel } from '../llm';
-import { withRateLimitRetry } from '../utils/retry';
+import { withRateLimitRetry, withQuickRetry } from '../utils/retry';
 import { HealthSummarySchema, type HealthSummary } from '../extraction/schemas';
 import { prisma } from '../prisma';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
@@ -473,7 +473,10 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   ];
   let response: any;
   try {
-    response = await withRateLimitRetry(async () => {
+    // withQuickRetry (dono 10/11): 3 tentativas rápidas (2s/4s) cobrindo 429 da GLM E
+    // transientes de rede/stream — o usuário espera a resposta na tela, backoff longo
+    // (withRateLimitRetry, 5-40s) é pra extração em background, não praqui.
+    response = await withQuickRetry(async () => {
       // maxTokens 12k (era 6k): o glm-5.3 emite bloco thinking ANTES do texto — com 6k o
       // raciocínio consumia o orçamento e o JSON vinha VAZIO ("A IA não devolveu JSON.
       // Início da resposta: "). Streaming já suporta; paga-se só o que gerar.
@@ -622,7 +625,7 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
   // E3.2 — idem consolidado: addendum + knowledge esportivo deste exame (gate no helper).
   const sports = await sportsContextBlocks(exam.patientId, exam.items.map((i) => i.nameCanonical));
 
-  const s = await getLlm().stream({
+  const s = await withQuickRetry(() => getLlm().stream({
     model: getModel(),
     maxTokens: 12000, // idem consolidado: folga p/ thinking do glm-5.3 antes do texto
     system: HEALTH_SYSTEM,
@@ -656,7 +659,7 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
           JSON_SUFFIX,
       },
     ],
-  });
+  })); // fecha o withQuickRetry(() => stream({...}))
   let response: any;
   try {
     response = await s.final();

@@ -192,6 +192,18 @@ async function runExtractionOnce(examId: string): Promise<void> {
     // com log de auditoria (ex. real: "Espermatozoide" inventado num exame de urina feminina).
     if (kind !== 'IMAGING') items = filterUnbackedItems(text, items, examId);
 
+    // REDE DE SEGURANÇA (caso real 10/11, anti-HTLV): o KB pode não conhecer a frase
+    // do pedido, mas IA devolvendo 0 painéis num documento "lab" = não havia resultados.
+    // EXTRACTED com 0 itens parece bug pro usuário — rejeita com educação + reembolso.
+    if (kind !== 'IMAGING' && items.length === 0 && !dryRun) {
+      const reason = 'Não encontramos resultados de exame neste documento 😕 — se for o PEDIDO/agendamento (comprovante de coleta), ele ainda não tem valores: espere o resultado sair no portal do laboratório e envie ele. Se for um resultado de verdade, uma foto mais nítida (ou o PDF do laboratório) resolve.';
+      await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: 'not_a_document', extractionError: reason } });
+      await refundUploadOnFailure(examId);
+      console.log(`[extraction] ${examId} rejeitado (0 itens): documento sem resultados`);
+      void NotificationService.examFailed({ userId: patient?.ownerId ?? undefined, patientName: patient?.fullName ?? undefined, examTitle: exam.title ?? '—', reason });
+      return;
+    }
+
     // trava anti-alucinação (apenas painel lab): compara itens extraídos vs. densidade de valores no texto
     const reviewRequired = kind !== 'IMAGING' ? sanityCheckItems(text, items) : false;
 

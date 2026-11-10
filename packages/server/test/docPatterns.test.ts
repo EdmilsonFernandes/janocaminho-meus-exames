@@ -82,6 +82,51 @@ describe('classifyDoc — exames reais NÃO podem ser rejeitados', () => {
   });
 });
 
+describe('classifyDoc — ticket/comprovante de agendamento (caso real anti-HTLV 10/11)', () => {
+  const TICKET = `SOLICITAÇÃO: 3179373 em 09/11/2026
+Idade: 46 anos CPF: 99140551091
+Solicitante: Dr. GUSTAVO
+Abaixo, exame(s) por agendar
+Preparo do paciente para realização do exame: Jejum: 4 horas
+Material: SORO
+Item Exame: ANTICORPOS ANTI - HTLV I/II
+Documento de identidade será exigido para realização do exame.
+Guarde este documento até a data da entrega/coleta,
+os resultados estarão disponíveis em http://fab.buscalaudos.com.br`;
+
+  it('comprovante de agendamento → rejeição forte com mensagem educativa (não vira EXTRACTED 0 itens)', () => {
+    const r = classifyDoc(TICKET);
+    expect(r.accept).toBe(false);
+    expect(r.strong).toBe(true);
+    expect(r.reason).toMatch(/COMPROVANTE de agendamento/i);
+    expect(r.reason).toMatch(/Lembrete/i);
+  });
+});
+
+describe('classifyDoc — taxonomia de não-resultados (dono 10/11: determinístico pra tudo que mandam)', () => {
+  it.each([
+    ['atestado', 'ATESTADO MÉDICO\nDeverá permanecer afastado por 3 dias\nCID O-40', /ATESTADO MÉDICO/],
+    ['carteirinha', 'Carteirinha\nPlano: AMHC\nValidade da carteira: 12/2026', /CARTEIRINHA/],
+    ['autorização', 'AUTORIZAÇÃO DE PROCEDIMENTO\nSenha de autorização: 99831\nProcedimento autorizado', /AUTORIZAÇÃO/],
+    ['confirmação de agendamento', 'Confirmação de agendamento\nSeu exame está agendado para 12/11/2026 às 07:30', /CONFIRMAÇÃO/],
+    ['vacina', 'Cartão de vacina\nDose aplicada: 2ª DPI\nLote da vacina: 8812', /VACINA/],
+    ['termo', 'TERMO DE CONSENTIMENTO INFORMADO para realização de procedimento', /TERMO/],
+  ])('%s → rejeita forte com mensagem própria', (_label, text, msg) => {
+    const r = classifyDoc(text);
+    expect(r.accept).toBe(false);
+    expect(r.strong).toBe(true);
+    expect(r.reason).toMatch(msg);
+  });
+
+  it('resultado REAL que menciona convênio no cabeçalho NÃO é rejeitado (aceitação vem primeiro)', () => {
+    const lab = `LABORATÓRIO SANTO AMARO — Convênio: Unimed
+Paciente: João — Resultados:
+HEMOGLOBINA 14,2 g/dL (faixa de referência: 13,0 a 17,0)
+GLICEMIA 92 mg/dL (referência: 70 a 99)`;
+    expect(classifyDoc(lab).accept).toBe(true);
+  });
+});
+
 describe('classifyDoc — indefinidos', () => {
   it('texto sem sinais médicos nem categoria conhecida → soft reject genérico', () => {
     const r = classifyDoc('Lista de compras: arroz, feijão, café');
