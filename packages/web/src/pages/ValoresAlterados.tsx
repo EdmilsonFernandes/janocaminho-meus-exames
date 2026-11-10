@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Card, CardContent, Typography, Stack, Chip, Accordion, AccordionSummary, AccordionDetails, Collapse } from '@mui/material';
 import { alpha } from '@mui/material/styles';
@@ -23,6 +23,7 @@ import { refLabel, categorize } from '../utils/medicalData';
 import { priorityOf, maxPriority, isStaleExam, refScaleSuspect, PRIORITY_META, PRIORITY_RANK, priorityText } from '../utils/alertPriority';
 import { CappedExamMarkers } from '../components/CappedExamMarkers';
 import { celebrate } from '../hooks/useCelebrate';
+import { useSnapCarousel } from '../hooks/useSnapCarousel';
 import { RADIUS } from '../theme';
 import { Frame, FramePanel, FrameFooter } from '@/components/reui/frame';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
@@ -125,6 +126,10 @@ export const ValoresAlteradosPage = () => {
   };
 
   const [showAll, setShowAll] = useState(false);
+  // Carrossel de normalizados com vida própria (dono 10/11): avança a cada 3s,
+  // pausa no hover/foco/aba oculta, reduced-motion desliga; drag com mouse na web.
+  const normRef = useRef<HTMLDivElement>(null);
+  const { dragHandlers, dragSx } = useSnapCarousel(normRef);
 
   const renderExamAccordion = (g: (typeof groups)[number]) => {
     const mp = maxPriority(g.items);
@@ -270,12 +275,13 @@ export const ValoresAlteradosPage = () => {
                   arraste <KeyboardArrowDownIcon sx={{ transform: 'rotate(-90deg)', fontSize: 14 }} />
                 </Typography>
               </Stack>
-              <Box sx={{
+              <Box ref={normRef} {...dragHandlers} sx={{
                 display: 'flex', gap: 1.25, overflowX: 'auto',
                 scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch',
                 pb: 0.5, mx: -2, px: 2,
                 '&::-webkit-scrollbar': { display: 'none' },
                 scrollbarWidth: 'none',
+                ...dragSx,
               }}>
                 {normalizedRecent.map((n) => (
                   <Card key={n.nameCanonical} sx={{

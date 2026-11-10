@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Card, CardContent, Typography, Stack, Chip, Accordion, AccordionSummary, AccordionDetails, Button, Collapse } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -18,6 +18,7 @@ import { refLabel, categorize } from '../../utils/medicalData';
 import { priorityOf, maxPriority, isStaleExam, refScaleSuspect, PRIORITY_META, PRIORITY_RANK } from '../../utils/alertPriority';
 import { RADIUS } from '../../theme';
 import { ReviewControl, type ReviewLike } from './portal/ReviewControl';
+import { useSnapCarousel } from '../../hooks/useSnapCarousel';
 
 /**
  * DoctorValoresAlterados — valores alterados do paciente (viewer médico READ-ONLY nos dados,
@@ -114,6 +115,10 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
   }, [items]);
 
   const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
+
+  // Carrossel vivo (dono 10/11): auto-avanço 3s com pausas + drag com mouse na web.
+  const normRef = useRef<HTMLDivElement>(null);
+  const { dragHandlers, dragSx } = useSnapCarousel(normRef);
   const timeAgo = (d?: string | null) => {
     if (!d) return '';
     const days = Math.floor((Date.now() - new Date(d).getTime()) / 86400000);
@@ -370,11 +375,12 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
                   arraste <KeyboardArrowDownIcon sx={{ transform: 'rotate(-90deg)', fontSize: 14 }} />
                 </Typography>
               </Stack>
-              <Box sx={{
+              <Box ref={normRef} {...dragHandlers} sx={{
                 display: 'flex', gap: 1.25, overflowX: 'auto',
                 scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch',
                 pb: 0.5, mx: -1.5, px: 1.5,
                 '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none',
+                ...dragSx,
               }}>
                 {normalizedList.map((n) => (
                   <Card key={n.nameCanonical} sx={{
