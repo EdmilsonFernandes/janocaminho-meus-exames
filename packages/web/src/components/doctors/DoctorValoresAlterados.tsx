@@ -97,6 +97,22 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
     return { counts: c, suspectCount: sc };
   }, [items]);
 
+  // Normalizações por analito (mais recente primeiro) — alimenta o carrossel premium
+  // (dono 10/11: "mesmo padrão do paciente"). Dedup por nameCanonical: a 1ª ocorrência
+  // de cada analito na lista ordenada (desc) é a alteração mais recente dele.
+  const normalizedList = useMemo(() => {
+    const seen = new Set<string>();
+    const out: { name: string; nameCanonical: string; from: string; fromAt: string | null; to: string; toAt: string | null }[] = [];
+    for (const it of items) {
+      if (!it.isNormalizedInNewerExam) continue;
+      const k = (it.nameCanonical || '').toUpperCase().trim();
+      if (k && seen.has(k)) continue;
+      if (k) seen.add(k);
+      out.push({ name: it.name, nameCanonical: k || it.id, from: it.valueText ?? '—', fromAt: it.performedAt, to: it.latestValueText ?? '—', toAt: it.latestPerformedAt ?? null });
+    }
+    return out;
+  }, [items]);
+
   const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
   const timeAgo = (d?: string | null) => {
     if (!d) return '';
@@ -126,31 +142,44 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
         elevation={0}
         sx={{
           border: '1px solid',
-          borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-          borderLeft: `4px solid ${meta.color}`,
+          borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
           borderRadius: '16px !important',
           overflow: 'hidden',
           bgcolor: (t) => t.palette.mode === 'dark' ? '#0f172a' : '#ffffff',
-          boxShadow: (t) => (t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.25)' : '0 2px 8px rgba(0,0,0,0.02)'),
+          boxShadow: (t) => (t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.25)' : '0 1px 3px rgba(0,0,0,0.03)'),
           transition: 'all 0.2s ease',
           '&:before': { display: 'none' },
           '& .MuiAccordionSummary-root': {
             borderTopLeftRadius: '16px',
             borderTopRightRadius: '16px',
-            px: 2,
+            px: { xs: 1.5, sm: 2 },
             py: 1,
-            bgcolor: (t) => t.palette.mode === 'dark' ? alpha(meta.color, 0.08) : alpha(meta.color, 0.04),
+            bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#ffffff',
+            '&:hover': {
+              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#f8fafc',
+            },
           },
           '& .MuiAccordionDetails-root': {
             borderBottomLeftRadius: '16px',
             borderBottomRightRadius: '16px',
             p: 1.5,
+            borderTop: '1px solid',
+            borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
           },
         }}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'text.secondary' }} />}>
           <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1.25, pr: 0.5 }}>
-            <Box component="span" sx={{ fontSize: 18, lineHeight: 1 }}>{meta.emoji}</Box>
+            <Box
+              sx={{
+                width: 9,
+                height: 9,
+                borderRadius: '50%',
+                bgcolor: meta.color,
+                boxShadow: `0 0 6px ${alpha(meta.color, 0.5)}`,
+                flexShrink: 0,
+              }}
+            />
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, fontSize: { xs: 14.5, sm: 15.5 }, color: 'text.primary', lineHeight: 1.25, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                 {g.examTitle}
@@ -168,9 +197,9 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
                 fontWeight: 800,
                 fontSize: 11,
                 height: 24,
-                bgcolor: alpha(meta.color, 0.15),
+                bgcolor: alpha(meta.color, 0.12),
                 color: meta.color,
-                border: `1px solid ${alpha(meta.color, 0.3)}`,
+                border: `1px solid ${alpha(meta.color, 0.25)}`,
                 flexShrink: 0,
               }}
             />
@@ -325,6 +354,61 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
               )}
             </Box>
           ) : null}
+
+          {/* ✨ Normalizados no exame mais recente — carrossel premium (mesmo padrão
+              do app do paciente; tom clínico). Fica visível mesmo com o filtro de
+              ocultar ativo: é contexto de melhora, não ruído de triagem. */}
+          {normalizedList.length > 0 && (
+            <Box sx={{ mb: 0.5 }}>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1, px: 0.5 }}>
+                <AutoAwesomeIcon sx={{ fontSize: 17, color: '#38bd8b' }} />
+                <Typography sx={{ fontWeight: 800, fontSize: 14.5 }}>
+                  {normalizedList.length === 1 ? 'Normalizado no exame mais recente' : `${normalizedList.length} normalizados no exame mais recente`}
+                </Typography>
+                <Box sx={{ flex: 1 }} />
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  arraste <KeyboardArrowDownIcon sx={{ transform: 'rotate(-90deg)', fontSize: 14 }} />
+                </Typography>
+              </Stack>
+              <Box sx={{
+                display: 'flex', gap: 1.25, overflowX: 'auto',
+                scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch',
+                pb: 0.5, mx: -1.5, px: 1.5,
+                '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none',
+              }}>
+                {normalizedList.map((n) => (
+                  <Card key={n.nameCanonical} sx={{
+                    scrollSnapAlign: 'center', flex: { xs: '0 0 76%', sm: '0 0 268px' }, maxWidth: 320,
+                    borderRadius: '16px', border: '1px solid rgba(56,189,139,0.35)',
+                    background: (t) => (t.palette.mode === 'dark'
+                      ? 'linear-gradient(150deg, rgba(56,189,139,0.13), rgba(15,23,42,0.96))'
+                      : 'linear-gradient(150deg, rgba(56,189,139,0.11), rgba(255,255,255,0.97))'),
+                  }}>
+                    <CardContent sx={{ p: 2, '&:last-child': { pb: 2 }, display: 'flex', flexDirection: 'column', gap: 0.75, height: '100%' }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: 13, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={n.name}>
+                        {n.name}
+                      </Typography>
+                      <Stack direction="row" spacing={0.75} alignItems="baseline" flexWrap="wrap" sx={{ rowGap: 0.25 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', textDecoration: 'line-through', textDecorationColor: 'rgba(239,68,68,0.55)' }}>
+                          {n.from}
+                        </Typography>
+                        <KeyboardArrowDownIcon sx={{ transform: 'rotate(-90deg)', fontSize: 13, color: '#059669', alignSelf: 'center' }} />
+                        <Typography sx={{ fontWeight: 800, fontSize: 15.5, color: '#059669', fontFamily: 'Poppins, sans-serif' }}>
+                          {n.to}
+                        </Typography>
+                      </Stack>
+                      <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="space-between" sx={{ mt: 'auto' }}>
+                        <Typography variant="caption" color="text.secondary">
+                          {fmtDate(n.fromAt)} → <b style={{ color: 'text.primary' }}>{fmtDate(n.toAt)}</b>
+                        </Typography>
+                        <Chip size="small" label="na faixa ✓" sx={{ height: 21, fontWeight: 800, borderRadius: '999px', bgcolor: 'rgba(16,185,129,0.14)', color: '#059669' }} />
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+            </Box>
+          )}
 
           {/* Cabeçalho de Contexto & Foco Clínico */}
           {groups.length > INITIAL_LIMIT && (

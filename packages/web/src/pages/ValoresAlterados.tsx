@@ -256,30 +256,64 @@ export const ValoresAlteradosPage = () => {
           </Frame>
           )}
 
-          {/* ✨ VOLTARAM AO NORMAL — o melhor momento do produto, antes invisível */}
+          {/* ✨ VOLTARAM AO NORMAL — carrossel premium mobile-first (cada normalização
+              é uma conquista: card próprio, swipe com snap; nada de mural vertical). */}
           {normalizedRecent.length > 0 && (
-            <Card sx={{ mb: 2, borderRadius: RADIUS.card, border: '1px solid rgba(56,189,139,0.4)', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(56,189,139,0.06)' : 'rgba(56,189,139,0.05)') }}>
-              <CardContent sx={{ pb: '16px !important' }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.25 }}>
-                  <AutoAwesomeIcon sx={{ fontSize: 18, color: '#38bd8b' }} />
-                  <Typography sx={{ fontWeight: 800, fontSize: 15.5 }}>
-                    {normalizedRecent.length === 1 ? 'Voltou ao normal' : `${normalizedRecent.length} voltaram ao normal`}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">· dentro da faixa no exame mais recente</Typography>
-                </Stack>
-                <Stack spacing={0.75}>
-                  {normalizedRecent.map((n) => (
-                    <Stack key={n.nameCanonical} direction="row" spacing={1.5} alignItems="center" sx={{ py: 0.6, flexWrap: 'wrap', rowGap: 0.5 }}>
-                      <Typography sx={{ fontWeight: 700, fontSize: 14, minWidth: 110 }}>{n.name}</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ '& b': { color: 'text.primary' } }}>
-                        {n.from?.valueText ?? '—'} <Box component="span" sx={{ opacity: 0.6 }}>({fmtDate(n.from?.performedAt)})</Box> → <b>{n.to?.valueText ?? n.to?.valueNumeric ?? '—'}{n.to?.unit ? ` ${n.to.unit}` : ''}</b> ({fmtDate(n.to?.performedAt)})
+            <Box sx={{ mb: 2 }}>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1, px: 0.5 }}>
+                <AutoAwesomeIcon sx={{ fontSize: 18, color: '#38bd8b' }} />
+                <Typography sx={{ fontWeight: 800, fontSize: 15.5 }}>
+                  {normalizedRecent.length === 1 ? 'Voltou ao normal' : `${normalizedRecent.length} voltaram ao normal`}
+                </Typography>
+                <Box sx={{ flex: 1 }} />
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  arraste <KeyboardArrowDownIcon sx={{ transform: 'rotate(-90deg)', fontSize: 14 }} />
+                </Typography>
+              </Stack>
+              <Box sx={{
+                display: 'flex', gap: 1.25, overflowX: 'auto',
+                scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch',
+                pb: 0.5, mx: -2, px: 2,
+                '&::-webkit-scrollbar': { display: 'none' },
+                scrollbarWidth: 'none',
+              }}>
+                {normalizedRecent.map((n) => (
+                  <Card key={n.nameCanonical} sx={{
+                    scrollSnapAlign: 'center',
+                    flex: { xs: '0 0 76%', sm: '0 0 268px' },
+                    maxWidth: 320,
+                    borderRadius: RADIUS.card,
+                    border: '1px solid rgba(56,189,139,0.35)',
+                    background: (t) => (t.palette.mode === 'dark'
+                      ? 'linear-gradient(150deg, rgba(56,189,139,0.14), rgba(26,36,36,0.95))'
+                      : 'linear-gradient(150deg, rgba(56,189,139,0.12), rgba(255,255,255,0.96))'),
+                    display: 'flex', flexDirection: 'column',
+                  }}>
+                    <CardContent sx={{ p: 2, '&:last-child': { pb: 2 }, display: 'flex', flexDirection: 'column', gap: 0.75, height: '100%' }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: 13.5, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={n.name}>
+                        {n.name}
                       </Typography>
-                      <Chip size="small" label="de volta à faixa ✨" sx={{ height: 22, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: 'rgba(56,189,139,0.14)', color: '#2b9a6e' }} />
-                    </Stack>
-                  ))}
-                </Stack>
-              </CardContent>
-            </Card>
+                      {/* valueText JÁ vem com unidade — nunca concatenar de novo */}
+                      <Stack direction="row" spacing={0.75} alignItems="baseline" flexWrap="wrap" sx={{ rowGap: 0.25 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', textDecoration: 'line-through', textDecorationColor: 'rgba(239,68,68,0.55)' }}>
+                          {n.from?.valueText ?? '—'}
+                        </Typography>
+                        <KeyboardArrowDownIcon sx={{ transform: 'rotate(-90deg)', fontSize: 14, color: '#2b9a6e', alignSelf: 'center' }} />
+                        <Typography sx={{ fontWeight: 800, fontSize: 16.5, color: '#2b9a6e', fontFamily: 'Poppins, sans-serif' }}>
+                          {n.to?.valueText || [n.to?.valueNumeric, n.to?.unit].filter(Boolean).join(' ') || '—'}
+                        </Typography>
+                      </Stack>
+                      <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="space-between" sx={{ mt: 'auto' }}>
+                        <Typography variant="caption" color="text.secondary">
+                          {fmtDate(n.from?.performedAt)} → <b style={{ color: 'text.primary' }}>{fmtDate(n.to?.performedAt)}</b>
+                        </Typography>
+                        <Chip size="small" label="✨ na faixa" sx={{ height: 22, fontWeight: 800, borderRadius: RADIUS.pill, bgcolor: 'rgba(56,189,139,0.16)', color: '#2b9a6e' }} />
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+            </Box>
           )}
 
           {/* ESTADO ATUAL — todos os exames com algo fora da faixa AGORA (sem fantasmas) */}

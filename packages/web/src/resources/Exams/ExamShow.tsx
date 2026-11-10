@@ -31,6 +31,7 @@ import { categorizeExam } from '../../utils/medicalData';
 import { tealText, RADIUS, SEM } from '../../theme';
 import { WhatIsThis } from '../../components/WhatIsThis';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
+import { ExamFailureSheet } from '../../components/ExamFailureSheet';
 import { AnalysisScan } from '../../components/AnalysisScan';
 import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
 import { notifyInsufficientCredits } from '../../utils/credits-events';
@@ -127,6 +128,9 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   const [retryTick, setRetryTick] = useState(0);
   const [genLoading, setGenLoading] = useState(false);
   const [reExtracting, setReExtracting] = useState(false);
+  // Sheet educativo de falha (pedido≠resultado / qualidade / IA): auto-abre 1× por exame
+  // e reabre pelo "Entender o que houve" do Alert.
+  const [failSheetOpen, setFailSheetOpen] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; text: string; sources?: { label: string; topic: string }[] }[]>([]);
   const [chatBusy, setChatBusy] = useState(false);
@@ -477,8 +481,15 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
           {exam.status === 'FAILED' && (
             <Alert severity="error" sx={{ mt: 2 }}>
               A extração falhou: {exam.extractionError}
-              <Box sx={{ mt: 1 }}><Button size="small" variant="outlined" onClick={reextract} disabled={reExtracting}>Re-extrair</Button></Box>
+              <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Button size="small" variant="outlined" onClick={reextract} disabled={reExtracting}>Re-extrair</Button>
+                {/* "Entender o que houve" reabre o sheet educativo (auto-abre 1× por exame) */}
+                <Button size="small" variant="text" onClick={() => setFailSheetOpen(true)} sx={{ fontWeight: 700 }}>Entender o que houve</Button>
+              </Box>
             </Alert>
+          )}
+          {exam.status === 'FAILED' && (
+            <ExamFailureSheet exam={exam} open={failSheetOpen} onOpenChange={setFailSheetOpen} onRetry={reextract} />
           )}
           {(exam.status === 'UPLOADED' || exam.status === 'EXTRACTING') && (
             <ExtractionProgress startedAt={exam.createdAt} examId={exam.id} />
