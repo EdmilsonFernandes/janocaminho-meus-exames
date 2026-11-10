@@ -397,8 +397,12 @@ router.get('/abnormal', async (req: AuthedRequest, res, next) => {
         spark: hist.filter((h) => h.valueNumeric != null).slice(0, 6).map((h) => ({ d: h.exam.performedAt, v: h.valueNumeric, abn: h.isAbnormal })).reverse(),
       });
     }
-    current.sort((a, b) => (b.performedAt ?? '').localeCompare(a.performedAt ?? ''));
-    normalized.sort((a, b) => (b.normalizedPerformedAt ?? '').localeCompare(a.normalizedPerformedAt ?? ''));
+    // Ordena por timestamp (performedAt aqui é Date do Prisma — localeCompare é
+    // de string; bug pego pelo items.test.ts no CI: sort de 1 elemento nunca chama
+    // o comparator, por que o teste novo não pegou localmente).
+    const ts = (d: Date | string | null | undefined) => (d ? new Date(d).getTime() : 0);
+    current.sort((a, b) => ts(b.performedAt) - ts(a.performedAt));
+    normalized.sort((a, b) => ts(b.normalizedPerformedAt) - ts(a.normalizedPerformedAt));
     res.json({ items, current, normalized });
   } catch (e) { next(e); }
 });

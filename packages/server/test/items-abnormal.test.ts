@@ -44,6 +44,7 @@ describe('GET /api/items/abnormal — estado atual por analito', () => {
     await mkExam(patientId, 'Exame ago', ago, [
       { name: 'TSH', valueText: '6.2', valueNumeric: 6.2, abnormal: true },
       { name: 'GLICOSE', valueText: '118', valueNumeric: 118, abnormal: true },
+      { name: 'VITAMINA D', valueText: '22', valueNumeric: 22, abnormal: true }, // só no antigo → segue atual
     ]);
     await mkExam(patientId, 'Exame ontem', ontem, [
       { name: 'TSH', valueText: '2.1', valueNumeric: 2.1, abnormal: false },
@@ -54,11 +55,13 @@ describe('GET /api/items/abnormal — estado atual por analito', () => {
     expect(r.status).toBe(200);
 
     // flat: todas as ocorrências alteradas (compat ExamList/Timeline)
-    expect(r.body.items).toHaveLength(3);
+    expect(r.body.items).toHaveLength(4);
 
-    // current: só o que está alterado AGORA (última medição) — GLICOSE do exame de ontem
-    expect(r.body.current).toHaveLength(1);
+    // current: só o que está alterado AGORA — GLICOSE (ontem) e VITAMINA D (ago, sem
+    // medição nova). 2 elementos = o comparator do sort RODA (regressão do localeCompare).
+    expect(r.body.current).toHaveLength(2);
     expect(r.body.current[0]).toMatchObject({ nameCanonical: 'GLICOSE', valueText: '121', abnormalStreak: 2 });
+    expect(r.body.current[1]).toMatchObject({ nameCanonical: 'VITAMINA D' });
     expect(r.body.current[0].prev).toMatchObject({ valueText: '118', isAbnormal: true });
     expect(r.body.current[0].spark.length).toBe(2);
 
