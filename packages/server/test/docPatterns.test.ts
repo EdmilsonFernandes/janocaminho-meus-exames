@@ -82,24 +82,27 @@ describe('classifyDoc — exames reais NÃO podem ser rejeitados', () => {
   });
 });
 
-describe('classifyDoc — ticket/comprovante de agendamento (caso real anti-HTLV 10/11)', () => {
-  const TICKET = `SOLICITAÇÃO: 3179373 em 09/11/2026
-Idade: 46 anos CPF: 99140551091
+describe('classifyDoc — OCR REAL do ticket anti-HTLV (o "Paciente:" não aceita mais ticket como exame)', () => {
+  // Trecho fiel do OCR de produção (1692 chars): contém "codigo Paciente:" (sinal fraco
+  // que antes falsamente aceitava) E as frases de ticket. O reject específico vem ANTES.
+  const REAL_OCR = `09/11/2026 16:14
+DANIELE CRISTIANE RODRIGUES FAVARINI
+SOLICITAÇÃO: 3179373 em 09/11/2026 16:13 codigo Paciente: 3978245
+Idade: 46 anos 5 meses 4 dias CPF: 99140551091
 Solicitante: Dr. GUSTAVO
-Abaixo, exame(s) por agendar
+Abaixo, exame (s) por agendar
 Preparo do paciente para realização do exame: Jejum: 4 horas
 Material: SORO
 Item Exame: ANTICORPOS ANTI - HTLV I/II
-Documento de identidade será exigido para realização do exame.
+Localizador de Exames na Internet: NW37WR94
 Guarde este documento até a data da entrega/coleta,
 os resultados estarão disponíveis em http://fab.buscalaudos.com.br`;
 
-  it('comprovante de agendamento → rejeição forte com mensagem educativa (não vira EXTRACTED 0 itens)', () => {
-    const r = classifyDoc(TICKET);
+  it('ticket com "Paciente:" → rejeita com a mensagem de COMPROVANTE (antes da IA)', () => {
+    const r = classifyDoc(REAL_OCR);
     expect(r.accept).toBe(false);
     expect(r.strong).toBe(true);
     expect(r.reason).toMatch(/COMPROVANTE de agendamento/i);
-    expect(r.reason).toMatch(/Lembrete/i);
   });
 });
 

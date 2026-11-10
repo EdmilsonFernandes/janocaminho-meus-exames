@@ -58,6 +58,15 @@ const VALID_MEDICAL: RegExp = /(valor(es)? de refer[eê]ncia|faixa de refer|refe
 
 export interface DocClass { accept: boolean; strong: boolean; reason?: string }
 
+// Frases de TICKET/AGENDAMENTO que NUNCA aparecem num resultado — checadas ANTES da
+// aceitação por VALID_MEDICAL. Caso real anti-HTLV 10/11: o ticket tem "codigo Paciente:
+// 3978245" e o sinal fraco `paciente:` o aceitava como exame (IA gastada à toa até cair
+// no guard de 0 itens). Aqui a especificidade é total: resultado não diz "resultados
+// estarão disponíveis" nem "guarde este documento até a coleta". OCR pode separar
+// "exame (s)" com espaços — os patterns toleram.
+const TICKET_STRONG_REASON = 'Isso é o COMPROVANTE de agendamento do exame (com preparo e jejum), ainda sem resultado. Busque o resultado no portal do laboratório quando estiver pronto e envie ele — crie um Lembrete para não esquecer.';
+const TICKET_STRONG = /(exames?\s*\(s\)\s*por agendar|exames?\s+por agendar|resultados?\s+estar[aã]o\s+dispon[ií]veis|guarde\s+este\s+documento|localizador\s+de\s+exames)/i;
+
 export function classifyDoc(text: string, opts?: { isPdf?: boolean }): DocClass {
   const t = (text || '').trim();
   if (!t) {
@@ -68,6 +77,8 @@ export function classifyDoc(text: string, opts?: { isPdf?: boolean }): DocClass 
     }
     return { accept: false, strong: true, reason: 'Não conseguimos ler seu exame 😕 — a imagem ficou difícil de decifrar. Tente o Escanear (a câmera ajusta borda, luz e nitido pra você) ou envie um PDF.' };
   }
+  // 0. Ticket/agendamento ANTES de tudo — "Paciente:" no ticket não pode virar exame.
+  if (TICKET_STRONG.test(t)) return { accept: false, strong: true, reason: TICKET_STRONG_REASON };
   // 1. Aceita PRIMEIRO se há sinais fortes de exame/laudo — mesmo que o texto
   //    tenha alguma palavra de rejeição (ex.: exame que cita "CPF"/"RG" do paciente).
   //    (Antes checava REJECT antes → exame real caía em "parece RG" = falso positivo.)
