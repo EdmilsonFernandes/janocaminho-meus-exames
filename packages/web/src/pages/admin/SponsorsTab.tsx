@@ -389,56 +389,120 @@ const UploadButton = ({ label, icon = false, onFile }: { label: string; icon?: b
   );
 };
 
-/** Prévia FIEL (mesmo SponsorCard + mesmo "vidro" do popup) em moldura mobile ou desktop. Não dispara evento algum. */
+/** Prévia FIEL com ReUI Liquid Glass e Mockup de Dispositivo Retina moderno. Não dispara evento algum. */
 const PreviewDialog = ({ campaign, onClose }: { campaign: Campaign; onClose: () => void }) => {
   const theme = useTheme();
   const dark = theme.palette.mode === 'dark';
-  // Em tela pequena (admin no celular) a moldura de "telefone" dentro do Dialog ficava
-  // apertada e ilegível (E2E 02/11): mostra o cartão em tamanho real, sem moldura.
+  // Em tela pequena (admin no celular) mostra o cartão em tamanho real, sem moldura excessiva.
   const small = useMediaQuery(theme.breakpoints.down('sm'));
   const [device, setDevice] = useState<'mobile' | 'desktop'>('mobile');
   const client: ClientCampaign = { id: campaign.id, title: campaign.title, description: campaign.description, ctaLabel: campaign.ctaLabel, ctaType: campaign.ctaType, ctaTarget: campaign.ctaTarget, imageUrl: campaign.imageUrl, sponsor: { id: campaign.sponsorId, name: campaign.sponsor?.name ?? '', logoUrl: campaign.sponsor?.logoUrl ?? null } };
-  const frameW = device === 'mobile' ? 390 : 960;
+  const frameW = device === 'mobile' ? 390 : 920;
   return (
-    <Dialog open onClose={onClose} maxWidth={device === 'mobile' ? 'xs' : 'lg'} fullWidth fullScreen={small} PaperProps={{ sx: { borderRadius: small ? 0 : '16px', bgcolor: 'background.paper' } }} data-testid="campaign-preview-dialog">
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 16, sm: 20 } }}>
-        <Box sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Prévia · {campaign.title}</Box>
+    <Dialog open onClose={onClose} maxWidth={device === 'mobile' ? 'xs' : 'lg'} fullWidth fullScreen={small} PaperProps={{ sx: { borderRadius: small ? 0 : '20px', bgcolor: 'background.paper', overflow: 'hidden' } }} data-testid="campaign-preview-dialog">
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 16, sm: 19 }, py: 2 }}>
+        <Box sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Prévia ReUI · {campaign.title}</Box>
         {!small && (
-          <ToggleButtonGroup size="small" exclusive value={device} onChange={(_, v) => v && setDevice(v)}>
-            <ToggleButton value="mobile" aria-label="Prévia mobile"><PhoneIphoneIcon fontSize="small" /></ToggleButton>
-            <ToggleButton value="desktop" aria-label="Prévia desktop"><LaptopMacIcon fontSize="small" /></ToggleButton>
+          <ToggleButtonGroup size="small" exclusive value={device} onChange={(_, v) => v && setDevice(v)} sx={{ bgcolor: dark ? 'rgba(255,255,255,.05)' : '#f1f5f9', borderRadius: '12px' }}>
+            <ToggleButton value="mobile" aria-label="Prévia mobile" sx={{ borderRadius: '10px', px: 1.5, py: 0.5 }}><PhoneIphoneIcon fontSize="small" /></ToggleButton>
+            <ToggleButton value="desktop" aria-label="Prévia desktop" sx={{ borderRadius: '10px', px: 1.5, py: 0.5 }}><LaptopMacIcon fontSize="small" /></ToggleButton>
           </ToggleButtonGroup>
         )}
       </DialogTitle>
       <DialogContent sx={{ px: { xs: 1.5, sm: 3 } }}>
-        <Alert severity="info" sx={{ borderRadius: '12px', mb: 2 }}>A prévia não conta como impressão nem clique. É exatamente o que o usuário vê sobre a tela principal.</Alert>
+        <Alert severity="info" sx={{ borderRadius: '12px', mb: 2, bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(13,148,136,0.12)' : 'rgba(13,148,136,0.06)', color: 'text.primary', border: '1px solid', borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(13,148,136,0.3)' : 'rgba(13,148,136,0.2)' }}>
+          A prévia não conta como impressão nem clique. É exatamente o que o usuário vê com a nova skin <strong>Liquid Glass ReUI</strong> sobre a tela principal.
+        </Alert>
         {small ? (
-          <Box sx={{ borderRadius: '16px', p: 1.5, background: dark ? 'linear-gradient(180deg,#0f1818,#13201f)' : 'linear-gradient(180deg,#dcefed,#c9e6e2)' }}>
+          <Box sx={{ borderRadius: '20px', p: 1.5, background: dark ? 'linear-gradient(180deg,#0a1111,#111d1c)' : 'linear-gradient(180deg,#d8ece9,#c2e3de)' }}>
             <Box sx={{ ...glassPaperSx(dark, false), width: '100%', maxWidth: 400, mx: 'auto' }}>
               <SponsorCard campaign={client} variant="preview" logoSrc={client.sponsor.logoUrl ? `${API_URL}${client.sponsor.logoUrl}` : null} imageSrc={client.imageUrl ? `${API_URL}${client.imageUrl}` : null} onPrimary={() => {}} onClose={() => {}} />
             </Box>
           </Box>
         ) : (
-        <Box sx={{ mx: 'auto', width: '100%', maxWidth: frameW, aspectRatio: device === 'mobile' ? '390 / 760' : '16 / 10', borderRadius: device === 'mobile' ? '32px' : '14px', border: '10px solid', borderColor: dark ? '#0b1212' : '#1f2937', overflow: 'hidden', position: 'relative',
-          background: dark ? 'linear-gradient(180deg,#0f1818,#13201f)' : 'linear-gradient(180deg,#eef7f6,#dcefed)' }}>
-          {/* "tela principal" atrás, desfocada como no app */}
-          <Box aria-hidden sx={{ position: 'absolute', inset: 0, p: 2, opacity: .55, filter: 'blur(1px)' }}>
-            {[72, 120, 90, 140].map((h, i) => <Box key={i} sx={{ height: h, borderRadius: '16px', bgcolor: dark ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.75)', mb: 1.5 }} />)}
-          </Box>
-          <Box sx={{ position: 'absolute', inset: 0, bgcolor: dark ? 'rgba(4,10,10,.55)' : 'rgba(15,40,38,.35)', backdropFilter: 'blur(3px)', display: 'grid', placeItems: 'center', p: 2 }}>
-            <Box sx={{ ...glassPaperSx(dark, false), width: '100%', maxWidth: 400 }}>
-              <SponsorCard campaign={client} variant="preview" logoSrc={client.sponsor.logoUrl ? `${API_URL}${client.sponsor.logoUrl}` : null} imageSrc={client.imageUrl ? `${API_URL}${client.imageUrl}` : null} onPrimary={() => {}} onClose={() => {}} />
+          <Box sx={{
+            mx: 'auto', width: '100%', maxWidth: frameW,
+            aspectRatio: device === 'mobile' ? '390 / 760' : '16 / 10',
+            borderRadius: device === 'mobile' ? '44px' : '18px',
+            border: device === 'mobile' ? '8px solid' : '6px solid',
+            borderColor: dark ? '#0f172a' : '#1e293b',
+            boxShadow: '0 25px 60px -15px rgba(0,0,0,0.35)',
+            overflow: 'hidden', position: 'relative',
+            background: dark ? 'linear-gradient(180deg,#090d16,#0f172a)' : 'linear-gradient(180deg,#f0fdfa,#e2e8f0)',
+          }}>
+            {/* Dynamic Island no topo do mockup mobile */}
+            {device === 'mobile' && (
+              <Box sx={{
+                position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
+                width: 110, height: 26, bgcolor: '#000000', borderRadius: '999px', zIndex: 30,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 1.5,
+              }}>
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#1e293b' }} />
+                <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#10b981' }} />
+              </Box>
+            )}
+
+            {/* Simulação da "tela principal" do Dr. Exame atrás com cards e blur */}
+            <Box aria-hidden sx={{ position: 'absolute', inset: 0, p: 3, pt: device === 'mobile' ? 7 : 3, opacity: 0.65, filter: 'blur(1.5px)', userSelect: 'none', pointerEvents: 'none' }}>
+              <Stack spacing={2}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box sx={{ width: 44, height: 44, borderRadius: '50%', bgcolor: '#0d9488' }} />
+                  <Box sx={{ flex: 1 }}>
+                    <Box sx={{ width: 120, height: 12, bgcolor: dark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)', borderRadius: '6px', mb: 0.75 }} />
+                    <Box sx={{ width: 80, height: 8, bgcolor: dark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.12)', borderRadius: '4px' }} />
+                  </Box>
+                </Box>
+                <Box sx={{ height: 90, borderRadius: '18px', bgcolor: dark ? 'rgba(20,184,166,0.18)' : '#ffffff', border: '1px solid', borderColor: dark ? 'rgba(20,184,166,0.3)' : '#d8ece9', p: 2 }}>
+                  <Box sx={{ width: '40%', height: 12, bgcolor: '#0d9488', borderRadius: '6px', mb: 1 }} />
+                  <Box sx={{ width: '70%', height: 10, bgcolor: dark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)', borderRadius: '4px' }} />
+                </Box>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.5 }}>
+                  <Box sx={{ height: 75, borderRadius: '16px', bgcolor: dark ? 'rgba(255,255,255,.05)' : '#ffffff', border: '1px solid #e2e8f0', p: 1.5 }}>
+                    <Box sx={{ width: 40, height: 8, bgcolor: '#94a3b8', borderRadius: '4px', mb: 1 }} />
+                    <Box sx={{ width: 50, height: 16, bgcolor: '#0d9488', borderRadius: '4px' }} />
+                  </Box>
+                  <Box sx={{ height: 75, borderRadius: '16px', bgcolor: dark ? 'rgba(255,255,255,.05)' : '#ffffff', border: '1px solid #e2e8f0', p: 1.5 }}>
+                    <Box sx={{ width: 40, height: 8, bgcolor: '#94a3b8', borderRadius: '4px', mb: 1 }} />
+                    <Box sx={{ width: 50, height: 16, bgcolor: '#ef4444', borderRadius: '4px' }} />
+                  </Box>
+                </Box>
+                <Box sx={{ height: 110, borderRadius: '18px', bgcolor: dark ? 'rgba(255,255,255,.04)' : '#ffffff', border: '1px solid #e2e8f0', p: 2 }}>
+                  <Box sx={{ width: '60%', height: 12, bgcolor: '#94a3b8', borderRadius: '6px', mb: 1 }} />
+                  <Box sx={{ width: '100%', height: 50, bgcolor: dark ? 'rgba(255,255,255,.02)' : '#f8fafc', borderRadius: '12px' }} />
+                </Box>
+              </Stack>
             </Box>
+
+            {/* Backdrop translúcido com o Liquid Glass Card no centro */}
+            <Box sx={{
+              position: 'absolute', inset: 0,
+              bgcolor: dark ? 'rgba(4,10,12,.62)' : 'rgba(15,40,38,.30)',
+              backdropFilter: 'blur(5px)',
+              display: 'grid', placeItems: 'center', p: 2.5,
+              zIndex: 20,
+            }}>
+              <Box sx={{ ...glassPaperSx(dark, false), width: '100%', maxWidth: 400 }}>
+                <SponsorCard campaign={client} variant="preview" logoSrc={client.sponsor.logoUrl ? `${API_URL}${client.sponsor.logoUrl}` : null} imageSrc={client.imageUrl ? `${API_URL}${client.imageUrl}` : null} onPrimary={() => {}} onClose={() => {}} />
+              </Box>
+            </Box>
+
+            {/* Home indicator bar no rodapé do mockup mobile */}
+            {device === 'mobile' && (
+              <Box sx={{
+                position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)',
+                width: 120, height: 4, bgcolor: dark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)',
+                borderRadius: '999px', zIndex: 30,
+              }} />
+            )}
           </Box>
-        </Box>
         )}
         <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap' }}>
-          <Chip size="small" label={`Destino: ${campaign.ctaType === 'none' ? 'sem botão' : campaign.ctaTarget}`} />
-          <Chip size="small" label={`Público: ${AUDIENCE_LABEL[campaign.audience]}`} />
-          <Chip size="small" label={`Status: ${STATUS_LABEL[campaign.effectiveStatus]}`} />
+          <Chip size="small" label={`Destino: ${campaign.ctaType === 'none' ? 'sem botão' : campaign.ctaTarget}`} sx={{ fontWeight: 600 }} />
+          <Chip size="small" label={`Público: ${AUDIENCE_LABEL[campaign.audience]}`} sx={{ fontWeight: 600 }} />
+          <Chip size="small" label={`Status: ${STATUS_LABEL[campaign.effectiveStatus]}`} sx={{ fontWeight: 600 }} />
         </Stack>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}><Button onClick={onClose} sx={{ textTransform: 'none', fontWeight: 700 }}>Fechar</Button></DialogActions>
+      <DialogActions sx={{ px: 3, pb: 2 }}><Button onClick={onClose} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '10px' }}>Fechar</Button></DialogActions>
     </Dialog>
   );
 };

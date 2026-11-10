@@ -110,7 +110,7 @@ export const SponsorPopup = ({ mode = 'patient' }: { mode?: SponsorMode }) => {
       open onClose={() => finish('dismiss')} data-testid="sponsor-popup"
       aria-labelledby="sponsor-title"
       transitionDuration={220}
-      slotProps={{ backdrop: { sx: { bgcolor: dark ? 'rgba(4,10,10,.55)' : 'rgba(15,40,38,.35)', backdropFilter: native ? 'none' : 'blur(3px)' } } }}
+      slotProps={{ backdrop: { sx: { bgcolor: dark ? 'rgba(4,10,12,.65)' : 'rgba(15,40,38,.28)', backdropFilter: native ? 'none' : 'blur(6px)' } } }}
       PaperProps={{
         sx: {
           ...glassPaperSx(dark, native),

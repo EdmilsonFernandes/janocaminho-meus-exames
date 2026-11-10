@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dr. Exame · Sponsor Glass Popup (ReUI Ultra Premium)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Poppins', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Real Liquid Glass Effect */
+    .glass-surface-light {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.48) 100%);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 
+        0 24px 50px -12px rgba(13, 148, 136, 0.18),
+        0 12px 24px -8px rgba(15, 23, 42, 0.08),
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.95),
+        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.03);
+    }
+    
+    .glass-surface-dark {
+      background: linear-gradient(135deg, rgba(20, 32, 34, 0.82) 0%, rgba(15, 23, 26, 0.90) 100%);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 
+        0 30px 60px -12px rgba(0, 0, 0, 0.65),
+        0 10px 20px -5px rgba(0, 0, 0, 0.35),
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.20),
+        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    /* Subdued specular highlight */
+    .specular-glow {
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen py-10 px-4 flex flex-col items-center">
+
+  <!-- Header Controls -->
+  <header class="max-w-4xl w-full mb-8 text-center">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-700 text-xs font-semibold mb-3">
+      <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+      ReUI · Liquid Glassmorphism System
+    </div>
+    <h1 class="text-3xl font-extrabold font-display text-slate-900 tracking-tight">Sponsor Popup Ultra Premium</h1>
+    <p class="text-slate-600 text-sm mt-1">Evolução do popup de parceiros do Dr. Exame com estética de vidro fosco, profundidade multicamada e affordance ReUI.</p>
+
+    <!-- Toolbar -->
+    <div class="flex items-center justify-center gap-3 mt-6">
+      <button id="toggleTheme" class="px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-sm text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-all">
+        <span id="themeIcon">🌙</span> <span id="themeText">Modo Noturno (Obsidian Glass)</span>
+      </button>
+      <button id="toggleImage" class="px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-sm text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-all">
+        <span>🖼️</span> <span id="imageText">Adicionar Imagem 16:9</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Device Container -->
+  <main class="w-full flex justify-center">
+    <div id="deviceShell" class="w-[390px] h-[780px] rounded-[48px] p-3.5 bg-slate-900 shadow-2xl border-[6px] border-slate-800 relative overflow-hidden flex flex-col transition-all">
+      
+      <!-- Dynamic Island / Speaker Notch -->
+      <div class="absolute top-5 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-full z-40 flex items-center justify-between px-3">
+        <div class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-800"></div>
+        <div class="w-2 h-2 rounded-full bg-emerald-500/80"></div>
+      </div>
+
+      <!-- App Screen Content (Blurred Background Dashboard) -->
+      <div id="screenContent" class="w-full h-full rounded-[38px] bg-gradient-to-b from-teal-50 via-slate-50 to-slate-100 relative overflow-hidden flex flex-col p-4 pt-14">
+        
+        <!-- Mock App Dashboard (Simulates the app underneath) -->
+        <div class="space-y-3 opacity-40 filter blur-[1.5px] pointer-events-none select-none">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-full bg-teal-600/30"></div>
+              <div>
+                <div class="w-24 h-3.5 bg-slate-400 rounded-md mb-1.5"></div>
+                <div class="w-16 h-2.5 bg-slate-300 rounded-md"></div>
+              </div>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-slate-300"></div>
+          </div>
+
+          <div class="w-full h-24 rounded-2xl bg-white shadow-sm p-3">
+            <div class="w-28 h-3 bg-teal-600 rounded mb-2"></div>
+            <div class="w-48 h-4 bg-slate-300 rounded mb-2"></div>
+            <div class="w-32 h-2.5 bg-slate-200 rounded"></div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div class="h-20 rounded-2xl bg-white shadow-sm p-3">
+              <div class="w-16 h-2.5 bg-slate-300 rounded mb-2"></div>
+              <div class="w-10 h-5 bg-teal-600 rounded"></div>
+            </div>
+            <div class="h-20 rounded-2xl bg-white shadow-sm p-3">
+              <div class="w-16 h-2.5 bg-slate-300 rounded mb-2"></div>
+              <div class="w-10 h-5 bg-rose-500 rounded"></div>
+            </div>
+          </div>
+
+          <div class="w-full h-36 rounded-2xl bg-white shadow-sm p-3">
+            <div class="w-32 h-3 bg-slate-400 rounded mb-3"></div>
+            <div class="w-full h-20 bg-slate-100 rounded-xl"></div>
+          </div>
+        </div>
+
+        <!-- Backdrop Overlay Tint -->
+        <div id="backdropTint" class="absolute inset-0 bg-teal-950/20 backdrop-blur-[4px] z-10 transition-all"></div>
+
+        <!-- The Liquid Glass Popup (Floating) -->
+        <div class="relative z-20 my-auto">
+          <div id="glassCard" class="glass-surface-light rounded-[26px] p-5 relative overflow-hidden transition-all duration-300">
+            
+            <!-- Hairline Specular Highlight -->
+            <div class="specular-glow"></div>
+
+            <!-- Card Header -->
+            <div class="flex items-center justify-between gap-3 mb-3.5">
+              <div class="flex items-center gap-3 min-w-0">
+                <!-- Partner Logo with Elevated Glass Pill -->
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center shadow-md shadow-red-600/25 shrink-0 border border-white/20">
+                  <span class="text-white font-extrabold text-xs tracking-tighter uppercase font-display">RED FIT</span>
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <h3 id="sponsorName" class="font-extrabold text-slate-900 text-sm tracking-tight truncate font-display">Red Fit</h3>
+                    <span class="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0"></span>
+                  </div>
+                  <!-- ReUI Micro-Badge -->
+                  <div class="inline-flex items-center gap-1 px-2 py-0.5 mt-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10.5px] font-bold text-amber-700 tracking-tight">
+                    <span>★</span> Parceiro Oficial · Patrocinado
+                  </div>
+                </div>
+              </div>
+
+              <!-- Frosted Glass Close Button -->
+              <button class="w-8 h-8 rounded-full bg-white/60 hover:bg-white/90 border border-white/80 shadow-sm flex items-center justify-center text-slate-500 hover:text-slate-800 transition-all shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+
+            <!-- Optional 16:9 Image -->
+            <div id="campaignImage" class="hidden mb-3.5 rounded-2xl overflow-hidden aspect-[16/9] border border-white/50 shadow-inner relative group">
+              <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800&auto=format&fit=crop" alt="Academia" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="mb-4">
+              <h2 id="cardTitle" class="text-[17px] font-extrabold text-slate-900 font-display leading-snug mb-1.5">
+                Seu próximo passo começa na Red Fit! 💪
+              </h2>
+              <p id="cardDesc" class="text-[13.5px] text-slate-600 leading-relaxed">
+                Mais energia, força e disposição para o seu dia a dia. Venha conhecer a unidade mais próxima e aproveite condições exclusivas para membros Dr. Exame!
+              </p>
+            </div>
+
+            <!-- Action Buttons (ReUI Elevation) -->
+            <div class="space-y-2">
+              <button class="w-full py-3 px-4 rounded-xl font-bold text-[14.5px] text-white bg-gradient-to-r from-teal-600 via-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 shadow-lg shadow-teal-700/25 border-t border-teal-400/40 flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
+                <span>Quero conhecer a Red Fit</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+              </button>
+
+              <button id="laterBtn" class="w-full py-2.5 rounded-xl text-[13px] font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-900/5 transition-all text-center">
+                Agora não
+              </button>
+            </div>
+
+            <!-- Micro Disclaimer -->
+            <p id="disclaimer" class="text-center text-[10.5px] text-slate-400 mt-2.5 leading-tight font-medium">
+              Conteúdo de parceiro homologado. Não substitui orientações médicas nem altera seus laudos.
+            </p>
+          </div>
+        </div>
+
+        <!-- iOS Home Indicator Bar -->
+        <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-slate-900/40 rounded-full z-40"></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let isDark = false;
+    let hasImage = false;
+
+    const toggleTheme = document.getElementById('toggleTheme');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+    const glassCard = document.getElementById('glassCard');
+    const screenContent = document.getElementById('screenContent');
+    const backdropTint = document.getElementById('backdropTint');
+    const sponsorName = document.getElementById('sponsorName');
+    const cardTitle = document.getElementById('cardTitle');
+    const cardDesc = document.getElementById('cardDesc');
+    const laterBtn = document.getElementById('laterBtn');
+    const disclaimer = document.getElementById('disclaimer');
+
+    const toggleImage = document.getElementById('toggleImage');
+    const campaignImage = document.getElementById('campaignImage');
+    const imageText = document.getElementById('imageText');
+
+    toggleTheme.addEventListener('click', () => {
+      isDark = !isDark;
+      if (isDark) {
+        glassCard.className = 'glass-surface-dark rounded-[26px] p-5 relative overflow-hidden transition-all duration-300';
+        screenContent.className = 'w-full h-full rounded-[38px] bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden flex flex-col p-4 pt-14';
+        backdropTint.className = 'absolute inset-0 bg-black/60 backdrop-blur-[5px] z-10 transition-all';
+        sponsorName.className = 'font-extrabold text-white text-sm tracking-tight truncate font-display';
+        cardTitle.className = 'text-[17px] font-extrabold text-white font-display leading-snug mb-1.5';
+        cardDesc.className = 'text-[13.5px] text-slate-300 leading-relaxed';
+        laterBtn.className = 'w-full py-2.5 rounded-xl text-[13px] font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-all text-center';
+        disclaimer.className = 'text-center text-[10.5px] text-slate-500 mt-2.5 leading-tight font-medium';
+        themeIcon.textContent = '☀️';
+        themeText.textContent = 'Modo Diurno (Liquid Glass)';
+      } else {
+        glassCard.className = 'glass-surface-light rounded-[26px] p-5 relative overflow-hidden transition-all duration-300';
+        screenContent.className = 'w-full h-full rounded-[38px] bg-gradient-to-b from-teal-50 via-slate-50 to-slate-100 relative overflow-hidden flex flex-col p-4 pt-14';
+        backdropTint.className = 'absolute inset-0 bg-teal-950/20 backdrop-blur-[4px] z-10 transition-all';
+        sponsorName.className = 'font-extrabold text-slate-900 text-sm tracking-tight truncate font-display';
+        cardTitle.className = 'text-[17px] font-extrabold text-slate-900 font-display leading-snug mb-1.5';
+        cardDesc.className = 'text-[13.5px] text-slate-600 leading-relaxed';
+        laterBtn.className = 'w-full py-2.5 rounded-xl text-[13px] font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-900/5 transition-all text-center';
+        disclaimer.className = 'text-center text-[10.5px] text-slate-400 mt-2.5 leading-tight font-medium';
+        themeIcon.textContent = '🌙';
+        themeText.textContent = 'Modo Noturno (Obsidian Glass)';
+      }
+    });
+
+    toggleImage.addEventListener('click', () => {
+      hasImage = !hasImage;
+      if (hasImage) {
+        campaignImage.classList.remove('hidden');
+        imageText.textContent = 'Remover Imagem';
+      } else {
+        campaignImage.classList.add('hidden');
+        imageText.textContent = 'Adicionar Imagem 16:9';
+      }
+    });
+  </script>
+</body>
+</html>
+
