@@ -2,14 +2,10 @@ import { Box, Stack, Typography, Grid, List, ListItem, ListItemIcon, ListItemTex
 import { useTheme } from '@mui/material/styles';
 import DescriptionIcon from '@mui/icons-material/Description';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MedicationIcon from '@mui/icons-material/Medication';
-import RestaurantIcon from '@mui/icons-material/Restaurant';
-import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import InsightsIcon from '@mui/icons-material/Insights';
 import { ReportSectionCard } from './ReportSectionCard';
 import { DestaqueCard } from './DestaqueCard';
-import { MetaCard } from './MetaCard';
 import { RADIUS } from '../../theme';
 import { Frame, FrameHeader, FramePanel } from '@/components/reui/frame';
 import { Badge } from '@/components/reui/badge';
@@ -22,8 +18,6 @@ import { FileText, AlertTriangle, ArrowUpRight } from 'lucide-react';
  */
 const asArr = (x: any): any[] => (Array.isArray(x) ? x : x == null ? [] : [x]);
 
-/** Coerção de itens heterogêneos (string | objeto) em string legível. Cópia do ConsolidatedReport. */
-const txt = (x: any): string => typeof x === 'string' ? x : (x?.texto || x?.titulo || x?.detalhe || x?.name || (x && typeof x === 'object' ? JSON.stringify(x) : String(x ?? '')));
 
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
 
@@ -64,8 +58,10 @@ const splitSentences = (raw: string): string[] => {
 
 /**
  * ConsolidatedReportBody — corpo do relatório consolidado READ-ONLY. Renderiza todas as seções
- * do ConsolidatedReport (exames-base, destaques, atenção, positivos, interações, nutrição,
- * metas, leitura final) EXCETO "Perguntas ao médico" (o paciente envia; o médico só vê).
+ * CLÍNICAS do ConsolidatedReport (exames-base, destaques, atenção, interações, leitura final).
+ * É a visão do MÉDICO: ficam de fora "Perguntas ao médico" (o paciente envia; o médico só vê) e,
+ * desde 11/11 (pedido do dono), o conteúdo escrito PARA o paciente — pontos positivos, sugestões
+ * de nutrição e metas de saúde ("conforme orientação médica" não informa quem orienta).
  *
  * Cada seção é guardada por `asArr(...).length > 0`. Ícone-clicável só se `onOpenExam` for fornecido.
  *
@@ -204,25 +200,6 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam, hide
         </ReportSectionCard>
       )}
 
-      {s.coisasBoas && s.coisasBoas.length > 0 && (
-        <ReportSectionCard icon={<CheckCircleIcon />} title="Pontos estáveis / dentro do esperado" accent={theme.palette.primary.main} count={s.coisasBoas.length} collapsible defaultExpanded={false}>
-          {/* Verde = sinal (apenas ícone). Texto neutro (text.primary). Sem muro de chips. */}
-          <List dense disablePadding>
-            {s.coisasBoas.map((b: any, i: number) => (
-              <ListItem key={i} disableGutters alignItems="flex-start" sx={{ py: 0.4 }}>
-                <ListItemIcon sx={{ minWidth: 30, mt: 0.25, color: 'success.main' }}>
-                  <CheckCircleIcon sx={{ fontSize: 20 }} />
-                </ListItemIcon>
-                <ListItemText
-                  primary={txt(b)}
-                  primaryTypographyProps={{ sx: { wordBreak: 'break-word', color: 'text.primary', lineHeight: 1.5 } }}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </ReportSectionCard>
-      )}
-
       {interacoes.length > 0 && (
         <ReportSectionCard icon={<MedicationIcon />} title="Interações com medicação" accent="#f59e0b" count={interacoes.length} collapsible defaultExpanded={false}>
           <Stack spacing={1}>
@@ -233,22 +210,6 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam, hide
               </Box>
             ))}
           </Stack>
-        </ReportSectionCard>
-      )}
-
-      {s.sugestoesNutricao && s.sugestoesNutricao.length > 0 && (
-        <ReportSectionCard icon={<RestaurantIcon />} title="Sugestões de nutrição" accent="#047857" count={s.sugestoesNutricao.length} collapsible defaultExpanded={false}>
-          <Stack spacing={0.5}>
-            {s.sugestoesNutricao.map((b: any, i: number) => <Typography key={i} variant="body2" sx={{ py: 0.25, wordBreak: 'break-word' }}>🥗 {txt(b)}</Typography>)}
-          </Stack>
-        </ReportSectionCard>
-      )}
-
-      {s.metasSaude && s.metasSaude.length > 0 && (
-        <ReportSectionCard icon={<TrackChangesIcon />} title="Metas de saúde" accent="#0369a1" count={s.metasSaude.length} collapsible defaultExpanded={false}>
-          <Grid container spacing={1.5}>
-            {s.metasSaude.map((m: any, i: number) => <Grid key={i} size={{ xs: 12, md: 6 }}><MetaCard m={m} /></Grid>)}
-          </Grid>
         </ReportSectionCard>
       )}
 

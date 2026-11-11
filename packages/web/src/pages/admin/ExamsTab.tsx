@@ -190,7 +190,9 @@ export const ExamsTab = () => {
       }
     }
 
-    return Object.values(groups).sort((a, b) => b.exams.length - a.exams.length);
+    // Dono 11/11: mais recente primeiro (ver o que está subindo AGORA) — antes ordenava por
+    // quantidade de exames e o envio de hoje ficava enterrado embaixo de quem tem mais histórico.
+    return Object.values(groups).sort((a, b) => new Date(b.latestDate).getTime() - new Date(a.latestDate).getTime());
   }, [filteredExams]);
 
   const togglePatient = (key: string) => {
@@ -561,7 +563,7 @@ export const ExamsTab = () => {
                           </Stack>
 
                           <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>
-                            Último envio: {new Date(group.latestDate).toLocaleDateString('pt-BR')} · {group.exams.length} exame(s)
+                            Último envio: {new Date(group.latestDate).toLocaleDateString('pt-BR')} {new Date(group.latestDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} · {group.exams.length} exame(s)
                           </Typography>
                         </Box>
                       </Stack>
@@ -717,7 +719,7 @@ export const ExamsTab = () => {
                     <Avatar src={e.patient?.id ? photoUrlFor(e.patient.id, e.patient?.photoUrl) : undefined} sx={{ width: 22, height: 22, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.12)', color: '#0d9488' }}>
                       {initials(e.patient?.fullName ?? '?')}
                     </Avatar>
-                    <strong>{e.patient?.fullName ?? 'Paciente Não Identificado'}</strong> · {new Date(e.createdAt).toLocaleDateString('pt-BR')}
+                    <strong>{e.patient?.fullName ?? 'Paciente Não Identificado'}</strong> · {new Date(e.createdAt).toLocaleDateString('pt-BR')} {new Date(e.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </Typography>
 
                   <Stack direction="row" spacing={1}>

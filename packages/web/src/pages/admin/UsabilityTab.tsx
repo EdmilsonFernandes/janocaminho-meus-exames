@@ -1,18 +1,26 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
-  Box, Typography, Stack, Card, CardContent, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, IconButton, Collapse, LinearProgress,
+  Box, Typography, Stack, Card, CardContent, IconButton, LinearProgress,
   TextField, InputAdornment, Button, Chip,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import DownloadIcon from '@mui/icons-material/Download';
 import InsightsIcon from '@mui/icons-material/Insights';
+import { useTable, type ColumnDef } from '@tanstack/react-table';
+import { DataGrid, DataGridContainer, dataGridFeatures } from '@/components/reui/data-grid/data-grid';
+import { DataGridTable, DataGridTableRowExpand } from '@/components/reui/data-grid/data-grid-table';
+import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header';
+import { Badge } from '@/components/reui/badge';
 import { API_URL, token } from '../../config';
+import '../../doctor-v2/tw.css';
 
-interface RecentUser { email: string; name: string; at: string }
-interface FeatureRow { key: string; label: string; users: number; pct: number; lastAt: string | null; recent: RecentUser[] }
+type Category = 'clinico' | 'ia' | 'rotina' | 'conta';
+interface RecentUser { email: string; name: string; at: string | null }
+interface FeatureRow {
+  key: string; label: string; category?: Category;
+  users: number; users30?: number; pct: number; lastAt: string | null; recent: RecentUser[];
+}
 interface UsageData {
   funnel: { signups: number; verified: number; firstExam: number; usedAI: number; premium: number };
   activity: { active7: number; active30: number };
@@ -22,12 +30,128 @@ interface UsageData {
 const fmt = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
 
+const CATEGORY: Record<Category, { label: string; variant: 'primary-light' | 'info-light' | 'success-light' | 'warning-light' }> = {
+  clinico: { label: 'Clínico & Família', variant: 'success-light' },
+  ia: { label: 'IA', variant: 'primary-light' },
+  rotina: { label: 'Rotina & Saúde', variant: 'info-light' },
+  conta: { label: 'Conta & Engajamento', variant: 'warning-light' },
+};
+
+const FILTERS: { id: 'all' | Category; label: string }[] = [
+  { id: 'all', label: 'Todas' },
+  { id: 'clinico', label: CATEGORY.clinico.label },
+  { id: 'ia', label: 'IA & Chat' },
+  { id: 'rotina', label: CATEGORY.rotina.label },
+  { id: 'conta', label: CATEGORY.conta.label },
+];
+
+/** Linha expandida: as últimas PESSOAS (distintas) que usaram a funcionalidade. */
+const RecentUsers = ({ feat }: { feat: FeatureRow }) => (
+  <div className="bg-muted/30 px-4 py-3">
+    <p className="mb-2 text-xs font-bold text-muted-foreground">
+      {feat.recent.length === 0
+        ? 'Nenhum uso registrado na base verificada.'
+        : `Últimas ${feat.recent.length} pessoa(s) — ${feat.label}`}
+    </p>
+    {feat.recent.length > 0 && (
+      <div className="flex flex-col gap-1.5">
+        {feat.recent.map((u) => (
+          <div key={u.email} className="flex flex-col gap-0.5 rounded-lg border border-border bg-background px-3 py-2 sm:flex-row sm:items-center sm:gap-3">
+            <span className="min-w-0 flex-1 truncate text-[13px] font-bold text-foreground">{u.name || u.email}</span>
+            <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{u.email}</span>
+            <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{fmt(u.at)}</span>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+/** ReUI DataGrid — adoção por funcionalidade: ordenável por coluna, linha expande os últimos usuários. */
+function AdoptionGrid({ rows }: { rows: FeatureRow[] }) {
+  const columns = useMemo<ColumnDef<any, any>[]>(() => [
+    {
+      id: 'expand', header: '', size: 44, enableSorting: false,
+      cell: (c) => <DataGridTableRowExpand row={c.row as any} />,
+      meta: { expandedContent: (row: FeatureRow) => <RecentUsers feat={row} /> },
+    },
+    {
+      accessorKey: 'label',
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Funcionalidade" />,
+      cell: (c) => {
+        const f = c.row.original as FeatureRow;
+        const cat = f.category ? CATEGORY[f.category] : null;
+        return (
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <span className="text-[13.5px] font-bold text-foreground">{f.label}</span>
+            {cat && <Badge variant={cat.variant} size="xs">{cat.label}</Badge>}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'users',
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Usuários" />,
+      cell: (c) => <span className="text-[13.5px] font-extrabold tabular-nums text-foreground">{(c.getValue() as number).toLocaleString('pt-BR')}</span>,
+    },
+    {
+      id: 'users30', accessorFn: (r: FeatureRow) => r.users30 ?? 0,
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Ativos 30d" />,
+      cell: (c) => <span className="text-[13px] font-semibold tabular-nums text-muted-foreground">{(c.getValue() as number).toLocaleString('pt-BR')}</span>,
+    },
+    {
+      accessorKey: 'pct',
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="% da base" />,
+      cell: (c) => {
+        const pct = c.getValue() as number;
+        return (
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <div className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-primary/15">
+              <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, pct)}%` }} />
+            </div>
+            <span className="w-12 text-right text-xs font-bold tabular-nums text-muted-foreground">
+              {pct.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'lastAt', accessorFn: (r: FeatureRow) => (r.lastAt ? new Date(r.lastAt).getTime() : 0),
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Último uso" />,
+      cell: (c) => <span className="whitespace-nowrap text-xs tabular-nums text-muted-foreground">{fmt((c.row.original as FeatureRow).lastAt)}</span>,
+    },
+  ], []);
+
+  const table = useTable({
+    features: dataGridFeatures,
+    data: rows as any[],
+    columns,
+    getRowId: (r: any) => r.key,
+    getRowCanExpand: () => true,
+    initialState: { sorting: [{ id: 'users', desc: true }] },
+  });
+
+  if (rows.length === 0) {
+    return <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">Nenhuma funcionalidade encontrada.</div>;
+  }
+  return (
+    <DataGrid
+      table={table}
+      recordCount={rows.length}
+      onRowClick={(r: any) => table.getRow(r.key)?.toggleExpanded()}
+      tableLayout={{ headerBackground: true, rowBorder: true }}
+    >
+      <DataGridContainer><DataGridTable /></DataGridContainer>
+    </DataGrid>
+  );
+}
+
 export const UsabilityTab = () => {
   const [data, setData] = useState<UsageData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<'all' | 'ia' | 'rotina' | 'clinico'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | Category>('all');
 
   useEffect(() => {
     setLoading(true);
@@ -40,15 +164,17 @@ export const UsabilityTab = () => {
 
   const handleExportCSV = () => {
     if (!data?.features) return;
-    const headers = ['Chave', 'Funcionalidade', 'Total Usuarios', 'Percentual Base Verificada', 'Ultimo Uso'];
+    const headers = ['Chave', 'Funcionalidade', 'Categoria', 'Total Usuarios', 'Ativos 30d', 'Percentual Base Verificada', 'Ultimo Uso'];
     const rows = data.features.map((f) => [
       `"${f.key}"`,
       `"${f.label.replace(/"/g, '""')}"`,
+      `"${f.category ? CATEGORY[f.category].label : ''}"`,
       f.users,
+      f.users30 ?? 0,
       `"${f.pct.toFixed(1)}%"`,
       `"${f.lastAt || ''}"`,
     ]);
-    const csvContent = '\uFEFF' + [headers.join(';'), ...rows.map((r) => r.join(';'))].join('\r\n');
+    const csvContent = '﻿' + [headers.join(';'), ...rows.map((r) => r.join(';'))].join('\r\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -59,17 +185,13 @@ export const UsabilityTab = () => {
     document.body.removeChild(link);
   };
 
+  // Categoria vem do servidor (antes o filtro casava chaves que o servidor nunca enviou → vazio).
   const filteredFeatures = useMemo(() => {
     if (!data?.features) return [];
+    const q = searchQuery.toLowerCase().trim();
     return data.features.filter((f) => {
-      // Filtro de categoria
-      if (categoryFilter === 'ia' && !['chat_ia', 'resumo_clinico', 'risco'].some((k) => f.key.includes(k))) return false;
-      if (categoryFilter === 'rotina' && !['remedios', 'lembretes', 'despesas', 'health_connect', 'libras'].some((k) => f.key.includes(k))) return false;
-      if (categoryFilter === 'clinico' && !['exames', 'relatorios', 'dependentes', 'indicacoes', 'saude_mental'].some((k) => f.key.includes(k))) return false;
-
-      // Filtro de busca
-      if (!searchQuery) return true;
-      const q = searchQuery.toLowerCase().trim();
+      if (categoryFilter !== 'all' && f.category !== categoryFilter) return false;
+      if (!q) return true;
       return f.label.toLowerCase().includes(q) || f.key.toLowerCase().includes(q);
     });
   }, [data, searchQuery, categoryFilter]);
@@ -108,7 +230,7 @@ export const UsabilityTab = () => {
             </Typography>
           </Stack>
           <Typography variant="body2" color="text.secondary">
-            Visão aprofundada de quais ferramentas os pacientes e médicos mais utilizam no dia a dia.
+            O que os pacientes realmente usam — contas de teste e e-mails não verificados ficam de fora.
           </Typography>
         </Box>
         <Button
@@ -167,9 +289,15 @@ export const UsabilityTab = () => {
         ))}
       </Box>
 
-      {/* BARRA DE FILTRO E PESQUISA DE FEATURES */}
-      <Card variant="outlined" sx={{ borderRadius: '14px', p: 1.5, bgcolor: 'background.paper' }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between">
+      {/* ADOÇÃO POR FEATURE — ReUI DataGrid */}
+      <Box>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'flex-end' }} justifyContent="space-between" sx={{ mb: 1.5 }}>
+          <Box>
+            <Typography sx={{ fontWeight: 800, fontSize: 15 }}>📦 Adoção por Funcionalidade</Typography>
+            <Typography variant="caption" color="text.secondary">
+              % sobre as {f.verified.toLocaleString('pt-BR')} contas verificadas. Clique no cabeçalho para ordenar e na linha para ver as últimas pessoas.
+            </Typography>
+          </Box>
           <TextField
             size="small"
             placeholder="Buscar funcionalidade..."
@@ -184,162 +312,37 @@ export const UsabilityTab = () => {
                 ),
                 endAdornment: searchQuery ? (
                   <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => setSearchQuery('')}>
+                    <IconButton size="small" aria-label="Limpar busca" onClick={() => setSearchQuery('')}>
                       <CloseIcon sx={{ fontSize: 14 }} />
                     </IconButton>
                   </InputAdornment>
                 ) : undefined,
               },
             }}
-            sx={{
-              maxWidth: { sm: 340 },
-              '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: 13 },
-            }}
+            sx={{ width: { xs: '100%', sm: 280 }, '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: 13 } }}
           />
-
-          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-            <Chip
-              label="Todas"
-              size="small"
-              onClick={() => setCategoryFilter('all')}
-              color={categoryFilter === 'all' ? 'primary' : 'default'}
-              variant={categoryFilter === 'all' ? 'filled' : 'outlined'}
-              sx={{ fontWeight: 700 }}
-            />
-            <Chip
-              label="IA & Chat"
-              size="small"
-              onClick={() => setCategoryFilter('ia')}
-              color={categoryFilter === 'ia' ? 'secondary' : 'default'}
-              variant={categoryFilter === 'ia' ? 'filled' : 'outlined'}
-              sx={{ fontWeight: 700 }}
-            />
-            <Chip
-              label="Rotina & Saúde"
-              size="small"
-              onClick={() => setCategoryFilter('rotina')}
-              color={categoryFilter === 'rotina' ? 'info' : 'default'}
-              variant={categoryFilter === 'rotina' ? 'filled' : 'outlined'}
-              sx={{ fontWeight: 700 }}
-            />
-            <Chip
-              label="Clínico & Família"
-              size="small"
-              onClick={() => setCategoryFilter('clinico')}
-              color={categoryFilter === 'clinico' ? 'success' : 'default'}
-              variant={categoryFilter === 'clinico' ? 'filled' : 'outlined'}
-              sx={{ fontWeight: 700 }}
-            />
-          </Stack>
         </Stack>
-      </Card>
 
-      {/* ADOÇÃO POR FEATURE */}
-      <Card variant="outlined" sx={{ borderRadius: '16px', overflow: 'hidden' }}>
-        <Box sx={{ p: { xs: 2, sm: 2.5 }, pb: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
-            <Typography sx={{ fontWeight: 800, fontSize: 15 }}>📦 Adoção por Funcionalidade</Typography>
-            <Typography variant="caption" color="text.secondary">
-              Percentual calculado sobre a base de contas verificadas. Clique numa linha para ver os últimos usuários.
-            </Typography>
-          </Box>
-          <Chip label={`${filteredFeatures.length} funcionalidades`} size="small" sx={{ fontWeight: 700 }} />
-        </Box>
-        <TableContainer sx={{ overflowX: 'auto' }}>
-          <Table size="small" sx={{ minWidth: 560 }}>
-            <TableHead>
-              <TableRow sx={{ bgcolor: 'action.hover' }}>
-                <TableCell width={44} />
-                <TableCell sx={{ py: 1.5 }}><Typography sx={{ fontWeight: 800, fontSize: 13 }}>Funcionalidade</Typography></TableCell>
-                <TableCell align="right" sx={{ py: 1.5 }}><Typography sx={{ fontWeight: 800, fontSize: 13 }}>Usuários</Typography></TableCell>
-                <TableCell align="right" sx={{ py: 1.5, whiteSpace: 'nowrap' }}><Typography sx={{ fontWeight: 800, fontSize: 13 }}>% da Base</Typography></TableCell>
-                <TableCell sx={{ py: 1.5, whiteSpace: 'nowrap' }}><Typography sx={{ fontWeight: 800, fontSize: 13 }}>Último Uso</Typography></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredFeatures.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} sx={{ py: 4, textAlign: 'center' }}>
-                    <Typography variant="body2" color="text.secondary">Nenhuma funcionalidade encontrada.</Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredFeatures.map((feat) => (
-                  <React.Fragment key={feat.key}>
-                    <TableRow
-                      hover
-                      onClick={() => setExpanded(expanded === feat.key ? null : feat.key)}
-                      sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
-                    >
-                      <TableCell>
-                        <IconButton size="small" sx={{ transform: expanded === feat.key ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
-                          <ExpandMoreIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                      <TableCell>
-                        <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary' }}>{feat.label}</Typography>
-                      </TableCell>
-                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                        <Typography sx={{ fontSize: 14, fontWeight: 800, color: 'text.primary' }}>{feat.users.toLocaleString('pt-BR')}</Typography>
-                      </TableCell>
-                      <TableCell align="right" sx={{ whiteSpace: 'nowrap', minWidth: 120 }}>
-                        <Stack direction="row" spacing={1} alignItems="center" justifyContent="flex-end">
-                          <Box sx={{ width: 56, flexShrink: 0 }}>
-                            <LinearProgress
-                              variant="determinate"
-                              value={Math.min(100, feat.pct)}
-                              sx={{ height: 6, borderRadius: 3, bgcolor: 'rgba(32,178,170,0.12)', '& .MuiLinearProgress-bar': { bgcolor: '#20b2aa' } }}
-                            />
-                          </Box>
-                          <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', width: 44, textAlign: 'right' }}>
-                            {feat.pct.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%
-                          </Typography>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{fmt(feat.lastAt)}</Typography>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell colSpan={5} sx={{ py: 0, px: 2, borderBottom: expanded === feat.key ? '1px solid' : 'none', borderColor: 'divider', bgcolor: 'rgba(0,0,0,0.01)' }}>
-                        <Collapse in={expanded === feat.key} timeout="auto" unmountOnExit>
-                          <Box sx={{ py: 2 }}>
-                            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 1 }}>
-                              👤 Últimos {feat.recent.length} usuário(s) que interagiram com {feat.label}
-                            </Typography>
-                            {feat.recent.length === 0 ? (
-                              <Typography variant="caption" color="text.secondary">Nenhum uso recente registrado.</Typography>
-                            ) : (
-                              <Stack spacing={0.75}>
-                                {feat.recent.map((u, i) => (
-                                  <Stack
-                                    key={`${u.email}-${i}`}
-                                    direction={{ xs: 'column', sm: 'row' }}
-                                    spacing={{ xs: 0.25, sm: 1.5 }}
-                                    sx={{ p: 0.75, borderRadius: '8px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
-                                  >
-                                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: { xs: 'normal', sm: 'nowrap' } }}>
-                                      {u.name || u.email}
-                                    </Typography>
-                                    <Typography sx={{ fontSize: 12, color: 'text.secondary', flex: { sm: 1 }, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: { xs: 'normal', sm: 'nowrap' } }}>
-                                      {u.email}
-                                    </Typography>
-                                    <Typography sx={{ fontSize: 12, color: 'text.secondary', flexShrink: 0, textAlign: { xs: 'left', sm: 'right' } }}>{fmt(u.at)}</Typography>
-                                  </Stack>
-                                ))}
-                              </Stack>
-                            )}
-                          </Box>
-                        </Collapse>
-                      </TableCell>
-                    </TableRow>
-                  </React.Fragment>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Card>
+        <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
+          {FILTERS.map((opt) => {
+            const count = opt.id === 'all' ? data.features.length : data.features.filter((x) => x.category === opt.id).length;
+            const active = categoryFilter === opt.id;
+            return (
+              <Chip
+                key={opt.id}
+                label={`${opt.label} (${count})`}
+                size="small"
+                onClick={() => setCategoryFilter(opt.id)}
+                color={active ? 'primary' : 'default'}
+                variant={active ? 'filled' : 'outlined'}
+                sx={{ fontWeight: 700 }}
+              />
+            );
+          })}
+        </Stack>
+
+        <AdoptionGrid rows={filteredFeatures} />
+      </Box>
     </Stack>
   );
 };

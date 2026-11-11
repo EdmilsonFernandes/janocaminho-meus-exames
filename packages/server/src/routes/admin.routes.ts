@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
 import { config, hasAsaas } from '../config';
@@ -597,9 +598,17 @@ router.get('/metrics', async (_req, res, next) => {
 
 // USABILIDADE — visão global de adoção de features (28/09, pedido do dono): funil de ativação
 // (signup → verificado → 1º exame → usou IA → premium), atividade recente e, POR FEATURE, quem
-// usa (contagem + % da base verificada) e os últimos 5 usuários (e-mail + data, mais recente
-// primeiro). Tudo DERIVADO dos dados já gravados (sem nova telemetria); Libras agora é espelho
-// server (users.librasEnabled). Tabelas novas são drift-safe (P2021 → 0, tema some).
+// usa. Tudo DERIVADO dos dados já gravados (sem nova telemetria).
+//
+// Revisão 11/11 (dono: "tá zoado, pega os dados certos?"):
+//  - UMA base só: numerador e denominador são OWNER + e-mail verificado + não-teste. Antes o
+//    numerador contava qualquer dono (teste/não verificado) sobre a base verificada.
+//  - "Últimos usuários" = pessoas DISTINTAS (antes quem cadastrava 5 remédios ocupava as 5 linhas).
+//  - Lembretes NÃO contam teleconsulta nem o que o médico agendou (não é uso do paciente).
+//  - Cobre o que o paciente realmente usa hoje (exames, consultas, médicos, medições, vacinas…),
+//    com `category` vinda do servidor (o filtro do front casava chaves que não existiam).
+//  - `users30` = quem usou nos últimos 30 dias (adoção acumulada ≠ uso vivo).
+// Cada fonte é drift-safe: tabela/coluna ausente no banco → a feature vem zerada, a rota não cai.
 router.get('/feature-usage', async (_req, res, next) => {
   try {
     const now = new Date();
@@ -607,60 +616,80 @@ router.get('/feature-usage', async (_req, res, next) => {
     const d7 = dayStr(new Date(now.getTime() - 6 * 86400000));
     const d30 = dayStr(new Date(now.getTime() - 29 * 86400000));
 
-    // --- FUNIL DE ATIVAÇÃO ---
+    const realOwner = { role: 'OWNER' as const, isTest: false };
+    const BASE = Prisma.sql`u."role" = 'OWNER' AND u."emailVerified" = true AND COALESCE(u."isTest", false) = false`;
+
+    // --- FUNIL DE ATIVAÇÃO (todas as etapas na mesma população) ---
     const [signups, verified, firstExamR, usedAiR, premiumActive, active7, active30] = await Promise.all([
-      prisma.user.count({ where: { role: 'OWNER' } }),
-      prisma.user.count({ where: { role: 'OWNER', emailVerified: true } }),
-      prisma.$queryRaw<{ cnt: bigint }[]>`SELECT COUNT(DISTINCT p."ownerId")::int AS cnt FROM patients p JOIN exams e ON e."patientId" = p.id AND e.status = 'EXTRACTED'`,
-      prisma.$queryRaw<{ cnt: bigint }[]>`SELECT COUNT(DISTINCT "userId")::int AS cnt FROM ai_usage_logs WHERE "userId" IS NOT NULL`,
-      prisma.user.count({ where: { role: 'OWNER', planExpiresAt: { gt: now } } }),
-      prisma.user.count({ where: { role: 'OWNER', lastActiveDay: { gte: d7 } } }),
-      prisma.user.count({ where: { role: 'OWNER', lastActiveDay: { gte: d30 } } }),
+      prisma.user.count({ where: realOwner }),
+      prisma.user.count({ where: { ...realOwner, emailVerified: true } }),
+      prisma.$queryRaw<{ cnt: number }[]>`SELECT COUNT(DISTINCT u.id)::int AS cnt FROM users u JOIN patients p ON p."ownerId" = u.id JOIN exams e ON e."patientId" = p.id AND e.status = 'EXTRACTED' WHERE ${BASE}`,
+      prisma.$queryRaw<{ cnt: number }[]>`SELECT COUNT(DISTINCT u.id)::int AS cnt FROM users u JOIN ai_usage_logs l ON l."userId" = u.id WHERE ${BASE}`,
+      prisma.user.count({ where: { ...realOwner, emailVerified: true, planExpiresAt: { gt: now } } }),
+      prisma.user.count({ where: { ...realOwner, lastActiveDay: { gte: d7 } } }),
+      prisma.user.count({ where: { ...realOwner, lastActiveDay: { gte: d30 } } }),
     ]);
 
-    // --- POR FEATURE: contagem distinta + últimos 5 (e-mail, quando) ---
-    type FeatRow = { cnt: bigint | number; last: Date | null };
-    type RecRow = { email: string; name: string; at: Date };
-    const scalar = (r: FeatRow[]) => ({ users: Number(r[0]?.cnt ?? 0), lastAt: r[0]?.last ?? null });
-    const recent = (r: RecRow[]) => r.map((x) => ({ email: x.email, name: x.name, at: x.at }));
-
-    const [meds, medsRec, reminders, remRec, expMed, expMedRec, expAll, hc, hcRec, cons, consRec, chat, chatRec, summ, summRec, deps, depsRec, trials, trialsRec] = await Promise.all([
-      prisma.$queryRaw<FeatRow[]>`SELECT COUNT(DISTINCT p."ownerId")::int AS cnt, MAX(m."createdAt") AS last FROM medications m JOIN patients p ON p.id = m."patientId"`,
-      prisma.$queryRaw<RecRow[]>`SELECT u.email, u.name, m."createdAt" AS at FROM medications m JOIN patients p ON p.id = m."patientId" JOIN users u ON u.id = p."ownerId" ORDER BY m."createdAt" DESC LIMIT 5`,
-      prisma.$queryRaw<FeatRow[]>`SELECT COUNT(DISTINCT p."ownerId")::int AS cnt, MAX(r."createdAt") AS last FROM reminders r JOIN patients p ON p.id = r."patientId"`,
-      prisma.$queryRaw<RecRow[]>`SELECT u.email, u.name, r."createdAt" AS at FROM reminders r JOIN patients p ON p.id = r."patientId" JOIN users u ON u.id = p."ownerId" ORDER BY r."createdAt" DESC LIMIT 5`,
-      prisma.$queryRaw<FeatRow[]>`SELECT COUNT(DISTINCT p."ownerId")::int AS cnt, MAX(x."createdAt") AS last FROM expenses x JOIN patients p ON p.id = x."patientId" WHERE x.category = 'Remédio'`,
-      prisma.$queryRaw<RecRow[]>`SELECT u.email, u.name, x."createdAt" AS at FROM expenses x JOIN patients p ON p.id = x."patientId" JOIN users u ON u.id = p."ownerId" WHERE x.category = 'Remédio' ORDER BY x."createdAt" DESC LIMIT 5`,
-      prisma.$queryRaw<FeatRow[]>`SELECT COUNT(DISTINCT x."ownerId")::int AS cnt, MAX(x."createdAt") AS last FROM expenses x`,
-      prisma.$queryRaw<FeatRow[]>`SELECT COUNT(DISTINCT p."ownerId")::int AS cnt, MAX(mm."measuredAt") AS last FROM measurements mm JOIN patients p ON p.id = mm."patientId" WHERE mm.note = 'Health Connect'`,
-      prisma.$queryRaw<RecRow[]>`SELECT u.email, u.name, mm."measuredAt" AS at FROM measurements mm JOIN patients p ON p.id = mm."patientId" JOIN users u ON u.id = p."ownerId" WHERE mm.note = 'Health Connect' ORDER BY mm."measuredAt" DESC LIMIT 5`,
-      prisma.$queryRaw<FeatRow[]>`SELECT COUNT(DISTINCT l."userId")::int AS cnt, MAX(l."createdAt") AS last FROM ai_usage_logs l WHERE l.feature = 'CONSOLIDATED' AND l."userId" IS NOT NULL`,
-      prisma.$queryRaw<RecRow[]>`SELECT u.email, u.name, l."createdAt" AS at FROM ai_usage_logs l JOIN users u ON u.id = l."userId" WHERE l.feature = 'CONSOLIDATED' ORDER BY l."createdAt" DESC LIMIT 5`,
-      prisma.$queryRaw<FeatRow[]>`SELECT COUNT(DISTINCT l."userId")::int AS cnt, MAX(l."createdAt") AS last FROM ai_usage_logs l WHERE l.feature = 'CHAT' AND l."userId" IS NOT NULL`,
-      prisma.$queryRaw<RecRow[]>`SELECT u.email, u.name, l."createdAt" AS at FROM ai_usage_logs l JOIN users u ON u.id = l."userId" WHERE l.feature = 'CHAT' ORDER BY l."createdAt" DESC LIMIT 5`,
-      prisma.$queryRaw<FeatRow[]>`SELECT COUNT(DISTINCT l."userId")::int AS cnt, MAX(l."createdAt") AS last FROM ai_usage_logs l WHERE l.feature = 'SUMMARY' AND l."userId" IS NOT NULL`,
-      prisma.$queryRaw<RecRow[]>`SELECT u.email, u.name, l."createdAt" AS at FROM ai_usage_logs l JOIN users u ON u.id = l."userId" WHERE l.feature = 'SUMMARY' ORDER BY l."createdAt" DESC LIMIT 5`,
-      // Dependentes: patients com relationship informada ≠ Titular (o OWNER da linha é quem adicionou)
-      prisma.$queryRaw<FeatRow[]>`SELECT COUNT(DISTINCT p."ownerId")::int AS cnt, MAX(p."createdAt") AS last FROM patients p WHERE p.relationship IS NOT NULL AND p.relationship <> '' AND p.relationship <> 'Titular'`,
-      prisma.$queryRaw<RecRow[]>`SELECT u.email, u.name, p."createdAt" AS at FROM patients p JOIN users u ON u.id = p."ownerId" WHERE p.relationship IS NOT NULL AND p.relationship <> '' AND p.relationship <> 'Titular' ORDER BY p."createdAt" DESC LIMIT 5`,
-      // Saúde mental (tabela nova — drift-safe)
-      prisma.$queryRaw<FeatRow[]>`SELECT COUNT(DISTINCT p."ownerId")::int AS cnt, MAX(s."createdAt") AS last FROM mental_health_screenings s JOIN patients p ON p.id = s."patientId"`.catch(() => [{ cnt: 0, last: null }] as FeatRow[]),
-      prisma.$queryRaw<RecRow[]>`SELECT u.email, u.name, s."createdAt" AS at FROM mental_health_screenings s JOIN patients p ON p.id = s."patientId" JOIN users u ON u.id = p."ownerId" ORDER BY s."createdAt" DESC LIMIT 5`.catch(() => [] as RecRow[]),
-    ]);
-
-    // Libras e Indicações (MGM)
-    const [libras, librasRec, refs, refsRec] = await Promise.all([
-      prisma.$queryRaw<FeatRow[]>`SELECT COUNT(*)::int AS cnt, NULL::timestamp AS last FROM users WHERE "librasEnabled" = true`.catch(() => [{ cnt: 0, last: null }] as FeatRow[]),
-      prisma.$queryRaw<RecRow[]>`SELECT email, name, "createdAt" AS at FROM users WHERE "librasEnabled" = true ORDER BY "createdAt" DESC LIMIT 5`.catch(() => [] as RecRow[]),
-      prisma.$queryRaw<FeatRow[]>`SELECT COUNT(*)::int AS cnt, MAX("createdAt") AS last FROM users WHERE "referredBy" IS NOT NULL AND "referredBy" <> ''`.catch(() => [{ cnt: 0, last: null }] as FeatRow[]),
-      prisma.$queryRaw<RecRow[]>`SELECT email, name, "createdAt" AS at FROM users WHERE "referredBy" IS NOT NULL AND "referredBy" <> '' ORDER BY "createdAt" DESC LIMIT 5`.catch(() => [] as RecRow[]),
-    ]);
-
+    // --- POR FEATURE ---
+    // `src` devolve linhas (uid = dono da conta, at = quando usou). Uma query por feature traz
+    // o total de pessoas distintas, quantas usaram em 30d e as 5 mais recentes.
+    type UsageRow = { email: string; name: string; at: Date | null; cnt: number; cnt30: number };
+    type Category = 'clinico' | 'ia' | 'rotina' | 'conta';
     const base = verified || 1;
-    const mkFeature = (key: string, label: string, f: { users: number; lastAt: Date | null }, rec: RecRow[] | { email: string; name: string; at: Date }[]) => ({
-      key, label, users: f.users, pct: Math.round((f.users / base) * 1000) / 10, lastAt: f.lastAt,
-      recent: (rec as any[]).map((x) => ({ email: x.email, name: x.name, at: x.at })),
-    });
+    const feature = async (key: string, label: string, category: Category, src: Prisma.Sql) => {
+      const rows = await prisma.$queryRaw<UsageRow[]>`
+        SELECT g.email, g.name, g.at,
+               (COUNT(*) OVER ())::int AS cnt,
+               (COUNT(*) FILTER (WHERE g.at >= now() - interval '30 days') OVER ())::int AS cnt30
+        FROM (
+          SELECT u.email, u.name, MAX(s.at) AS at
+          FROM (${src}) s JOIN users u ON u.id = s.uid
+          WHERE ${BASE}
+          GROUP BY u.id, u.email, u.name
+        ) g
+        ORDER BY g.at DESC NULLS LAST
+        LIMIT 5`.catch(() => [] as UsageRow[]);
+      const users = Number(rows[0]?.cnt ?? 0);
+      return {
+        key, label, category, users,
+        users30: Number(rows[0]?.cnt30 ?? 0),
+        pct: Math.round((users / base) * 1000) / 10,
+        lastAt: rows[0]?.at ?? null,
+        recent: rows.map((x) => ({ email: x.email, name: x.name, at: x.at })),
+      };
+    };
+    const aiLog = (f: string) => Prisma.sql`SELECT l."userId" AS uid, l."createdAt" AS at FROM ai_usage_logs l WHERE l.feature = ${f} AND l."userId" IS NOT NULL`;
+
+    const features = await Promise.all([
+      // Clínico & família
+      feature('exames', 'Enviou exames', 'clinico', Prisma.sql`SELECT p."ownerId" AS uid, e."createdAt" AS at FROM exams e JOIN patients p ON p.id = e."patientId"`),
+      feature('dependentes', 'Adicionou dependente', 'clinico', Prisma.sql`SELECT p."ownerId" AS uid, p."createdAt" AS at FROM patients p WHERE p.relationship IS NOT NULL AND p.relationship <> '' AND p.relationship <> 'Titular'`),
+      feature('medicos', 'Compartilhou com médico', 'clinico', Prisma.sql`SELECT p."ownerId" AS uid, d."createdAt" AS at FROM doctor_shares d JOIN patients p ON p.id = d."patientId"`),
+      feature('perguntas-medico', 'Perguntou ao médico', 'clinico', Prisma.sql`SELECT p."ownerId" AS uid, q."createdAt" AS at FROM doctor_questions q JOIN patients p ON p.id = q."patientId"`),
+      feature('consultas', 'Registrou consulta', 'clinico', Prisma.sql`SELECT c."ownerId" AS uid, c."createdAt" AS at FROM patient_consultations c`),
+      feature('teleconsulta', 'Teve teleconsulta agendada', 'clinico', Prisma.sql`SELECT r."ownerId" AS uid, r."createdAt" AS at FROM reminders r WHERE r.type = 'teleconsulta'`),
+      feature('saude-mental', 'Respondeu PHQ-9/GAD-7', 'clinico', Prisma.sql`SELECT p."ownerId" AS uid, s."createdAt" AS at FROM mental_health_screenings s JOIN patients p ON p.id = s."patientId"`),
+      // IA
+      feature('resumo', 'Gerou resumo de exame', 'ia', aiLog('SUMMARY')),
+      feature('chat', 'Usou o chat de IA', 'ia', aiLog('CHAT')),
+      feature('relatorio', 'Usou relatório completo', 'ia', aiLog('CONSOLIDATED')),
+      // Rotina & saúde
+      feature('medicacoes', 'Cadastrou remédios', 'rotina', Prisma.sql`SELECT p."ownerId" AS uid, m."createdAt" AS at FROM medications m JOIN patients p ON p.id = m."patientId"`),
+      feature('lembretes', 'Criou lembretes', 'rotina', Prisma.sql`SELECT r."ownerId" AS uid, r."createdAt" AS at FROM reminders r WHERE r."createdByDoctorId" IS NULL AND COALESCE(r.type, '') <> 'teleconsulta'`),
+      feature('health-connect', 'Health Connect conectado', 'rotina', Prisma.sql`SELECT p."ownerId" AS uid, mm."measuredAt" AS at FROM measurements mm JOIN patients p ON p.id = mm."patientId" WHERE mm.note = 'Health Connect'`),
+      feature('medicoes', 'Registrou medição manual', 'rotina', Prisma.sql`SELECT p."ownerId" AS uid, mm."createdAt" AS at FROM measurements mm JOIN patients p ON p.id = mm."patientId" WHERE mm.note IS DISTINCT FROM 'Health Connect'`),
+      feature('vacinas', 'Registrou vacinas', 'rotina', Prisma.sql`SELECT p."ownerId" AS uid, v."createdAt" AS at FROM vaccines v JOIN patients p ON p.id = v."patientId"`),
+      feature('gastos', 'Usa gastos (qualquer)', 'rotina', Prisma.sql`SELECT x."ownerId" AS uid, x."createdAt" AS at FROM expenses x`),
+      feature('gastos-remedios', 'Lançou gasto de remédio', 'rotina', Prisma.sql`SELECT x."ownerId" AS uid, x."createdAt" AS at FROM expenses x WHERE x.category = 'Remédio'`),
+      feature('esportivo', 'Preencheu perfil esportivo', 'rotina', Prisma.sql`SELECT p."ownerId" AS uid, sp."updatedAt" AS at FROM sports_profiles sp JOIN patients p ON p.id = sp."patientId"`),
+      // Conta & engajamento
+      feature('push', 'Notificações push ativas', 'conta', Prisma.sql`SELECT t."userId" AS uid, t."updatedAt" AS at FROM device_tokens t`),
+      feature('indicacoes', 'Veio por indicação (MGM)', 'conta', Prisma.sql`SELECT r.id AS uid, r."createdAt" AS at FROM users r WHERE r."referredBy" IS NOT NULL AND r."referredBy" <> ''`),
+      feature('opiniao', 'Enviou opinião', 'conta', Prisma.sql`SELECT f."subjectId" AS uid, f."createdAt" AS at FROM feedback_responses f WHERE f."subjectType" = 'user'`),
+      feature('quiz', 'Respondeu quiz de objetivos', 'conta', Prisma.sql`SELECT z."userId" AS uid, z."createdAt" AS at FROM quiz_participations z`),
+      // Libras não guarda QUANDO foi ligada — sem data em vez de data de cadastro disfarçada de uso.
+      feature('libras', 'Libras ativada', 'conta', Prisma.sql`SELECT r.id AS uid, NULL::timestamp AS at FROM users r WHERE r."librasEnabled" = true`),
+    ]);
 
     res.json({
       funnel: {
@@ -670,20 +699,7 @@ router.get('/feature-usage', async (_req, res, next) => {
         premium: premiumActive,
       },
       activity: { active7, active30 },
-      features: [
-        mkFeature('indicacoes', 'Veio por indicação (MGM)', scalar(refs), recent(refsRec)),
-        mkFeature('medicacoes', 'Cadastrou remédios', scalar(meds), recent(medsRec)),
-        mkFeature('lembretes', 'Usa lembretes', scalar(reminders), recent(remRec)),
-        mkFeature('gastos-remedios', 'Lançou gasto de remédio', scalar(expMed), recent(expMedRec)),
-        mkFeature('gastos', 'Usa gastos (qualquer)', scalar(expAll), []),
-        mkFeature('health-connect', 'Health Connect conectado', scalar(hc), recent(hcRec)),
-        mkFeature('relatorio', 'Usou relatório completo', scalar(cons), recent(consRec)),
-        mkFeature('chat', 'Usou o chat de IA', scalar(chat), recent(chatRec)),
-        mkFeature('resumo', 'Gerou resumo de exame', scalar(summ), recent(summRec)),
-        mkFeature('dependentes', 'Adicionou dependente', scalar(deps), recent(depsRec)),
-        mkFeature('saude-mental', 'Respondeu PHQ-9/GAD-7', scalar(trials), recent(trialsRec)),
-        mkFeature('libras', 'Libras ativada', scalar(libras), recent(librasRec)),
-      ],
+      features,
     });
   } catch (e) { next(e); }
 });

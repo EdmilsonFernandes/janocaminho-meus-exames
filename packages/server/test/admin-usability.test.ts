@@ -50,6 +50,50 @@ describe('Admin /feature-usage — visão de usabilidade', () => {
     expect(byKey['relatorio'].users).toBe(1);
   });
 
+  // Regressão 11/11 (dono: "tá zoado"): numerador e denominador na MESMA base, pessoas
+  // distintas nos recentes, e lembrete criado pelo médico/teleconsulta não é uso do paciente.
+  it('conta só a base verificada não-teste, sem repetir a mesma pessoa nos recentes', async () => {
+    const maria = await createUser({ name: 'Maria Silva' });
+    const pMaria = await createPatient(maria.user.id, { fullName: 'Maria Silva' });
+    for (const name of ['Losartana', 'Metformina', 'Sinvastatina']) {
+      await prisma.medication.create({ data: { patientId: pMaria.id, name } });
+    }
+    // Conta de teste e conta não verificada também cadastram remédio — ficam FORA.
+    const teste = await createUser({ name: 'Conta Teste' });
+    await prisma.user.update({ where: { id: teste.user.id }, data: { isTest: true } });
+    const naoVerificado = await createUser({ name: 'Sem Verificar' });
+    await prisma.user.update({ where: { id: naoVerificado.user.id }, data: { emailVerified: false } });
+    for (const u of [teste, naoVerificado]) {
+      const p = await createPatient(u.user.id, { fullName: 'X' });
+      await prisma.medication.create({ data: { patientId: p.id, name: 'Dipirona' } });
+    }
+    // Lembrete do próprio paciente conta; teleconsulta agendada pelo médico não.
+    await prisma.reminder.create({ data: { patientId: pMaria.id, ownerId: maria.user.id, title: 'Refazer hemograma', dueDate: new Date() } });
+    const joao = await createUser({ name: 'João' });
+    const pJoao = await createPatient(joao.user.id, { fullName: 'João' });
+    await prisma.reminder.create({ data: { patientId: pJoao.id, ownerId: joao.user.id, title: 'Teleconsulta', dueDate: new Date(), type: 'teleconsulta', createdByDoctorId: 'doc-1' } });
+
+    const admin = await createAdmin();
+    const r = await api().get('/api/admin/feature-usage').set(authHeader(admin.token));
+    expect(r.status).toBe(200);
+    expect(r.body.funnel.signups).toBe(3); // maria, joão, não verificado (teste fora)
+    expect(r.body.funnel.verified).toBe(2);
+
+    const byKey = Object.fromEntries(r.body.features.map((f: any) => [f.key, f]));
+    expect(byKey['medicacoes'].users).toBe(1);
+    expect(byKey['medicacoes'].users30).toBe(1);
+    expect(byKey['medicacoes'].pct).toBe(50);
+    expect(byKey['medicacoes'].recent).toHaveLength(1);
+    expect(byKey['medicacoes'].recent[0].email).toBe(maria.user.email);
+    expect(byKey['lembretes'].users).toBe(1);
+    expect(byKey['lembretes'].recent[0].email).toBe(maria.user.email);
+    expect(byKey['teleconsulta'].users).toBe(1);
+    expect(byKey['teleconsulta'].recent[0].email).toBe(joao.user.email);
+    // Toda feature vem categorizada pelo servidor (o filtro do front depende disso).
+    expect(r.body.features.every((f: any) => ['clinico', 'ia', 'rotina', 'conta'].includes(f.category))).toBe(true);
+    expect(r.body.features.every((f: any) => f.pct <= 100)).toBe(true);
+  });
+
   it('usuário comum (não-admin) não acessa', async () => {
     const owner = await createUser();
     const r = await api().get('/api/admin/feature-usage').set(authHeader(owner.token));
