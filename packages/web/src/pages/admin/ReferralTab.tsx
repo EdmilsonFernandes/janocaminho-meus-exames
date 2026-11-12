@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import {
-  Box, Typography, Stack, Card, CardContent, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Chip, LinearProgress, Button, Tooltip,
+  Box, Typography, Stack, Card, CardContent, Chip, LinearProgress, Button, Tooltip,
   TextField, InputAdornment, IconButton, Dialog, DialogTitle, DialogContent,
   DialogActions, Divider, Alert, CircularProgress, useTheme, useMediaQuery,
 } from '@mui/material';
@@ -89,10 +88,67 @@ const fmtDate = (iso: string) => {
 import { useTable, type ColumnDef } from '@tanstack/react-table';
 import { DataGrid, DataGridContainer, dataGridFeatures } from '@/components/reui/data-grid/data-grid';
 import { DataGridTable } from '@/components/reui/data-grid/data-grid-table';
+import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header';
 import '../../doctor-v2/tw.css';
 import { snackbar } from '../../components/ConfirmDialog';
 import { ListEmpty } from '@/components/reui/list-empty';
 import { tealText } from '../../theme';
+
+/** ReUI DataGrid — cadastros vindos de indicação. Serve a lista geral (com a coluna do
+ *  padrinho, quando `onOpenPromoter` vem) e a lista de convidados de um promotor. */
+function ReferredGrid({ rows, onOpenPromoter, emptyTitle, emptyDescription }: { rows: any[]; onOpenPromoter?: (code: string) => void; emptyTitle: string; emptyDescription?: string }) {
+  const columns: ColumnDef<any, any>[] = [
+    {
+      accessorKey: 'name', size: 250,
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Usuário" />,
+      cell: (c) => (
+        <div className="min-w-0">
+          <p className="m-0 truncate text-[13.5px] font-bold text-foreground">{c.getValue() as string}</p>
+          <p className="m-0 truncate text-xs text-muted-foreground">{(c.row.original as any).email}</p>
+        </div>
+      ),
+    },
+    {
+      id: 'createdAt', size: 140, accessorFn: (r: any) => (r.createdAt ? new Date(r.createdAt).getTime() : 0),
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Cadastro" />,
+      cell: (c) => <span className="whitespace-nowrap text-[12.5px] tabular-nums text-muted-foreground">{fmtDate((c.row.original as any).createdAt)}</span>,
+    },
+    {
+      id: 'status', size: 170, accessorFn: (r: any) => (r.isPremium ? 2 : 0) + (r.emailVerified ? 1 : 0),
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Status" />,
+      cell: (c) => {
+        const u = c.row.original as any;
+        return (
+          <span className="inline-flex items-center gap-1">
+            <Chip label={u.emailVerified ? 'Verificado' : 'Pendente'} size="small" color={u.emailVerified ? 'success' : 'default'} sx={{ height: 22, fontSize: 12, fontWeight: 700 }} />
+            {u.isPremium && <Chip label="Premium" size="small" sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.18)', color: '#b45309' }} />}
+          </span>
+        );
+      },
+    },
+    ...(onOpenPromoter ? [{
+      accessorKey: 'referrerName', size: 230,
+      header: (c: any) => <DataGridColumnHeader column={c.column as any} title="Quem indicou" />,
+      cell: (c: any) => {
+        const u = c.row.original as any;
+        return (
+          <div className="min-w-0">
+            <button type="button" onClick={() => onOpenPromoter(u.referredByCode)} className="m-0 block max-w-full cursor-pointer truncate border-0 bg-transparent p-0 text-left text-[13px] font-bold text-primary hover:underline">{u.referrerName}</button>
+            <p className="m-0 truncate font-mono text-xs font-bold text-muted-foreground">{u.referredByCode}</p>
+          </div>
+        );
+      },
+    } as ColumnDef<any, any>] : []),
+    {
+      accessorKey: 'examCount', size: 110,
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Exames" />,
+      cell: (c) => { const n = Number(c.getValue() ?? 0); return <span className={'whitespace-nowrap text-[13px] font-bold tabular-nums ' + (n > 0 ? 'text-foreground' : 'text-muted-foreground')}>{n > 0 ? n : 'Nenhum'}</span>; },
+    },
+  ];
+  const table = useTable({ features: dataGridFeatures, data: rows as any[], columns, getRowId: (r: any) => r.id });
+  if (!rows || rows.length === 0) return <ListEmpty title={emptyTitle} description={emptyDescription} />;
+  return <DataGrid table={table} recordCount={rows.length} tableLayout={{ headerBackground: true, rowBorder: true, headerSticky: true }}><DataGridContainer><DataGridTable /></DataGridContainer></DataGrid>;
+}
 
 /** ReUI DataGrid — leaderboard de promotores (Fase B, worktree admin-reui). */
 function PromotersGrid({ rows, copiedCode, onCopy, onOpen }: { rows: any[]; copiedCode: string | null; onCopy: (c: string) => void; onOpen: (code: string) => void }) {
@@ -643,79 +699,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
             )}
           </Box>
         ) : (
-          <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-            <Table size="small" sx={{ minWidth: 680 }}>
-              <TableHead>
-                <TableRow sx={{ bgcolor: 'action.hover' }}>
-                  <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Novo Usuário</TableCell>
-                  <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Data</TableCell>
-                  <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Status</TableCell>
-                  <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Padrinho (Quem Indicou)</TableCell>
-                  <TableCell align="right" sx={{ py: 1.25, fontWeight: 800 }}>Exames</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredRecent.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} sx={{ py: 4, textAlign: 'center' }}>
-                      <Typography variant="body2" color="text.secondary">Nenhum cadastro encontrado com os filtros atuais.</Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredRecent.map((u) => (
-                    <TableRow key={u.id} hover>
-                      <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{u.name}</Typography>
-                        <Typography variant="caption" color="text.secondary">{u.email}</Typography>
-                      </TableCell>
-                      <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                        <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>
-                          {fmtDate(u.createdAt)}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                          {u.emailVerified ? (
-                            <Chip label="Verificado" size="small" color="success" sx={{ height: 20, fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }} />
-                          ) : (
-                            <Chip label="Pendente" size="small" sx={{ height: 20, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }} />
-                          )}
-                          {u.isPremium && (
-                            <Chip label="Premium" size="small" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.18)', color: '#b45309', whiteSpace: 'nowrap' }} />
-                          )}
-                        </Stack>
-                      </TableCell>
-                      <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                        <Typography
-                          sx={{ fontWeight: 700, fontSize: 13, cursor: 'pointer', color: (t) => tealText(t.palette.mode), '&:hover': { textDecoration: 'underline' } }}
-                          onClick={() => openPromoterDetail(u.referredByCode)}
-                        >
-                          {u.referrerName}
-                        </Typography>
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                          <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: 'text.secondary' }}>
-                            [{u.referredByCode}]
-                          </Typography>
-                          {u.referrerEmail && (
-                            <Typography variant="caption" color="text.secondary">· {u.referrerEmail}</Typography>
-                          )}
-                        </Stack>
-                      </TableCell>
-                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                        <Chip
-                          label={u.examCount > 0 ? `${u.examCount} exame(s)` : 'Nenhum'}
-                          size="small"
-                          color={u.examCount > 0 ? 'info' : 'default'}
-                          variant={u.examCount > 0 ? 'filled' : 'outlined'}
-                          sx={{ fontWeight: 700, height: 22, whiteSpace: 'nowrap' }}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <div className="dx-island"><ReferredGrid rows={filteredRecent} onOpenPromoter={openPromoterDetail} emptyTitle="Nenhum cadastro encontrado" emptyDescription="Ajuste a busca ou os filtros." /></div>
         )}
       </Card>
 
@@ -835,61 +819,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
                 <Typography sx={{ fontWeight: 800, fontSize: 14, mb: 1 }}>
                   👥 Pessoas Indicadas por este Código ({promoterDetail.invitees.length})
                 </Typography>
-                <TableContainer sx={{ maxHeight: 320, borderRadius: '12px', border: 1, borderColor: 'divider' }}>
-                  <Table size="small" stickyHeader>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 800 }}>Usuário</TableCell>
-                        <TableCell sx={{ fontWeight: 800 }}>Cadastro</TableCell>
-                        <TableCell sx={{ fontWeight: 800 }}>Status</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 800 }}>Exames</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {promoterDetail.invitees.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={4} sx={{ py: 3, textAlign: 'center' }}>
-                            <Typography variant="body2" color="text.secondary">Nenhum convidado encontrado.</Typography>
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        promoterDetail.invitees.map((inv) => (
-                          <TableRow key={inv.id} hover>
-                            <TableCell>
-                              <Typography sx={{ fontWeight: 700, fontSize: 13 }}>{inv.name}</Typography>
-                              <Typography variant="caption" color="text.secondary">{inv.email}</Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-                                {fmtDate(inv.createdAt)}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Stack direction="row" spacing={0.5}>
-                                {inv.emailVerified ? (
-                                  <Chip label="Verificado" size="small" color="success" sx={{ height: 20, fontSize: 12, fontWeight: 700 }} />
-                                ) : (
-                                  <Chip label="Pendente" size="small" sx={{ height: 20, fontSize: 12 }} />
-                                )}
-                                {inv.isPremium && (
-                                  <Chip label="Premium" size="small" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.18)', color: '#b45309' }} />
-                                )}
-                              </Stack>
-                            </TableCell>
-                            <TableCell align="right">
-                              <Chip
-                                label={inv.examCount > 0 ? `${inv.examCount} exames` : '0'}
-                                size="small"
-                                color={inv.examCount > 0 ? 'info' : 'default'}
-                                sx={{ height: 20, fontSize: 12, fontWeight: 700 }}
-                              />
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                <div className="dx-island" style={{ maxHeight: 320, overflowY: 'auto' }}><ReferredGrid rows={promoterDetail.invitees} emptyTitle="Nenhum convidado ainda" /></div>
               </Box>
             </Stack>
           ) : (

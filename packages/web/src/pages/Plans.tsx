@@ -199,7 +199,7 @@ export const PlansPage = () => {
                 height: 36,
                 borderRadius: '10px',
                 bgcolor: 'rgba(32,178,170,.16)',
-                color: '#178f89',
+                color: (t) => tealText(t.palette.mode),
                 display: 'grid',
                 placeItems: 'center',
                 flexShrink: 0,
@@ -514,7 +514,7 @@ export const PlansPage = () => {
 
       {/* Barra de confiança NA TELA DE DECISÃO (não só no checkout). */}
       <Stack direction="row" justifyContent="center" alignItems="center" flexWrap="wrap" useFlexGap columnGap={2} rowGap={0.75}
-        sx={{ mt: 1, mb: 1, '& svg': { fontSize: 15, color: '#20b2aa' } }}>
+        sx={{ mt: 1, mb: 1, '& svg': { fontSize: 15, color: (t) => tealText(t.palette.mode) } }}>
         {([
           { icon: <LockOutlinedIcon />, label: 'Pagamento seguro' },
           { icon: <BoltIcon />, label: 'PIX cai na hora' },

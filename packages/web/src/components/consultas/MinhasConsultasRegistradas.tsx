@@ -27,6 +27,7 @@ import { ConsultRating } from './ConsultRating';
 import { hapticLight } from '../../utils/haptic';
 import { PatientConsultationForm } from './PatientConsultationForm';
 import { CONSULTATION_STATUS_META, type PatientConsultationItem } from '../../types/consultations';
+import { tealText } from '../../theme';
 
 // §2 "Minhas consultas" — lista de consultas REGISTRADAS pelo paciente (presencial ou
 // teleconsulta externa). A teleconsulta do Dr. Exame (sala virtual/pagamento) continua
@@ -216,7 +217,7 @@ export const MinhasConsultasRegistradas = ({ prefillDoctor }: Props) => {
     <Stack spacing={2}>
       {/* Aviso de honestidade em 1 linha (mock aprovado) — o banner gordo saiu */}
       <Stack direction="row" spacing={1} alignItems="center" sx={{ px: 0.5 }}>
-        <InfoOutlinedIcon sx={{ fontSize: 15, color: '#178f89', flexShrink: 0 }} />
+        <InfoOutlinedIcon sx={{ fontSize: 15, color: (t) => tealText(t.palette.mode), flexShrink: 0 }} />
         <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12, lineHeight: 1.4 }}>
           Registro pessoal — não agenda no consultório. Organize exames e receba lembretes.
         </Typography>

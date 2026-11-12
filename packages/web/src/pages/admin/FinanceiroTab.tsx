@@ -6,13 +6,7 @@ import {
   Button,
   TextField,
   MenuItem,
-  TableContainer,
   Paper,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Chip,
   IconButton,
   Dialog,
@@ -41,6 +35,7 @@ import { TabLoader, SectionError } from './parts';
 import { useTable, type ColumnDef } from '@tanstack/react-table';
 import { DataGrid, DataGridContainer, dataGridFeatures } from '@/components/reui/data-grid/data-grid';
 import { DataGridTable } from '@/components/reui/data-grid/data-grid-table';
+import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header';
 import '../../doctor-v2/tw.css';
 import { DonutResplit, fmtBRLFull, type DonutSlice } from '../../components/admin/DonutResplit';
 import { ListEmpty } from '@/components/reui/list-empty';
@@ -99,6 +94,31 @@ const getStatusConfig = (status: string): StatusConfig => {
     }
   );
 };
+
+/** ReUI DataGrid — cupons de desconto (ordena por coluna; ação ativa/desativa). */
+function CouponsGrid({ rows, onToggle }: { rows: any[]; onToggle: (c: any) => void }) {
+  const state = (c: any) => {
+    const expired = c.expiresAt && new Date(c.expiresAt).getTime() <= Date.now();
+    const soldOut = c.maxUses != null && c.uses >= c.maxUses;
+    return !c.active ? 'Inativo' : expired ? 'Expirado' : soldOut ? 'Esgotado' : 'Ativo';
+  };
+  const columns: ColumnDef<any, any>[] = [
+    { accessorKey: 'code', size: 150, header: (c) => <DataGridColumnHeader column={c.column as any} title="Código" />, cell: (c) => <span className="whitespace-nowrap font-mono text-[12.5px] font-bold text-foreground">{c.getValue() as string}</span> },
+    { id: 'desconto', size: 110, accessorFn: (c: any) => Number(c.value ?? 0), header: (c) => <DataGridColumnHeader column={c.column as any} title="Desconto" />,
+      cell: (c) => { const r = c.row.original as any; return <span className="whitespace-nowrap text-[12.5px] tabular-nums text-foreground">{r.kind === 'percent' ? `−${r.value}%` : `−R$ ${(r.value / 100).toFixed(2).replace('.', ',')}`}</span>; } },
+    { id: 'aplica', size: 110, accessorFn: (c: any) => (c.appliesTo === 'any' ? 'Qualquer' : c.appliesTo === 'plan_monthly' ? 'Mensal' : 'Créditos'), header: (c) => <DataGridColumnHeader column={c.column as any} title="Aplica a" />, cell: (c) => <span className="text-[12.5px] text-foreground">{c.getValue() as string}</span> },
+    { accessorKey: 'uses', size: 90, header: (c) => <DataGridColumnHeader column={c.column as any} title="Usos" />, cell: (c) => { const r = c.row.original as any; return <span className="whitespace-nowrap text-[12.5px] tabular-nums text-foreground">{r.uses}{r.maxUses != null ? ` / ${r.maxUses}` : ' / ∞'}</span>; } },
+    { id: 'validade', size: 110, accessorFn: (c: any) => (c.expiresAt ? new Date(c.expiresAt).getTime() : Number.MAX_SAFE_INTEGER), header: (c) => <DataGridColumnHeader column={c.column as any} title="Validade" />,
+      cell: (c) => { const r = c.row.original as any; return <span className="whitespace-nowrap text-[12.5px] tabular-nums text-muted-foreground">{r.expiresAt ? new Date(r.expiresAt).toLocaleDateString('pt-BR') : 'Sem validade'}</span>; } },
+    { id: 'status', size: 110, accessorFn: state, header: (c) => <DataGridColumnHeader column={c.column as any} title="Status" />,
+      cell: (c) => { const v = c.getValue() as string; const on = v === 'Ativo'; return <Chip size="small" label={v} sx={{ height: 22, fontSize: 12, fontWeight: 700, borderRadius: '6px', bgcolor: on ? 'rgba(22,163,74,.1)' : 'rgba(100,116,139,.1)', color: on ? '#15803d' : '#475569' }} />; } },
+    { id: 'acao', header: '', size: 120, enableSorting: false,
+      cell: (c) => { const r = c.row.original as any; return <Button size="small" variant="outlined" onClick={() => onToggle(r)} sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, borderRadius: '8px', minWidth: 88 }}>{r.active ? 'Desativar' : 'Ativar'}</Button>; } },
+  ];
+  const table = useTable({ features: dataGridFeatures, data: rows as any[], columns, getRowId: (r: any) => r.id });
+  if (rows.length === 0) return <ListEmpty title="Nenhum cupom criado ainda" description="Crie o primeiro cupom no formulário acima." />;
+  return <DataGrid table={table} recordCount={rows.length} tableLayout={{ headerBackground: true, rowBorder: true }}><DataGridContainer><DataGridTable /></DataGridContainer></DataGrid>;
+}
 
 /** ReUI DataGrid de pagamentos (Fase A, worktree admin-reui): sort por coluna na
  *  página carregada; a paginação server-side (rodapé existente) segue mandando. */
@@ -990,66 +1010,7 @@ export const FinanceiroTab = () => {
               sx={{ mb: 1.5, maxWidth: 420, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }} />
 
             {/* Lista */}
-            <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '8px' }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,.03)' : '#f8fafc') }}>
-                    <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Código</TableCell>
-                    <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Desconto</TableCell>
-                    <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Aplica a</TableCell>
-                    <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Usos</TableCell>
-                    <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Validade</TableCell>
-                    <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Status</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700, fontSize: 12 }}>Ação</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {(coupons ?? []).map((c) => {
-                    const expired = c.expiresAt && new Date(c.expiresAt).getTime() <= Date.now();
-                    const soldOut = c.maxUses != null && c.uses >= c.maxUses;
-                    return (
-                      <TableRow key={c.id}>
-                        <TableCell sx={{ py: 1, fontFamily: 'monospace', fontWeight: 700, fontSize: 12.5 }}>{c.code}</TableCell>
-                        <TableCell sx={{ py: 1, fontSize: 12.5 }}>
-                          {c.kind === 'percent' ? `−${c.value}%` : `−R$ ${(c.value / 100).toFixed(2).replace('.', ',')}`}
-                        </TableCell>
-                        <TableCell sx={{ py: 1, fontSize: 12.5 }}>
-                          {c.appliesTo === 'any' ? 'Qualquer' : c.appliesTo === 'plan_monthly' ? 'Mensal' : 'Créditos'}
-                        </TableCell>
-                        <TableCell sx={{ py: 1, fontSize: 12.5 }}>
-                          {c.uses}{c.maxUses != null ? ` / ${c.maxUses}` : ' / ∞'}
-                        </TableCell>
-                        <TableCell sx={{ py: 1, fontSize: 12.5, color: 'text.secondary' }}>
-                          {c.expiresAt ? new Date(c.expiresAt).toLocaleDateString('pt-BR') : '—'}
-                        </TableCell>
-                        <TableCell sx={{ py: 1 }}>
-                          <Chip size="small"
-                            label={!c.active ? 'Inativo' : expired ? 'Expirado' : soldOut ? 'Esgotado' : 'Ativo'}
-                            sx={{ height: 22, fontSize: 12, fontWeight: 700, borderRadius: '6px',
-                              bgcolor: !c.active || expired || soldOut ? 'rgba(100,116,139,.1)' : 'rgba(22,163,74,.1)',
-                              color: !c.active || expired || soldOut ? '#475569' : '#15803d' }} />
-                        </TableCell>
-                        <TableCell align="right" sx={{ py: 1 }}>
-                          <Button size="small" variant="outlined" onClick={() => void toggleCoupon(c)}
-                            sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, borderRadius: '8px', minWidth: 88 }}>
-                            {c.active ? 'Desativar' : 'Ativar'}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {(coupons ?? []).length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Nenhum cupom criado ainda.
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <div className="dx-island"><CouponsGrid rows={coupons ?? []} onToggle={(c) => void toggleCoupon(c)} /></div>
             <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1, fontSize: 12 }}>
               Desconto aplica no preço de criação da cobrança (PIX/cartão). Contagem de uso só incrementa quando o pagamento é confirmado. 1 uso por usuário por tipo de produto.
             </Typography>

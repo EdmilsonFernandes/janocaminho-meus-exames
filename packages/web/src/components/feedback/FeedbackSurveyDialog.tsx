@@ -9,6 +9,7 @@ import { ReuiTextarea } from '@/components/reui/form-controls';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 import { DrExame } from '../DrExame';
 import { track } from '../../utils/analytics';
+import { tealText } from '../../theme';
 import {
   fetchSurvey, submitFeedback, loadDraft, saveDraft, clearDraft, newClientKey, markDismissed,
   type FeedbackMode, type SurveyDefinition, type SurveyAnswers, type Outcome,
@@ -251,7 +252,7 @@ export const FeedbackSurveyDialog = ({ mode, open, trigger, fromInvite = false, 
 
         {step === 4 && thanks && (
           <Box data-testid="feedback-thanks" sx={{ textAlign: 'center', py: 2 }}>
-            <CheckCircleOutlineIcon sx={{ fontSize: 52, color: '#20b2aa', mb: 1 }} />
+            <CheckCircleOutlineIcon sx={{ fontSize: 52, color: (t) => tealText(t.palette.mode), mb: 1 }} />
             <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 20, color: 'text.primary', mb: 0.75 }}>{thanks.title}</Typography>
             <Typography sx={{ color: 'text.secondary', fontSize: 14.5, lineHeight: 1.5 }}>{thanks.text}</Typography>
           </Box>

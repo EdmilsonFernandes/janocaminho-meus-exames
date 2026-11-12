@@ -57,7 +57,8 @@ export const MobileBottomNav = () => {
 
   if (!isMobile) return null;
   const active = (to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to));
-  const maisActive = SECONDARY_ROUTES.some((r) => active(r));
+  // "Mais" só acende quando a rota NÃO é uma das abas principais (antes /lembretes acendia Agenda e Mais juntos).
+  const maisActive = !NAV.some((it) => active(it.to)) && SECONDARY_ROUTES.some((r) => active(r));
 
   const item = (it: { icon: string; label: string; to: string; robot?: boolean }, onClick?: () => void, on?: boolean) => (
     <Box key={it.to} component="button" type="button" aria-current={on ? 'page' : undefined}
@@ -104,16 +105,16 @@ export const MobileBottomNav = () => {
         </Box>
       )}
       <Typography sx={{
-        fontSize: { xs: 9, sm: 12 },
+        fontSize: { xs: 10, sm: 12 },
         fontWeight: on ? 800 : 500,
         mt: it.robot ? 0 : 0.2,
         fontFamily: 'Poppins, sans-serif',
-        maxWidth: '100%',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
+        textAlign: 'center',
+        overflow: 'visible',
+        textOverflow: 'clip',
         whiteSpace: 'nowrap',
         px: 0,
-        letterSpacing: '-0.04em',
+        letterSpacing: '-0.03em',
         display: it.robot ? 'none' : 'block',
       }}>
         {translate(it.label)}
@@ -146,14 +147,14 @@ export const MobileBottomNav = () => {
         {on ? <MenuIcon /> : <MenuIcon sx={{ opacity: 0.65 }} />}
       </Box>
       <Typography sx={{
-        fontSize: { xs: 9, sm: 12 },
+        fontSize: { xs: 10, sm: 12 },
         fontWeight: on ? 800 : 500,
         mt: 0.2,
         fontFamily: 'Poppins, sans-serif',
-        letterSpacing: '-0.04em',
-        maxWidth: '100%',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
+        letterSpacing: '-0.03em',
+        textAlign: 'center',
+        overflow: 'visible',
+        textOverflow: 'clip',
         whiteSpace: 'nowrap',
         px: 0,
       }}>

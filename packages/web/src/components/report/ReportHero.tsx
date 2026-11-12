@@ -114,7 +114,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
                   '&:hover': { bgcolor: alpha('#20b2aa', 0.08), borderColor: '#20b2aa', transform: 'translateY(-1px)' },
                 }}
               >
-                <DescriptionIcon sx={{ fontSize: 15, color: '#0d9488' }} />
+                <DescriptionIcon sx={{ fontSize: 15, color: (t) => tealText(t.palette.mode) }} />
                 <Typography noWrap sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary', maxWidth: 160 }}>
                   {e.title}
                 </Typography>

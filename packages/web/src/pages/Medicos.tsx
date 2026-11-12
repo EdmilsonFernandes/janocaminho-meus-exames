@@ -589,7 +589,7 @@ export const MedicosPage = () => {
           <button
             type="button"
             onClick={() => { hapticLight(); navigate('/consultas'); }}
-            className="shrink-0 text-xs font-extrabold text-primary hover:underline"
+            className="shrink-0 cursor-pointer border-0 bg-transparent px-1 py-2 text-[13px] font-extrabold text-primary hover:underline"
           >
             Ver consultas ({teleconsultas.length}) →
           </button>
@@ -745,7 +745,7 @@ export const MedicosPage = () => {
 
                       {/* Scope toggles em pilulas limpas */}
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 0.5 }}>
-                        Acessos autorizados (toque para alternar):
+                        O que este médico pode ver — toque para alternar
                       </Typography>
                       <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ rowGap: 1.5 }}>
                         {SCOPE_META.map((sm) => (

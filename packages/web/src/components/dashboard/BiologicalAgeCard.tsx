@@ -120,14 +120,14 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
         }}
       >
         <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
-          <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+          <Typography sx={{ fontSize: 12, lineHeight: 1.25, color: 'text.secondary', fontWeight: 700, textWrap: 'balance' }}>
             Idade do corpo
           </Typography>
           <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5vw, 1.375rem)', sm: 22 }, color: 'text.primary', lineHeight: 1.2, mt: 0.25, fontVariantNumeric: 'tabular-nums' }}>
             {value}
           </Typography>
           {sub && (
-            <Typography noWrap sx={{ fontSize: 12, color: subColor, fontWeight: 600, mt: 0.25 }}>
+            <Typography sx={{ fontSize: 12, lineHeight: 1.3, color: subColor, fontWeight: 600, mt: 0.25 }}>
               {sub}
             </Typography>
           )}

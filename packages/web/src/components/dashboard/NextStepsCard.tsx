@@ -8,6 +8,7 @@ import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
+import { tealText } from '../../theme';
 
 /**
  * "Próximos passos" — onboarding progressivo do Dashboard p/ usuário novo (ou antigo com perfil
@@ -60,7 +61,7 @@ export const NextStepsCard = ({ exams }: { exams: number }) => {
           {doneCount === 0 ? 'Vamos preparar o Dr. Exame' : 'Quase lá'}
         </Typography>
         {!profileDone && (
-          <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: '#178f89' }}>{completeness.pct}% do perfil</Typography>
+          <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>{completeness.pct}% do perfil</Typography>
         )}
       </Stack>
       <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: 1.5 }}>

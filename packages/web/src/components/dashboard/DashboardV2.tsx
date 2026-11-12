@@ -967,7 +967,7 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeB
       },
     }}>
       <Box sx={{ minWidth: 0, flex: 1, pr: 1.25 }}>
-        <Typography noWrap sx={{ fontSize: { xs: 12, sm: 12 }, color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+        <Typography sx={{ fontSize: 12, lineHeight: 1.25, color: 'text.secondary', fontWeight: 700, textWrap: 'balance' }}>
           {label}
         </Typography>
         <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5vw, 1.375rem)', sm: 22 }, color: 'text.primary', lineHeight: 1.2, mt: 0.25, fontVariantNumeric: 'tabular-nums' }}>
@@ -975,7 +975,7 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeB
         </Typography>
         {arcPercent != null && arcColor && <MiniArc percent={arcPercent} color={arcColor} />}
         {sub && (
-          <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, mt: 0.25, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <Typography sx={{ fontSize: 12, lineHeight: 1.3, color: 'text.secondary', fontWeight: 600, mt: 0.25 }}>
             {sub}
           </Typography>
         )}
@@ -1553,7 +1553,7 @@ const DashboardV2Inner = () => {
             badgeBg={d.stats.abnormal > 0 ? 'rgba(239, 68, 68, 0.12)' : 'rgba(5, 150, 105, 0.12)'}
             badgeColor={d.stats.abnormal > 0 ? semC('bad') : semC('ok')}
             tone={d.stats.abnormal > 0 ? 'error' : 'success'}
-            label={d.stats.abnormal > 0 ? SEVERITY.high : SEVERITY.low}
+            label={d.stats.abnormal > 0 ? 'Fora da faixa' : SEVERITY.low}
             value={d.loaded ? String(d.stats.abnormal) : '—'}
             sub={d.loaded ? (totalResults > 0 ? `de ${totalResults} marcadores` : '') : ''}
             arcPercent={totalResults > 0 ? Math.max(0, Math.round((d.stats.abnormal / totalResults) * 100)) : undefined}
@@ -1569,8 +1569,8 @@ const DashboardV2Inner = () => {
             label="Exames"
             value={d.loaded ? String(d.stats.exams) : '—'}
             sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro'
-              : d.stats.abnormal === 0 ? 'todos normais'
-              : `${d.stats.abnormal} ${d.stats.abnormal === 1 ? 'alterado' : 'alterados'}`}
+              : d.stats.abnormal === 0 ? 'todos na faixa'
+              : 'no seu histórico'}
             spark={demo ? [1, 1, 2, 2, 1, 3, 2, 4, 3, 3, 2, 4] : (d as { examHistogram?: number[] }).examHistogram}
             onClick={go('/exams')}
           />
@@ -1581,7 +1581,7 @@ const DashboardV2Inner = () => {
             badgeBg={cardioLevel === 'alto' ? 'rgba(239, 68, 68, 0.12)' : cardioLevel === 'moderado' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)'}
             badgeColor={cardioLevel === 'alto' ? semC('bad') : cardioLevel === 'moderado' ? semC('warn') : semC('ok')}
             tone={cardioLevel ? (cardioFactors > 0 ? 'error' : 'success') : 'info'}
-            label="Risco Cardíaco"
+            label="Risco cardíaco"
             value={cardioLevel || (d.loaded ? 'Sem dados' : '—')}
             sub={cardioLevel
               ? (cardioFactors > 0 ? `${cardioFactors} fator${cardioFactors > 1 ? 'es' : ''} de risco` : 'sem fatores')

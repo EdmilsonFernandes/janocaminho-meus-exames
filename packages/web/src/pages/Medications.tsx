@@ -227,11 +227,11 @@ const SignalsToggle = ({ medId, name }: { medId: string; name: string }) => {
       <Stack direction="row" spacing={0.25} alignItems="center" justifyContent="space-between">
         <Button
           size="small" variant="text" onClick={() => setOpen((o) => !o)} aria-expanded={open}
-          sx={{ textTransform: 'none', fontWeight: 700, px: 0, minHeight: 32, color: (t) => tealText(t.palette.mode), '&:hover': { bgcolor: 'rgba(32,178,170,.07)' } }}
+          sx={{ textTransform: 'none', fontWeight: 700, px: 0, minHeight: 40, textAlign: 'left', justifyContent: 'flex-start', color: (t) => tealText(t.palette.mode), '&:hover': { bgcolor: 'rgba(32,178,170,.07)' } }}
           endIcon={<ExpandMoreIcon sx={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s', fontSize: 18 }} />}
         >
           <MonitorHeartIcon sx={{ fontSize: 16, mr: 0.5 }} />
-          Efeitos mais relatados deste remédio
+          Efeitos mais relatados
         </Button>
         {/* G4 — explainer "O que é isso?" (dados FAERS/FDA em linguagem de gente) */}
         <WhatIsThis topic="faers" />
@@ -517,8 +517,8 @@ export const MedicationsPage = () => {
 
       {/* AÇÕES — busca primeiro (combobox ouro), foto segundo */}
       <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-        <GradientButton startIcon={<AddIcon />} onClick={() => setSearchOpen(true)} sx={{ flex: 1 }}>Buscar remédio</GradientButton>
-        <Button variant="outlined" startIcon={<PhotoCameraIcon />} onClick={() => photoInput.current?.click()} sx={{ flex: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Ler receita</Button>
+        <GradientButton startIcon={<AddIcon />} onClick={() => setSearchOpen(true)} sx={{ flex: '1 1 0', minWidth: 0, whiteSpace: 'nowrap', px: 1.5 }}>Buscar remédio</GradientButton>
+        <Button variant="outlined" startIcon={<PhotoCameraIcon />} onClick={() => photoInput.current?.click()} sx={{ flex: '1 1 0', minWidth: 0, whiteSpace: 'nowrap', px: 1.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Ler receita</Button>
         <input ref={photoInput} type="file" hidden accept="image/*" capture="environment" onChange={(e) => { void onPhoto(e.target.files?.[0]); if (e.target) e.target.value = ''; }} />
       </Stack>
 
@@ -622,9 +622,9 @@ export const MedicationsPage = () => {
                       <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.disabled', whiteSpace: 'nowrap' }}>⏳ Buscando…</Typography>
                     ) : null}
                   </Box>
-                  <Stack spacing={0.5} sx={{ flexShrink: 0 }}>
-                    <Button size="small" onClick={() => toggle(m)} sx={{ textTransform: 'none', borderRadius: '999px', minWidth: 0, px: 1.75, py: 0.6 }}>Suspender</Button>
-                    <IconButton size="small" onClick={() => remove(m)} aria-label={`Excluir ${m.name}`} sx={{ '&:hover': { color: 'error.main' } }}><DeleteOutlineIcon fontSize="small" /></IconButton>
+                  <Stack spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
+                    <Button size="small" onClick={() => toggle(m)} sx={{ textTransform: 'none', borderRadius: '999px', minWidth: 0, minHeight: 40, px: 1.75, py: 0.6 }}>Suspender</Button>
+                    <IconButton size="small" onClick={() => remove(m)} aria-label={`Excluir ${m.name}`} sx={{ width: 40, height: 40, '&:hover': { color: 'error.main' } }}><DeleteOutlineIcon fontSize="small" /></IconButton>
                   </Stack>
                 </Stack>
                 {/* Feature D — farmacovigilância: expansível discreto por card */}

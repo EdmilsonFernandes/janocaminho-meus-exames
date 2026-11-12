@@ -441,9 +441,9 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
               <Typography component="span" sx={{ fontWeight: 700, color: 'warning.main', fontSize: '0.85rem' }}>Data não identificada</Typography>
             )}
             {(exam.sourceLab || labInfo.suspicious || exam.pageCount) && (
-              <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
+              <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, minWidth: 0, maxWidth: '100%' }}>
                 {exam.sourceLab ? <LabBadge raw={exam.sourceLab} size="md" showUnit /> : (labInfo.suspicious ? <Typography component="span" color="warning.main" sx={{ fontSize: '0.85rem', fontWeight: 600 }}>laboratório em revisão</Typography> : null)}
-                {exam.pageCount ? <Typography component="span" color="text.secondary" sx={{ fontSize: '0.85rem' }}>{exam.pageCount} pág.</Typography> : null}
+                {exam.pageCount ? <Typography component="span" color="text.secondary" sx={{ fontSize: '0.85rem', whiteSpace: 'nowrap', flexShrink: 0 }}>{exam.pageCount} pág.</Typography> : null}
               </Box>
             )}
           </Stack>
@@ -786,9 +786,9 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
       {exam.status === 'EXTRACTED' && (
         <Card sx={{ mt: 2, background: 'linear-gradient(135deg, rgba(22,163,74,.10), rgba(22,163,74,.03))', border: '1px solid', borderColor: 'rgba(22,163,74,.25)' }}>
           <CardContent>
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.25, sm: 2 }} alignItems={{ xs: 'stretch', sm: 'center' }}>
               <Typography variant="h6" sx={{ color: 'success.main', flex: 1 }}>📋 Preparar visita ao médico</Typography>
-              <Button variant="contained" color="success" size="large"
+              <Button variant="contained" color="success" size="large" sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}
                 onClick={async () => {
                   const r = await fetch(`${API_URL}/consulta/exams/${id}`, {
                     method: 'POST', headers: { Authorization: `Bearer ${token()}` },

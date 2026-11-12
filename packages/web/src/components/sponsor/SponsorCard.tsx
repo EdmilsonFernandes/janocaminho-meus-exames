@@ -3,6 +3,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import type { SponsorCampaign } from '../../utils/sponsorApi';
+import { tealText } from '../../theme';
 
 /**
  * CARTÃO DE PATROCINADOR (02/11/26 - ReUI Ultra Premium Liquid Glass)
@@ -39,7 +40,7 @@ export const SponsorCard = ({ campaign, logoSrc, imageSrc, onPrimary, onClose, v
         }}>
           {logoSrc
             ? <Box component="img" src={logoSrc} alt={`Logo ${campaign.sponsor.name}`} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', color: '#0d9488', fontSize: 20 }}>{initial}</Typography>}
+            : <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', color: (t) => tealText(t.palette.mode), fontSize: 20 }}>{initial}</Typography>}
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>

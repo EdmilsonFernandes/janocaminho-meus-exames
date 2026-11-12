@@ -25,36 +25,36 @@ interface Section {
 
 const SECTIONS: Section[] = [
   {
-    icon: <FactCheckIcon sx={{ color: '#20b2aa' }} />,
+    icon: <FactCheckIcon sx={{ color: (t) => tealText(t.palette.mode) }} />,
     title: '1 · Valores do laudo, nunca da imaginação',
     body: <>A extração lê o <b>texto do PDF</b> do seu exame (não imagem, não palpite). Todo valor exibido no app veio do laudo que você enviou — e antes de salvar, <b>você confere item por item</b> e corrige o que precisar. A IA explica o que já está escrito; não inventa número.</>,
   },
   {
-    icon: <RuleIcon sx={{ color: '#20b2aa' }} />,
+    icon: <RuleIcon sx={{ color: (t) => tealText(t.palette.mode) }} />,
     title: '2 · Regras primeiro, IA depois',
     body: <>A checagem de "normal / alterado" é <b>determinística</b>: comparação de valor contra faixa de referência, feita por regras — o mesmo valor sempre dá o mesmo resultado, sem variação de humor de modelo. A IA entra depois, para <b>explicar e contextualizar</b>, com um filtro que bloqueia linguagem de diagnóstico.</>,
   },
   {
-    icon: <ChildCareIcon sx={{ color: '#20b2aa' }} />,
+    icon: <ChildCareIcon sx={{ color: (t) => tealText(t.palette.mode) }} />,
     title: '3 · Faixas de referência com fonte',
     body: <>A régua que vale é a <b>do seu laboratório</b> — está impressa no laudo e é ela que usamos. Para crianças e adolescentes, quando o laudo não traz faixa própria da idade, aplicamos bandas pediátricas por analito e marcamos o item com um selo <Chip size="small" label="Pediátrico" sx={{ height: 18, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} /> indicando a faixa usada. Se você digitar uma faixa manual, <b>a sua edição vence sempre</b>.</>,
     cite: 'Bandas pediátricas aproximadas do The Harriet Lane Handbook (Johns Hopkins Hospital, 22ª ed.) — quando aplicadas, o selo no item indica a faixa etária usada.',
   },
   {
-    icon: <BlockIcon sx={{ color: '#20b2aa' }} />,
+    icon: <BlockIcon sx={{ color: (t) => tealText(t.palette.mode) }} />,
     title: '4 · O que a IA nunca faz',
     body: <>Não diagnostica, não prescreve, não substitui seu médico. O Dr. Exame é uma ferramenta <b>educativa</b>: explica valores, mostra tendências e monta as perguntas certas pra sua consulta — a decisão clínica é sempre do profissional de saúde. Nos alinhamos à linha regulatória da ANVISA que separa software educativo de dispositivo de diagnóstico.</>,
     cite: 'ANVISA, RDC nº 657/2022 — requisitos para software como dispositivo médico (SaMD); o Dr. Exame se posiciona como ferramenta educativa, fora do escopo de diagnóstico.',
   },
   {
-    icon: <LockIcon sx={{ color: '#20b2aa' }} />,
+    icon: <LockIcon sx={{ color: (t) => tealText(t.palette.mode) }} />,
     title: '5 · Seus dados são seus',
     body: <>Seguimos a <b>LGPD</b>: dados de identificação (como CPF) são armazenados <b>criptografados</b>, os PDFs dos exames ficam fora do banco de dados, e o acesso é seu — e de quem você autorizar explicitamente. Você pode excluir exames individualmente ou pedir a exclusão completa da conta a qualquer momento.</>,
     cite: 'Lei nº 13.709/2018 (LGPD) — dado de saúde é dado sensível: tratamos com criptografia e minimização. Leia a lei na íntegra →',
     citeHref: 'http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm',
   },
   {
-    icon: <CompareArrowsIcon sx={{ color: '#20b2aa' }} />,
+    icon: <CompareArrowsIcon sx={{ color: (t) => tealText(t.palette.mode) }} />,
     title: '6 · Por que não só colar num chatbot grátis',
     body: <>Um chatbot genérico não lembra seu exame anterior, não conhece seu perfil, não guarda sua família — e estudos vêm mostrando que <b>sem contexto clínico a qualidade da resposta cai</b>, pior ainda em português. O Dr. Exame cruza seus exames ao longo do tempo, o perfil de cada familiar e as perguntas que você já fez — e entrega um relatório que seu médico consegue usar.</>,
   },

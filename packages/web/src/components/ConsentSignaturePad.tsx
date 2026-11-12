@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import CreateIcon from '@mui/icons-material/Create';
+import { tealText } from '../theme';
 
 /**
  * Assinatura desenhada do consentimento de teleconsulta (Art. 15 — lote ReUI 04/11).
@@ -64,7 +65,7 @@ export const ConsentSignaturePad = ({ onChange }: { onChange: (dataUrl: string |
   return (
     <Box sx={{ mt: 1.5 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.75 }}>
-        <CreateIcon sx={{ fontSize: 16, color: '#20b2aa' }} />
+        <CreateIcon sx={{ fontSize: 16, color: (t) => tealText(t.palette.mode) }} />
         <Typography sx={{ fontSize: 12.5, fontWeight: 700 }}>
           Assine o termo <Box component="span" sx={{ color: 'text.secondary', fontWeight: 600 }}>(opcional — com o dedo)</Box>
         </Typography>

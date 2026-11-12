@@ -25,6 +25,7 @@ import { openTelemedicinaRoom } from '../../utils/telemedicina';
 import { doctorPhotoUrl } from '../../config';
 import { safeAvatar } from '../../utils/safeAvatar';
 import { AppCard } from '../AppCard';
+import { tealText } from '../../theme';
 
 export const TeleconsultaCard: React.FC = () => {
   const theme = useTheme();
@@ -292,7 +293,7 @@ export const TeleconsultaCard: React.FC = () => {
             >
               {doctorDisplayName}
             </Typography>
-            <VerifiedRoundedIcon sx={{ fontSize: 17, color: '#0d9488' }} />
+            <VerifiedRoundedIcon sx={{ fontSize: 17, color: (t) => tealText(t.palette.mode) }} />
           </Stack>
 
           {doctorCrm && (

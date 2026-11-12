@@ -7,6 +7,11 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 import { API_URL, token } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
 import { tealText } from '../../theme';
+import { useTable, type ColumnDef } from '@tanstack/react-table';
+import { DataGrid, DataGridContainer, dataGridFeatures } from '@/components/reui/data-grid/data-grid';
+import { DataGridTable } from '@/components/reui/data-grid/data-grid-table';
+import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header';
+import '../../doctor-v2/tw.css';
 
 /**
  * Push — campanhas segmentadas (plano/engajamento/exames/atividade HC) + broadcast global.
@@ -17,6 +22,52 @@ import { tealText } from '../../theme';
  * - Merge fields: {{nome}}, {{streak}}, {{passosOntem}} — resolvidos por usuário no envio.
  * - Cap anti-spam server-side: quem recebeu push manual há <7d fica de fora do segmentado.
  */
+
+/** ReUI DataGrid — histórico de campanhas (ordena por título, público, envios e data). */
+function CampaignsGrid({ rows }: { rows: any[] }) {
+  const audOf = (c: any) => (c.audienceFilter && Object.keys(c.audienceFilter).length
+    ? Object.entries(c.audienceFilter).map(([g, v]) => segLabel(g, v)).join(' · ')
+    : 'Todos os usuários');
+  const whenOf = (c: any) => new Date(c.sentAt || c.scheduledAt || c.createdAt || 0).getTime();
+  const columns: ColumnDef<any, any>[] = [
+    {
+      accessorKey: 'title', size: 340,
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Campanha" />,
+      cell: (c) => (
+        <div className="min-w-0">
+          <p className="m-0 truncate text-[13.5px] font-bold text-foreground">{c.getValue() as string}</p>
+          <p className="m-0 truncate text-xs text-muted-foreground">{(c.row.original as any).body}</p>
+        </div>
+      ),
+    },
+    {
+      id: 'publico', size: 220, accessorFn: audOf,
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Público" />,
+      cell: (c) => <span className="block truncate text-[13px] text-muted-foreground" title={c.getValue() as string}>{c.getValue() as string}</span>,
+    },
+    {
+      id: 'enviados', size: 110, accessorFn: (c: any) => Number(c.sentCount ?? 0),
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Enviados" />,
+      cell: (c) => <span className="text-[13px] font-bold tabular-nums text-foreground">{(c.row.original as any).sentAt ? (c.getValue() as number).toLocaleString('pt-BR') : '—'}</span>,
+    },
+    {
+      id: 'quando', size: 190, accessorFn: whenOf,
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Quando" />,
+      cell: (c) => {
+        const r = c.row.original as any;
+        const scheduled = r.scheduledAt && !r.sentAt;
+        return (
+          <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px] tabular-nums text-foreground">
+            {scheduled && <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-xs font-bold text-primary">Agendada</span>}
+            {scheduled ? new Date(r.scheduledAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : r.sentAt ? new Date(r.sentAt).toLocaleDateString('pt-BR') : '—'}
+          </span>
+        );
+      },
+    },
+  ];
+  const table = useTable({ features: dataGridFeatures, data: rows as any[], columns, getRowId: (r: any) => r.id });
+  return <DataGrid table={table} recordCount={rows.length} tableLayout={{ headerBackground: true, rowBorder: true }}><DataGridContainer><DataGridTable /></DataGridContainer></DataGrid>;
+}
 
 type Audience = {
   plan?: 'free' | 'premium' | 'premiumExpiring7d';
@@ -458,30 +509,9 @@ export const PushTab = () => {
 
       {/* ── SEÇÃO 2: CAMPANHAS RECENTES ── */}
       {campaigns.length > 0 && (
-        <Box sx={{ p: 2, borderRadius: '14px', border: '1px solid', borderColor: 'divider', mb: 2.5 }}>
-          <Typography sx={{ fontWeight: 800, mb: 1.5 }}>🗂 Campanhas recentes ({campaigns.length})</Typography>
-          <Stack spacing={1}>
-            {campaigns.map((c: any) => {
-              const scheduled = c.scheduledAt && !c.sentAt;
-              const aud = c.audienceFilter && Object.keys(c.audienceFilter).length
-                ? Object.entries(c.audienceFilter).map(([g, v]) => segLabel(g, v)).join(' · ')
-                : 'global';
-              return (
-                <Box key={c.id} sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'action.hover' }}>
-                  <Stack direction="row" justifyContent="space-between" gap={1} flexWrap="wrap">
-                    <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Typography sx={{ fontWeight: 700 }}>{scheduled && '⏰ '}{c.title}</Typography>
-                      <Typography variant="caption" color="text.secondary">{c.body.slice(0, 60)}{c.body.length > 60 ? '…' : ''}</Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>🎯 {aud}</Typography>
-                    </Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
-                      {scheduled ? `agendada ${new Date(c.scheduledAt).toLocaleString('pt-BR')}` : `📤 ${c.sentCount} · ${c.sentAt ? new Date(c.sentAt).toLocaleDateString('pt-BR') : '—'}`}
-                    </Typography>
-                  </Stack>
-                </Box>
-              );
-            })}
-          </Stack>
+        <Box sx={{ mb: 2.5 }}>
+          <Typography sx={{ fontWeight: 800, mb: 1.5 }}>Campanhas recentes ({campaigns.length})</Typography>
+          <div className="dx-island"><CampaignsGrid rows={campaigns} /></div>
         </Box>
       )}
 

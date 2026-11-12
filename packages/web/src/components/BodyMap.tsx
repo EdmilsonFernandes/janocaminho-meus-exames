@@ -1738,18 +1738,20 @@ export const BodyMap = ({
                             onClick={handleGoUpload}
                             startIcon={<UploadFileIcon sx={{ fontSize: 16 }} />}
                             sx={{
-                              flex: 1,
+                              flex: '1 1 200px',
+                              minHeight: 40,
+                              whiteSpace: 'nowrap',
                               borderRadius: '999px',
                               textTransform: 'none',
                               fontWeight: 800,
-                              fontSize: 12.5,
+                              fontSize: 13,
                               py: 0.8,
                               background: 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)',
                               color: '#ffffff',
                               boxShadow: 'none',
                             }}
                           >
-                            Já tenho este laudo (Enviar)
+                            Enviar este laudo
                           </Button>
                           <Button
                             variant="outlined"
@@ -1758,8 +1760,11 @@ export const BodyMap = ({
                             sx={{
                               borderRadius: '999px',
                               textTransform: 'none',
+                              flex: '1 1 160px',
+                              minHeight: 40,
+                              whiteSpace: 'nowrap',
                               fontWeight: 700,
-                              fontSize: 12,
+                              fontSize: 13,
                               py: 0.8,
                               borderColor: 'divider',
                               color: 'text.secondary',

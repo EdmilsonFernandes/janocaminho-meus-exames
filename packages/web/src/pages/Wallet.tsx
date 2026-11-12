@@ -85,7 +85,7 @@ const MonthlyUsageCard = () => {
   const total = items.reduce((s, i) => s + i.spent, 0);
   const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
   return (
-    <Card elevation={0} sx={{ mb: 2, borderRadius: '16px', border: (t) => `1px solid ${alpha(t.palette.divider, 0.6)}` }}>
+    <Card elevation={0} sx={{ mb: 2, borderRadius: '16px', border: (t) => `1px solid ${t.palette.divider}` }}>
       <CardContent sx={{ p: 2.5 }}>
         <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1, mb: 1.5 }}>
           <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15 }}>
@@ -207,9 +207,9 @@ export const WalletPage = () => {
                 variant="contained"
                 endIcon={<ShoppingCartOutlinedIcon />}
                 sx={{
-                  bgcolor: '#fff', color: '#0f6e68', textTransform: 'none', fontWeight: 800,
-                  borderRadius: '12px', px: 2.5, boxShadow: '0 4px 14px rgba(0,0,0,.14)',
-                  '&:hover': { bgcolor: '#f0fdfa' },
+                  background: '#fff', color: '#0f6e68', textTransform: 'none', fontWeight: 800,
+                  minHeight: 44, borderRadius: '12px', px: 2.5, boxShadow: '0 4px 14px rgba(0,0,0,.14)',
+                  '&:hover': { background: '#f0fdfa' },
                 }}
               >
                 Comprar créditos
@@ -242,7 +242,7 @@ export const WalletPage = () => {
                 sx={{
                   borderRadius: '14px', minWidth: 0, overflow: 'hidden', cursor: 'pointer',
                   border: '1px solid',
-                  borderColor: on ? alpha('#20b2aa', 0.55) : (t) => alpha(t.palette.divider, 0.6),
+                  borderColor: on ? alpha('#20b2aa', 0.55) : (t) => t.palette.divider,
                   bgcolor: on ? 'rgba(32,178,170,.08)' : 'transparent',
                   transition: 'border-color .15s ease, background-color .15s ease',
                   '&:hover': { borderColor: alpha('#20b2aa', 0.4) },
@@ -282,7 +282,7 @@ export const WalletPage = () => {
             {[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} height={64} sx={{ borderRadius: '14px', mb: 1 }} />)}
           </Box>
         ) : visibleItems.length === 0 ? (
-          <Card elevation={0} sx={{ borderRadius: '16px', border: (t) => `1px solid ${alpha(t.palette.divider, 0.6)}` }}>
+          <Card elevation={0} sx={{ borderRadius: '16px', border: (t) => `1px solid ${t.palette.divider}` }}>
             <CardContent sx={{ p: 3, textAlign: 'center' }}>
               <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}><DrExame size={56} /></Box>
               <Typography sx={{ fontWeight: 700, fontSize: 15 }}>
@@ -302,7 +302,7 @@ export const WalletPage = () => {
               const gain = t.delta > 0;
               return (
                 <Card key={t.id} elevation={0} sx={{
-                  borderRadius: '14px', mb: 1, border: (th) => `1px solid ${alpha(th.palette.divider, 0.5)}`,
+                  borderRadius: '14px', mb: 1, border: (th) => `1px solid ${th.palette.divider}`,
                   transition: 'border-color .15s ease',
                   '&:hover': { borderColor: alpha(meta.tint, 0.45) },
                 }}>

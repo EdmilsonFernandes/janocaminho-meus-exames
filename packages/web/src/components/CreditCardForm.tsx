@@ -15,6 +15,7 @@ import { API_URL, token } from '../config';
 import { bumpCredits } from '../utils/credits-events';
 import { celebrate } from '../hooks/useCelebrate';
 import { PaymentLogos } from './PaymentLogos';
+import { tealText } from '../theme';
 
 /**
  * Form de cartão INLINE (Asaas direto — POST /billing/pay-card). Sem redirect.
@@ -396,7 +397,7 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, c
 
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, px: { xs: 2.5, sm: 3 } }}>
         <Stack direction="row" spacing={1} alignItems="center">
-          <CreditCardIcon sx={{ color: '#0d9488' }} />
+          <CreditCardIcon sx={{ color: (t) => tealText(t.palette.mode) }} />
           <Box>
             <Typography sx={{ fontWeight: 800 }}>Cartão</Typography>
             <Typography variant="caption" color="text.secondary">{packLabel} · Crédito ou Débito</Typography>
@@ -484,7 +485,7 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, c
             fullWidth
             disabled={scanningCard || submitting}
             onClick={handleScanCard}
-            startIcon={scanningCard ? <CircularProgress size={18} sx={{ color: '#178f89' }} /> : <PhotoCameraIcon sx={{ color: '#178f89' }} />}
+            startIcon={scanningCard ? <CircularProgress size={18} sx={{ color: (t) => tealText(t.palette.mode) }} /> : <PhotoCameraIcon sx={{ color: (t) => tealText(t.palette.mode) }} />}
             sx={{
               py: 1.1,
               borderRadius: '12px',
@@ -539,7 +540,7 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, c
                         onClick={handleScanCard}
                         disabled={scanningCard || submitting}
                         edge="end"
-                        sx={{ color: '#178f89' }}
+                        sx={{ color: (t) => tealText(t.palette.mode) }}
                       >
                         <PhotoCameraIcon fontSize="small" />
                       </IconButton>

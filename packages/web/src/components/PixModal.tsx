@@ -152,7 +152,7 @@ export const PixModal = ({ packId, plan, product, couponCode, onClose, onApprove
       <DialogContent sx={{ pb: 3, px: { xs: 2, sm: 3 } }}>
         {phase === 'loading' && (
           <Box sx={{ py: 5, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
-            <CircularProgress sx={{ color: '#20b2aa' }} />
+            <CircularProgress sx={{ color: (t) => tealText(t.palette.mode) }} />
             <Typography variant="body2" color="text.secondary">Gerando seu PIX…</Typography>
           </Box>
         )}
@@ -198,7 +198,7 @@ export const PixModal = ({ packId, plan, product, couponCode, onClose, onApprove
             </Box>
 
             <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-              <CircularProgress size={14} sx={{ color: '#20b2aa' }} />
+              <CircularProgress size={14} sx={{ color: (t) => tealText(t.palette.mode) }} />
               <Typography variant="body2" color="text.secondary">Aguardando confirmação do pagamento…</Typography>
             </Box>
 

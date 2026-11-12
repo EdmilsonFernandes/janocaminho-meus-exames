@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { useEffect, useState } from 'react';
+import { tealText } from '../../theme';
 
 const RISK_META = {
   baixo: { emoji: '🟢', color: '#059669', label: 'Baixo', bg: 'rgba(5,150,105,.08)' },
@@ -72,7 +73,7 @@ export const CardiometabolicRiskCard = ({ risk: riskProp }: { risk?: CardioRisk 
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
               📋 Pra um cálculo completo, cadastre: <b>{missing.join(' e ')}</b> (em Medições).
             </Typography>
-            <Button size="small" onClick={() => navigate('/medicoes')} sx={{ mt: 0.5, px: 0, minWidth: 0, minHeight: 0, fontSize: 12, color: '#20b2aa', fontWeight: 700, textTransform: 'none' }}>Ir para Medições →</Button>
+            <Button size="small" onClick={() => navigate('/medicoes')} sx={{ mt: 0.5, px: 0, minWidth: 0, minHeight: 0, fontSize: 12, color: (t) => tealText(t.palette.mode), fontWeight: 700, textTransform: 'none' }}>Ir para Medições →</Button>
           </Box>
         )}
         <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary', fontSize: 12, lineHeight: 1.4, fontStyle: 'italic' }}>

@@ -14,6 +14,7 @@ import { confirmDialog } from '../ConfirmDialog';
 import { hapticLight, hapticError } from '../../utils/haptic';
 import { safeAvatar } from '../../utils/safeAvatar';
 import { PixPaymentBlock } from './PixPaymentBlock';
+import { tealText } from '../../theme';
 
 const pulse = keyframes`0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.35)}`;
 
@@ -228,7 +229,7 @@ export const ConsultaAtivaCard = ({
               <Typography noWrap sx={{ fontSize: 15.5, fontWeight: 800, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
                 {docName}
               </Typography>
-              <VerifiedRoundedIcon sx={{ fontSize: 15, color: '#0d9488', flexShrink: 0 }} />
+              <VerifiedRoundedIcon sx={{ fontSize: 15, color: (t) => tealText(t.palette.mode), flexShrink: 0 }} />
             </Stack>
             <Typography noWrap sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.secondary', mt: 0.15 }}>
               {[r.doctor?.specialty, docCrm].filter(Boolean).join(' · ') || 'Teleconsulta'}

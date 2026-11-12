@@ -1,6 +1,7 @@
 import { Box, Typography, Stack } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
+import { tealText } from '../theme';
 
 /**
  * Logotipo oficial do ASAAS com caminhos vetoriais extraídos do CDN oficial da marca.
@@ -145,7 +146,7 @@ export const PaymentLogos = ({
         }}
       >
         <Stack direction="row" spacing={0.6} alignItems="center">
-          <LockOutlinedIcon sx={{ fontSize: 14, color: '#178f89' }} />
+          <LockOutlinedIcon sx={{ fontSize: 14, color: (t) => tealText(t.palette.mode) }} />
           <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', letterSpacing: '0.01em' }}>
             Ambiente 100% Seguro · Criptografia SSL 256 bits
           </Typography>

@@ -476,7 +476,7 @@ export const RemindersPage = () => {
               <Stack direction="row" alignItems="center" spacing={0.75} flexWrap="wrap" useFlexGap>
                 {crm && (
                   <Stack direction="row" alignItems="center" spacing={0.25}>
-                    <VerifiedIcon sx={{ fontSize: 13, color: '#20b2aa' }} />
+                    <VerifiedIcon sx={{ fontSize: 13, color: (t) => tealText(t.palette.mode) }} />
                     <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>{crm}</Typography>
                   </Stack>
                 )}
@@ -491,9 +491,9 @@ export const RemindersPage = () => {
             {isCalling ? (
               <Chip size="small" icon={<PhoneInTalkIcon sx={{ fontSize: 13 }} />} label="Te chamando agora" sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(5,150,105,0.14)', color: '#059669', borderRadius: '8px', '& .MuiChip-icon': { color: '#059669' } }} />
             ) : inProgress ? (
-              <Chip size="small" icon={<VideocamIcon sx={{ fontSize: 13 }} />} label="Em andamento" sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: '#0d9488', borderRadius: '8px', '& .MuiChip-icon': { color: '#0d9488' } }} />
+              <Chip size="small" icon={<VideocamIcon sx={{ fontSize: 13 }} />} label="Em andamento" sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: (t) => tealText(t.palette.mode), borderRadius: '8px', '& .MuiChip-icon': { color: (t) => tealText(t.palette.mode) } }} />
             ) : (
-              <Chip size="small" icon={<EventAvailableIcon sx={{ fontSize: 13 }} />} label={due.getTime() < now.getTime() ? 'Hora marcada chegou' : 'Agendada'} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.10)', color: '#0d9488', borderRadius: '8px', '& .MuiChip-icon': { color: '#0d9488' } }} />
+              <Chip size="small" icon={<EventAvailableIcon sx={{ fontSize: 13 }} />} label={due.getTime() < now.getTime() ? 'Hora marcada chegou' : 'Agendada'} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.10)', color: (t) => tealText(t.palette.mode), borderRadius: '8px', '& .MuiChip-icon': { color: (t) => tealText(t.palette.mode) } }} />
             )}
             {price > 0 ? (
               r.paidAt ? (
@@ -640,15 +640,15 @@ export const RemindersPage = () => {
               </Stack>
             ) : hasEnded ? (
               <Stack direction="row" alignItems="center" spacing={0.75}>
-                <CheckCircleOutlineIcon sx={{ fontSize: 15, color: '#0d9488' }} />
+                <CheckCircleOutlineIcon sx={{ fontSize: 15, color: (t) => tealText(t.palette.mode) }} />
                 <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
                   Consulta Concluída • Prontuário Arquivado
                 </Typography>
               </Stack>
             ) : (
               <Stack direction="row" alignItems="center" spacing={0.75}>
-                <CalendarMonthIcon sx={{ fontSize: 15, color: '#0d9488' }} />
-                <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#0d9488', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                <CalendarMonthIcon sx={{ fontSize: 15, color: (t) => tealText(t.palette.mode) }} />
+                <Typography sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode), letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                   Teleconsulta Agendada
                 </Typography>
               </Stack>
@@ -718,7 +718,7 @@ export const RemindersPage = () => {
                   <Typography sx={{ fontSize: 16.5, fontWeight: 800, color: 'text.primary', lineHeight: 1.25 }}>
                     {docName}
                   </Typography>
-                  <VerifiedIcon sx={{ fontSize: 16, color: '#0d9488' }} />
+                  <VerifiedIcon sx={{ fontSize: 16, color: (t) => tealText(t.palette.mode) }} />
                   {r.doctor?.crm && (() => {
                     const crmStr = String(r.doctor.crm).trim();
                     const hasUf = /-?\b[A-Za-z]{2}$/.test(crmStr);
@@ -727,7 +727,7 @@ export const RemindersPage = () => {
                       <Chip
                         size="small"
                         label={label}
-                        sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(13,148,136,0.1)', color: '#0d9488', borderRadius: '6px', fontFamily: 'monospace' }}
+                        sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(13,148,136,0.1)', color: (t) => tealText(t.palette.mode), borderRadius: '6px', fontFamily: 'monospace' }}
                       />
                     );
                   })()}
@@ -735,7 +735,7 @@ export const RemindersPage = () => {
 
                 <Stack direction="row" alignItems="center" spacing={1.25} flexWrap="wrap" sx={{ mb: 0.75 }}>
                   {r.doctor?.specialty && (
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#0d9488' }}>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: (t) => tealText(t.palette.mode) }}>
                       {r.doctor.specialty}
                     </Typography>
                   )}
@@ -746,7 +746,7 @@ export const RemindersPage = () => {
                     </Typography>
                   </Stack>
                   {timeAgo(r.dueDate) && !isPast && (
-                    <Chip size="small" label={timeAgo(r.dueDate)} sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,.12)', color: '#0d9488', borderRadius: '6px' }} />
+                    <Chip size="small" label={timeAgo(r.dueDate)} sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,.12)', color: (t) => tealText(t.palette.mode), borderRadius: '6px' }} />
                   )}
                 </Stack>
 
@@ -781,7 +781,7 @@ export const RemindersPage = () => {
                     <Chip
                       size="small"
                       label="✓ Prontuário Assinado"
-                      sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,.12)', color: '#0d9488', borderRadius: '6px' }}
+                      sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,.12)', color: (t) => tealText(t.palette.mode), borderRadius: '6px' }}
                     />
                   )}
                   {/* §14.1: consulta encerrada com resumo APROVADO pelo médico → CTA
@@ -793,7 +793,7 @@ export const RemindersPage = () => {
                       icon={<SummarizeIcon sx={{ fontSize: 14 }} />}
                       label="Ver resumo da consulta"
                       onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`, { state: { reminder: r, doctor: r.doctor } }); }}
-                      sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,.16)', color: '#0d9488', borderRadius: '6px', '& .MuiChip-icon': { color: '#0d9488' } }}
+                      sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,.16)', color: (t) => tealText(t.palette.mode), borderRadius: '6px', '& .MuiChip-icon': { color: (t) => tealText(t.palette.mode) } }}
                     />
                   )}
                 </Stack>
@@ -1021,7 +1021,7 @@ export const RemindersPage = () => {
                             if (await copyText(shareLink)) snackbar({ message: 'Link da consulta copiado!', severity: 'success' });
                             else snackbar({ message: 'Não deu pra copiar automático. Use "Compartilhar no WhatsApp" ou copie manualmente.', severity: 'info' });
                           }}
-                          sx={{ color: 'text.secondary', '&:hover': { color: '#0d9488' } }}
+                          sx={{ color: 'text.secondary', '&:hover': { color: (t) => tealText(t.palette.mode) } }}
                         >
                           <ContentCopyIcon sx={{ fontSize: 18 }} />
                         </IconButton>
@@ -1404,7 +1404,7 @@ export const RemindersPage = () => {
               {activeConsultations.length > 0 && (
                 <Stack spacing={2} sx={{ mb: 3 }}>
                   <Stack direction="row" alignItems="center" spacing={1}>
-                    <VideocamIcon sx={{ fontSize: 18, color: '#20b2aa' }} />
+                    <VideocamIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
                     <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 14, color: 'text.primary' }}>
                       {activeConsultations.length > 1 ? `Consultas ativas (${activeConsultations.length})` : 'Sua consulta agora'}
                     </Typography>
@@ -1690,7 +1690,7 @@ export const RemindersPage = () => {
           <CardContent>
             <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1.5}>
               <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
-                <Box sx={{ width: 36, height: 36, borderRadius: '10px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#0d9488', flexShrink: 0 }}>
+                <Box sx={{ width: 36, height: 36, borderRadius: '10px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode), flexShrink: 0 }}>
                   <AddAlarmIcon fontSize="small" />
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 14.5, sm: 16 }, lineHeight: 1.25 }}>
@@ -1855,7 +1855,7 @@ export const RemindersPage = () => {
       {/* MODAL DE CONSENTIMENTO TELEMEDICINA ART. 15 */}
       <Dialog open={!!consentFor} onClose={() => setConsentFor(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
         <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 17, display: 'flex', alignItems: 'center', gap: 1, pb: 0.5 }}>
-          <VideocamIcon sx={{ fontSize: 20, color: '#0d9488' }} /> Autorizar teleconsulta
+          <VideocamIcon sx={{ fontSize: 20, color: (t) => tealText(t.palette.mode) }} /> Autorizar teleconsulta
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ color: 'text.secondary', lineHeight: 1.65, fontSize: 14 }}>
@@ -1956,7 +1956,7 @@ export const RemindersPage = () => {
                     >
                       {payTele.qrCode.slice(0, 24)}…{payTele.qrCode.slice(-12)}
                     </Typography>
-                    <ContentCopyIcon sx={{ fontSize: 16, color: '#178f89' }} />
+                    <ContentCopyIcon sx={{ fontSize: 16, color: (t) => tealText(t.palette.mode) }} />
                   </Box>
 
                   {/* Hidden / accessible input for fallback selection on WebView */}

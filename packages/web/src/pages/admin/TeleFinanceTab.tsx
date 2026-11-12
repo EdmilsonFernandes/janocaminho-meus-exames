@@ -9,12 +9,12 @@ import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react
 import { useTable, type ColumnDef } from '@tanstack/react-table';
 import { DataGrid, DataGridContainer, dataGridFeatures } from '@/components/reui/data-grid/data-grid';
 import { DataGridTable } from '@/components/reui/data-grid/data-grid-table';
+import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header';
 import '../../doctor-v2/tw.css';
 import {
   Box, Typography, Stack, Chip, Button, Card, TextField, MenuItem, useTheme, Alert,
   Collapse, IconButton, Dialog, DialogTitle, DialogContent, DialogActions,
-  Switch, FormControlLabel, Autocomplete, Avatar, InputAdornment, Table,
-  TableBody, TableCell, TableContainer, TableHead, TableRow, useMediaQuery,
+  Switch, FormControlLabel, Autocomplete, Avatar, InputAdornment, useMediaQuery,
 } from '@mui/material';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined';
@@ -91,6 +91,51 @@ const KpiGroup = ({ title, sub, children, accent }: { title: string; sub?: strin
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' }, gap: 1.25, mt: sub ? 0 : 1.25 }}>{children}</Box>
   </Box>
 );
+
+/** ReUI DataGrid — escolha do médico para filtrar o extrato (modal). */
+function DoctorPickGrid({ rows, activeId, onPick }: { rows: any[]; activeId: string; onPick: (id: string) => void }) {
+  const crmOf = (d: any) => (d.crmUf && !String(d.crm).toUpperCase().endsWith('-' + String(d.crmUf).toUpperCase()) ? d.crm + '-' + d.crmUf : d.crm);
+  const columns: ColumnDef<any, any>[] = [
+    {
+      accessorKey: 'name', size: 260,
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Médico" />,
+      cell: (c) => {
+        const d = c.row.original as any;
+        return (
+          <span className="flex min-w-0 items-center gap-2.5">
+            <Avatar src={doctorPhotoUrl(d.id)} sx={{ width: 34, height: 34, fontSize: 13, fontWeight: 700, bgcolor: 'primary.main', color: '#fff' }}>{d.name[0]}</Avatar>
+            <span className="truncate text-[13.5px] font-bold text-foreground">{d.name}</span>
+          </span>
+        );
+      },
+    },
+    {
+      id: 'crm', size: 120, accessorFn: crmOf,
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="CRM" />,
+      cell: (c) => <span className="whitespace-nowrap text-[13px] font-semibold tabular-nums text-muted-foreground">{c.getValue() as string}</span>,
+    },
+    {
+      id: 'specialty', size: 180, accessorFn: (d: any) => d.specialty || 'Clínica Geral',
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Especialidade" />,
+      cell: (c) => <span className="block truncate text-[13px] text-muted-foreground">{c.getValue() as string}</span>,
+    },
+    {
+      id: 'acao', header: '', size: 130, enableSorting: false,
+      cell: (c) => {
+        const d = c.row.original as any;
+        const on = d.id === activeId;
+        return (
+          <Button size="small" variant={on ? 'contained' : 'outlined'} onClick={() => onPick(d.id)} sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, fontSize: 12 }}>
+            {on ? 'Filtro ativo' : 'Ver extrato'}
+          </Button>
+        );
+      },
+    },
+  ];
+  const table = useTable({ features: dataGridFeatures, data: rows as any[], columns, getRowId: (r: any) => r.id });
+  if (!rows || rows.length === 0) return <ListEmpty title="Nenhum médico encontrado" description="Tente outro nome, CRM ou especialidade." />;
+  return <DataGrid table={table} recordCount={rows.length} tableLayout={{ headerBackground: true, rowBorder: true, headerSticky: true }}><DataGridContainer><DataGridTable /></DataGridContainer></DataGrid>;
+}
 
 /** ReUI DataGrid das consultas pagas (Fase A, worktree admin-reui). Chips e ação
  *  de estorno preservados (dinheiro real — fluxo intacto). */
@@ -729,58 +774,17 @@ export const TeleFinanceTab = () => {
             }}
             sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
           />
-          <TableContainer sx={{ maxHeight: 420 }}>
-            <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 800, fontSize: 13 }}>Médico</TableCell>
-                  <TableCell sx={{ fontWeight: 800, fontSize: 13 }}>CRM</TableCell>
-                  <TableCell sx={{ fontWeight: 800, fontSize: 13 }}>Especialidade</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 800, fontSize: 13 }}>Ação</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {doctors
-                  .filter((d) => {
-                    if (!doctorSearch) return true;
-                    const q = doctorSearch.toLowerCase();
-                    return d.name.toLowerCase().includes(q) || d.crm.toLowerCase().includes(q) || (d.specialty && d.specialty.toLowerCase().includes(q));
-                  })
-                  .map((doc) => (
-                    <TableRow key={doc.id} hover selected={doc.id === doctorId}>
-                      <TableCell>
-                        <Stack direction="row" alignItems="center" spacing={1.25}>
-                          <Avatar src={doctorPhotoUrl(doc.id)} sx={{ width: 34, height: 34, fontSize: 13, fontWeight: 700, bgcolor: 'primary.main', color: '#fff' }}>
-                            {doc.name[0]}
-                          </Avatar>
-                          <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{doc.name}</Typography>
-                        </Stack>
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 13, fontWeight: 600, color: 'text.secondary' }}>
-                        {/* CRM normalizado: crm já vem "12345-SP" — UF separada só quando falta (bug "126454-SP-SP"). */}
-                        {doc.crmUf && !doc.crm.toUpperCase().endsWith(`-${doc.crmUf.toUpperCase()}`) ? `${doc.crm}-${doc.crmUf}` : doc.crm}
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 13, color: 'text.secondary' }}>
-                        {doc.specialty || 'Clínica Geral'}
-                      </TableCell>
-                      <TableCell align="right">
-                        <Button
-                          size="small"
-                          variant={doc.id === doctorId ? 'contained' : 'outlined'}
-                          onClick={() => {
-                            setDoctorId(doc.id);
-                            setDoctorModalOpen(false);
-                          }}
-                          sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, fontSize: 12 }}
-                        >
-                          {doc.id === doctorId ? 'Filtro Ativo' : 'Ver Extrato'}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <div className="dx-island" style={{ maxHeight: 420, overflowY: 'auto' }}>
+            <DoctorPickGrid
+              rows={doctors.filter((d) => {
+                if (!doctorSearch) return true;
+                const q = doctorSearch.toLowerCase();
+                return d.name.toLowerCase().includes(q) || d.crm.toLowerCase().includes(q) || (d.specialty && d.specialty.toLowerCase().includes(q));
+              })}
+              activeId={doctorId}
+              onPick={(id) => { setDoctorId(id); setDoctorModalOpen(false); }}
+            />
+          </div>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           {doctorId && (

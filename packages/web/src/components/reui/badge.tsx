@@ -52,8 +52,9 @@ const badgeVariants = cva(
           "bg-background border-border text-focus-foreground dark:bg-input/30",
       },
       size: {
-        xs: "px-1 py-0.25 text-[0.6rem] leading-none h-4 min-w-4 gap-1",
-        sm: "px-1 py-0.25 text-[0.625rem] leading-none h-4.5 min-w-4.5 gap-1",
+        // DESVIO LOCAL (Dr. Exame): xs/sm do ReUI vinham em 9,6/10px — abaixo do piso de leitura no celular.
+        xs: "px-1.5 py-0.25 text-[0.6875rem] leading-none h-[1.125rem] min-w-[1.125rem] gap-1",
+        sm: "px-1.5 py-0.25 text-[0.6875rem] leading-none h-5 min-w-5 gap-1",
         default: "px-1.25 py-0.5 text-xs h-5 min-w-5 gap-1",
         lg: "px-1.5 py-0.5 text-xs h-5.5 min-w-5.5 gap-1",
         xl: "px-2 py-0.75 text-sm h-6 min-w-6 gap-1.5",

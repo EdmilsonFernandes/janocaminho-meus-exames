@@ -501,7 +501,7 @@ export const ProfilePage = () => {
             <FrameHeader>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <PersonOutlineIcon sx={{ color: '#0d9488', fontSize: 20 }} />
+                  <PersonOutlineIcon sx={{ color: (t) => tealText(t.palette.mode), fontSize: 20 }} />
                   <FrameTitle>Identificação do Paciente</FrameTitle>
                 </div>
                 {patient?.identityLocked && (
@@ -618,7 +618,7 @@ export const ProfilePage = () => {
             <FrameHeader>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <MonitorHeartOutlinedIcon sx={{ color: '#0d9488', fontSize: 20 }} />
+                  <MonitorHeartOutlinedIcon sx={{ color: (t) => tealText(t.palette.mode), fontSize: 20 }} />
                   <FrameTitle>Biometria & Dados Corporais</FrameTitle>
                 </div>
                 {bmiInfo && (
@@ -681,7 +681,7 @@ export const ProfilePage = () => {
                       size="small"
                       variant="text"
                       onClick={() => navigate('/medicoes')}
-                      sx={{ textTransform: 'none', fontWeight: 800, fontSize: 12, p: 0.5, color: '#0d9488' }}
+                      sx={{ textTransform: 'none', fontWeight: 800, fontSize: 12, p: 0.5, color: (t) => tealText(t.palette.mode) }}
                     >
                       {patient?.weightKg != null ? 'Atualizar →' : '+ Registrar'}
                     </Button>
@@ -703,21 +703,21 @@ export const ProfilePage = () => {
                         justifyContent: 'space-between',
                       }}
                     >
-                      <Stack direction="row" spacing={1} alignItems="center">
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
                         <ScaleIcon sx={{ color: bmiInfo.color, fontSize: 20 }} />
                         <Box>
                           <Typography sx={{ fontWeight: 800, fontSize: 13, color: bmiInfo.color }}>
                             IMC Calculado: {bmiInfo.val} kg/m²
                           </Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
-                            Classificação clínica: <strong>{bmiInfo.status}</strong>
+                            Calculado com sua altura e peso
                           </Typography>
                         </Box>
                       </Stack>
                       <Chip
                         size="small"
                         label={bmiInfo.status}
-                        sx={{ bgcolor: bmiInfo.color, color: '#fff', fontWeight: 800, fontSize: 12, height: 20 }}
+                        sx={{ bgcolor: bmiInfo.color, color: '#fff', fontWeight: 800, fontSize: 12, height: 24, flexShrink: 0, ml: 1 }}
                       />
                     </Box>
                   </Grid>

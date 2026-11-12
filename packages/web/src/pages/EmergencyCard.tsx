@@ -54,7 +54,16 @@ export const EmergencyCardPage = () => {
       .then((r) => (r.ok ? r.json() : []))
       .then((rows) => {
         if (Array.isArray(rows)) {
-          setMeds(rows.filter((m: ActiveMed) => m.active !== false));
+          // Ficha de emergência: registros idênticos (mesmo nome+dose+frequência) viram um só —
+          // remédio repetido 5x é ruído para quem socorre.
+          const seen = new Set<string>();
+          setMeds(rows.filter((m: ActiveMed) => {
+            if (m.active === false) return false;
+            const k = `${m.name ?? ''}|${m.dosage ?? ''}|${m.frequency ?? ''}`.toLowerCase().replace(/s+/g, ' ').trim();
+            if (seen.has(k)) return false;
+            seen.add(k);
+            return true;
+          }));
         }
       })
       .catch(() => {});
@@ -82,7 +91,7 @@ export const EmergencyCardPage = () => {
           <SmartphoneOutlinedIcon sx={{ fontSize: 16 }} />
           <AlertTitle>Atalho rápido na tela inicial do celular</AlertTitle>
           <AlertDescription>
-            No Android, segure o dedo por 1 segundo sobre o ícone do app <strong>Dr. Exame</strong> para abrir esta Ficha de Emergência direto da tela inicial.
+            <p className="m-0">No Android, segure o dedo por 1 segundo sobre o ícone do app <strong>Dr. Exame</strong> para abrir esta ficha direto da tela inicial.</p>
           </AlertDescription>
         </Alert>
 
@@ -245,7 +254,7 @@ export const EmergencyCardPage = () => {
                             key={m.id}
                             variant="primary-light"
                             size="sm"
-                            className="h-auto max-w-full py-1 px-2 text-left leading-snug whitespace-normal break-words"
+                            className="h-auto max-w-full py-1 px-2 text-left text-xs leading-snug whitespace-normal break-words"
                           >
                             {m.name}
                             {m.dosage ? ` · ${m.dosage}` : ''}

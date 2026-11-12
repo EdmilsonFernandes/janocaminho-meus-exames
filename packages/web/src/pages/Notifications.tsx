@@ -237,7 +237,7 @@ export const NotificationsPage = () => {
               <button
                 type="button"
                 onClick={markAll}
-                className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1.5 text-xs font-bold text-primary transition hover:bg-primary/20 cursor-pointer"
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-solid border-primary/30 bg-primary/10 px-3.5 py-1.5 text-[13px] font-bold text-primary transition-colors hover:bg-primary/20 cursor-pointer"
               >
                 <DoneAllRoundedIcon sx={{ fontSize: 15 }} />
                 {translate('notif.mark_all')}

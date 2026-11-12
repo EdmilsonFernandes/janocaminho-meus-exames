@@ -270,7 +270,7 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, on
                   boxShadow: on ? `0 0 0 1px ${alpha(opt.color, 0.12)}` : 'none',
                   transition: 'all .2s ease',
                   color: 'text.primary',
-                  '&:hover': { borderColor: on ? opt.color : (t) => alpha(t.palette.divider, 1), bgcolor: on ? undefined : (t) => alpha(t.palette.divider, 0.06) },
+                  '&:hover': { borderColor: on ? opt.color : (t) => alpha(t.palette.text.primary, 0.28), bgcolor: on ? undefined : (t) => alpha(t.palette.divider, 0.06) },
                   '&:active': { transform: 'scale(.99)' },
                 }}
               >

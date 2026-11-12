@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
+import { tealText } from '../../theme';
 
 // Seção do Dashboard — premium: sem overline uppercase (datado), usa divider sutil com ícone.
 export const Section = ({
@@ -20,7 +21,7 @@ export const Section = ({
       {(label || action) && (
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flex: 1, minWidth: 0 }}>
-            {icon && <Box sx={{ color: '#178f89', display: 'flex', '& svg': { fontSize: 18 } }}>{icon}</Box>}
+            {icon && <Box sx={{ color: (t) => tealText(t.palette.mode), display: 'flex', '& svg': { fontSize: 18 } }}>{icon}</Box>}
             {label && (
               <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
                 {label}

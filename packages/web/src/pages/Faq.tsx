@@ -209,7 +209,7 @@ export const FaqPage = () => {
               '&:hover': { boxShadow: '0 6px 18px rgba(32,178,170,0.12)' },
             }}
           >
-            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: '#20b2aa' }} />} sx={{ fontWeight: 600, fontSize: '0.95rem' }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: (t) => tealText(t.palette.mode) }} />} sx={{ fontWeight: 600, fontSize: '0.95rem' }}>
               {q}
             </AccordionSummary>
             <AccordionDetails sx={{ color: 'text.secondary', lineHeight: 1.7, pt: 0, animation: 'faqUp .3s ease both' }}>

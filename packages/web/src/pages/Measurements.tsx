@@ -245,7 +245,7 @@ export const MeasurementsPage = () => {
                   <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minWidth: 0 }}>
                     <Stack direction="row" alignItems="center" spacing={0.75} sx={{ minWidth: 0 }}>
                       <Box aria-hidden="true" sx={{ display: 'inline-flex', color: t.color, flexShrink: 0 }}>{t.icon}</Box>
-                      <Typography noWrap sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>{t.l}</Typography>
+                      <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary', lineHeight: 1.25 }}>{t.l}</Typography>
                     </Stack>
                     <div className="dx-island shrink-0">
                       <ReuiBadge variant="success-light" size="xs">Ao Vivo</ReuiBadge>
@@ -283,7 +283,7 @@ export const MeasurementsPage = () => {
             mb: 1.5,
           }}
         >
-          <span>➕</span> Adicionar Outras Medições Rápidas (Sem Dados Atuais)
+          <span>➕</span> Adicionar outras medições
         </Typography>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1.25 }}>
@@ -307,12 +307,12 @@ export const MeasurementsPage = () => {
                 '&:hover': { bgcolor: 'action.hover', borderColor: '#0d9488' },
               }}
             >
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ flexWrap: 'wrap', gap: 0.5 }}>
                 <Stack direction="row" spacing={0.5} alignItems="center">
-                  <MonitorWeightIcon sx={{ fontSize: 16, color: '#20b2aa' }} />
+                  <MonitorWeightIcon sx={{ fontSize: 16, color: (t) => tealText(t.palette.mode) }} />
                   <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>Peso</Typography>
                 </Stack>
-                <Chip size="small" label="+ Adicionar" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'background.paper', color: '#0f766e', border: '1px solid rgba(15,118,110,0.3)' }} />
+                <Chip size="small" label="+ Adicionar" sx={{ height: 24, flexShrink: 0, fontSize: 12, fontWeight: 700, bgcolor: 'background.paper', color: '#0f766e', border: '1px solid rgba(15,118,110,0.3)' }} />
               </Stack>
               <Typography variant="caption" sx={{ color: 'text.disabled' }}>Último: não informado</Typography>
             </Card>
@@ -338,12 +338,12 @@ export const MeasurementsPage = () => {
                 '&:hover': { bgcolor: 'action.hover', borderColor: '#0d9488' },
               }}
             >
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ flexWrap: 'wrap', gap: 0.5 }}>
                 <Stack direction="row" spacing={0.5} alignItems="center">
                   <Box sx={{ color: t.color, display: 'inline-flex' }}>{t.icon}</Box>
                   <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>{t.l}</Typography>
                 </Stack>
-                <Chip size="small" label={t.synced ? '+ Conectar' : '+ Adicionar'} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'background.paper', color: '#0f766e', border: '1px solid rgba(15,118,110,0.3)' }} />
+                <Chip size="small" label={t.synced ? '+ Conectar' : '+ Adicionar'} sx={{ height: 24, flexShrink: 0, fontSize: 12, fontWeight: 700, bgcolor: 'background.paper', color: '#0f766e', border: '1px solid rgba(15,118,110,0.3)' }} />
               </Stack>
               <Typography variant="caption" sx={{ color: 'text.disabled' }}>
                 {t.synced ? 'Via Health Connect' : 'Último: não informado'}
@@ -368,7 +368,7 @@ export const MeasurementsPage = () => {
           <PsychologyIcon />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 700 }}>Saúde Mental — PHQ-9/GAD-7</Typography>
+          <Typography sx={{ fontWeight: 700 }}>Saúde mental</Typography>
           <Typography variant="caption" color="text.secondary">Questionários validados de depressão e ansiedade · 2 min</Typography>
         </Box>
         <Chip size="small" label="Grátis" sx={{ height: 22, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }} />

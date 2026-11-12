@@ -38,6 +38,7 @@ import { copyText } from '../utils/copyText';
 import { hapticError, hapticLight, hapticSuccess } from '../utils/haptic';
 import { PixPaymentBlock } from './teleconsulta/PixPaymentBlock';
 import { AppCard } from './AppCard';
+import { tealText } from '../theme';
 
 // ── Contrato (spec §2 — resumo; a spec é a fonte) ────────────────────────────
 interface QueueEntry {
@@ -427,7 +428,7 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
         <Stack direction="row" alignItems="center" spacing={1.25}>
           <Box
             aria-hidden="true"
-            sx={{ width: 44, height: 44, borderRadius: '14px', flexShrink: 0, display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.14)', color: '#178f89' }}
+            sx={{ width: 44, height: 44, borderRadius: '14px', flexShrink: 0, display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }}
           >
             {phase === 'queued' ? <HourglassTopRoundedIcon sx={{ fontSize: 24 }} /> : <BoltRoundedIcon sx={{ fontSize: 24 }} />}
           </Box>
@@ -685,7 +686,7 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
             </Box>
             <FormControlLabel
               sx={{ alignItems: 'flex-start', mt: 1.25, '& .MuiFormControlLabel-label': { fontSize: 12.5, lineHeight: 1.5, color: 'text.secondary' } }}
-              control={<Checkbox checked={consentOk} onChange={(e) => setConsentOk(e.target.checked)} sx={{ pt: 0.25, mt: -0.5, color: 'primary.main', '&.Mui-checked': { color: '#178f89' } }} />}
+              control={<Checkbox checked={consentOk} onChange={(e) => setConsentOk(e.target.checked)} sx={{ pt: 0.25, mt: -0.5, color: 'primary.main', '&.Mui-checked': { color: (t) => tealText(t.palette.mode) } }} />}
               label={(choice ? choice.priceCents : rangeMax) > 0
                 ? `Li e aceito o consentimento acima e autorizo a cobrança de até R$ ${fmtBrl(choice ? choice.priceCents : rangeMax)} pelo atendimento (pago por PIX só quando um médico aceitar).`
                 : 'Li e aceito o consentimento acima. O valor, se houver cobrança, será combinado e pago por PIX só quando um médico aceitar.'}
@@ -788,7 +789,7 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
                       size="small"
                       startIcon={copied ? <CheckCircleOutlineRoundedIcon /> : <ContentCopyRoundedIcon />}
                       onClick={() => void doCopy(pay.qrCode!)}
-                      sx={{ textTransform: 'none', fontWeight: 800, fontSize: 12, color: '#178f89', flexShrink: 0 }}
+                      sx={{ textTransform: 'none', fontWeight: 800, fontSize: 12, color: (t) => tealText(t.palette.mode), flexShrink: 0 }}
                     >
                       {copied ? 'Copiado!' : 'Copiar'}
                     </Button>
@@ -945,7 +946,7 @@ export const FalarAgoraCompact = () => {
       aria-label={`${label} — abrir Minhas Consultas`}
       sx={{ p: 1.5, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1.25 }}
     >
-      <Box aria-hidden="true" sx={{ width: 36, height: 36, borderRadius: '12px', flexShrink: 0, display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89' }}>
+      <Box aria-hidden="true" sx={{ width: 36, height: 36, borderRadius: '12px', flexShrink: 0, display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }}>
         <BoltRoundedIcon sx={{ fontSize: 20 }} />
       </Box>
       <Box sx={{ flex: 1, minWidth: 0 }}>

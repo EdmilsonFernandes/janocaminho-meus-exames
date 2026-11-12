@@ -18,7 +18,7 @@ import { GoogleG, LockSecure } from './GoogleG';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
 import { hapticLight } from '../../utils/haptic';
-import { SEM, RADIUS } from '../../theme';
+import { SEM, RADIUS, tealText } from '../../theme';
 import { backfillActivityDays, fetchActivityDays, hasHealthPermissions, healthConnectSupported, permissionOutcomeMessage, requestHealthPermissions, syncActivityToServer } from '../../services/healthConnect';
 import { fetchActivitySummary, summaryToDays, syncStamp } from '../../services/activitySummary';
 import { barHeight, fmtKcal, fmtKm, fmtSleep, fmtSteps, summarize, weekOfExam, STEPS_GOAL, type ActivityDay, type ActivityRange } from '../../utils/activityStats';
@@ -471,7 +471,7 @@ export const ActivityView = ({
           {source === 'cloud' && syncedAtISO && (() => {
             const st = syncStamp(syncedAtISO);
             return (
-              <Typography noWrap title="Última sincronização feita pelo app Dr. Exame no seu celular" sx={{ fontSize: 12, color: 'text.disabled' }}>
+              <Typography title="Última sincronização feita pelo app Dr. Exame no seu celular" sx={{ fontSize: 12, color: 'text.disabled' }}>
                 Sincronizado {st.label}{st.stale ? ' · atualize pelo app' : ''}
               </Typography>
             );
@@ -797,7 +797,7 @@ export const PermissionRationaleContent = ({ onConfirm, onClose, asking, error }
         {/* Ícone Health Connect (guideline): coração+raio no chip da marca. Trocar pelo asset
             oficial (public/hc-icon.png) quando disponível — o layout já acomoda. */}
         <Box sx={{ position: 'relative', width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: '#fff', border: '1px solid #e6f1f0' }}>
-          <HealthAndSafetyIcon sx={{ color: '#20b2aa', fontSize: 24 }} aria-hidden="true" />
+          <HealthAndSafetyIcon sx={{ color: (t) => tealText(t.palette.mode), fontSize: 24 }} aria-hidden="true" />
           <Box component="img" src="hc-icon.png" alt="" onError={(e: any) => { e.currentTarget.style.display = 'none'; }} sx={{ position: 'absolute', width: 28, height: 28 }} />
         </Box>
         <Box sx={{ position: 'relative' }}>

@@ -3,6 +3,7 @@ import { Box, Typography, Button, CircularProgress } from '@mui/material';
 import { Capacitor } from '@capacitor/core';
 import { useNavigate } from 'react-router-dom';
 import { BiometricService } from './BiometricService';
+import { tealText } from '../theme';
 
 /**
  * Porta de biometria na abertura e no retorno (foreground) do app.
@@ -86,7 +87,7 @@ export const BiometricGate = ({ children }: { children: React.ReactNode }) => {
           <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 21 }}>Meus Exames está bloqueado</Typography>
           <Typography sx={{ opacity: 0.85, fontSize: 14, mb: 1.5, maxWidth: 300 }}>Confirme sua biometria (digital ou rosto) para continuar.</Typography>
           {busy
-            ? <CircularProgress sx={{ color: '#20b2aa' }} />
+            ? <CircularProgress sx={{ color: (t) => tealText(t.palette.mode) }} />
             : <Button variant="contained" onClick={() => void prompt()} sx={{ borderRadius: '999px', px: 4, py: 1.1, textTransform: 'none', fontWeight: 800, fontSize: 15, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#0f766e' } }}>Usar biometria</Button>}
           <Button variant="text" onClick={logoutEscape} sx={{ mt: 1, color: 'rgba(255,255,255,.7)', textTransform: 'none', fontSize: 13, '&:hover': { color: '#fff', bgcolor: 'transparent' } }}>Entrar com senha</Button>
         </Box>

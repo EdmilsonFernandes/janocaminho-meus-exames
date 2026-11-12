@@ -10,6 +10,7 @@ import { API_URL, token } from '../../config';
 import { copyText } from '../../utils/copyText';
 import { hapticLight, hapticSuccess, hapticError } from '../../utils/haptic';
 import { snackbar } from '../ConfirmDialog';
+import { tealText } from '../../theme';
 
 /** centavos → "X,XX" (pt-BR, sem Intl currency — mesmo padrão do Reminders). */
 const fmtBrl = (c: number) => (c / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -281,7 +282,7 @@ export const PixPaymentBlock = ({
                 >
                   {charge.qrCode.slice(0, 24)}…{charge.qrCode.slice(-12)}
                 </Typography>
-                <ContentCopyRoundedIcon sx={{ fontSize: 16, color: '#178f89' }} />
+                <ContentCopyRoundedIcon sx={{ fontSize: 16, color: (t) => tealText(t.palette.mode) }} />
               </Box>
 
               {/* Accessible input for WebView fallback copy */}

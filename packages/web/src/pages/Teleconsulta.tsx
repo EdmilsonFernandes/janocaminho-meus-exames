@@ -3270,7 +3270,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     const feedbackBlock = isRated ? (
       <Box sx={{ mt: 2.5, p: 2, borderRadius: '16px', bgcolor: 'rgba(32,178,170,0.06)', border: '1px solid rgba(32,178,170,0.22)', textAlign: 'center' }}>
         <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center" sx={{ mb: 0.5 }}>
-          <VerifiedIcon sx={{ fontSize: 18, color: '#178f89' }} />
+          <VerifiedIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
           <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary' }}>
             Avaliação registrada ✓
           </Typography>
@@ -3303,7 +3303,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           ].map((o) => (
             <Tooltip key={o.v} title={o.label}>
               <IconButton aria-label={o.label} onClick={() => { setFbRating(o.v); hapticLight(); void sendFeedback(o.v); }}
-                sx={{ color: fbRating === o.v ? '#178f89' : 'text.secondary', bgcolor: fbRating === o.v ? 'rgba(32,178,170,0.18)' : 'transparent', '&:hover': { color: '#178f89', bgcolor: 'rgba(32,178,170,0.10)' }, width: 44, height: 44 }}>
+                sx={{ color: fbRating === o.v ? '#178f89' : 'text.secondary', bgcolor: fbRating === o.v ? 'rgba(32,178,170,0.18)' : 'transparent', '&:hover': { color: (t) => tealText(t.palette.mode), bgcolor: 'rgba(32,178,170,0.10)' }, width: 44, height: 44 }}>
                 {o.icon}
               </IconButton>
             </Tooltip>
@@ -3537,7 +3537,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderColor: 'divider', boxShadow: 'none' }}>
                   <CardContent sx={{ p: 2.25, '&:last-child': { pb: 2.25 } }}>
                     <Stack direction="row" spacing={1.5} alignItems="flex-start">
-                      <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: 'rgba(13,148,136,0.1)', color: '#0d9488', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                      <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: 'rgba(13,148,136,0.1)', color: (t) => tealText(t.palette.mode), display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                         <AssignmentIcon sx={{ fontSize: 20 }} />
                       </Box>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -3846,7 +3846,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 ].map((o) => (
                   <Tooltip key={o.v} title={o.label}>
                     <IconButton aria-label={o.label} onClick={() => { setFbRating(o.v); hapticLight(); void sendFeedback(o.v, fbNote || note); }}
-                      sx={{ color: fbRating === o.v ? '#178f89' : 'text.secondary', bgcolor: fbRating === o.v ? 'rgba(32,178,170,0.18)' : 'transparent', '&:hover': { color: '#178f89', bgcolor: 'rgba(32,178,170,0.10)' }, width: 44, height: 44 }}>
+                      sx={{ color: fbRating === o.v ? '#178f89' : 'text.secondary', bgcolor: fbRating === o.v ? 'rgba(32,178,170,0.18)' : 'transparent', '&:hover': { color: (t) => tealText(t.palette.mode), bgcolor: 'rgba(32,178,170,0.10)' }, width: 44, height: 44 }}>
                       {o.icon}
                     </IconButton>
                   </Tooltip>
@@ -4189,7 +4189,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     return (
       <Box sx={{ minHeight: '100dvh', bgcolor: CALL_BG, display: 'grid', placeItems: 'center' }}>
         <Stack alignItems="center" spacing={2}>
-          <CircularProgress sx={{ color: '#20b2aa' }} />
+          <CircularProgress sx={{ color: (t) => tealText(t.palette.mode) }} />
           <Typography sx={{ color: 'rgba(255,255,255,.85)', fontWeight: 700, fontSize: 15 }}>Conectando…</Typography>
         </Stack>
       </Box>

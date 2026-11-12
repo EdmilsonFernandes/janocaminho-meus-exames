@@ -32,6 +32,7 @@ export const PharmaciesTab = () => {
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ name: '', hostname: '', logoUrl: '', color: '#20b2aa' });
   const [saving, setSaving] = useState(false);
+  const [q, setQ] = useState('');
 
   const load = async () => {
     try {
@@ -97,6 +98,8 @@ export const PharmaciesTab = () => {
   }
 
   const activeCount = rows.filter((r) => r.active).length;
+  const term = q.trim().toLowerCase();
+  const visible = term ? rows.filter((r) => `${r.name ?? ''} ${r.hostname ?? ''}`.toLowerCase().includes(term)) : rows;
 
   return (
     <Stack spacing={2.5}>
@@ -169,12 +172,18 @@ export const PharmaciesTab = () => {
       )}
 
       {/* Lista de Farmácias */}
+      {rows.length > 5 && (
+        <TextField size="small" fullWidth placeholder="Buscar farmácia por nome ou domínio" value={q} onChange={(e) => setQ(e.target.value)}
+          slotProps={{ htmlInput: { 'aria-label': 'Buscar farmácia' } }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+      )}
       {rows.length === 0 ? (
         <Card variant="outlined" sx={{ borderRadius: '16px', p: 4, textAlign: 'center' }}>
           <ListEmpty title="Nenhuma farmácia cadastrada" />
         </Card>
+      ) : visible.length === 0 ? (
+        <ListEmpty title="Nenhuma farmácia com esse termo" description="Confira a grafia ou limpe a busca." />
       ) : (
-        rows.map((p) => (
+        visible.map((p) => (
           <Card
             key={p.id}
             variant="outlined"

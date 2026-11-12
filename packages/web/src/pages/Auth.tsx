@@ -116,7 +116,7 @@ const Shell = ({ children, subtitle }: { children: ReactNode; subtitle?: string 
       {children}
       <Box sx={{ mt: 3, p: 1.5, borderRadius: '12px', bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <Box sx={{ flexShrink: 0, display: 'flex', color: '#0d9488' }}><I.Shield /></Box>
+          <Box sx={{ flexShrink: 0, display: 'flex', color: (t) => tealText(t.palette.mode) }}><I.Shield /></Box>
           <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#0f172a', lineHeight: 1.45 }}>{translate('auth.lgpd')}</Typography>
         </Box>
         <Typography sx={{ fontSize: 12, color: '#64748b', lineHeight: 1.5, mt: 0.5 }}>
@@ -782,7 +782,7 @@ export const RegisterPage = () => {
           </Accordion>
         )}
         <FormControlLabel
-          control={<Checkbox checked={accepted} onChange={(e) => setAccepted(e.target.checked)} size="small" sx={{ color: '#20b2aa', '&.Mui-checked': { color: '#20b2aa' } }} />}
+          control={<Checkbox checked={accepted} onChange={(e) => setAccepted(e.target.checked)} size="small" sx={{ color: (t) => tealText(t.palette.mode), '&.Mui-checked': { color: (t) => tealText(t.palette.mode) } }} />}
           label={<Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Li e aceito os <Link component="a" href="#/termos" target="_blank" rel="noopener" sx={{ color: LINK, fontWeight: 700 }}>Termos de Uso e Política de Privacidade</Link>.</Typography>}
           sx={{ alignItems: 'flex-start', m: 0, '& .MuiCheckbox-root': { pt: 0.5 } }}
         />

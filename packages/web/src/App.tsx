@@ -97,7 +97,6 @@ const EncontrarEspecialistasPage = lazy(() => import('./pages/EncontrarEspeciali
 const FaqPage = lazy(() => import('./pages/Faq').then(m => ({ default: m.FaqPage })));
 // Showcase ReUI × Dr. Exame (04/11): maquete interativa dos padrões ReUI portados a MUI.
 // Rota pública (noLayout) + item de menu — dados 100% fictícios, sem API.
-const ShowcaseReuiPage = lazy(() => import('./pages/ShowcaseReui').then(m => ({ default: m.ShowcaseReuiPage })));
 const HowWeValidatePage = lazy(() => import('./pages/HowWeValidate').then(m => ({ default: m.HowWeValidatePage })));
 import { MeasurementsPage } from './pages/Measurements';
 const MedicationsPage = lazy(() => import('./pages/Medications').then(m => ({ default: m.MedicationsPage })));
@@ -1641,7 +1640,6 @@ export const App = () => {
           <Route path="/doctor/vincular" element={<DoctorInviteLandingPage />} />
           <Route path="/termos" element={<TermsPage />} />
           <Route path="/faq" element={<Suspense fallback={<PageSkeleton />}><FaqPage /></Suspense>} />
-          <Route path="/showcase-reui" element={<Suspense fallback={<PageSkeleton />}><ShowcaseReuiPage /></Suspense>} />
           <Route path="/como-validamos" element={<Suspense fallback={<PageSkeleton />}><HowWeValidatePage /></Suspense>} />
           {/* Portal de documentação da API: PÚBLICO (prospects leem antes de solicitar) — fora do shell autenticado. */}
           <Route path="/api-docs" element={<Suspense fallback={<PageSkeleton />}><ApiDocsPage /></Suspense>} />

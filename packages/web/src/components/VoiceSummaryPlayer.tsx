@@ -237,6 +237,7 @@ export const VoiceSummaryPlayer = ({
               label={badgeLabel}
               sx={{
                 height: 22,
+                flexShrink: 0,
                 fontSize: 12,
                 fontWeight: 800,
                 borderRadius: '8px',

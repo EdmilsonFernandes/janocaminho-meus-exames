@@ -37,6 +37,7 @@ import { IconTile } from '@/components/reui/icon-tile';
 import { SettingRow } from '@/components/reui/setting-row';
 import { ShieldRoundIcon } from '@/components/reui/icons';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
+import { tealText } from '../theme';
 
 /** Página de Privacidade e Termos — e o lar REAL de "Gerenciar seus dados" (export/import/
  *  exclusão LGPD mudaram do Perfil pra cá na re-arquitetura 2026-08: função de dados, não
@@ -271,7 +272,7 @@ export const PrivacyPage = () => {
           <Frame className="h-full">
             <FrameHeader>
               <div className="flex items-center gap-2">
-                <VerifiedUserOutlinedIcon sx={{ fontSize: 18, color: '#0d9488' }} />
+                <VerifiedUserOutlinedIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
                 <FrameTitle>Proteção de Dados (LGPD)</FrameTitle>
               </div>
               <FrameDescription>

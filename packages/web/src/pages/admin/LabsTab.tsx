@@ -30,6 +30,7 @@ interface LabItem {
  *  O app casa o sourceLab cru extraído do PDF (ex.: "SJC - Bacabal") com a marca por nome/apelidos.
  *  Com logo: mostra a imagem; sem logo: círculo colorido com a inicial. */
 export const LabsTab = () => {
+  const [q, setQ] = useState('');
   const notify = useNotify();
   const [labs, setLabs] = useState<LabItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -168,6 +169,8 @@ export const LabsTab = () => {
   };
 
   const activeCount = labs.filter((l) => l.active).length;
+  const term = q.trim().toLowerCase();
+  const visibleLabs = term ? labs.filter((l) => `${l.name ?? ''} ${(l.aliases ?? []).join(' ')}`.toLowerCase().includes(term)) : labs;
 
   return (
     <Box>
@@ -256,7 +259,12 @@ export const LabsTab = () => {
         </Card>
       ) : (
         <Stack spacing={1.5}>
-          {labs.map((lab) => {
+          {labs.length > 5 && (
+            <TextField size="small" fullWidth placeholder="Buscar laboratório por nome ou apelido" value={q} onChange={(e) => setQ(e.target.value)}
+              slotProps={{ htmlInput: { 'aria-label': 'Buscar laboratório' } }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+          )}
+          {visibleLabs.length === 0 && <ListEmpty title="Nenhum laboratório com esse termo" description="Confira a grafia ou limpe a busca." />}
+          {visibleLabs.map((lab) => {
             const isEditing = editingId === lab.id;
 
             return (
