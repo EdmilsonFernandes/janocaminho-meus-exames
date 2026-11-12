@@ -32,6 +32,7 @@ import openpixWebhookRoutes from './routes/openpix-webhook.routes';
 import asaasWebhookRoutes from './routes/asaas-webhook.routes';
 import labsRoutes from './routes/labs.routes';
 import measurementRoutes from './routes/measurement.routes';
+import bodyCompositionRoutes from './routes/body-composition.routes';
 import medicationRoutes from './routes/medication.routes';
 import publicApiRoutes from './routes/public-api.routes';
 import decifreRoutes from './routes/decifre.routes';
@@ -409,6 +410,7 @@ app.use('/api/webhooks', openpixWebhookRoutes);
 app.use('/api/webhooks', asaasWebhookRoutes);
 app.use('/api/labs', labsRoutes);
 app.use('/api/measurements', measurementRoutes);
+app.use('/api/body-composition', bodyCompositionRoutes);
 app.use('/api/medications', medicationRoutes);
 const swaggerMobileCss = `
   .topbar { display: none !important; }

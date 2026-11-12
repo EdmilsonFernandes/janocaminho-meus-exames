@@ -282,6 +282,7 @@ model Patient {
   reminders    Reminder[]
   queueEntries TeleconsultaQueue[]
   measurements Measurement[]
+  bodyCompositions BodyComposition[]
   vaccines     Vaccine[]
   expenses     Expense[]
   // "Meus médicos" (28/10/26): vínculos privados + consultas registradas pelo paciente.
@@ -1008,6 +1009,42 @@ model Measurement {
 
   @@index([patientId, type, measuredAt])
   @@map("measurements")
+}
+
+// Avaliação de composição corporal (bioimpedância). UMA linha = UM exame do aparelho:
+// os valores de uma mesma avaliação andam juntos (≠ Measurement, que é número solto).
+// Marca/modelo SEMPRE gravados: gordura visceral e "massa muscular" não são comparáveis
+// entre fabricantes. `ranges` = faixas impressas pelo próprio aparelho (não são norma).
+model BodyComposition {
+  id               String   @id @default(cuid())
+  patientId        String
+  patient          Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  measuredAt       DateTime
+  source           String   // INBODY_QR | MANUAL | REPORT | HEALTH_CONNECT
+  deviceBrand      String?
+  deviceModel      String?
+  weightKg         Float?
+  heightCm         Float?
+  bodyFatPct       Float?
+  fatMassKg        Float?
+  skeletalMuscleKg Float?
+  fatFreeMassKg    Float?
+  bodyWaterL       Float?
+  proteinKg        Float?
+  mineralKg        Float?
+  bmi              Float?
+  bmrKcal          Int?
+  waistHipRatio    Float?
+  visceralFatLevel Float?
+  ranges           Json?    // { fatMassKg: [min, max], ... } — do aparelho
+  rawPayload       String?  // SÓ os blocos de medidas (sem ID/telefone) — permite reprocessar
+  parserVersion    String?
+  needsReview      Boolean  @default(false)
+  note             String?
+  createdAt        DateTime @default(now())
+
+  @@index([patientId, measuredAt])
+  @@map("body_compositions")
 }
 
 model Vaccine {
