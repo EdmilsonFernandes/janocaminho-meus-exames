@@ -120,7 +120,7 @@ const Who = ({ doctor }: { doctor: KycDoctorInfo | null | undefined }) => {
     <Box sx={{ display: 'flex', mb: 1.5 }}>
       <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, maxWidth: '100%', minHeight: 40, pl: 0.75, pr: 1.75, borderRadius: RADIUS.pill, bgcolor: 'background.paper', border: '1px solid', borderColor: k.line }}>
         {doctor.name && (
-          <Box aria-hidden sx={{ width: 28, height: 28, flexShrink: 0, borderRadius: '50%', background: TEAL_GRADIENT, color: '#fff', fontFamily: FONT_HEAD, fontWeight: 700, fontSize: 11.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{initials(doctor.name)}</Box>
+          <Box aria-hidden sx={{ width: 28, height: 28, flexShrink: 0, borderRadius: '50%', background: TEAL_GRADIENT, color: '#fff', fontFamily: FONT_HEAD, fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{initials(doctor.name)}</Box>
         )}
         <Typography noWrap sx={{ minWidth: 0, fontSize: 13, fontWeight: 600, color: 'text.primary' }}>
           {doctor.name}
@@ -408,7 +408,7 @@ const NeedsList = () => {
   const k = useTone();
   return (
     <Box sx={{ mt: 3.5 }}>
-      <Typography component="h2" sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.09em', textTransform: 'uppercase', color: 'text.secondary' }}>{KYC_COPY.intro.needsTitle}</Typography>
+      <Typography component="h2" sx={{ fontSize: 12, fontWeight: 700, letterSpacing: '.09em', textTransform: 'uppercase', color: 'text.secondary' }}>{KYC_COPY.intro.needsTitle}</Typography>
       <Box component="ul" sx={{ listStyle: 'none', m: 0, mt: 0.5, p: 0 }}>
         {KYC_COPY.intro.needs.map((n, i) => {
           const Icon = NEED_ICONS[n.key];
@@ -635,7 +635,7 @@ export const KycRejected = ({ doctor, onLogout, attempt, start }: { doctor: KycD
       </Center>
 
       <AccentBox>
-        <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.09em', textTransform: 'uppercase', color: k.danger }}>{copy.reasonLabel}</Typography>
+        <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: '.09em', textTransform: 'uppercase', color: k.danger }}>{copy.reasonLabel}</Typography>
         <Typography sx={{ mt: 0.5, fontSize: 15, lineHeight: 1.55, color: 'text.primary' }}>{reason}</Typography>
         {byOwner && <Typography sx={{ mt: 1, fontSize: 14, lineHeight: 1.5, color: 'text.secondary' }}>{copy.adminNote}</Typography>}
       </AccentBox>

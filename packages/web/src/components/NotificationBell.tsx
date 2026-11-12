@@ -115,7 +115,7 @@ export const NotificationBell = () => {
         overlap="circular"
         sx={(t) => ({
           '& .MuiBadge-badge': {
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: 800,
             height: 17,
             minWidth: 17,

@@ -128,7 +128,7 @@ export const MinhasConsultasRegistradas = ({ prefillDoctor }: Props) => {
               </Avatar>
               {item.doctorId && (
                 <Box title="Médico da sua lista" sx={{ position: 'absolute', right: -2, bottom: -2, width: 16, height: 16, borderRadius: '50%', bgcolor: '#10b981', border: '2px solid', borderColor: 'background.paper', display: 'grid', placeItems: 'center' }}>
-                  <CheckRoundedIcon sx={{ fontSize: 10, color: '#fff' }} />
+                  <CheckRoundedIcon sx={{ fontSize: 12, color: '#fff' }} />
                 </Box>
               )}
             </Box>
@@ -143,7 +143,7 @@ export const MinhasConsultasRegistradas = ({ prefillDoctor }: Props) => {
                 </Stack>
               )}
             </Box>
-            <Chip size="small" label={meta.label} sx={{ height: 24, fontSize: 11.5, fontWeight: 600, bgcolor: meta.bg, color: meta.color, borderRadius: '999px', flexShrink: 0 }} />
+            <Chip size="small" label={meta.label} sx={{ height: 24, fontSize: 12, fontWeight: 600, bgcolor: meta.bg, color: meta.color, borderRadius: '999px', flexShrink: 0 }} />
             <IconButton size="small" aria-label={`Opções da consulta com ${item.doctorName}`}
               onClick={(e) => setMenuEl({ item, el: e.currentTarget })} sx={{ flexShrink: 0, ml: '-4px !important' }}>
               <MoreVertIcon fontSize="small" />
@@ -153,7 +153,7 @@ export const MinhasConsultasRegistradas = ({ prefillDoctor }: Props) => {
           {upcoming ? (
             <Stack direction="row" spacing={1.25} alignItems="center" sx={{ p: '10px 12px', borderRadius: '14px', bgcolor: 'rgba(32,178,170,0.08)', boxShadow: 'inset 0 0 0 1px rgba(32,178,170,0.16)' }}>
               <Box sx={{ width: 42, flexShrink: 0, textAlign: 'center', borderRadius: '10px', bgcolor: 'background.paper', boxShadow: 'inset 0 0 0 1px rgba(32,178,170,0.2)', py: 0.5 }}>
-                <Typography sx={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: '#b4542c', lineHeight: 1.2 }}>{monthAbbr}</Typography>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', color: '#b4542c', lineHeight: 1.2 }}>{monthAbbr}</Typography>
                 <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontSize: 17, fontWeight: 700, lineHeight: 1.1 }}>{dayNum}</Typography>
               </Box>
               <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -192,7 +192,7 @@ export const MinhasConsultasRegistradas = ({ prefillDoctor }: Props) => {
               {item.linkUrl && (
                 <Chip size="small" component="a" href={item.linkUrl} target="_blank" rel="noopener" clickable
                   icon={<OpenInNewRoundedIcon sx={{ fontSize: '13px !important' }} />} label="Abrir chamada"
-                  sx={{ height: 24, fontSize: 11.5, fontWeight: 600, color: '#0b5c57', bgcolor: 'rgba(32,178,170,0.1)', borderRadius: '999px' }} />
+                  sx={{ height: 24, fontSize: 12, fontWeight: 600, color: '#0b5c57', bgcolor: 'rgba(32,178,170,0.1)', borderRadius: '999px' }} />
               )}
               {item.reason && (
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic', minWidth: 0 }} noWrap>
@@ -217,7 +217,7 @@ export const MinhasConsultasRegistradas = ({ prefillDoctor }: Props) => {
       {/* Aviso de honestidade em 1 linha (mock aprovado) — o banner gordo saiu */}
       <Stack direction="row" spacing={1} alignItems="center" sx={{ px: 0.5 }}>
         <InfoOutlinedIcon sx={{ fontSize: 15, color: '#178f89', flexShrink: 0 }} />
-        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11.5, lineHeight: 1.4 }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12, lineHeight: 1.4 }}>
           Registro pessoal — não agenda no consultório. Organize exames e receba lembretes.
         </Typography>
       </Stack>
@@ -251,7 +251,7 @@ export const MinhasConsultasRegistradas = ({ prefillDoctor }: Props) => {
             <Typography sx={{ fontWeight: 600, fontSize: 13, color: 'text.primary', fontFamily: '"Poppins",sans-serif', letterSpacing: '0.04em' }}>
               PRÓXIMAS · {proximas.length}
             </Typography>
-            <Chip size="small" label={plural(items.length, 'registrada', 'registradas')} sx={{ height: 22, fontSize: 11.5, fontWeight: 600, bgcolor: 'rgba(32,178,170,0.14)', color: (t) => t.palette.mode === 'dark' ? '#7fe0d9' : '#0b5c57', borderRadius: '999px' }} />
+            <Chip size="small" label={plural(items.length, 'registrada', 'registradas')} sx={{ height: 22, fontSize: 12, fontWeight: 600, bgcolor: 'rgba(32,178,170,0.14)', color: (t) => t.palette.mode === 'dark' ? '#7fe0d9' : '#0b5c57', borderRadius: '999px' }} />
           </Stack>
           <Stack spacing={1.5}>{proximas.map((c) => <ConsultaCard key={c.id} item={c} />)}</Stack>
         </Box>
@@ -313,7 +313,7 @@ export const MinhasConsultasRegistradas = ({ prefillDoctor }: Props) => {
 };
 
 const chipSx = {
-  height: 22, fontSize: 11, fontWeight: 700, maxWidth: '100%',
+  height: 22, fontSize: 12, fontWeight: 700, maxWidth: '100%',
   bgcolor: 'rgba(0,0,0,0.04)', color: 'text.secondary',
   '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
 } as const;

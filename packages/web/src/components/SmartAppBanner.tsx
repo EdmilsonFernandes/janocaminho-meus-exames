@@ -138,7 +138,7 @@ export const SmartAppBanner: React.FC<SmartAppBannerProps> = ({
             variant="caption"
             sx={{
               display: 'block',
-              fontSize: 11.5,
+              fontSize: 12,
               color: 'text.secondary',
               mt: 0.2,
             }}

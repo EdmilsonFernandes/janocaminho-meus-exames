@@ -104,7 +104,7 @@ export class DashboardErrorBoundary extends Component<{ children: ReactNode }, {
             const msg = this.state.error?.message;
             if (!msg || autoPending) return null;
             return (
-              <Typography noWrap component="div" title={msg} sx={{ fontSize: 11, color: 'text.disabled', mb: 2, fontFamily: 'monospace' }}>
+              <Typography noWrap component="div" title={msg} sx={{ fontSize: 12, color: 'text.disabled', mb: 2, fontFamily: 'monospace' }}>
                 {msg.slice(0, 120)}
               </Typography>
             );
@@ -120,7 +120,7 @@ export class DashboardErrorBoundary extends Component<{ children: ReactNode }, {
           >
             Recarregar painel
           </Button>
-          <Typography sx={{ fontSize: 11, color: 'text.disabled', mt: 1.5 }}>
+          <Typography sx={{ fontSize: 12, color: 'text.disabled', mt: 1.5 }}>
             Se persistir: Perfil → enviar diagnóstico
           </Typography>
         </Box>

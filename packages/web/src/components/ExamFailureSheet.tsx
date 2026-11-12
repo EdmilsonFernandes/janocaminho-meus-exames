@@ -71,7 +71,7 @@ export const ExamFailureSheet = ({ exam, onRetry, open, onOpenChange }: {
       <Stack direction="row" spacing={1.25} alignItems="center" sx={{ px: 2, pt: 2, pb: 1 }}>
         <DrExame size={38} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', letterSpacing: '0.04em' }}>Dr. Exame · agora</Typography>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', letterSpacing: '0.04em' }}>Dr. Exame · agora</Typography>
           <Typography id="fail-sheet-title" sx={{ fontWeight: 800, fontSize: 15.5, lineHeight: 1.2, fontFamily: 'Poppins, sans-serif' }}>
             {meta.title}
           </Typography>

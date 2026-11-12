@@ -284,7 +284,7 @@ export const BriefClinico = ({ patientId, authToken, patientName, reason }: { pa
                     <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', flex: 1 }}>
                       Uso relatado ({ctx.reportedUsage.substances.length})
                     </Typography>
-                    <Chip size="small" label="não verificado" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: dark ? 'rgba(212,165,116,.18)' : 'rgba(212,165,116,.14)', color: '#d4a574', borderRadius: '8px' }} />
+                    <Chip size="small" label="não verificado" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: dark ? 'rgba(212,165,116,.18)' : 'rgba(212,165,116,.14)', color: '#d4a574', borderRadius: '8px' }} />
                   </Stack>
                   <Stack spacing={0.5}>
                     {ctx.reportedUsage.substances.map((s, i) => (
@@ -309,7 +309,7 @@ export const BriefClinico = ({ patientId, authToken, patientName, reason }: { pa
                       Contexto de coleta declarado: {String(ctx.reportedUsage.collectionContext)}
                     </Typography>
                   ) : null}
-                  <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 0.75, fontStyle: 'italic' }}>
+                  <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.75, fontStyle: 'italic' }}>
                     Declarado pelo paciente no app — exames acompanham; não tornam o uso seguro.
                   </Typography>
                 </>
@@ -441,7 +441,7 @@ export const BriefClinico = ({ patientId, authToken, patientName, reason }: { pa
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.25 }}>
                 <MonitorHeartIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
                 <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', flex: 1 }}>Sinais vitais</Typography>
-                <Chip size="small" label="30 dias" sx={{ height: 22, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), borderRadius: '6px' }} />
+                <Chip size="small" label="30 dias" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), borderRadius: '6px' }} />
               </Stack>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1.25 }}>
                 {latest.restingHr > 0 && (

@@ -30,7 +30,7 @@ export const DashboardHeader = ({ firstName }: { firstName: string }) => (
     <Typography component="p" sx={{ color: 'text.secondary', fontSize: { xs: 12.5, sm: 13 }, fontWeight: 600, mt: 0.25 }}>
       Vamos ver como você está hoje
     </Typography>
-    <Typography component="p" sx={{ color: 'text.secondary', fontSize: { xs: 11.5, sm: 12.5 }, fontWeight: 500, mt: 0.25, opacity: 0.85 }}>
+    <Typography component="p" sx={{ color: 'text.secondary', fontSize: { xs: 12, sm: 12.5 }, fontWeight: 500, mt: 0.25, opacity: 0.85 }}>
       Educativo — não substitui o médico.
     </Typography>
   </Stack>

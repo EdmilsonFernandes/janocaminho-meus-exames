@@ -210,10 +210,10 @@ export const DoctorProfileForm = ({
                     borderColor: 'background.paper',
                   }}
                 >
-                  <LockIcon sx={{ fontSize: 11, color: '#5fc9c3' }} />
+                  <LockIcon sx={{ fontSize: 12, color: '#5fc9c3' }} />
                   <Typography
                     sx={{
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: 800,
                       color: '#fff',
                       lineHeight: 1,
@@ -261,7 +261,7 @@ export const DoctorProfileForm = ({
         <FrameHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <VerifiedUserOutlinedIcon sx={{ fontSize: 19, color: '#0d9488' }} />
+              <VerifiedUserOutlinedIcon sx={{ fontSize: 19, color: (t) => tealText(t.palette.mode) }} />
               <FrameTitle>Credenciais & Dados Profissionais</FrameTitle>
             </div>
             <Badge variant="primary-light" size="xs">
@@ -390,7 +390,7 @@ export const DoctorProfileForm = ({
           <div className="border-t border-border pt-5">
             <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <PublicOutlinedIcon sx={{ fontSize: 18, color: '#0d9488' }} />
+                <PublicOutlinedIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
                 <span className="text-foreground text-sm font-bold">
                   Perfil Público (visível aos seus pacientes)
                 </span>
@@ -451,7 +451,7 @@ export const DoctorProfileForm = ({
                   label="Apresentação & Formação (Mini-Bio)"
                   hint="Resumo da sua trajetória, RQE, residência e foco clínico (máximo de 500 caracteres)."
                   addon={
-                    <span className="text-muted-foreground text-[11px] tabular-nums">
+                    <span className="text-muted-foreground text-xs tabular-nums">
                       {bio.length}/500
                     </span>
                   }

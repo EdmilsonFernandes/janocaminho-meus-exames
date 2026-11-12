@@ -13,6 +13,7 @@ import { goalFor } from '../../utils/clinicalGoals';
 import type { Theme } from '@mui/material/styles';
 
 import type { TimeSeriesByName as TS } from '@meus-exames/shared';
+import { ListEmpty } from '@/components/reui/list-empty';
 
 /** Title Case pra exibição (ALL CAPS → legível), PRESERVANDO siglas: "CHCM" fica "CHCM"
  *  (não "Chcm"), "TSH_TOTAL_LIVRE" → "TSH Total Livre". */
@@ -293,7 +294,7 @@ export const DoctorTrends = ({ patientId, token, doctorId }: Props) => {
       )}
       {!loading && visibleTs && visibleTs.points.length === 0 && sel && (
         <Card sx={{ borderRadius: RADIUS.sectionCard, textAlign: 'center', py: 4 }}>
-          <CardContent><Typography color="text.secondary">Sem pontos numéricos para este analito.</Typography></CardContent>
+          <CardContent><ListEmpty title="Sem pontos numéricos para este analito" /></CardContent>
         </Card>
       )}
     </Box>

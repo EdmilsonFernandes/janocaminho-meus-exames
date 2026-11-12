@@ -319,7 +319,7 @@ export const MeasurementHistoryPage = () => {
                       </Badge>
                     )}
                   </div>
-                  <span className="text-muted-foreground text-[11px]">
+                  <span className="text-muted-foreground text-xs">
                     {avgPrev != null
                       ? `vs. ${fmt(avgPrev)} ${t.u} no período anterior`
                       : 'Base do período atual'}
@@ -340,7 +340,7 @@ export const MeasurementHistoryPage = () => {
                       {t.u}
                     </span>
                   </div>
-                  <span className="text-muted-foreground text-[11px]">
+                  <span className="text-muted-foreground text-xs">
                     {maxPoint ? `Registrado em ${fmtDate(maxPoint.date)}` : '—'}
                   </span>
                 </FramePanel>
@@ -359,7 +359,7 @@ export const MeasurementHistoryPage = () => {
                       {t.u}
                     </span>
                   </div>
-                  <span className="text-muted-foreground text-[11px]">
+                  <span className="text-muted-foreground text-xs">
                     {minPoint ? `Registrado em ${fmtDate(minPoint.date)}` : '—'}
                   </span>
                 </FramePanel>
@@ -381,7 +381,7 @@ export const MeasurementHistoryPage = () => {
                       {t.synced ? 'Smartwatch' : 'Manual'}
                     </Badge>
                   </div>
-                  <span className="text-muted-foreground text-[11px]">
+                  <span className="text-muted-foreground text-xs">
                     {cur.length} dia{cur.length === 1 ? '' : 's'} com medição
                   </span>
                 </FramePanel>
@@ -473,7 +473,7 @@ export const MeasurementHistoryPage = () => {
                           };
                           return (
                             <div className="bg-popover border-border min-w-[140px] rounded-xl border p-2.5 shadow-md">
-                              <div className="text-muted-foreground mb-1.5 text-[11px] font-bold tracking-wider uppercase">
+                              <div className="text-muted-foreground mb-1.5 text-xs font-bold tracking-wider uppercase">
                                 {d.date}
                               </div>
                               <div className="flex items-center justify-between gap-3 text-xs">

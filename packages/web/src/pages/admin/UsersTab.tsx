@@ -11,9 +11,115 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { API_URL, token, photoUrlFor } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
 import { U, TabLoader, SectionError, ConfirmDialog, PhotoZoom } from './parts';
+import { ListEmpty } from '@/components/reui/list-empty';
+import { useTable, type ColumnDef } from '@tanstack/react-table';
+import { DataGrid, DataGridContainer, dataGridFeatures } from '@/components/reui/data-grid/data-grid';
+import { DataGridTable } from '@/components/reui/data-grid/data-grid-table';
+import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header';
+import { Badge } from '@/components/reui/badge';
+import '../../doctor-v2/tw.css';
 
 const PAGE_SIZE = 15;
 const authH = () => ({ Authorization: `Bearer ${token()}` });
+
+const fmtDay = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—');
+const isPremium = (u: U) => !!u.planExpiresAt && new Date(u.planExpiresAt) > new Date();
+
+interface UserActions {
+  onEdit: (u: U) => void;
+  onToggleBlock: (u: U) => void;
+  onResetMfa: (u: U) => void;
+  onDelete: (u: U) => void;
+}
+
+/** ReUI DataGrid de usuários (desktop): uma linha por conta, ordenável na página carregada;
+ *  a paginação/busca continuam no servidor (rodapé). No celular seguem os cards. */
+function UsersGrid({ rows, onEdit, onToggleBlock, onResetMfa, onDelete }: { rows: U[] } & UserActions) {
+  const columns: ColumnDef<any, any>[] = [
+    {
+      id: 'user', size: 300, accessorFn: (r: U) => (r.name || r.email || '').toLowerCase(),
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Usuário" />,
+      cell: (c) => {
+        const u = c.row.original as U & { hasPhoto?: boolean; patientId?: string; dependents?: { fullName: string; relationship?: string }[] };
+        const photo = u.hasPhoto && u.patientId ? photoUrlFor(u.patientId) : null;
+        return (
+          <div className={'flex min-w-0 items-center gap-3 ' + (u.blocked ? 'opacity-60' : '')}>
+            <PhotoZoom src={photo} caption={<span>{u.name || u.email}</span>}>
+              <span className={'grid size-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-primary/10 text-sm font-extrabold text-primary ' + (u.blocked ? 'grayscale' : '')}>
+                {photo ? <img src={photo} alt="" loading="lazy" className="size-full object-cover" /> : (u.name || u.email || '?').charAt(0).toUpperCase()}
+              </span>
+            </PhotoZoom>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="truncate text-[13.5px] font-bold text-foreground">{u.name || '—'}</span>
+                {u.role === 'ADMIN' && <Badge variant="warning-light" size="xs">Admin</Badge>}
+                {u.blocked && <Badge variant="destructive-light" size="xs">Bloqueado</Badge>}
+              </div>
+              <p className="truncate text-xs text-muted-foreground">{u.email}</p>
+              {Array.isArray(u.dependents) && u.dependents.length > 0 && (
+                <p className="truncate text-xs text-muted-foreground">
+                  Dependentes: {u.dependents.map((d) => d.fullName + (d.relationship ? ' (' + d.relationship + ')' : '')).join(' · ')}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'credits', size: 90,
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Créditos" />,
+      cell: (c) => { const n = Number(c.getValue() ?? 0); return <span className={'text-[13.5px] font-extrabold tabular-nums ' + (n > 0 ? 'text-foreground' : 'text-muted-foreground')}>{n.toLocaleString('pt-BR')}</span>; },
+    },
+    {
+      id: 'plan', size: 120, accessorFn: (r: U) => (isPremium(r) ? 1 : 0),
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Plano" />,
+      cell: (c) => {
+        const u = c.row.original as U;
+        return isPremium(u)
+          ? <div><Badge variant="primary-light" size="lg">Premium</Badge><p className="mt-0.5 text-xs text-muted-foreground">até {fmtDay(u.planExpiresAt)}</p></div>
+          : <Badge variant="outline" size="lg">Grátis</Badge>;
+      },
+    },
+    {
+      id: 'terms', size: 180, accessorFn: (r: any) => (r.termsAcceptedAt ? new Date(r.termsAcceptedAt).getTime() : 0),
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Termos" />,
+      cell: (c) => {
+        const u = c.row.original as any;
+        return u.termsAcceptedAt
+          ? <span className="whitespace-nowrap text-xs tabular-nums text-muted-foreground">{u.termsVersion ? u.termsVersion + ' · ' : ''}{fmtDay(u.termsAcceptedAt)}</span>
+          : <span className="text-xs text-muted-foreground" title="Aceite anterior ao registro de trilha">sem trilha</span>;
+      },
+    },
+    {
+      id: 'createdAt', size: 110, accessorFn: (r: U) => (r.createdAt ? new Date(r.createdAt).getTime() : 0),
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Criado em" />,
+      cell: (c) => <span className="whitespace-nowrap text-xs tabular-nums text-muted-foreground">{fmtDay((c.row.original as U).createdAt)}</span>,
+    },
+    {
+      id: 'actions', header: 'Ações', size: 150, enableSorting: false,
+      cell: (c) => {
+        const u = c.row.original as U & { mfaEnabled?: boolean };
+        return (
+          <div className="flex items-center gap-0.5">
+            <IconButton size="small" onClick={() => onEdit(u)} aria-label={'Editar ' + u.email} title="Editar créditos e plano"><EditIcon fontSize="small" /></IconButton>
+            <IconButton size="small" onClick={() => onToggleBlock(u)} aria-label={(u.blocked ? 'Desbloquear ' : 'Bloquear ') + u.email} title={u.blocked ? 'Desbloquear' : 'Bloquear'} sx={{ color: u.blocked ? 'success.main' : 'warning.main' }}>
+              {u.blocked ? <LockOpenIcon fontSize="small" /> : <BlockIcon fontSize="small" />}
+            </IconButton>
+            {u.mfaEnabled && <IconButton size="small" onClick={() => onResetMfa(u)} aria-label={'Resetar MFA de ' + u.email} title="Resetar MFA (ativo)" sx={{ color: 'info.main' }}><LockResetIcon fontSize="small" /></IconButton>}
+            {u.role !== 'ADMIN' && <IconButton size="small" color="error" onClick={() => onDelete(u)} aria-label={'Excluir ' + u.email} title="Excluir"><DeleteIcon fontSize="small" /></IconButton>}
+          </div>
+        );
+      },
+    },
+  ];
+  const table = useTable({ features: dataGridFeatures, data: rows as any[], columns, getRowId: (r: any) => r.id });
+  return (
+    <DataGrid table={table} recordCount={rows.length} tableLayout={{ headerBackground: true, rowBorder: true }}>
+      <DataGridContainer><DataGridTable /></DataGridContainer>
+    </DataGrid>
+  );
+}
 
 export const UsersTab = () => {
   const notify = useNotify();
@@ -120,7 +226,12 @@ export const UsersTab = () => {
     <Box>
       <TextField placeholder="Buscar por nome ou e-mail..." value={q} onChange={(e) => setQ(e.target.value)} size="small" fullWidth sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
       {error && <Box sx={{ mb: 2 }}><SectionError message="Falha ao atualizar a lista." onRetry={() => void load()} /></Box>}
-      <Stack spacing={1.5}>
+      {users.length > 0 && (
+        <Box className="dx-island" sx={{ display: { xs: 'none', md: 'block' } }}>
+          <UsersGrid rows={users} onEdit={openEdit} onToggleBlock={(u) => { void toggleBlock(u); }} onResetMfa={(u) => { void resetMfa(u); }} onDelete={(u) => { void openDelete(u); }} />
+        </Box>
+      )}
+      <Stack spacing={1.5} sx={{ display: { xs: 'flex', md: users.length > 0 ? 'none' : 'flex' } }}>
         {users.map((u, idx) => (
           <Card key={u.id} variant="outlined" sx={{
             borderRadius: '16px',
@@ -198,7 +309,7 @@ export const UsersTab = () => {
             </CardContent>
           </Card>
         ))}
-        {!loading && users.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>Nenhum usuário encontrado.</Typography>}
+        {!loading && users.length === 0 && <ListEmpty title="Nenhum usuário encontrado" description="Ajuste a busca." />}
       </Stack>
 
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 2 }}>

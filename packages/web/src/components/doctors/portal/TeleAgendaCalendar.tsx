@@ -84,7 +84,7 @@ export const TeleAgendaCalendar = ({ consultas, patients, onEnterTele, onOpenPos
           </IconButton>
           <Typography sx={{ flex: 1, textAlign: 'center', fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15.5 }}>
             {monthLabel}
-            <Chip size="small" label={`${monthCount} no mês`} sx={{ ml: 1, height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.10)', color: (t) => tealText(t.palette.mode) }} />
+            <Chip size="small" label={`${monthCount} no mês`} sx={{ ml: 1, height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.10)', color: (t) => tealText(t.palette.mode) }} />
           </Typography>
           <Button size="small" onClick={goToday} sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, borderRadius: '999px', minWidth: 0, px: 1.25, color: (t) => tealText(t.palette.mode) }}>Hoje</Button>
           <IconButton size="small" aria-label="Próximo mês" onClick={() => nav(1)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '10px' }}>
@@ -95,7 +95,7 @@ export const TeleAgendaCalendar = ({ consultas, patients, onEnterTele, onOpenPos
         {/* Semana */}
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5, mb: 0.5 }}>
           {WEEK.map((w, i) => (
-            <Typography key={`${w}-${i}`} sx={{ textAlign: 'center', fontSize: 11, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase' }}>{w}</Typography>
+            <Typography key={`${w}-${i}`} sx={{ textAlign: 'center', fontSize: 12, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase' }}>{w}</Typography>
           ))}
         </Box>
 
@@ -141,7 +141,7 @@ export const TeleAgendaCalendar = ({ consultas, patients, onEnterTele, onOpenPos
                         sx={{
                           // Fix 05/11 (dono: "foto minúscula, impossível ver"): 20px
                           // virava bolinha ilegível — 26/30px identifica o paciente.
-                          width: { xs: 26, sm: 30 }, height: { xs: 26, sm: 30 }, fontSize: { xs: 11, sm: 12 }, fontWeight: 800,
+                          width: { xs: 26, sm: 30 }, height: { xs: 26, sm: 30 }, fontSize: { xs: 12, sm: 12 }, fontWeight: 800,
                           bgcolor: 'rgba(15,118,110,0.18)', color: '#178f89',
                           border: '2px solid', borderColor: 'background.paper',
                           ...(r.done ? { filter: 'grayscale(1)', opacity: 0.55 } : {}),
@@ -151,7 +151,7 @@ export const TeleAgendaCalendar = ({ consultas, patients, onEnterTele, onOpenPos
                       </Avatar>
                     ))}
                     {items.length > 2 && (
-                      <Box component="span" sx={{ ml: 1.25, fontSize: 10.5, fontWeight: 800, color: 'text.secondary' }}>+{items.length - 2}</Box>
+                      <Box component="span" sx={{ ml: 1.25, fontSize: 12, fontWeight: 800, color: 'text.secondary' }}>+{items.length - 2}</Box>
                     )}
                   </Stack>
                 )}
@@ -179,14 +179,14 @@ export const TeleAgendaCalendar = ({ consultas, patients, onEnterTele, onOpenPos
                 const hhmm = r.due.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 return (
                   <Stack key={`${r.tc.id}-${i}`} direction="row" alignItems="center" spacing={1.25} sx={{ p: 1, borderRadius: '14px', border: '1px solid', borderColor: 'divider', ...(r.done ? { opacity: 0.72 } : {}) }}>
-                    <Avatar src={r.photo} alt={r.name} sx={{ width: 38, height: 38, fontSize: 14, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89', ...(r.done ? { filter: 'grayscale(1)' } : {}) }}>
+                    <Avatar src={r.photo} alt={r.name} sx={{ width: 38, height: 38, fontSize: 14, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: (t) => tealText(t.palette.mode), ...(r.done ? { filter: 'grayscale(1)' } : {}) }}>
                       {r.name.charAt(0).toUpperCase()}
                     </Avatar>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography noWrap sx={{ fontWeight: 800, fontSize: 14 }}>{r.name}</Typography>
                       <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Chip size="small" label={hhmm} sx={{ height: 19, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.10)', color: (t) => tealText(t.palette.mode) }} />
-                        {r.done && <Chip size="small" label={r.tc.teleStatus === 'completed' ? 'Realizada' : r.tc.teleStatus === 'cancelled' ? 'Cancelada' : 'Não realizada'} sx={{ height: 19, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
+                        <Chip size="small" label={hhmm} sx={{ height: 19, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.10)', color: (t) => tealText(t.palette.mode) }} />
+                        {r.done && <Chip size="small" label={r.tc.teleStatus === 'completed' ? 'Realizada' : r.tc.teleStatus === 'cancelled' ? 'Cancelada' : 'Não realizada'} sx={{ height: 19, fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
                       </Stack>
                     </Box>
                     {r.done ? (

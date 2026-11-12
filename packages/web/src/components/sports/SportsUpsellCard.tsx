@@ -47,7 +47,7 @@ export const SportsUpsellCard = ({ pid, hasExams }: { pid: string | null | undef
         <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15 }}>
           Pratica esporte ou musculação?
         </Typography>
-        {!premium && <Chip size="small" label="Premium" sx={{ height: 20, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(32,178,170,.15)', color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e') }} />}
+        {!premium && <Chip size="small" label="Premium" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(32,178,170,.15)', color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e') }} />}
       </Box>
       <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.5, mb: 1 }}>
         Seu exame no ritmo do seu treino: hematócrito, CK e hormônios interpretados no contexto
@@ -55,7 +55,7 @@ export const SportsUpsellCard = ({ pid, hasExams }: { pid: string | null | undef
       </Typography>
       <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mb: 1.25 }}>
         {['Hormonal', 'Cardio', 'Músculo & Fígado', 'Renal', 'Hemograma'].map((d) => (
-          <Chip key={d} size="small" label={d} sx={{ height: 22, fontSize: 11, bgcolor: 'rgba(32,178,170,.10)', color: 'text.secondary', fontWeight: 600 }} />
+          <Chip key={d} size="small" label={d} sx={{ height: 22, fontSize: 12, bgcolor: 'rgba(32,178,170,.10)', color: 'text.secondary', fontWeight: 600 }} />
         ))}
       </Box>
       {/* CTA secundário (variant="outlined"): a primária gradiente fica só no hero. */}

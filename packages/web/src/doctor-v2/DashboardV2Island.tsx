@@ -242,7 +242,7 @@ export default function DashboardV2Island() {
         <div className="flex flex-col gap-0.5">
           <h2 className="text-2xl font-semibold tracking-tight">
             Dr. Exame <span className="text-primary">v2</span>
-            {demo && <span className="ml-2 rounded-full border border-amber-300 bg-amber-100 px-2 py-0.5 align-middle text-[11px] font-bold text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300">DADOS DE EXEMPLO</span>}
+            {demo && <span className="ml-2 rounded-full border border-amber-300 bg-amber-100 px-2 py-0.5 align-middle text-xs font-bold text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300">DADOS DE EXEMPLO</span>}
           </h2>
           <p className="text-sm text-muted-foreground">Preview local · {demo ? 'números ilustrativos' : 'seus dados reais'} · nada substitui o app</p>
         </div>
@@ -271,11 +271,11 @@ export default function DashboardV2Island() {
             </div>
             <div className="grid min-h-0 flex-1 grid-cols-1 gap-2 md:grid-cols-2">
               <div className={'min-h-0 flex-col ' + (side === 'antes' ? 'flex' : 'hidden md:flex')}>
-                <span className="mb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Antes — dashboard atual</span>
+                <span className="mb-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Antes — dashboard atual</span>
                 <iframe title="Antes — dashboard atual" src={appRoot + '#/'} className="min-h-0 w-full flex-1 rounded-lg border border-border bg-white" />
               </div>
               <div className={'min-h-0 flex-col ' + (side === 'depois' ? 'flex' : 'hidden md:flex')}>
-                <span className="mb-1 text-[11px] font-bold uppercase tracking-wider text-primary">Depois — v2</span>
+                <span className="mb-1 text-xs font-bold uppercase tracking-wider text-primary">Depois — v2</span>
                 <iframe title="Depois — v2" src={appRoot + '#/dashboard-v2'} className="min-h-0 w-full flex-1 rounded-lg border border-primary/40 bg-white" />
               </div>
             </div>
@@ -394,13 +394,13 @@ export default function DashboardV2Island() {
                   <div key={i} className="rounded-lg border border-primary/15 bg-primary/5 p-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="flex-1 min-w-40 text-sm font-bold">{a.title}</span>
-                      <span className={'rounded-full border px-2 py-0.5 text-[11px] font-bold ' + (a.timeframe === 'agora' ? 'border-destructive/25 bg-destructive/10 text-destructive-foreground dark:text-destructive' : 'border-primary/25 bg-primary/10 text-primary')}>{a.timeframe === 'agora' ? 'prioridade agora' : 'rotina'}</span>
+                      <span className={'rounded-full border px-2 py-0.5 text-xs font-bold ' + (a.timeframe === 'agora' ? 'border-destructive/25 bg-destructive/10 text-destructive-foreground dark:text-destructive' : 'border-primary/25 bg-primary/10 text-primary')}>{a.timeframe === 'agora' ? 'prioridade agora' : 'rotina'}</span>
                     </div>
                     <p className="mt-1.5 text-sm italic text-muted-foreground">“{a.question}”</p>
-                    {a.source && <p className="mt-1 text-[11px] text-muted-foreground/70">Base: {a.source}</p>}
+                    {a.source && <p className="mt-1 text-xs text-muted-foreground/70">Base: {a.source}</p>}
                   </div>
                 ))}
-                <p className="text-[11px] text-muted-foreground/70">Conteúdo educativo gerado a partir dos seus exames — perguntas pra facilitar a consulta. Não substitui avaliação médica.</p>
+                <p className="text-xs text-muted-foreground/70">Conteúdo educativo gerado a partir dos seus exames — perguntas pra facilitar a consulta. Não substitui avaliação médica.</p>
               </section>
             )}
           </>

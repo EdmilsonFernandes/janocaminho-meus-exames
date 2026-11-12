@@ -130,7 +130,7 @@ export const SessionsTab = () => {
         {kpis.map((k) => (
           <Frame key={k.label} spacing="sm">
             <FramePanel className="flex flex-col gap-0.5">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{k.label}</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{k.label}</span>
               <span className="text-2xl font-extrabold text-foreground" style={{ fontFamily: 'Poppins, sans-serif' }} data-testid={`kpi-${k.label}`}>{k.value}</span>
               <span className="text-xs text-muted-foreground">{k.hint}</span>
             </FramePanel>
@@ -256,7 +256,7 @@ export const SessionsTab = () => {
                 <div className="max-h-[360px] overflow-auto rounded-lg border border-border">
                   <table className="w-full text-left text-xs">
                     <thead className="sticky top-0 bg-muted/60 backdrop-blur">
-                      <tr className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      <tr className="text-xs uppercase tracking-wide text-muted-foreground">
                         <th className="px-2.5 py-2 font-semibold">Quando</th>
                         <th className="px-2.5 py-2 font-semibold">Evento</th>
                         <th className="px-2.5 py-2 font-semibold">Via</th>

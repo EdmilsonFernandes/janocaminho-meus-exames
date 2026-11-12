@@ -88,7 +88,7 @@ type VariantConfig = {
 const VisualTimelineA: React.FC = () => (
   <Stack spacing={1.5}>
     <Box sx={{ p: 2, borderRadius: '16px', border: '1px solid rgba(15,95,90,0.12)', bgcolor: '#ffffff', boxShadow: '0 12px 36px rgba(15,95,90,0.10)' }}>
-      <Typography sx={{ fontSize: 11, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', mb: 1.5 }}>
+      <Typography sx={{ fontSize: 12, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', mb: 1.5 }}>
         Exames × janelas de uso
       </Typography>
       <Stack spacing={1}>
@@ -102,7 +102,7 @@ const VisualTimelineA: React.FC = () => (
             <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {row.name}
             </Typography>
-            <Typography sx={{ fontSize: 11, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>{row.date}</Typography>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>{row.date}</Typography>
           </Stack>
         ))}
         {/* janela de uso relatada — barra neutra entre exames */}
@@ -110,7 +110,7 @@ const VisualTimelineA: React.FC = () => (
           <Box sx={{ width: 8, height: 8, borderRadius: 2, bgcolor: COBRE, flexShrink: 0 }} />
           <Box sx={{ flex: 1, height: 6, borderRadius: '999px', background: `linear-gradient(90deg, ${COBRE}, rgba(184,138,84,0.25))` }} />
         </Stack>
-        <Typography sx={{ fontSize: 10.5, color: 'text.secondary', textAlign: 'center' }}>uso relatado · declarado por você</Typography>
+        <Typography sx={{ fontSize: 12, color: 'text.secondary', textAlign: 'center' }}>uso relatado · declarado por você</Typography>
       </Stack>
     </Box>
     <Box sx={{ p: 2, borderRadius: '16px', border: '1px solid rgba(13,148,136,0.25)', bgcolor: 'rgba(13,148,136,0.06)' }}>
@@ -128,7 +128,7 @@ const VisualTimelineA: React.FC = () => (
 const VisualEvolutionB: React.FC = () => (
   <Stack spacing={1.5}>
     <Box sx={{ p: 2, borderRadius: '16px', border: '1px solid rgba(15,95,90,0.12)', bgcolor: '#ffffff', boxShadow: '0 12px 36px rgba(15,95,90,0.10)' }}>
-      <Typography sx={{ fontSize: 11, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', mb: 1.5 }}>
+      <Typography sx={{ fontSize: 12, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', mb: 1.5 }}>
         Evolução · Ferritina (ng/mL)
       </Typography>
       {/* linha do tempo leve: 4 pontos fictícios com tendência */}
@@ -142,7 +142,7 @@ const VisualEvolutionB: React.FC = () => (
       </Box>
       <Stack direction="row" justifyContent="space-between">
         {['mar', 'mai', 'jul', 'set'].map((m) => (
-          <Typography key={m} sx={{ fontSize: 10.5, color: 'text.secondary' }}>{m}</Typography>
+          <Typography key={m} sx={{ fontSize: 12, color: 'text.secondary' }}>{m}</Typography>
         ))}
       </Stack>
     </Box>
@@ -166,20 +166,20 @@ const VisualSplitC: React.FC = () => (
       <Stack spacing={0.75}>
         <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
           <Typography sx={{ fontSize: 12, color: 'text.primary' }}>Testosterona total · 18/08</Typography>
-          <Box sx={{ px: 1, py: 0.25, borderRadius: '6px', bgcolor: 'rgba(184,138,84,0.14)', color: COBRE, fontSize: 9.5, fontWeight: 800, whiteSpace: 'nowrap' }}>
+          <Box sx={{ px: 1, py: 0.25, borderRadius: '6px', bgcolor: 'rgba(184,138,84,0.14)', color: COBRE, fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap' }}>
             DECLARADO — NÃO VERIFICADO
           </Box>
         </Stack>
-        <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>Hematócrito · 12/11 · zona de atenção contextualizada</Typography>
+        <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Hematócrito · 12/11 · zona de atenção contextualizada</Typography>
       </Stack>
     </Box>
     <Box sx={{ p: 2, borderRadius: '16px', border: '1px solid rgba(184,138,84,0.3)', bgcolor: 'rgba(212,165,116,0.07)' }}>
       <Typography sx={{ fontSize: 12, fontWeight: 800, color: INK, mb: 1 }}>Portal do seu médico</Typography>
       <Stack spacing={0.75}>
-        <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.5 }}>
+        <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.5 }}>
           Meta clínica: <strong style={{ color: INK }}>faixa de testosterona definida pelo seu médico</strong>
         </Typography>
-        <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.5 }}>Brief completo da consulta — teleconsulta ou presencial</Typography>
+        <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.5 }}>Brief completo da consulta — teleconsulta ou presencial</Typography>
       </Stack>
     </Box>
   </Stack>

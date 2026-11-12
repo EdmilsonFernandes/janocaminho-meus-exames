@@ -340,7 +340,7 @@ export const ProfilePage = () => {
                 <Chip
                   size="small"
                   label={patient.relationship}
-                  sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 700, height: 24, fontSize: 11.5 }}
+                  sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 700, height: 24, fontSize: 12 }}
                 />
               )}
               {planActive ? (
@@ -355,7 +355,7 @@ export const ProfilePage = () => {
                     fontWeight: 700,
                     cursor: 'pointer',
                     height: 24,
-                    fontSize: 11.5,
+                    fontSize: 12,
                     '&:hover': { bgcolor: 'rgba(255,255,255,.32)' },
                   }}
                 />
@@ -369,7 +369,7 @@ export const ProfilePage = () => {
                     color: '#fff',
                     cursor: 'pointer',
                     height: 24,
-                    fontSize: 11.5,
+                    fontSize: 12,
                     fontWeight: 600,
                     '&:hover': { bgcolor: 'rgba(255,255,255,.24)' },
                   }}
@@ -379,7 +379,7 @@ export const ProfilePage = () => {
                 <Chip
                   size="small"
                   label={`Perfil ${profilePct}%`}
-                  sx={{ bgcolor: 'rgba(255,255,255,.22)', color: '#fff', fontWeight: 700, height: 24, fontSize: 11.5 }}
+                  sx={{ bgcolor: 'rgba(255,255,255,.22)', color: '#fff', fontWeight: 700, height: 24, fontSize: 12 }}
                 />
               )}
             </Stack>
@@ -681,7 +681,7 @@ export const ProfilePage = () => {
                       size="small"
                       variant="text"
                       onClick={() => navigate('/medicoes')}
-                      sx={{ textTransform: 'none', fontWeight: 800, fontSize: 11.5, p: 0.5, color: '#0d9488' }}
+                      sx={{ textTransform: 'none', fontWeight: 800, fontSize: 12, p: 0.5, color: '#0d9488' }}
                     >
                       {patient?.weightKg != null ? 'Atualizar →' : '+ Registrar'}
                     </Button>
@@ -709,7 +709,7 @@ export const ProfilePage = () => {
                           <Typography sx={{ fontWeight: 800, fontSize: 13, color: bmiInfo.color }}>
                             IMC Calculado: {bmiInfo.val} kg/m²
                           </Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
                             Classificação clínica: <strong>{bmiInfo.status}</strong>
                           </Typography>
                         </Box>
@@ -717,7 +717,7 @@ export const ProfilePage = () => {
                       <Chip
                         size="small"
                         label={bmiInfo.status}
-                        sx={{ bgcolor: bmiInfo.color, color: '#fff', fontWeight: 800, fontSize: 10.5, height: 20 }}
+                        sx={{ bgcolor: bmiInfo.color, color: '#fff', fontWeight: 800, fontSize: 12, height: 20 }}
                       />
                     </Box>
                   </Grid>

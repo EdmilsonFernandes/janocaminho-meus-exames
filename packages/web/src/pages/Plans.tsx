@@ -227,7 +227,7 @@ export const PlansPage = () => {
               {status?.active && (
                 <Typography
                   sx={{
-                    fontSize: 11.5,
+                    fontSize: 12,
                     color: (t) => tealText(t.palette.mode),
                     fontWeight: 700,
                     mt: 0.25,
@@ -311,7 +311,7 @@ export const PlansPage = () => {
                   <WorkspacePremiumIcon sx={{ fontSize: 20, color: '#3d2a05' }} />
                 </Box>
                 <Box>
-                  <Typography sx={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '.14em', color: '#e9c46a', lineHeight: 1.2 }}>PREMIUM</Typography>
+                  <Typography sx={{ fontSize: 12, fontWeight: 800, letterSpacing: '.14em', color: '#e9c46a', lineHeight: 1.2 }}>PREMIUM</Typography>
                   <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 19, lineHeight: 1.2 }}>Dr. Exame sem limites</Typography>
                 </Box>
               </Stack>

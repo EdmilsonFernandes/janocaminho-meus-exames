@@ -93,7 +93,7 @@ export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastEx
         <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1} sx={{ mb: 1.25 }}>
           <Typography
             sx={{
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 800,
               color: (t) => tealText(t.palette.mode),
               textTransform: 'uppercase',
@@ -113,7 +113,7 @@ export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastEx
               borderRadius: '999px',
               bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.18)' : 'rgba(32,178,170,0.12)'),
               color: (t) => tealText(t.palette.mode),
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 800,
             }}
           >
@@ -165,7 +165,7 @@ export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastEx
                   label={
                     <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.35 }}>
                       {profile.modality}
-                      <Box component="span" sx={{ fontSize: 9.5, opacity: 0.7, ml: 0.25 }}>▾</Box>
+                      <Box component="span" sx={{ fontSize: 12, opacity: 0.7, ml: 0.25 }}>▾</Box>
                     </Box>
                   }
                   onClick={() => setWizardOpen(true)}
@@ -173,7 +173,7 @@ export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastEx
                   sx={{
                     height: 25,
                     fontWeight: 800,
-                    fontSize: 11.5,
+                    fontSize: 12,
                     cursor: 'pointer',
                     bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.2)' : 'rgba(32,178,170,0.15)'),
                     color: (t) => tealText(t.palette.mode),
@@ -196,7 +196,7 @@ export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastEx
                   sx={{
                     height: 25,
                     fontWeight: 800,
-                    fontSize: 11.5,
+                    fontSize: 12,
                     cursor: 'pointer',
                     bgcolor: 'rgba(245,158,11,0.15)',
                     color: '#d97706',
@@ -214,7 +214,7 @@ export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastEx
                   sx={{
                     height: 24,
                     fontWeight: 700,
-                    fontSize: 11,
+                    fontSize: 12,
                     bgcolor: 'action.hover',
                     color: 'text.secondary',
                   }}
@@ -249,7 +249,7 @@ export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastEx
                 onClick={() => setWizardOpen(true)}
                 startIcon={<TuneIcon sx={{ fontSize: '13px !important' }} />}
                 sx={{
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 800,
                   color: (t) => tealText(t.palette.mode),
                   textTransform: 'none',
@@ -281,13 +281,13 @@ export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastEx
               {(ctx?.jejum || ctx?.treino24h || ctx?.ultimaDose) && (
                 <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
                   {ctx?.jejum && (
-                    <Chip size="small" label="Jejum informado" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
+                    <Chip size="small" label="Jejum informado" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
                   )}
                   {ctx?.treino24h && (
-                    <Chip size="small" label="Treino <24h" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
+                    <Chip size="small" label="Treino <24h" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
                   )}
                   {ctx?.ultimaDose && (
-                    <Chip size="small" label={`Dose: ${ctx.ultimaDose}`} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
+                    <Chip size="small" label={`Dose: ${ctx.ultimaDose}`} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
                   )}
                 </Stack>
               )}

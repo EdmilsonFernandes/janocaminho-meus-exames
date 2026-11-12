@@ -67,17 +67,17 @@ const isTeleConcluded = (tc: any) => !!tc.endedAt || TELE_CONCLUDED.has(tc.teleS
  *  Dono 26/10: 'cancelled' (cancelamento manual vira histórico, não apaga) e no_show
  *  diferenciado por QUEM faltou ("Paciente ausente" quando faltou o MÉDICO era mentira). */
 const teleStatusChip = (status: unknown, noShowBy?: unknown): { label: string; sx: any } | null => {
-  if (status === 'in_progress') return { label: 'Em andamento', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: '#0d9488', borderRadius: '6px' } };
-  if (status === 'completed') return { label: 'Realizada', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669', borderRadius: '6px' } };
-  if (status === 'cancelled') return { label: 'Cancelada', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b', borderRadius: '6px' } };
+  if (status === 'in_progress') return { label: 'Em andamento', sx: { height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: '#0d9488', borderRadius: '6px' } };
+  if (status === 'completed') return { label: 'Realizada', sx: { height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669', borderRadius: '6px' } };
+  if (status === 'cancelled') return { label: 'Cancelada', sx: { height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b', borderRadius: '6px' } };
   if (status === 'no_show') {
     // noShowBy explícito diz QUEM faltou; legado sem o campo → neutro (não acusa
     // o paciente de ausência que talvez seja do médico — coerência dono 26/10).
-    if (noShowBy === 'doctor') return { label: 'Médico ausente', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(239,68,68,0.12)', color: '#b91c1c', borderRadius: '6px' } };
-    if (noShowBy === 'patient') return { label: 'Paciente ausente', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', borderRadius: '6px' } };
-    return { label: 'Não realizada', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', borderRadius: '6px' } };
+    if (noShowBy === 'doctor') return { label: 'Médico ausente', sx: { height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(239,68,68,0.12)', color: '#b91c1c', borderRadius: '6px' } };
+    if (noShowBy === 'patient') return { label: 'Paciente ausente', sx: { height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', borderRadius: '6px' } };
+    return { label: 'Não realizada', sx: { height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', borderRadius: '6px' } };
   }
-  if (status === 'technical') return { label: 'Problema técnico', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b', borderRadius: '6px' } };
+  if (status === 'technical') return { label: 'Problema técnico', sx: { height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b', borderRadius: '6px' } };
   return null;
 };
 
@@ -281,7 +281,7 @@ export const PortalTeleconsultas = ({
             p: { xs: 1.25, sm: 1.75 },
           }}
         >
-          <Typography sx={{ fontSize: { xs: 11, sm: 12 }, fontWeight: 700, color: 'text.secondary', mb: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <Typography sx={{ fontSize: { xs: 12, sm: 12 }, fontWeight: 700, color: 'text.secondary', mb: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             Consultas Hoje
           </Typography>
           <Stack direction="row" alignItems="baseline" spacing={0.75}>
@@ -289,7 +289,7 @@ export const PortalTeleconsultas = ({
               {todayList.length}
             </Typography>
             {todayList.length > 0 && (
-              <Chip size="small" label="Hoje" sx={{ height: 18, fontSize: 10.5, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.12)', color: '#0d9488', borderRadius: '4px' }} />
+              <Chip size="small" label="Hoje" sx={{ height: 18, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.12)', color: (t) => tealText(t.palette.mode), borderRadius: '4px' }} />
             )}
           </Stack>
         </AppCard>
@@ -305,7 +305,7 @@ export const PortalTeleconsultas = ({
             p: { xs: 1.25, sm: 1.75 },
           }}
         >
-          <Typography sx={{ fontSize: { xs: 11, sm: 12 }, fontWeight: 700, color: 'text.secondary', mb: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <Typography sx={{ fontSize: { xs: 12, sm: 12 }, fontWeight: 700, color: 'text.secondary', mb: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             Próximas
           </Typography>
           <Typography sx={{ fontSize: { xs: 20, sm: 26 }, fontWeight: 800, color: 'text.primary', lineHeight: 1 }}>
@@ -324,7 +324,7 @@ export const PortalTeleconsultas = ({
             p: { xs: 1.25, sm: 1.75 },
           }}
         >
-          <Typography sx={{ fontSize: { xs: 11, sm: 12 }, fontWeight: 700, color: 'text.secondary', mb: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <Typography sx={{ fontSize: { xs: 12, sm: 12 }, fontWeight: 700, color: 'text.secondary', mb: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             Total Geral
           </Typography>
           <Typography sx={{ fontSize: { xs: 20, sm: 26 }, fontWeight: 800, color: 'text.primary', lineHeight: 1 }}>
@@ -389,7 +389,7 @@ export const PortalTeleconsultas = ({
       {/* LISTA DE CARDS DE TELECONSULTA */}
       {filtered.length === 0 ? (
         <AppCard sx={{ p: 5, textAlign: 'center', borderRadius: '18px', border: '1px dashed', borderColor: 'divider' }}>
-          <Box sx={{ width: 64, height: 64, mx: 'auto', mb: 1.5, borderRadius: '50%', bgcolor: 'rgba(15,118,110,0.1)', display: 'grid', placeItems: 'center', color: '#178f89' }}>
+          <Box sx={{ width: 64, height: 64, mx: 'auto', mb: 1.5, borderRadius: '50%', bgcolor: 'rgba(15,118,110,0.1)', display: 'grid', placeItems: 'center', color: (t) => tealText(t.palette.mode) }}>
             <EventAvailableIcon sx={{ fontSize: 32 }} />
           </Box>
           <Typography sx={{ fontWeight: 800, fontSize: 16, mb: 0.5, fontFamily: 'Poppins, sans-serif' }}>
@@ -506,7 +506,7 @@ export const PortalTeleconsultas = ({
                               sx={{
                                 py: 0.1,
                                 px: 0.75,
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: 700,
                                 textTransform: 'none',
                                 color: (t) => tealText(t.palette.mode),
@@ -542,7 +542,7 @@ export const PortalTeleconsultas = ({
                         label={isToday ? `Hoje · ${timeStr}` : `${dayNum}/${monthShort} · ${timeStr}`}
                         sx={{
                           height: 24,
-                          fontSize: 11.5,
+                          fontSize: 12,
                           fontWeight: 800,
                           bgcolor: isToday ? 'rgba(16,185,129,0.14)' : 'rgba(13,148,136,0.10)',
                           color: isToday ? '#059669' : '#0d9488',
@@ -557,7 +557,7 @@ export const PortalTeleconsultas = ({
                         label={`Sala #${String(tc.id).slice(-5).toUpperCase()}`}
                         sx={{
                           height: 24,
-                          fontSize: 11,
+                          fontSize: 12,
                           fontWeight: 700,
                           fontFamily: 'monospace',
                           bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
@@ -591,14 +591,14 @@ export const PortalTeleconsultas = ({
                           size="small"
                           icon={<CheckCircleOutlineIcon sx={{ fontSize: '13px !important' }} />}
                           label="Consulta Paga"
-                          sx={{ height: 22, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.12)', color: '#059669', borderRadius: '6px', '& .MuiChip-icon': { color: '#059669' } }}
+                          sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.12)', color: '#059669', borderRadius: '6px', '& .MuiChip-icon': { color: '#059669' } }}
                         />
                       ) : (
                         <Chip
                           size="small"
                           icon={<HourglassEmptyIcon sx={{ fontSize: '13px !important' }} />}
                           label={`Aguardando R$ ${(tc.consultPriceCents / 100).toFixed(2).replace('.', ',')}`}
-                          sx={{ height: 22, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', borderRadius: '6px', '& .MuiChip-icon': { color: '#b45309' } }}
+                          sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', borderRadius: '6px', '& .MuiChip-icon': { color: '#b45309' } }}
                         />
                       )
                     )}
@@ -610,7 +610,7 @@ export const PortalTeleconsultas = ({
                       label={tc.consentAt ? 'Autorizado CFM' : 'Aguardando aceite'}
                       sx={{
                         height: 22,
-                        fontSize: 11.5,
+                        fontSize: 12,
                         fontWeight: 700,
                         whiteSpace: 'nowrap',
                         bgcolor: tc.consentAt ? 'rgba(16,185,129,0.10)' : 'rgba(245,158,11,0.10)',
@@ -622,11 +622,11 @@ export const PortalTeleconsultas = ({
 
                     {/* Canal de Atendimento */}
                     {tc.provider === 'livekit' ? (
-                      <Chip size="small" label="Vídeo HD no App" sx={{ height: 22, fontSize: 11.5, fontWeight: 700, bgcolor: 'rgba(13,148,136,0.10)', color: '#0d9488', borderRadius: '6px' }} />
+                      <Chip size="small" label="Vídeo HD no App" sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(13,148,136,0.10)', color: (t) => tealText(t.palette.mode), borderRadius: '6px' }} />
                     ) : tc.linkUrl?.includes('meet.google.com') ? (
-                      <Chip size="small" label="Google Meet" sx={{ height: 22, fontSize: 11.5, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.2)', color: 'secondary.dark', borderRadius: '6px' }} />
+                      <Chip size="small" label="Google Meet" sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.2)', color: 'secondary.dark', borderRadius: '6px' }} />
                     ) : (
-                      <Chip size="small" label="Link Externo" sx={{ height: 22, fontSize: 11.5, fontWeight: 700, borderRadius: '6px' }} />
+                      <Chip size="small" label="Link Externo" sx={{ height: 22, fontSize: 12, fontWeight: 700, borderRadius: '6px' }} />
                     )}
 
                     {/* Exames Anexados */}
@@ -635,7 +635,7 @@ export const PortalTeleconsultas = ({
                         size="small"
                         label={`${pend} exames anexados`}
                         onClick={() => onOpenPost(tc.id)}
-                        sx={{ height: 22, fontSize: 11.5, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(59,130,246,0.12)', color: '#2563eb', borderRadius: '6px' }}
+                        sx={{ height: 22, fontSize: 12, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(59,130,246,0.12)', color: '#2563eb', borderRadius: '6px' }}
                       />
                     )}
 
@@ -645,7 +645,7 @@ export const PortalTeleconsultas = ({
                         size="small"
                         label="Transcrição gravada"
                         onClick={() => onOpenPost(tc.id)}
-                        sx={{ height: 22, fontSize: 11.5, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(13,148,136,0.12)', color: '#0d9488', borderRadius: '6px' }}
+                        sx={{ height: 22, fontSize: 12, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(13,148,136,0.12)', color: (t) => tealText(t.palette.mode), borderRadius: '6px' }}
                       />
                     )}
 
@@ -656,7 +656,7 @@ export const PortalTeleconsultas = ({
                         icon={<StarIcon sx={{ fontSize: '13px !important', color: '#f59e0b !important' }} />}
                         label={`${s.feedback.rating}/5`}
                         onClick={() => onOpenPost(tc.id)}
-                        sx={{ height: 22, fontSize: 11.5, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(245,158,11,0.12)', color: '#d97706', borderRadius: '6px' }}
+                        sx={{ height: 22, fontSize: 12, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(245,158,11,0.12)', color: '#d97706', borderRadius: '6px' }}
                       />
                     )}
                   </Stack>
@@ -726,7 +726,7 @@ export const PortalTeleconsultas = ({
       {filteredEnded.length > 0 && (
         <Box sx={{ mt: 3 }}>
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-            <HistoryIcon sx={{ fontSize: 20, color: '#178f89' }} />
+            <HistoryIcon sx={{ fontSize: 20, color: (t) => tealText(t.palette.mode) }} />
             <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: 'Poppins, sans-serif' }}>
               Histórico ({filteredEnded.length})
             </Typography>
@@ -758,7 +758,7 @@ export const PortalTeleconsultas = ({
                 <AppCard key={tc.id} sx={{ p: 1.75, borderRadius: '16px', border: '1px solid', borderColor: 'divider' }}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
                     <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
-                      <Avatar src={pPhoto} sx={{ width: 48, height: 48, fontSize: 17, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.10)', color: '#178f89', flexShrink: 0 }}>
+                      <Avatar src={pPhoto} sx={{ width: 48, height: 48, fontSize: 17, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.10)', color: (t) => tealText(t.palette.mode), flexShrink: 0 }}>
                         {pName.charAt(0).toUpperCase()}
                       </Avatar>
                       <Box sx={{ minWidth: 0 }}>
@@ -775,15 +775,15 @@ export const PortalTeleconsultas = ({
                                   : 'Não realizada';
                               return endedFmt ? `${base} ${endedFmt}` : base;
                             })()}
-                            sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89', '& .MuiChip-icon': { color: '#178f89' } }}
+                            sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: (t) => tealText(t.palette.mode), '& .MuiChip-icon': { color: (t) => tealText(t.palette.mode) } }}
                           />
                             {/* Lifecycle 24/10: como a consulta TERMINOU (realizada / ausente / técnica). */}
                             {(() => { const c = teleStatusChip(tc.teleStatus, tc.noShowBy); return c ? <Chip size="small" label={c.label} sx={c.sx} /> : null; })()}
                           {pend > 0 && (
-                            <Chip size="small" label={`${pend} pedido(s)`} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#d97706' }} />
+                            <Chip size="small" label={`${pend} pedido(s)`} sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#d97706' }} />
                           )}
                           {hasTr && (
-                            <Chip size="small" label="Transcrição ✓" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(15,118,110,.10)', color: '#178f89' }} />
+                            <Chip size="small" label="Transcrição ✓" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,.10)', color: (t) => tealText(t.palette.mode) }} />
                           )}
                           {/* §14.1: status do resumo pós-consulta — rascunho (âmbar, ainda
                               privado) vs aprovado (teal, visível ao paciente). CTA leva à
@@ -793,7 +793,7 @@ export const PortalTeleconsultas = ({
                               size="small"
                               label="Resumo aprovado ✓"
                               onClick={() => (tc.provider === 'livekit' || !tc.linkUrl ? onEnterTele(tc, pName) : onOpenPost(tc.id))}
-                              sx={{ height: 20, fontSize: 11, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(15,118,110,.14)', color: '#0d9488' }}
+                              sx={{ height: 20, fontSize: 12, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(15,118,110,.14)', color: (t) => tealText(t.palette.mode) }}
                             />
                           )}
                           {tc.consultSummary?.status === 'draft' && (
@@ -801,17 +801,17 @@ export const PortalTeleconsultas = ({
                               size="small"
                               label="Resumo · rascunho"
                               onClick={() => (tc.provider === 'livekit' || !tc.linkUrl ? onEnterTele(tc, pName) : onOpenPost(tc.id))}
-                              sx={{ height: 20, fontSize: 11, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(245,158,11,.14)', color: '#b45309' }}
+                              sx={{ height: 20, fontSize: 12, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(245,158,11,.14)', color: '#b45309' }}
                             />
                           )}
                           {/* Consulta particular: pagamento concluído (ou cancelado se não realizada). */}
                           {(tc.consultPriceCents ?? 0) > 0 && (
                             tc.paidAt ? (
-                              <Chip size="small" icon={<CheckCircleOutlineIcon sx={{ fontSize: 13 }} />} label="Consulta paga" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669', '& .MuiChip-icon': { color: '#059669' } }} />
+                              <Chip size="small" icon={<CheckCircleOutlineIcon sx={{ fontSize: 13 }} />} label="Consulta paga" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669', '& .MuiChip-icon': { color: '#059669' } }} />
                             ) : isTeleConcluded(tc) || (new Date(tc.dueDate).getTime() + 5 * 60 * 1000 < Date.now()) ? (
-                              <Chip size="small" label="Pagamento cancelado" sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(100,116,139,0.12)', color: '#64748b' }} />
+                              <Chip size="small" label="Pagamento cancelado" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(100,116,139,0.12)', color: '#64748b' }} />
                             ) : (
-                              <Chip size="small" icon={<HourglassEmptyIcon sx={{ fontSize: 13 }} />} label={`Pagamento pendente — R$ ${(tc.consultPriceCents / 100).toFixed(2).replace('.', ',')}`} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', '& .MuiChip-icon': { color: '#b45309' } }} />
+                              <Chip size="small" icon={<HourglassEmptyIcon sx={{ fontSize: 13 }} />} label={`Pagamento pendente — R$ ${(tc.consultPriceCents / 100).toFixed(2).replace('.', ',')}`} sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', '& .MuiChip-icon': { color: '#b45309' } }} />
                             )
                           )}
                         </Stack>

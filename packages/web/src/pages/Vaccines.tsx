@@ -158,7 +158,7 @@ export const VaccinesPage = () => {
         <Frame>
           <FramePanel className="grid grid-cols-3 divide-x divide-border p-0">
             <div className="p-3.5 text-center sm:p-4">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Registradas
               </div>
               <div className="mt-0.5 font-heading text-xl font-extrabold text-primary tabular-nums sm:text-2xl">
@@ -166,7 +166,7 @@ export const VaccinesPage = () => {
               </div>
             </div>
             <div className="p-3.5 text-center sm:p-4">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Próximas doses
               </div>
               <div className="mt-0.5 font-heading text-xl font-extrabold text-foreground tabular-nums sm:text-2xl">
@@ -174,7 +174,7 @@ export const VaccinesPage = () => {
               </div>
             </div>
             <div className="p-3.5 text-center sm:p-4">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Atrasadas
               </div>
               <div
@@ -226,7 +226,7 @@ export const VaccinesPage = () => {
             <FramePanel className="space-y-3.5">
               {/* Sugestões rápidas de imunizantes */}
               <div>
-                <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                <div className="mb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Preenchimento rápido
                 </div>
                 <div className="flex flex-wrap gap-1.5">

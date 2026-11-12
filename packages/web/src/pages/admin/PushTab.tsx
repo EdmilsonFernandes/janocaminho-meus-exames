@@ -6,6 +6,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import { API_URL, token } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
+import { tealText } from '../../theme';
 
 /**
  * Push — campanhas segmentadas (plano/engajamento/exames/atividade HC) + broadcast global.
@@ -292,9 +293,9 @@ export const PushTab = () => {
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
               <Stack direction="row" spacing={1} alignItems="center">
                 {previewing ? (
-                  <CircularProgress size={18} sx={{ color: '#178f89' }} />
+                  <CircularProgress size={18} sx={{ color: (t) => tealText(t.palette.mode) }} />
                 ) : (
-                  <GroupsIcon sx={{ color: '#178f89', fontSize: 22 }} />
+                  <GroupsIcon sx={{ color: (t) => tealText(t.palette.mode), fontSize: 22 }} />
                 )}
                 <Box>
                   <Typography sx={{ fontSize: 14, fontWeight: 800, color: '#0f5f5a' }}>
@@ -316,7 +317,7 @@ export const PushTab = () => {
 
               {preview && preview.users > 0 && (
                 <Button size="small" variant="outlined" onClick={() => setShowUserList((v) => !v)}
-                  sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12.5, borderRadius: '8px', borderColor: '#178f89', color: '#178f89' }}>
+                  sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12.5, borderRadius: '8px', borderColor: '#178f89', color: (t) => tealText(t.palette.mode) }}>
                   {showUserList ? 'Ocultar lista de pessoas ▲' : `Ver quem são os ${preview.users} destinatários ▼`}
                 </Button>
               )}
@@ -324,7 +325,7 @@ export const PushTab = () => {
 
             {/* Aviso informativo de transparência sobre o número de aparelhos alcançáveis */}
             <Box sx={{ mt: 1.25, pt: 1.25, borderTop: '1px dashed rgba(32,178,170,.25)' }}>
-              <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.45 }}>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.45 }}>
                 💡 <strong>Por que o número de push é menor que a base total?</strong> Notificações Push são entregues diretamente no sistema operacional de celulares com o app móvel instalado ou notificações do navegador autorizadas. Usuários cadastrados apenas pela web sem permissão ativa não geram token de push no aparelho.
               </Typography>
             </Box>
@@ -348,7 +349,7 @@ export const PushTab = () => {
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{u.email}</Typography>
                       </Box>
                       <Stack direction="row" spacing={1} alignItems="center">
-                        <Chip size="small" label={isPremium ? 'Premium' : 'Free'} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: isPremium ? 'rgba(32,178,170,.15)' : 'action.selected' }} />
+                        <Chip size="small" label={isPremium ? 'Premium' : 'Free'} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: isPremium ? 'rgba(32,178,170,.15)' : 'action.selected' }} />
                         <Typography variant="caption" sx={{ color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>
                           📱 {u.deviceCount} aparelho(s) {u.platforms.length ? `(${u.platforms.join(', ')})` : ''}
                         </Typography>
@@ -375,7 +376,7 @@ export const PushTab = () => {
           <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 2.5 }}>
             {TEMPLATES.map((t) => (
               <Chip key={t.title} clickable onClick={() => pick(t)} label={`${t.emoji} ${chipTitle(t.title)}`}
-                sx={{ height: 32, fontSize: 12.5, bgcolor: 'rgba(32,178,170,.08)', color: '#178f89', fontWeight: 600, '&:hover': { bgcolor: 'rgba(32,178,170,.18)' } }} />
+                sx={{ height: 32, fontSize: 12.5, bgcolor: 'rgba(32,178,170,.08)', color: (t) => tealText(t.palette.mode), fontWeight: 600, '&:hover': { bgcolor: 'rgba(32,178,170,.18)' } }} />
             ))}
           </Stack>
 
@@ -393,7 +394,7 @@ export const PushTab = () => {
               boxShadow: '0 16px 36px rgba(0,0,0,0.18)', maxWidth: 330, mx: 'auto', width: '100%',
               border: '2px solid rgba(255,255,255,0.1)'
             }}>
-              <Stack direction="row" justifyContent="space-between" sx={{ fontSize: 11, color: '#94a3b8', mb: 1.5, px: 0.5 }}>
+              <Stack direction="row" justifyContent="space-between" sx={{ fontSize: 12, color: '#94a3b8', mb: 1.5, px: 0.5 }}>
                 <span>09:41</span>
                 <span>5G · 100%</span>
               </Stack>
@@ -402,10 +403,10 @@ export const PushTab = () => {
                 borderRadius: '16px', p: 1.5, border: '1px solid rgba(255,255,255,0.14)'
               }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-                  <Typography sx={{ fontSize: 11, fontWeight: 800, color: '#5fc9c3', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#5fc9c3', display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     🩺 Dr. Exame
                   </Typography>
-                  <Typography sx={{ fontSize: 10.5, color: '#cbd5e1' }}>Agora</Typography>
+                  <Typography sx={{ fontSize: 12, color: '#cbd5e1' }}>Agora</Typography>
                 </Stack>
                 <Typography sx={{ fontSize: 13, fontWeight: 800, color: '#fff', mb: 0.3, lineHeight: 1.25 }}>
                   {title.trim() || 'Título da Notificação'}
@@ -414,7 +415,7 @@ export const PushTab = () => {
                   {body.trim() || 'Aqui aparecerá o texto do seu push exatamente como o paciente lerá na tela bloqueada do celular.'}
                 </Typography>
               </Box>
-              <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1.5, color: '#64748b', fontSize: 11 }}>
+              <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1.5, color: '#64748b', fontSize: 12 }}>
                 Prévia da tela bloqueada (Android / iOS)
               </Typography>
             </Box>
@@ -431,7 +432,7 @@ export const PushTab = () => {
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between">
             <Box sx={{ flex: 1 }}>
               <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary' }}>
-                Disparar para: <Box component="span" sx={{ color: '#178f89', fontWeight: 800 }}>{audienceMode === 'global' ? '🌍 Todos os usuários da base' : '🎯 Segmento filtrado'}</Box>
+                Disparar para: <Box component="span" sx={{ color: (t) => tealText(t.palette.mode), fontWeight: 800 }}>{audienceMode === 'global' ? '🌍 Todos os usuários da base' : '🎯 Segmento filtrado'}</Box>
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {preview ? `${preview.users} pessoa(s) receberão nos seus celulares ativos.` : 'Aguardando cálculo…'}

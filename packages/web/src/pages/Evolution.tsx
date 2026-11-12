@@ -31,6 +31,7 @@ import { tealText } from '../theme';
 import { useClinicalGoals } from '../hooks/useClinicalGoals';
 import { goalFor, goalRangeText, withinGoal, withinRef, dualStatusText, hasMixedMethods, lineBreakFlags } from '../utils/clinicalGoals';
 import { prettyName } from '../utils/prettyName';
+import { ListEmpty } from '@/components/reui/list-empty';
 
 /** Chip "🎯 Meta clínica" (E2.4 — camada 2): SEMPRE além do badge da régua do lab; nunca
  *  o substitui. Tooltip mostra justificativa + fonte + autor (transparência clínica). */
@@ -41,7 +42,7 @@ const GoalChip = ({ goal }: { goal: ClinicalGoalView }) => (
         <Typography sx={{ fontWeight: 800, fontSize: 13 }}>{goalRangeText(goal)}</Typography>
         {goal.setBy && <Typography sx={{ fontSize: 12, opacity: 0.85, mt: 0.5 }}>{goal.setBy}</Typography>}
         {goal.justification && <Typography sx={{ fontSize: 12, opacity: 0.85, mt: 0.5 }}>{goal.justification}</Typography>}
-        {goal.source && <Typography sx={{ fontSize: 11, opacity: 0.7, mt: 0.5 }}>Fonte: {goal.source}</Typography>}
+        {goal.source && <Typography sx={{ fontSize: 12, opacity: 0.7, mt: 0.5 }}>Fonte: {goal.source}</Typography>}
       </Box>
     }
     arrow
@@ -192,7 +193,7 @@ export const EvolutionPage = () => {
                     <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: { xs: 22, sm: 24 }, lineHeight: 1, color: c.color, fontVariantNumeric: 'tabular-nums' }}>{c.count}</Typography>
                     <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5} sx={{ mt: 0.35 }}>
                       <Box aria-hidden="true" sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: c.color, display: 'inline-block' }} />
-                      <Typography sx={{ fontSize: { xs: 11, sm: 12 }, color: c.color, fontWeight: 700 }}>{c.label}</Typography>
+                      <Typography sx={{ fontSize: { xs: 12, sm: 12 }, color: c.color, fontWeight: 700 }}>{c.label}</Typography>
                     </Stack>
                   </Box>
                 );
@@ -231,7 +232,7 @@ export const EvolutionPage = () => {
       )}
 
       {!loading && items.length > 0 && filtered.length === 0 && (
-        <Typography color="text.secondary" sx={{ mt: 2 }}>Nenhum exame nesse filtro.</Typography>
+        <ListEmpty title="Nenhum exame nesse filtro" description="Escolha outro período ou tipo de exame." />
       )}
 
       {!loading && filtered.length > 0 && (
@@ -396,7 +397,7 @@ const EvoRow = ({ it, defaultExpanded, idx = 0, goal }: { it: EvoItem; defaultEx
             <Typography sx={{ fontWeight: 800, color: meta.color, whiteSpace: 'nowrap' }}>{it.lastValue} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
             {it.isNew && (
               <MuiTooltip title="Valor do exame mais recente — veio do último processamento" arrow>
-                <Chip size="small" label="Novo" sx={{ height: 20, borderRadius: 7, flexShrink: 0, fontWeight: 800, fontSize: 11, letterSpacing: 0.2, px: 0.75, bgcolor: 'rgba(32,178,170,0.14)', color: (t) => tealText(t.palette.mode), border: '1px solid rgba(32,178,170,0.35)' }} />
+                <Chip size="small" label="Novo" sx={{ height: 20, borderRadius: 7, flexShrink: 0, fontWeight: 800, fontSize: 12, letterSpacing: 0.2, px: 0.75, bgcolor: 'rgba(32,178,170,0.14)', color: (t) => tealText(t.palette.mode), border: '1px solid rgba(32,178,170,0.35)' }} />
               </MuiTooltip>
             )}
             {mixedMethods ? <Box title="Métodos diferentes entre exames — sem linha de tendência" sx={{ fontSize: 15, flexShrink: 0 }}>⚠️</Box> : <EvoSparkline points={it.points} color={lineColor} />}

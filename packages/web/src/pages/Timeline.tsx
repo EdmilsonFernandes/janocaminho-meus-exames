@@ -155,7 +155,7 @@ export const TimelinePage = () => {
               label={action}
               sx={{
                 height: 20,
-                fontSize: 10.5,
+                fontSize: 12,
                 fontWeight: 700,
                 bgcolor: `${dotColor}14`,
                 color: dotColor,
@@ -168,9 +168,9 @@ export const TimelinePage = () => {
           {e.type === 'exam' && (
             <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.85 }}>
               {hasIssues
-                ? <Chip size="small" label={`${plural(e.abnormalCount, 'valor')} fora da faixa`} sx={{ height: 22, fontWeight: 800, fontSize: 11.5, bgcolor: 'rgba(239,68,68,.10)', color: (t) => t.palette.mode === 'dark' ? '#fca5a5' : '#dc2626', border: '1px solid rgba(239,68,68,.25)' }} />
-                : <Chip size="small" icon={<CheckCircleIcon sx={{ fontSize: 14 }} />} label="Tudo dentro da faixa" sx={{ height: 22, fontWeight: 700, fontSize: 11.5, bgcolor: 'rgba(5,150,105,.10)', color: (t) => t.palette.mode === 'dark' ? '#6ee7b7' : '#059669', '& .MuiChip-icon': { color: 'inherit' } }} />}
-              {e.itemCount > 0 && <Chip size="small" label={plural(e.itemCount, 'resultado')} sx={{ height: 22, fontSize: 11.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
+                ? <Chip size="small" label={`${plural(e.abnormalCount, 'valor')} fora da faixa`} sx={{ height: 22, fontWeight: 800, fontSize: 12, bgcolor: 'rgba(239,68,68,.10)', color: (t) => t.palette.mode === 'dark' ? '#fca5a5' : '#dc2626', border: '1px solid rgba(239,68,68,.25)' }} />
+                : <Chip size="small" icon={<CheckCircleIcon sx={{ fontSize: 14 }} />} label="Tudo dentro da faixa" sx={{ height: 22, fontWeight: 700, fontSize: 12, bgcolor: 'rgba(5,150,105,.10)', color: (t) => t.palette.mode === 'dark' ? '#6ee7b7' : '#059669', '& .MuiChip-icon': { color: 'inherit' } }} />}
+              {e.itemCount > 0 && <Chip size="small" label={plural(e.itemCount, 'resultado')} sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
             </Stack>
           )}
         </Box>

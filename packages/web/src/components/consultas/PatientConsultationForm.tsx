@@ -259,7 +259,7 @@ export const PatientConsultationForm = ({ open, onClose, onSaved, initial, prefi
         </Stack>
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', mb: 0.5 }}>
           {WEEKDAY_INITIALS.map((w, i) => (
-            <Typography key={`${w}-${i}`} sx={{ fontSize: 9.5, fontWeight: 700, color: 'text.disabled', textAlign: 'center' }}>{w}</Typography>
+            <Typography key={`${w}-${i}`} sx={{ fontSize: 12, fontWeight: 700, color: 'text.disabled', textAlign: 'center' }}>{w}</Typography>
           ))}
         </Box>
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px' }}>
@@ -273,7 +273,7 @@ export const PatientConsultationForm = ({ open, onClose, onSaved, initial, prefi
               onClick={() => setDatePart(new Date(y, m, day))}
               sx={{
                 height: 30, border: 0, borderRadius: '999px', cursor: 'pointer', fontFamily: 'inherit',
-                fontSize: 11.5, fontWeight: isSel(day) ? 700 : 500,
+                fontSize: 12, fontWeight: isSel(day) ? 700 : 500,
                 color: isSel(day) ? '#fff' : 'text.primary',
                 background: isSel(day) ? 'linear-gradient(135deg,#20b2aa,#178f89)' : 'transparent',
                 boxShadow: isSel(day)
@@ -393,7 +393,7 @@ export const PatientConsultationForm = ({ open, onClose, onSaved, initial, prefi
             <Stack direction="row" spacing={1.25} alignItems="stretch">
               {renderCalendar()}
               <Box sx={{ flex: '1 1 0', minWidth: 86, borderRadius: '16px', bgcolor: 'background.paper', boxShadow: (t) => `0 1px 2px rgba(10,60,58,0.06), inset 0 0 0 1px ${t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(31,45,45,0.06)'}`, p: 1, display: 'flex', flexDirection: 'column' }}>
-                <Typography sx={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', color: 'text.disabled', textAlign: 'center', mb: 0.5 }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', color: 'text.disabled', textAlign: 'center', mb: 0.5 }}>
                   {dateObj ? dateObj.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit' }).replace('.', '').toUpperCase() : 'HORÁRIO'}
                 </Typography>
                 <Box sx={{ flex: 1, overflowY: 'auto', maxHeight: 216, display: 'flex', flexDirection: 'column', gap: 0.5, pr: 0.25 }}>
@@ -524,7 +524,7 @@ export const PatientConsultationForm = ({ open, onClose, onSaved, initial, prefi
           sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 14.5, minHeight: 50, background: 'linear-gradient(135deg,#20b2aa,#178f89)', boxShadow: 'inset 1px 1px 0 rgba(255,255,255,.35), 0 16px 30px -12px rgba(23,143,137,.7)', '&:hover': { background: 'linear-gradient(135deg,#1ba39c,#137e79)' } }}>
           {saving ? <CircularProgress size={20} color="inherit" /> : saveLabel}
         </Button>
-        <Typography sx={{ fontSize: 10.5, color: 'text.disabled', textAlign: 'center' }}>
+        <Typography sx={{ fontSize: 12, color: 'text.disabled', textAlign: 'center' }}>
           Registro pessoal — não reserva horário no consultório.
         </Typography>
       </DialogActions>

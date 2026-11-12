@@ -131,7 +131,7 @@ export const InvitePage = () => {
             {/* Pílulas comparativas dos dois lados */}
             <div className="mt-4 grid w-full max-w-md grid-cols-2 gap-2.5">
               <div className="rounded-xl border border-white/20 bg-white/12 px-3 py-2.5 backdrop-blur-sm">
-                <span className="block text-[11px] font-semibold tracking-wider text-white/80 uppercase">
+                <span className="block text-xs font-semibold tracking-wider text-white/80 uppercase">
                   Você recebe
                 </span>
                 <span className="mt-0.5 block font-['Poppins',sans-serif] text-lg font-extrabold text-white tabular-nums">
@@ -139,7 +139,7 @@ export const InvitePage = () => {
                 </span>
               </div>
               <div className="rounded-xl border border-emerald-300/30 bg-emerald-400/15 px-3 py-2.5 backdrop-blur-sm">
-                <span className="block text-[11px] font-semibold tracking-wider text-emerald-100 uppercase">
+                <span className="block text-xs font-semibold tracking-wider text-emerald-100 uppercase">
                   Seu amigo recebe
                 </span>
                 <span className="mt-0.5 block font-['Poppins',sans-serif] text-lg font-extrabold text-emerald-100 tabular-nums">
@@ -179,7 +179,7 @@ export const InvitePage = () => {
                 <TimelineItem key={s.n} step={s.n}>
                   <TimelineSeparator />
                   <TimelineIndicator>
-                    <span className="text-[11px] font-extrabold tabular-nums">{s.n}</span>
+                    <span className="text-xs font-extrabold tabular-nums">{s.n}</span>
                   </TimelineIndicator>
                   <TimelineHeader>
                     <TimelineTitle>{s.title}</TimelineTitle>

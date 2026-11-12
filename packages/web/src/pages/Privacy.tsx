@@ -258,7 +258,7 @@ export const PrivacyPage = () => {
                   'Você pode apagar exames, exportar seus dados ou excluir a conta aqui mesmo, em "Gerenciar seus dados".',
                 ].map((t, i) => (
                   <div key={i} className="flex items-start gap-2.5">
-                    <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-sky-500/12 text-[11px] font-extrabold text-sky-700 dark:text-sky-300 tabular-nums">
+                    <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-sky-500/12 text-xs font-extrabold text-sky-700 dark:text-sky-300 tabular-nums">
                       {i + 1}
                     </span>
                     <span className="text-foreground text-[13px] leading-relaxed">{t}</span>
@@ -288,7 +288,7 @@ export const PrivacyPage = () => {
                   'Não vendemos seus dados; compartilhamos apenas com operadores necessários para IA, notificações, pagamentos, suporte e infraestrutura.',
                 ].map((t, i) => (
                   <div key={i} className="flex items-start gap-2.5">
-                    <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/12 text-[11px] font-extrabold text-primary tabular-nums">
+                    <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/12 text-xs font-extrabold text-primary tabular-nums">
                       {i + 1}
                     </span>
                     <span className="text-foreground text-[13px] leading-relaxed">{t}</span>
@@ -332,7 +332,7 @@ export const PrivacyPage = () => {
                   key={i}
                   className="flex items-start gap-2.5 rounded-xl border border-border/60 bg-muted/20 p-3"
                 >
-                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-[11px] font-extrabold text-amber-700 dark:text-amber-300 tabular-nums">
+                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-xs font-extrabold text-amber-700 dark:text-amber-300 tabular-nums">
                     {i + 1}
                   </span>
                   <span className="text-foreground text-xs sm:text-[13px] leading-relaxed">

@@ -118,7 +118,7 @@ export const HealthPackageShowcaseCard = ({
           sx={{
             fontFamily: 'Poppins, sans-serif',
             fontWeight: 800,
-            fontSize: 10.5,
+            fontSize: 12,
             color: dark ? '#5fc9c3' : '#0f766e',
             bgcolor: alpha('#20b2aa', 0.12),
             border: '1.5px solid rgba(32, 178, 170, 0.35)',
@@ -210,7 +210,7 @@ export const HealthPackageShowcaseCard = ({
               variant="caption"
               sx={{
                 color: 'text.secondary',
-                fontSize: 11.5,
+                fontSize: 12,
                 display: 'block',
                 mt: 0.25,
               }}
@@ -261,7 +261,7 @@ export const HealthPackageShowcaseCard = ({
                 <Typography sx={{ fontWeight: 700, fontSize: 13, color: 'text.primary' }}>
                   {p.label}
                 </Typography>
-                <Typography variant="caption" sx={{ fontSize: 10.5, color: 'text.secondary', display: 'block' }}>
+                <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary', display: 'block' }}>
                   {p.tip}
                 </Typography>
               </Box>
@@ -311,7 +311,7 @@ export const HealthPackageShowcaseCard = ({
           bgcolor: dark ? 'rgba(16, 185, 129, 0.12)' : 'rgba(16, 185, 129, 0.08)',
           border: '1px solid rgba(16, 185, 129, 0.25)',
           color: '#10b981',
-          fontSize: 11.5,
+          fontSize: 12,
           fontWeight: 700,
         }}
       >

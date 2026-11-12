@@ -9,7 +9,6 @@
 import { useState, useEffect, useCallback, useMemo, Fragment, type ReactElement } from 'react';
 import {
   Box, Typography, Stack, Chip, Button, IconButton, useMediaQuery, useTheme,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem,
   InputAdornment, Tooltip, Divider, Alert,
 } from '@mui/material';
@@ -30,6 +29,11 @@ import { CardSkeleton } from '../../Skeleton';
 import { tealText } from '../../../theme';
 import { API_URL } from '../../../config';
 import { snackbar } from '../../ConfirmDialog';
+import { useTable, type ColumnDef } from '@tanstack/react-table';
+import { DataGrid, DataGridContainer, dataGridFeatures } from '@/components/reui/data-grid/data-grid';
+import { DataGridTable, DataGridTableRowExpand } from '@/components/reui/data-grid/data-grid-table';
+import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header';
+import '../../../doctor-v2/tw.css';
 
 // ── Formatação pt-BR (centavos inteiros → moeda; nunca float no server) ──────────
 const brl = (cents: number | null | undefined) =>
@@ -71,6 +75,53 @@ interface StatementRow {
 }
 
 interface Props { token: string }
+
+/** ReUI DataGrid — consultas do período (≥sm): ordena por coluna; a linha expande o
+ *  detalhe do split. No celular seguem os cards expansíveis. */
+function StatementGrid({ rows, mode, renderDetail }: { rows: StatementRow[]; mode: 'light' | 'dark'; renderDetail: (r: StatementRow) => ReactElement }) {
+  const money = (cls: string) => (c: any) => <span className={'whitespace-nowrap tabular-nums ' + cls}>{brl(Number(c.getValue() ?? 0))}</span>;
+  const columns: ColumnDef<any, any>[] = [
+    {
+      accessorKey: 'title', size: 260,
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Consulta" />,
+      cell: (c) => <span className="block max-w-64 truncate text-[13.5px] font-bold text-foreground">{c.getValue() as string}</span>,
+    },
+    {
+      id: 'data', size: 100, accessorFn: (r: StatementRow) => (r.data ? new Date(r.data).getTime() : 0),
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Data" />,
+      cell: (c) => <span className="whitespace-nowrap text-[13px] tabular-nums text-foreground">{dia((c.row.original as StatementRow).data)}</span>,
+    },
+    { accessorKey: 'valorContratadoCents', size: 120, header: (c) => <DataGridColumnHeader column={c.column as any} title="Contratado" />, cell: money('text-[13px] text-foreground') },
+    { accessorKey: 'taxaPlataformaCents', size: 120, header: (c) => <DataGridColumnHeader column={c.column as any} title="Plataforma" />, cell: money('text-[13px] text-muted-foreground') },
+    {
+      accessorKey: 'honorariosCents', size: 120,
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Honorários" />,
+      cell: (c) => <span className="whitespace-nowrap text-[13.5px] font-extrabold tabular-nums" style={{ color: tealText(mode) }}>{brl(Number(c.getValue() ?? 0))}</span>,
+    },
+    {
+      id: 'status', size: 180, accessorFn: (r: StatementRow) => STATUS_META[r.statusFinanceiro].label,
+      header: (c) => <DataGridColumnHeader column={c.column as any} title="Situação" />,
+      cell: (c) => {
+        const meta = STATUS_META[(c.row.original as StatementRow).statusFinanceiro];
+        return (
+          <Chip size="small" icon={meta.icon} label={meta.label}
+            sx={{ height: 24, fontSize: 12, fontWeight: 800, borderRadius: '7px', bgcolor: meta.bg(mode), color: meta.color(mode), '& .MuiChip-icon': { color: meta.color(mode) } }} />
+        );
+      },
+    },
+    {
+      id: 'expand', header: '', size: 44, enableSorting: false,
+      cell: (c) => <DataGridTableRowExpand row={c.row as any} />,
+      meta: { expandedContent: (row: StatementRow) => <div className="bg-muted/40 px-4 py-3">{renderDetail(row)}</div> },
+    },
+  ];
+  const table = useTable({ features: dataGridFeatures, data: rows as any[], columns, getRowId: (r: any) => r.reminderId, getRowCanExpand: () => true });
+  return (
+    <DataGrid table={table} recordCount={rows.length} onRowClick={(r: any) => table.getRow(r.reminderId)?.toggleExpanded()} tableLayout={{ headerBackground: true, rowBorder: true, headerSticky: true }}>
+      <DataGridContainer><DataGridTable /></DataGridContainer>
+    </DataGrid>
+  );
+}
 
 export const PortalFinanceiro = ({ token }: Props) => {
   const t = useTheme();
@@ -308,57 +359,7 @@ export const PortalFinanceiro = ({ token }: Props) => {
         </AppCard>
       ) : isWide ? (
         /* Tabela CONTIDA no componente (scroll próprio — §18.11) */
-        <Box sx={{ borderRadius: '16px', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
-          <TableContainer sx={{ maxHeight: 480 }}>
-            <Table stickyHeader size="small" aria-label="Consultas do período">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 800 }}>Consulta</TableCell>
-                  <TableCell sx={{ fontWeight: 800 }}>Data</TableCell>
-                  <TableCell sx={{ fontWeight: 800 }} align="right">Contratado</TableCell>
-                  <TableCell sx={{ fontWeight: 800 }} align="right">Plataforma</TableCell>
-                  <TableCell sx={{ fontWeight: 800 }} align="right">Honorários</TableCell>
-                  <TableCell sx={{ fontWeight: 800 }}>Situação</TableCell>
-                  <TableCell sx={{ width: 44 }} aria-label="Detalhe" />
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filtered.map((r) => {
-                  const meta = STATUS_META[r.statusFinanceiro];
-                  const open = expanded === r.reminderId;
-                  return (
-                    <Fragment key={r.reminderId}>
-                      <TableRow hover onClick={() => setExpanded(open ? null : r.reminderId)} sx={{ cursor: 'pointer' }}>
-                        <TableCell sx={{ fontWeight: 700, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</TableCell>
-                        <TableCell sx={{ whiteSpace: 'nowrap' }}>{dia(r.data)}</TableCell>
-                        <TableCell align="right">{brl(r.valorContratadoCents)}</TableCell>
-                        <TableCell align="right" sx={{ color: 'text.secondary' }}>{brl(r.taxaPlataformaCents)}</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 800, color: tealText(mode) }}>{brl(r.honorariosCents)}</TableCell>
-                        <TableCell>
-                          <Chip size="small" icon={meta.icon} label={meta.label}
-                            sx={{ height: 24, fontSize: 11.5, fontWeight: 800, borderRadius: '7px', bgcolor: meta.bg(mode), color: meta.color(mode), '& .MuiChip-icon': { color: meta.color(mode) } }} />
-                        </TableCell>
-                        <TableCell>
-                          <IconButton size="small" aria-label={open ? 'Fechar detalhe' : 'Abrir detalhe'} aria-expanded={open}
-                            sx={{ color: 'text.secondary', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
-                            <ExpandMoreOutlinedIcon fontSize="small" />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                      {open && (
-                        <TableRow>
-                          <TableCell colSpan={7} sx={{ bgcolor: 'action.hover', borderBottom: '1px solid', borderColor: 'divider' }}>
-                            <SplitDetail r={r} />
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </Fragment>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
+        <div className="dx-island"><StatementGrid rows={filtered} mode={mode} renderDetail={(r) => <SplitDetail r={r} />} /></div>
       ) : (
         /* Mobile: cards expansíveis */
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
@@ -378,7 +379,7 @@ export const PortalFinanceiro = ({ token }: Props) => {
                   </Stack>
                 </Stack>
                 <Chip size="small" icon={meta.icon} label={meta.label}
-                  sx={{ mt: 1, height: 22, fontSize: 11, fontWeight: 800, borderRadius: '7px', bgcolor: meta.bg(mode), color: meta.color(mode), '& .MuiChip-icon': { color: meta.color(mode) } }} />
+                  sx={{ mt: 1, height: 22, fontSize: 12, fontWeight: 800, borderRadius: '7px', bgcolor: meta.bg(mode), color: meta.color(mode), '& .MuiChip-icon': { color: meta.color(mode) } }} />
                 {open && (<><Divider sx={{ my: 1.5 }} /><SplitDetail r={r} /></>)}
               </AppCard>
             );

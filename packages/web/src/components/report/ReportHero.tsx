@@ -24,7 +24,7 @@ const StatTile = ({ value, label, accent }: { value: ReactNode; label: string; a
   }}>
     <Typography sx={{ fontWeight: 900, color: accent, fontSize: 25, lineHeight: 1, fontFamily: 'Poppins, sans-serif', fontVariantNumeric: 'tabular-nums' }}>{value}</Typography>
     {/* ReUI Stats (dono 30/10): rótulo caixa-alta com tracking — número é quem fala */}
-    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '.07em', display: 'block', mt: 0.5 }}>{label}</Typography>
+    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: '.07em', display: 'block', mt: 0.5 }}>{label}</Typography>
   </Box>
 );
 
@@ -122,7 +122,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
                   <Chip
                     size="small"
                     label={[dt, labShort].filter(Boolean).join(' • ')}
-                    sx={{ height: 18, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode) }}
+                    sx={{ height: 18, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode) }}
                   />
                 )}
               </Box>
@@ -150,7 +150,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
         sx={{
           display: 'flex', flexDirection: 'column', gap: 0.5, py: 1.1, px: 0.5,
           borderRadius: '14px', textTransform: 'none', minWidth: 0,
-          fontWeight: 800, fontSize: 11.5, lineHeight: 1.1, whiteSpace: 'nowrap',
+          fontWeight: 800, fontSize: 12, lineHeight: 1.1, whiteSpace: 'nowrap',
           color: 'text.secondary',
           bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#ffffff',
           border: '1px solid', borderColor: 'divider',
@@ -170,7 +170,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
         sx={{
           display: 'flex', flexDirection: 'column', gap: 0.5, py: 1.1, px: 0.5,
           borderRadius: '14px', textTransform: 'none', minWidth: 0,
-          fontWeight: 800, fontSize: 11.5, lineHeight: 1.1, whiteSpace: 'nowrap',
+          fontWeight: 800, fontSize: 12, lineHeight: 1.1, whiteSpace: 'nowrap',
           color: 'text.secondary',
           bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#ffffff',
           border: '1px solid', borderColor: 'divider',
@@ -190,7 +190,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
         sx={{
           display: 'flex', flexDirection: 'column', gap: 0.5, py: 1.1, px: 0.5,
           borderRadius: '14px', textTransform: 'none', minWidth: 0,
-          fontWeight: 800, fontSize: 11.5, lineHeight: 1.1, whiteSpace: 'nowrap',
+          fontWeight: 800, fontSize: 12, lineHeight: 1.1, whiteSpace: 'nowrap',
           color: 'text.secondary',
           bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#ffffff',
           border: '1px solid', borderColor: 'divider',
@@ -213,7 +213,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
       </Box>
     )}
     </FramePanel>
-    <FrameFooter className="px-4 py-2 text-[11px] text-muted-foreground flex items-center justify-between flex-wrap gap-2">
+    <FrameFooter className="px-4 py-2 text-xs text-muted-foreground flex items-center justify-between flex-wrap gap-2">
       <span>Síntese gerada com extração determinística de laudos · Leve à sua próxima consulta</span>
       {sourceExams && sourceExams.length > 0 && (
         <span className="font-semibold text-foreground">{sourceExams.length} laudos considerados</span>

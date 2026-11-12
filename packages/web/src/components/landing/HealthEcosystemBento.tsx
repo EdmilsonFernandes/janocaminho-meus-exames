@@ -185,7 +185,7 @@ export const HealthEcosystemBento = ({ onRegister }: HealthEcosystemBentoProps) 
                 { l: 'Sono', v: '7h 40m', c: '#4f46e5' },
               ].map((m) => (
                 <Box key={m.l} sx={{ flex: 1, p: 1.25, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
-                  <Typography sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}>{m.l}</Typography>
+                  <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600 }}>{m.l}</Typography>
                   <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: m.c, fontVariantNumeric: 'tabular-nums' }}>{m.v}</Typography>
                 </Box>
               ))}

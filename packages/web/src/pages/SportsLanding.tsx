@@ -137,7 +137,7 @@ export const SportsLandingPage: React.FC = () => {
             <DrExame size={36} sx={{ borderRadius: '14%' }} />
             <Box>
               <Typography sx={{ fontWeight: 800, fontSize: 18, color: 'text.primary', lineHeight: 1.1 }}>Dr. Exame</Typography>
-              <Typography sx={{ fontSize: 10, fontWeight: 700, color: TEAL_DARK, letterSpacing: '0.04em' }}>MODO SAÚDE ESPORTIVA</Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 700, color: TEAL_DARK, letterSpacing: '0.04em' }}>MODO SAÚDE ESPORTIVA</Typography>
             </Box>
           </Stack>
 
@@ -210,7 +210,7 @@ export const SportsLandingPage: React.FC = () => {
                 <Box>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Typography sx={{ fontWeight: 800, fontSize: 16 }}>Rodrigo Silva, 31 anos</Typography>
-                    <Chip label="Atleta Ativo" size="small" sx={{ height: 20, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.15)', color: TEAL_DARK }} />
+                    <Chip label="Atleta Ativo" size="small" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.15)', color: TEAL_DARK }} />
                   </Stack>
                   <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Fisiculturismo Classic / Treinos de Alta Intensidade</Typography>
                 </Box>
@@ -218,13 +218,13 @@ export const SportsLandingPage: React.FC = () => {
               <Chip
                 icon={<AutoAwesomeIcon sx={{ fontSize: 14 }} />}
                 label="Modo Saúde Esportiva Ativo"
-                sx={{ height: 26, fontSize: 11, fontWeight: 700, bgcolor: '#ffffff', color: TEAL_DARK, border: '1px solid rgba(13,148,136,0.3)' }}
+                sx={{ height: 26, fontSize: 12, fontWeight: 700, bgcolor: '#ffffff', color: TEAL_DARK, border: '1px solid rgba(13,148,136,0.3)' }}
               />
             </Box>
 
             {/* Grid de Alternância de Casos */}
             <Box sx={{ px: { xs: 2, sm: 2.5 }, py: 1.75, bgcolor: '#fbfcfd', borderBottom: '1px solid rgba(15,95,90,0.08)' }}>
-              <Typography sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', mb: 1.25, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', mb: 1.25, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Selecione o cenário clínico do atleta:
               </Typography>
               <Box sx={{
@@ -266,17 +266,17 @@ export const SportsLandingPage: React.FC = () => {
                           width: 18, height: 18, borderRadius: '50%',
                           bgcolor: active ? TEAL_DARK : 'rgba(15,95,90,0.12)',
                           color: active ? '#ffffff' : INK,
-                          fontSize: 10, fontWeight: 800,
+                          fontSize: 12, fontWeight: 800,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           flexShrink: 0
                         }}>
                           {item.num}
                         </Box>
-                        <Typography sx={{ fontSize: { xs: 11.5, sm: 12 }, fontWeight: 800, color: active ? TEAL_DARK : 'text.primary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <Typography sx={{ fontSize: { xs: 12, sm: 12 }, fontWeight: 800, color: active ? TEAL_DARK : 'text.primary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {item.name}
                         </Typography>
                       </Stack>
-                      <Typography sx={{ fontSize: 10, color: active ? INK : 'text.secondary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', pl: { xs: 0, sm: 3 } }}>
+                      <Typography sx={{ fontSize: 12, color: active ? INK : 'text.secondary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', pl: { xs: 0, sm: 3 } }}>
                         {item.sub}
                       </Typography>
                     </Box>
@@ -293,7 +293,7 @@ export const SportsLandingPage: React.FC = () => {
                   <Typography sx={{ fontSize: { xs: 17, sm: 19 }, fontWeight: 800, color: 'text.primary', lineHeight: 1.3 }}>
                     {scenario.markerName}
                   </Typography>
-                  <Chip label="Laudo Sabin · 02/10/2026" size="small" sx={{ height: 22, fontSize: 10.5, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary' }} />
+                  <Chip label="Laudo Sabin · 02/10/2026" size="small" sx={{ height: 22, fontSize: 12, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary' }} />
                 </Stack>
 
                 <Box sx={{ bgcolor: 'rgba(15,95,90,0.04)', border: '1px solid rgba(15,95,90,0.08)', borderRadius: '10px', px: 1.5, py: 1, mt: 0.5 }}>
@@ -313,7 +313,7 @@ export const SportsLandingPage: React.FC = () => {
                     {scenario.unit}
                   </Typography>
                 </Stack>
-                <Box sx={{ px: 1.5, py: 0.6, borderRadius: '8px', bgcolor: scenario.statusBg, color: scenario.statusColor, fontWeight: 800, fontSize: { xs: 11.5, sm: 12.5 }, display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
+                <Box sx={{ px: 1.5, py: 0.6, borderRadius: '8px', bgcolor: scenario.statusBg, color: scenario.statusColor, fontWeight: 800, fontSize: { xs: 12, sm: 12.5 }, display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
                   <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: scenario.statusColor }} />
                   {scenario.status}
                 </Box>
@@ -322,19 +322,19 @@ export const SportsLandingPage: React.FC = () => {
               {/* Régua de 4 Camadas */}
               <Box sx={{ mb: 2.5, bgcolor: '#fbfcfd', p: { xs: 1.5, sm: 2 }, borderRadius: '12px', border: '1px solid #eef2f6' }}>
                 <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={0.75} sx={{ mb: 1.25 }}>
-                  <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.primary' }}>Régua Fisiológica de 4 Camadas (Dr. Exame)</Typography>
+                  <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.primary' }}>Régua Fisiológica de 4 Camadas (Dr. Exame)</Typography>
                   <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
                     <Stack direction="row" spacing={0.5} alignItems="center">
                       <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: '#cbd5e1' }} />
-                      <Typography sx={{ fontSize: 10.5, color: 'text.secondary' }}>Lab Convencional</Typography>
+                      <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Lab Convencional</Typography>
                     </Stack>
                     <Stack direction="row" spacing={0.5} alignItems="center">
                       <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: '#b88a54' }} />
-                      <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: '#b88a54' }}>Meta do seu médico</Typography>
+                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#b88a54' }}>Meta do seu médico</Typography>
                     </Stack>
                     <Stack direction="row" spacing={0.5} alignItems="center">
                       <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: TEAL_DARK }} />
-                      <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: TEAL_DARK }}>Seu Laudo</Typography>
+                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: TEAL_DARK }}>Seu Laudo</Typography>
                     </Stack>
                   </Stack>
                 </Stack>
@@ -345,9 +345,9 @@ export const SportsLandingPage: React.FC = () => {
                   <Box sx={{ position: 'absolute', top: -5, left: scenario.rulerPinLeft, width: 6, height: 22, bgcolor: TEAL_DARK, borderRadius: '3px', transform: 'translateX(-50%)', boxShadow: '0 2px 6px rgba(0,0,0,0.3)', transition: 'left 0.3s ease' }} />
                 </Box>
 
-                <Stack direction="row" justifyContent="space-between" sx={{ fontSize: 11, color: 'text.secondary', mt: 0.5 }}>
-                  <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{scenario.labRef}</Typography>
-                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#b88a54' }}>{scenario.targetRef}</Typography>
+                <Stack direction="row" justifyContent="space-between" sx={{ fontSize: 12, color: 'text.secondary', mt: 0.5 }}>
+                  <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{scenario.labRef}</Typography>
+                  <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#b88a54' }}>{scenario.targetRef}</Typography>
                 </Stack>
               </Box>
 
@@ -418,7 +418,7 @@ export const SportsLandingPage: React.FC = () => {
                   boxShadow: '0 4px 16px rgba(15,95,90,0.03)'
                 }}
               >
-                <Chip label={guide.tag} size="small" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.08)', color: INK, mb: 1.5 }} />
+                <Chip label={guide.tag} size="small" sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.08)', color: INK, mb: 1.5 }} />
                 <Typography variant="h3" sx={{ fontSize: 18, fontWeight: 800, color: 'text.primary', mb: 1.5, lineHeight: 1.35 }}>
                   {guide.title}
                 </Typography>

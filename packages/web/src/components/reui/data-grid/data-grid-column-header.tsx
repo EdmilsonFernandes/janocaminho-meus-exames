@@ -167,13 +167,17 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
     }
   }
 
+  // DESVIO LOCAL (11/11): no ReUI `secondary` é superfície neutra; aqui `--secondary` é o cobre da
+  // marca com texto branco, então `text-secondary-foreground` deixava o cabeçalho ordenável branco
+  // sobre fundo claro (ilegível). Usa foreground/accent, e bg-transparent porque a ilha Tailwind
+  // roda sem preflight (o <button> herdava o cinza padrão do navegador).
   const headerLabelClassName = cn(
-    "text-secondary-foreground/80 inline-flex h-full items-center gap-1.5 font-normal [&_svg]:opacity-60 text-[0.8125rem] leading-[calc(1.125/0.8125)] [&_svg]:size-3.5",
+    "text-foreground/80 inline-flex h-full items-center gap-1.5 font-normal [&_svg]:opacity-60 text-[0.8125rem] leading-[calc(1.125/0.8125)] [&_svg]:size-3.5",
     className
   )
 
   const headerButtonClassName = cn(
-    "text-secondary-foreground/80 hover:bg-secondary data-[state=open]:bg-secondary hover:text-foreground data-[state=open]:text-foreground px-2 font-normal h-6 rounded-lg",
+    "bg-transparent text-foreground/80 hover:bg-accent data-[state=open]:bg-accent hover:text-foreground data-[state=open]:text-foreground px-2 font-normal h-6 rounded-lg",
     className
   )
 

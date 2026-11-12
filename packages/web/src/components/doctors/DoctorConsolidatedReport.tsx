@@ -178,7 +178,7 @@ ${exams ? `<h2>Exames considerados (${sourceExams.length})</h2><ul>${exams}</ul>
                     </Badge>
                   </div>
                   {createdAt && (
-                    <p className="text-[11.5px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Gerado em {createdAt}
                       {analysis?.structured?.recency?.baseDate
                         ? ` · Exame mais recente: ${analysis.structured.recency.baseDate}`
@@ -206,7 +206,7 @@ ${exams ? `<h2>Exames considerados (${sourceExams.length})</h2><ul>${exams}</ul>
               <div className="flex items-start gap-3">
                 <DrExame size={34} sx={{ borderRadius: '50%', flexShrink: 0, mt: 0.25 }} />
                 <div className="min-w-0 flex-1 space-y-1.5">
-                  <div className="text-[11px] font-extrabold uppercase tracking-wider text-primary">
+                  <div className="text-xs font-extrabold uppercase tracking-wider text-primary">
                     Síntese clínica dos exames compartilhados
                   </div>
                   {resumo && (
@@ -230,7 +230,7 @@ ${exams ? `<h2>Exames considerados (${sourceExams.length})</h2><ul>${exams}</ul>
                 </div>
               )}
             </FramePanel>
-            <FrameFooter className="px-4 py-2 text-[11px] text-muted-foreground flex items-center justify-between flex-wrap gap-2">
+            <FrameFooter className="px-4 py-2 text-xs text-muted-foreground flex items-center justify-between flex-wrap gap-2">
               <span>Análise educativa estruturada — apoia a revisão clínica e não substitui conduta médica.</span>
               {sourceExams.length > 0 && (
                 <span className="font-semibold text-foreground">{sourceExams.length} laudos analisados</span>

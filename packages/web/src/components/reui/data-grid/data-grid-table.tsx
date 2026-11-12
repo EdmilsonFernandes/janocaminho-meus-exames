@@ -2761,7 +2761,8 @@ function DataGridTableRowExpand<TData extends object>({
             row.toggleExpanded()
           }}
           className={cn(
-            "text-muted-foreground hover:text-foreground rounded-lg inline-flex items-center justify-center transition-colors",
+            // border-0/bg-transparent/cursor: ilha Tailwind sem preflight — o <button> herdava borda e cinza do navegador.
+            "text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg inline-flex cursor-pointer items-center justify-center border-0 bg-transparent p-0 transition-colors",
             controlSize
           )}
         >

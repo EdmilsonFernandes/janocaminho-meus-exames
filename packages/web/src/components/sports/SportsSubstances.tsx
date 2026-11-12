@@ -70,7 +70,7 @@ export const SportsSubstances = ({ substances, onDeclare }: { substances: Declar
                   <Stack direction="row" spacing={0.5} alignItems="center" useFlexGap flexWrap="wrap">
                     <Typography sx={{ fontWeight: 800, fontSize: 13.5, lineHeight: 1.2, wordBreak: 'break-word' }}>{s.name}</Typography>
                     {s.dosage && (
-                      <Chip size="small" label={`dose declarada`} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: alpha(tint, 0.12), color: 'text.secondary' }} />
+                      <Chip size="small" label={`dose declarada`} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: alpha(tint, 0.12), color: 'text.secondary' }} />
                     )}
                   </Stack>
                   <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.35 }}>

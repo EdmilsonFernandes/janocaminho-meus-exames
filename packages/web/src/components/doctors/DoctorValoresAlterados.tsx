@@ -209,7 +209,7 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
               label={plural(g.items.length, 'alterado')}
               sx={{
                 fontWeight: 800,
-                fontSize: 11,
+                fontSize: 12,
                 height: 24,
                 bgcolor: alpha(meta.color, 0.12),
                 color: meta.color,
@@ -228,7 +228,7 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
                   <Chip
                     size="small"
                     label={`✓ Normalizado em exame mais recente${it.latestValueText ? ` (${it.latestValueText})` : ''}`}
-                    sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.12)', color: '#059669', border: '1px solid rgba(16,185,129,0.3)' }}
+                    sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.12)', color: '#059669', border: '1px solid rgba(16,185,129,0.3)' }}
                   />
                 ) : <span />}
                 {doctorId && (
@@ -526,7 +526,7 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
                         <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.25 }}>
                           {showAll ? 'Recolher para os 3 mais recentes' : `Histórico de alterações (+${hiddenGroups.length})`}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: 11.5 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: 12 }}>
                           {showAll ? 'Exibindo todo o histórico' : `Exames anteriores com parâmetros fora da faixa`}
                         </Typography>
                       </Box>

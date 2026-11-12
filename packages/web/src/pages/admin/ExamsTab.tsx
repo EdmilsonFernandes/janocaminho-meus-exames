@@ -40,6 +40,9 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { API_URL, token, photoUrlFor } from '../../config';
 import { TabLoader, SectionError } from './parts';
+import { snackbar } from '../../components/ConfirmDialog';
+import { ListEmpty } from '@/components/reui/list-empty';
+import { tealText } from '../../theme';
 
 const initials = (name?: string | null): string => {
   if (!name) return '?';
@@ -257,10 +260,10 @@ export const ExamsTab = () => {
         setTimeout(() => setToastMsg(null), 3500);
         setDiagExam(null);
       } else {
-        alert('Erro ao salvar diagnóstico');
+        snackbar({ message: 'Não foi possível salvar o diagnóstico. Tente de novo.', severity: 'error' });
       }
     } catch {
-      alert('Erro de conexão');
+      snackbar({ message: 'Sem conexão com o servidor. Verifique a rede e tente de novo.', severity: 'error' });
     } finally {
       setSaveBusy(false);
     }
@@ -285,10 +288,10 @@ export const ExamsTab = () => {
         setTimeout(() => setToastMsg(null), 3500);
         setDiagExam(null);
       } else {
-        alert('Não foi possível reprocessar este exame.');
+        snackbar({ message: 'Não foi possível reprocessar este exame.', severity: 'error' });
       }
     } catch {
-      alert('Erro de conexão ao reprocessar.');
+      snackbar({ message: 'Sem conexão com o servidor. O exame não foi reprocessado.', severity: 'error' });
     } finally {
       setReprocessBusy(false);
     }
@@ -504,7 +507,7 @@ export const ExamsTab = () => {
         <Stack spacing={2}>
           {patientGroups.length === 0 ? (
             <Paper sx={{ p: 4, textAlign: 'center', borderRadius: '16px' }}>
-              <Typography color="text.secondary">Nenhum exame encontrado com os filtros atuais.</Typography>
+              <ListEmpty title="Nenhum exame encontrado" description="Ajuste a busca ou o filtro de status." />
             </Paper>
           ) : (
             patientGroups.map((group) => {
@@ -575,7 +578,7 @@ export const ExamsTab = () => {
                             size="small"
                             color="success"
                             label={`${extractedCount} ok`}
-                            sx={{ height: 22, fontSize: 11, fontWeight: 700 }}
+                            sx={{ height: 22, fontSize: 12, fontWeight: 700 }}
                           />
                         )}
                         {failCount > 0 && (
@@ -583,7 +586,7 @@ export const ExamsTab = () => {
                             size="small"
                             color="error"
                             label={`${failCount} com falha`}
-                            sx={{ height: 22, fontSize: 11, fontWeight: 800 }}
+                            sx={{ height: 22, fontSize: 12, fontWeight: 800 }}
                           />
                         )}
                         <IconButton size="small" sx={{ color: 'text.secondary' }}>
@@ -614,7 +617,7 @@ export const ExamsTab = () => {
                                     size="small"
                                     color={STATUS_COLOR[e.status] ?? 'default'}
                                     label={statusLabel(e.status)}
-                                    sx={{ height: 20, fontSize: 11, fontWeight: 800 }}
+                                    sx={{ height: 20, fontSize: 12, fontWeight: 800 }}
                                   />
                                   <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: 'text.primary' }}>
                                     {e.title || 'Sem título'}
@@ -624,18 +627,18 @@ export const ExamsTab = () => {
                                   </Typography>
                                 </Stack>
 
-                                <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                                <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
                                   Data do Exame: {e.performedAt ? new Date(e.performedAt).toLocaleDateString('pt-BR') : 'Não informada'} · Cadastrado em: {new Date(e.createdAt).toLocaleDateString('pt-BR')} {new Date(e.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                 </Typography>
 
                                 {/* Se houve erro na extração */}
                                 {e.status === 'FAILED' && (
                                   <Box sx={{ mt: 1, p: 1, borderRadius: '8px', bgcolor: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                                    <Typography sx={{ fontSize: 11.5, color: 'error.main', fontWeight: 600, wordBreak: 'break-word' }}>
+                                    <Typography sx={{ fontSize: 12, color: 'error.main', fontWeight: 600, wordBreak: 'break-word' }}>
                                       ⚠️ {e.extractionError || 'Erro desconhecido durante o processamento do documento.'}
                                     </Typography>
                                     {e.rawExtraction?.adminReview && (
-                                      <Typography sx={{ fontSize: 11, color: 'text.secondary', mt: 0.5 }}>
+                                      <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.5 }}>
                                         🔍 Diagnóstico Salvo: <strong>{e.rawExtraction.adminReview.failureReason}</strong>
                                         {e.rawExtraction.adminReview.adminNotes ? ` — "${e.rawExtraction.adminReview.adminNotes}"` : ''}
                                       </Typography>
@@ -654,7 +657,7 @@ export const ExamsTab = () => {
                                     startIcon={<BugReportIcon sx={{ fontSize: 15 }} />}
                                     onClick={() => openDiagnostic(e)}
                                     sx={{
-                                      fontSize: 11.5,
+                                      fontSize: 12,
                                       fontWeight: 800,
                                       textTransform: 'none',
                                       borderRadius: '8px',
@@ -671,7 +674,7 @@ export const ExamsTab = () => {
                                   startIcon={<AutorenewIcon sx={{ fontSize: 15 }} />}
                                   onClick={() => reprocessExam(e.id)}
                                   sx={{
-                                    fontSize: 11.5,
+                                    fontSize: 12,
                                     fontWeight: 700,
                                     textTransform: 'none',
                                     borderRadius: '8px',
@@ -704,7 +707,7 @@ export const ExamsTab = () => {
                     size="small"
                     color={STATUS_COLOR[e.status] ?? 'default'}
                     label={statusLabel(e.status)}
-                    sx={{ height: 22, fontSize: 11.5, fontWeight: 700 }}
+                    sx={{ height: 22, fontSize: 12, fontWeight: 700 }}
                   />
                   <Typography sx={{ fontWeight: 700, flex: 1, minWidth: 0, wordBreak: 'break-word', fontSize: 14 }}>
                     {e.title || 'Sem título'}
@@ -716,7 +719,7 @@ export const ExamsTab = () => {
 
                 <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
-                    <Avatar src={e.patient?.id ? photoUrlFor(e.patient.id, e.patient?.photoUrl) : undefined} sx={{ width: 22, height: 22, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.12)', color: '#0d9488' }}>
+                    <Avatar src={e.patient?.id ? photoUrlFor(e.patient.id, e.patient?.photoUrl) : undefined} sx={{ width: 22, height: 22, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.12)', color: (t) => tealText(t.palette.mode) }}>
                       {initials(e.patient?.fullName ?? '?')}
                     </Avatar>
                     <strong>{e.patient?.fullName ?? 'Paciente Não Identificado'}</strong> · {new Date(e.createdAt).toLocaleDateString('pt-BR')} {new Date(e.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
@@ -730,7 +733,7 @@ export const ExamsTab = () => {
                         variant="outlined"
                         startIcon={<BugReportIcon sx={{ fontSize: 15 }} />}
                         onClick={() => openDiagnostic(e)}
-                        sx={{ fontSize: 11, fontWeight: 700, textTransform: 'none', height: 26, borderRadius: '6px' }}
+                        sx={{ fontSize: 12, fontWeight: 700, textTransform: 'none', height: 26, borderRadius: '6px' }}
                       >
                         {e.rawExtraction?.adminReview ? 'Ver Diagnóstico' : 'Diagnosticar'}
                       </Button>
@@ -740,7 +743,7 @@ export const ExamsTab = () => {
                       variant="outlined"
                       startIcon={<AutorenewIcon sx={{ fontSize: 15 }} />}
                       onClick={() => reprocessExam(e.id)}
-                      sx={{ fontSize: 11, fontWeight: 700, textTransform: 'none', height: 26, borderRadius: '6px' }}
+                      sx={{ fontSize: 12, fontWeight: 700, textTransform: 'none', height: 26, borderRadius: '6px' }}
                     >
                       Reprocessar
                     </Button>
@@ -796,7 +799,7 @@ export const ExamsTab = () => {
                       size="small"
                       startIcon={<ContentCopyIcon sx={{ fontSize: 13 }} />}
                       onClick={() => copyErrorText(diagExam.extractionError || '')}
-                      sx={{ fontSize: 11, textTransform: 'none' }}
+                      sx={{ fontSize: 12, textTransform: 'none' }}
                     >
                       {copiedError ? 'Copiado!' : 'Copiar'}
                     </Button>
@@ -809,7 +812,7 @@ export const ExamsTab = () => {
                     maxHeight: 120,
                     overflowY: 'auto',
                     fontFamily: 'monospace',
-                    fontSize: 11.5,
+                    fontSize: 12,
                     bgcolor: (t) => (t.palette.mode === 'dark' ? '#111' : '#fef2f2'),
                     borderColor: 'rgba(239,68,68,0.3)',
                     color: (t) => (t.palette.mode === 'dark' ? '#fca5a5' : '#b91c1c'),
@@ -852,7 +855,7 @@ export const ExamsTab = () => {
               {/* Informações da última revisão */}
               {diagExam.rawExtraction?.adminReview && (
                 <Box sx={{ p: 1, borderRadius: '8px', bgcolor: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)' }}>
-                  <Typography sx={{ fontSize: 11, color: 'success.main', fontWeight: 700 }}>
+                  <Typography sx={{ fontSize: 12, color: 'success.main', fontWeight: 700 }}>
                     ✓ Já diagnosticado anteriormente por {diagExam.rawExtraction.adminReview.reviewedBy} em{' '}
                     {new Date(diagExam.rawExtraction.adminReview.reviewedAt).toLocaleString('pt-BR')}
                   </Typography>

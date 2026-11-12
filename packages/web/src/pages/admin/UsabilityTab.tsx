@@ -14,6 +14,8 @@ import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-colu
 import { Badge } from '@/components/reui/badge';
 import { API_URL, token } from '../../config';
 import '../../doctor-v2/tw.css';
+import { ListEmpty } from '@/components/reui/list-empty';
+import { tealText } from '../../theme';
 
 type Category = 'clinico' | 'ia' | 'rotina' | 'conta';
 interface RecentUser { email: string; name: string; at: string | null }
@@ -76,7 +78,7 @@ function AdoptionGrid({ rows }: { rows: FeatureRow[] }) {
       meta: { expandedContent: (row: FeatureRow) => <RecentUsers feat={row} /> },
     },
     {
-      accessorKey: 'label',
+      accessorKey: 'label', size: 240,
       header: (c) => <DataGridColumnHeader column={c.column as any} title="Funcionalidade" />,
       cell: (c) => {
         const f = c.row.original as FeatureRow;
@@ -90,17 +92,17 @@ function AdoptionGrid({ rows }: { rows: FeatureRow[] }) {
       },
     },
     {
-      accessorKey: 'users',
+      accessorKey: 'users', size: 100,
       header: (c) => <DataGridColumnHeader column={c.column as any} title="Usuários" />,
       cell: (c) => <span className="text-[13.5px] font-extrabold tabular-nums text-foreground">{(c.getValue() as number).toLocaleString('pt-BR')}</span>,
     },
     {
-      id: 'users30', accessorFn: (r: FeatureRow) => r.users30 ?? 0,
+      id: 'users30', size: 110, accessorFn: (r: FeatureRow) => r.users30 ?? 0,
       header: (c) => <DataGridColumnHeader column={c.column as any} title="Ativos 30d" />,
       cell: (c) => <span className="text-[13px] font-semibold tabular-nums text-muted-foreground">{(c.getValue() as number).toLocaleString('pt-BR')}</span>,
     },
     {
-      accessorKey: 'pct',
+      accessorKey: 'pct', size: 170,
       header: (c) => <DataGridColumnHeader column={c.column as any} title="% da base" />,
       cell: (c) => {
         const pct = c.getValue() as number;
@@ -117,7 +119,7 @@ function AdoptionGrid({ rows }: { rows: FeatureRow[] }) {
       },
     },
     {
-      id: 'lastAt', accessorFn: (r: FeatureRow) => (r.lastAt ? new Date(r.lastAt).getTime() : 0),
+      id: 'lastAt', size: 150, accessorFn: (r: FeatureRow) => (r.lastAt ? new Date(r.lastAt).getTime() : 0),
       header: (c) => <DataGridColumnHeader column={c.column as any} title="Último uso" />,
       cell: (c) => <span className="whitespace-nowrap text-xs tabular-nums text-muted-foreground">{fmt((c.row.original as FeatureRow).lastAt)}</span>,
     },
@@ -133,7 +135,7 @@ function AdoptionGrid({ rows }: { rows: FeatureRow[] }) {
   });
 
   if (rows.length === 0) {
-    return <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">Nenhuma funcionalidade encontrada.</div>;
+    return <ListEmpty title="Nenhuma funcionalidade encontrada" description="Ajuste a busca ou a categoria." />;
   }
   return (
     <DataGrid
@@ -224,7 +226,7 @@ export const UsabilityTab = () => {
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 1.5 }}>
         <Box>
           <Stack direction="row" spacing={1} alignItems="center">
-            <InsightsIcon sx={{ color: '#20b2aa', fontSize: 28 }} />
+            <InsightsIcon sx={{ color: (t) => tealText(t.palette.mode), fontSize: 28 }} />
             <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>
               Adoção de Funcionalidades
             </Typography>
@@ -281,7 +283,7 @@ export const UsabilityTab = () => {
           <Card key={a.label} variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper' }}>
             <CardContent sx={{ p: 2.25 }}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block' }}>{a.label}</Typography>
-              <Typography sx={{ fontSize: { xs: 26, sm: 30 }, fontWeight: 800, color: '#178f89', lineHeight: 1.1 }}>
+              <Typography sx={{ fontSize: { xs: 26, sm: 30 }, fontWeight: 800, color: (t) => tealText(t.palette.mode), lineHeight: 1.1 }}>
                 {a.value.toLocaleString('pt-BR')}
               </Typography>
             </CardContent>
@@ -341,7 +343,7 @@ export const UsabilityTab = () => {
           })}
         </Stack>
 
-        <AdoptionGrid rows={filteredFeatures} />
+        <div className="dx-island"><AdoptionGrid rows={filteredFeatures} /></div>
       </Box>
     </Stack>
   );

@@ -154,7 +154,7 @@ export const FeedbackTab = () => {
               { label: 'Participação', value: `${pct(summary.participants, summary.eligibleBase.users + summary.eligibleBase.doctors)}%`, hint: 'participantes ÷ base' },
             ].map((k) => (
               <Frame key={k.label} spacing="sm"><FramePanel className="flex flex-col gap-0.5">
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{k.label}</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{k.label}</span>
                 <span className="text-2xl font-extrabold text-foreground" style={{ fontFamily: 'Poppins, sans-serif' }} data-testid={`kpi-${k.label}`}>{k.value}</span>
                 <span className="text-xs text-muted-foreground">{k.hint}</span>
               </FramePanel></Frame>
@@ -234,7 +234,7 @@ export const FeedbackTab = () => {
                     <Tooltip key={w.week} title={`Semana de ${new Date(w.week).toLocaleDateString('pt-BR')}: ${w.total} respostas · ${pct(w.done, w.total)}% conseguiu`}>
                       <div className="flex w-9 shrink-0 flex-col items-center gap-1">
                         <div className="w-full rounded-t-md bg-primary/25" style={{ height: Math.max(6, (w.total / max) * 60) }}><div className="w-full rounded-t-md bg-primary" style={{ height: `${pct(w.done, w.total)}%` }} /></div>
-                        <span className="text-[10px] text-muted-foreground">{new Date(w.week).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
+                        <span className="text-xs text-muted-foreground">{new Date(w.week).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
                       </div>
                     </Tooltip>
                   );

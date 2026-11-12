@@ -188,7 +188,7 @@ export const WalletPage = () => {
               </Typography>
               <Box sx={{ flexGrow: 1 }} />
               {status?.active && premUntil && (
-                <Chip size="small" label={`Premium até ${premUntil}`} sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 700, fontSize: 11, height: 24 }} />
+                <Chip size="small" label={`Premium até ${premUntil}`} sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 700, fontSize: 12, height: 24 }} />
               )}
             </Box>
             {status == null ? (
@@ -254,7 +254,7 @@ export const WalletPage = () => {
                   <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 18, sm: 20 }, fontVariantNumeric: 'tabular-nums' }}>
                     {s.value.toLocaleString('pt-BR')}
                   </Typography>
-                  <Typography sx={{ fontSize: 11, color: on ? '#0f6e68' : 'text.secondary', fontWeight: on ? 800 : 600 }}>{s.label}</Typography>
+                  <Typography sx={{ fontSize: 12, color: on ? '#0f6e68' : 'text.secondary', fontWeight: on ? 800 : 600 }}>{s.label}</Typography>
                 </CardContent>
               </Card>
             );
@@ -319,7 +319,7 @@ export const WalletPage = () => {
                       <Typography sx={{ fontSize: 13.5, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {t.label}
                       </Typography>
-                      <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                      <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
                         {relDate(t.createdAt)}
                       </Typography>
                     </Box>

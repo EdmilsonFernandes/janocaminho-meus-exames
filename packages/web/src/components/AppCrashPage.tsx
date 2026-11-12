@@ -44,7 +44,7 @@ export const AppCrashPage = ({ error, resetErrorBoundary }: {
       {/* Detalhe técnico discreto: o dono/suporte precisa do erro real pra reportar, sem assustar o usuário. */}
       <Box component="details" sx={{ mt: 3, maxWidth: 420, color: 'text.disabled', fontSize: 12, textAlign: 'left' }}>
         <Box component="summary" sx={{ cursor: 'pointer', textAlign: 'center' }}>Detalhes técnicos</Box>
-        <Box component="pre" sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', m: 0, mt: 1, fontSize: 11, fontFamily: 'ui-monospace, Menlo, Consolas, monospace' }}>
+        <Box component="pre" sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', m: 0, mt: 1, fontSize: 12, fontFamily: 'ui-monospace, Menlo, Consolas, monospace' }}>
           {String(error?.message || error)}
         </Box>
       </Box>

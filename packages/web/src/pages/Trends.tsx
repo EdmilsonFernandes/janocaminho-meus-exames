@@ -22,6 +22,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import { Frame, FrameHeader, FramePanel } from '@/components/reui/frame';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
+import { ListEmpty } from '@/components/reui/list-empty';
 
 /** Valor numérico p/ exibição (4 casas, vírgula decimal) — evita floats longos da conversão (91.33627999...). */
 const fmtNum = (n: number | null | undefined) => n == null ? '—' : String(Number(n.toFixed(4))).replace('.', ',');
@@ -277,7 +278,7 @@ export const TrendsPage = () => {
       )}
       {!loading && ts && ts.points.length === 0 && sel && (
         <Card sx={{ borderRadius: '20px', textAlign: 'center', py: 4 }}>
-          <CardContent><Typography color="text.secondary">Sem pontos numéricos para este analito.</Typography></CardContent>
+          <CardContent><ListEmpty title="Sem pontos numéricos para este analito" /></CardContent>
         </Card>
       )}
     </PageContainer>

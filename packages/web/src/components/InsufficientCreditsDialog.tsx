@@ -211,6 +211,6 @@ export const InsufficientCreditsDialog = () => {
 const StackRow = ({ label, chip }: { label: string; chip: string }) => (
   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
     <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{label}</Typography>
-    <Chip size="small" label={chip} sx={{ height: 20, fontSize: 10.5, fontWeight: 800, bgcolor: 'rgba(212,165,116,.18)', color: '#b88a54' }} />
+    <Chip size="small" label={chip} sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(212,165,116,.18)', color: '#b88a54' }} />
   </Box>
 );

@@ -113,7 +113,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, markerCount, onD
         {/* Cabeçalho: "Score de Saúde" + (?) ajuda — explica o que é esse número pro leigo */}
         <Stack direction="row" alignItems="center" sx={{ mb: 1.25 }}>
           <MonitorHeartIcon sx={{ color: 'primary.main', fontSize: 18, mr: 0.75 }} />
-          <Typography variant="overline" sx={{ lineHeight: 1, color: 'text.secondary', fontSize: { xs: 10, sm: 11 }, letterSpacing: '-0.01em' }}>Score de Saúde</Typography>
+          <Typography variant="overline" sx={{ lineHeight: 1, color: 'text.secondary', fontSize: { xs: 12, sm: 12 }, letterSpacing: '-0.01em' }}>Score de Saúde</Typography>
           <IconButton size="small" onClick={(e) => setHelp(e.currentTarget)} sx={{ ml: 'auto', p: 0.25, color: 'primary.main' }} aria-label="O que é o Score de Saúde?" title="O que é o Score de Saúde?"><HelpOutlineIcon sx={{ fontSize: 16 }} /></IconButton>
         </Stack>
         {/* gauge + VEREDITO (herói) lado a lado. O número 76 apoia; a frase é o que se entende "batendo o olho". */}
@@ -122,7 +122,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, markerCount, onD
             <Gauge value={score} color={color} />
             <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', px: 0.5, minWidth: 0, pointerEvents: 'none' }}>
               <Typography noWrap sx={{ fontWeight: 800, fontSize: { xs: 28, sm: 36 }, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{displayScore}</Typography>
-              <Typography noWrap variant="caption" color="text.secondary" sx={{ lineHeight: 1, fontSize: { xs: 9, sm: 11 } }}>de 100</Typography>
+              <Typography noWrap variant="caption" color="text.secondary" sx={{ lineHeight: 1, fontSize: { xs: 12, sm: 12 } }}>de 100</Typography>
             </Box>
           </Box>
           <Box sx={{ flex: '1 1 0', minWidth: 0 }}>
@@ -131,7 +131,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, markerCount, onD
           </Box>
         </Stack>
         {/* TRANSPARÊNCIA: baseado em quê? + disclaimer — constrói confiança (sem isso, 76 parece inventado). */}
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5, fontSize: { xs: 10.5, sm: 11.5 }, lineHeight: 1.45 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5, fontSize: { xs: 12, sm: 12 }, lineHeight: 1.45 }}>
           Baseado em {markerCount ? `${markerCount} ` : ''}marcadores dos seus exames mais recentes. *Educativo — não substitui avaliação médica.
         </Typography>
         <Box sx={{ mt: 1.25 }}>

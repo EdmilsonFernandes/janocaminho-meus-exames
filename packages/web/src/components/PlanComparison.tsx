@@ -28,7 +28,7 @@ const CellValueView = ({ v }: { v: CellValue }) => {
       <path d="M4 7h6" stroke="currentColor" strokeWidth={2} strokeLinecap="round" style={{ color: 'rgba(128,128,128,.6)' }} />
     </svg>
   );
-  return <Typography component="span" sx={{ fontSize: 10.5, fontWeight: 700, textAlign: 'center', lineHeight: 1.3 }}>{v}</Typography>;
+  return <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, textAlign: 'center', lineHeight: 1.3 }}>{v}</Typography>;
 };
 
 /** Linha/grupa que dobra: 1fr↔0fr com overflow hidden (u217-rw / u217-gp). */
@@ -54,7 +54,7 @@ const DiffSwitch = ({ on, onToggle }: { on: boolean; onToggle: () => void }) => 
       border: 0, borderRadius: 99, cursor: 'pointer', fontFamily: 'inherit',
       bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.03)',
       boxShadow: (t) => `inset 0 0 0 1px ${t.palette.divider}`,
-      color: 'text.secondary', fontSize: 10.5, fontWeight: 700,
+      color: 'text.secondary', fontSize: 12, fontWeight: 700,
       '&:focus-visible': { outline: '2px solid #20b2aa', outlineOffset: 2 },
     }}
   >
@@ -121,7 +121,7 @@ export const PlanComparison = ({ title, columns, groups }: {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                   <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15, flex: 1 }}>{c.name}</Typography>
                   {c.badge && (
-                    <Box component="span" sx={{ fontSize: 9, fontWeight: 800, letterSpacing: '.06em', px: '6px', py: '2px', borderRadius: 99, bgcolor: '#d4a574', color: '#3d2a05' }}>
+                    <Box component="span" sx={{ fontSize: 12, fontWeight: 800, letterSpacing: '.06em', px: '6px', py: '2px', borderRadius: 99, bgcolor: '#d4a574', color: '#3d2a05' }}>
                       {c.badge}
                     </Box>
                   )}
@@ -129,18 +129,18 @@ export const PlanComparison = ({ title, columns, groups }: {
                     {c.price}
                   </Typography>
                 </Box>
-                <Typography sx={{ fontSize: 11, color: 'text.disabled', fontWeight: 700, mt: '2px' }}>{c.period}</Typography>
+                <Typography sx={{ fontSize: 12, color: 'text.disabled', fontWeight: 700, mt: '2px' }}>{c.period}</Typography>
                 <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column' }}>
                   {decorated.map((g) => {
                     const rows = g.rows.filter((r) => !r.off);
                     if (!rows.length) return null;
                     return (
                       <Box key={g.title} sx={{ mb: 0.75 }} aria-hidden={false}>
-                        <Typography sx={{ fontSize: 9, fontWeight: 800, letterSpacing: '.06em', color: tealText(t.palette.mode) }}>{g.title}</Typography>
+                        <Typography sx={{ fontSize: 12, fontWeight: 800, letterSpacing: '.06em', color: tealText(t.palette.mode) }}>{g.title}</Typography>
                         {rows.map((r) => (
                           <Box key={r.label} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, minHeight: 32, borderBottom: `1px solid ${t.palette.divider}` }}>
-                            <Typography component="span" sx={{ fontSize: 11.5, color: 'text.secondary' }}>{r.label}</Typography>
-                            <Box component="span" sx={{ fontSize: 11.5, fontWeight: 700, textAlign: 'right', display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                            <Typography component="span" sx={{ fontSize: 12, color: 'text.secondary' }}>{r.label}</Typography>
+                            <Box component="span" sx={{ fontSize: 12, fontWeight: 700, textAlign: 'right', display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                               <CellValueView v={r.cells[i]} />
                             </Box>
                           </Box>
@@ -194,9 +194,9 @@ export const PlanComparison = ({ title, columns, groups }: {
                   </Box>
                 )}
                 <Typography component="b" sx={{ fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap' }}>{c.name}</Typography>
-                <Typography component="small" sx={{ fontSize: 9.5, fontWeight: 700, color: 'text.disabled', fontVariantNumeric: 'tabular-nums' }}>{c.period}</Typography>
+                <Typography component="small" sx={{ fontSize: 12, fontWeight: 700, color: 'text.disabled', fontVariantNumeric: 'tabular-nums' }}>{c.period}</Typography>
                 <Box component="span" sx={{
-                  mt: '4px', height: 22, px: '9px', borderRadius: 99, lineHeight: '22px', fontSize: 9.5, fontWeight: 800,
+                  mt: '4px', height: 22, px: '9px', borderRadius: 99, lineHeight: '22px', fontSize: 12, fontWeight: 800,
                   whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums',
                   boxShadow: hot ? 'none' : `inset 0 0 0 1px ${t.palette.divider}`,
                   bgcolor: hot ? 'text.primary' : 'transparent',
@@ -215,7 +215,7 @@ export const PlanComparison = ({ title, columns, groups }: {
           return (
             <Fold key={g.title} off={visible === 0}>
               <Box>
-                <Typography sx={{ px: '6px', pt: '14px', pb: '4px', fontSize: 10, fontWeight: 800, letterSpacing: '.06em', color: tealText(t.palette.mode) }}>
+                <Typography sx={{ px: '6px', pt: '14px', pb: '4px', fontSize: 12, fontWeight: 800, letterSpacing: '.06em', color: tealText(t.palette.mode) }}>
                   {g.title}
                 </Typography>
                 {g.rows.map((r) => (
@@ -224,7 +224,7 @@ export const PlanComparison = ({ title, columns, groups }: {
                       display: 'grid', gridTemplateColumns: '1fr 68px 68px 68px', alignItems: 'center',
                       minHeight: 34, borderBottom: `1px solid ${t.palette.divider}`,
                     }}>
-                      <Typography component="span" sx={{ px: '6px', fontSize: 11, fontWeight: 600, color: 'text.secondary', lineHeight: 1.3 }}>{r.label}</Typography>
+                      <Typography component="span" sx={{ px: '6px', fontSize: 12, fontWeight: 600, color: 'text.secondary', lineHeight: 1.3 }}>{r.label}</Typography>
                       {r.cells.map((v, i) => (
                         <Box
                           key={i}
@@ -232,7 +232,7 @@ export const PlanComparison = ({ title, columns, groups }: {
                           onPointerOver={() => setHoverCol(i)}
                           sx={{
                             display: 'grid', placeItems: 'center', alignSelf: 'stretch',
-                            fontSize: 10.5, fontWeight: 700, px: '2px',
+                            fontSize: 12, fontWeight: 700, px: '2px',
                             bgcolor: hoverCol === i ? alpha(accent, 0.09) : 'transparent',
                             transition: 'background .2s',
                           }}

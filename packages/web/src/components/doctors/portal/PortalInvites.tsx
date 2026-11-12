@@ -87,7 +87,7 @@ export const PortalInvites = ({
 
         <FramePanel className="grid grid-cols-3 divide-x divide-border p-0">
           <div className="p-3.5 text-center sm:p-4">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Pendentes
             </div>
             <div className="mt-0.5 font-heading text-xl font-extrabold text-amber-600 dark:text-amber-400 tabular-nums sm:text-2xl">
@@ -95,7 +95,7 @@ export const PortalInvites = ({
             </div>
           </div>
           <div className="p-3.5 text-center sm:p-4">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Aceitos
             </div>
             <div className="mt-0.5 font-heading text-xl font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums sm:text-2xl">
@@ -103,7 +103,7 @@ export const PortalInvites = ({
             </div>
           </div>
           <div className="p-3.5 text-center sm:p-4">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Expirados
             </div>
             <div className="mt-0.5 font-heading text-xl font-extrabold text-muted-foreground tabular-nums sm:text-2xl">

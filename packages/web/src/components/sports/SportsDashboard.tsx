@@ -232,7 +232,7 @@ const SubstanceContextCard = ({ onPick, onOther, onDismiss }: {
         sx={{
           display: 'block', mx: 'auto', mt: 1.5, minHeight: 44,
           border: 'none', bgcolor: 'transparent', cursor: 'pointer', px: 1,
-          fontSize: 11.5, fontWeight: 500, color: 'text.disabled',
+          fontSize: 12, fontWeight: 500, color: 'text.disabled',
           textDecoration: 'underline', textUnderlineOffset: 2, touchAction: 'manipulation',
         }}
       >
@@ -556,7 +556,7 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         </Box>
         <Typography
           sx={{
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: 800,
             color: 'text.secondary',
             textTransform: 'uppercase',
@@ -708,7 +708,7 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
               <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 13.5, color: tealText(theme.palette.mode) }}>
                 Levando em conta o que você declara
               </Typography>
-              <Typography sx={{ fontSize: 11, fontWeight: 500, color: 'text.secondary', lineHeight: 1.45 }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 500, color: 'text.secondary', lineHeight: 1.45 }}>
                 {/* "seu stack" era jargão fitness (auditoria 29/10) — nomeia o que é. */}
                 resumos, chat, checagens e brief do médico consideram suas substâncias declaradas ·{' '}
                 <Box component="button" type="button" onClick={goStack} sx={{ border: 'none', bgcolor: 'transparent', cursor: 'pointer', font: 'inherit', color: theme.palette.mode === 'dark' ? '#e3bd8f' : '#8a6240', textDecoration: 'underline', textUnderlineOffset: 2, touchAction: 'manipulation', p: 1.5, m: -1.5 }}>
@@ -840,7 +840,7 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
             <Chip
               size="small"
               label={`${visible.length} ${visible.length === 1 ? 'analito' : 'analitos'}`}
-              sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'action.hover', color: 'text.secondary' }}
+              sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'action.hover', color: 'text.secondary' }}
             />
           </Stack>
 
@@ -962,7 +962,7 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
                 px: 0.75,
                 py: 0.15,
                 borderRadius: '999px',
-                fontSize: 11,
+                fontSize: 12,
                 bgcolor: domain === 'todos' ? 'rgba(255,255,255,0.25)' : 'action.selected',
                 color: domain === 'todos' ? '#fff' : 'text.secondary',
               }}
@@ -1008,7 +1008,7 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
                     px: 0.75,
                     py: 0.15,
                     borderRadius: '999px',
-                    fontSize: 11,
+                    fontSize: 12,
                     bgcolor: isSelected ? 'rgba(255,255,255,0.25)' : 'action.selected',
                     color: isSelected ? '#fff' : 'text.secondary',
                   }}

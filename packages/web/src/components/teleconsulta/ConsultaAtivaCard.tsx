@@ -85,7 +85,7 @@ export const ConsultaAtivaCard = ({
       icon={<VerifiedRoundedIcon sx={{ fontSize: '13px !important', color: '#0d9488 !important' }} />}
       label="CONCLUÍDA"
       sx={{
-        height: 24, fontWeight: 800, fontSize: 10.5, letterSpacing: '0.05em',
+        height: 24, fontWeight: 800, fontSize: 12, letterSpacing: '0.05em',
         bgcolor: isDark ? 'rgba(13,148,136,0.15)' : 'rgba(13,148,136,0.10)',
         color: isDark ? '#2dd4bf' : '#0f766e',
         border: '1px solid rgba(13,148,136,.3)',
@@ -98,7 +98,7 @@ export const ConsultaAtivaCard = ({
       icon={<Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#10b981', animation: `${pulse} 1.6s infinite`, '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }} />}
       label="SALA ABERTA"
       sx={{
-        height: 24, fontWeight: 800, fontSize: 10.5, letterSpacing: '0.05em',
+        height: 24, fontWeight: 800, fontSize: 12, letterSpacing: '0.05em',
         bgcolor: isDark ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.10)',
         color: isDark ? '#34d399' : '#059669',
         border: '1px solid rgba(52,211,153,.3)',
@@ -111,7 +111,7 @@ export const ConsultaAtivaCard = ({
       icon={isToday ? undefined : <CalendarMonthRoundedIcon sx={{ fontSize: '13px !important', color: '#0d9488 !important' }} />}
       label={isToday ? 'HOJE' : 'AGENDADA'}
       sx={{
-        height: 24, fontWeight: 800, fontSize: 10.5, letterSpacing: '0.05em',
+        height: 24, fontWeight: 800, fontSize: 12, letterSpacing: '0.05em',
         bgcolor: isDark ? 'rgba(13,148,136,0.15)' : 'rgba(13,148,136,0.10)',
         color: isDark ? '#2dd4bf' : '#0f766e',
         border: '1px solid rgba(13,148,136,.3)',
@@ -190,12 +190,12 @@ export const ConsultaAtivaCard = ({
           <Stack direction="row" alignItems="center" spacing={1}>
             {pill}
             {!isLive && (
-              <Typography sx={{ fontSize: 11.5, fontWeight: 800, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 800, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>
                 {dateLabel}
               </Typography>
             )}
           </Stack>
-          <Typography sx={{ fontSize: 11, fontWeight: 800, fontFamily: 'monospace', color: 'text.secondary', letterSpacing: '0.05em' }}>
+          <Typography sx={{ fontSize: 12, fontWeight: 800, fontFamily: 'monospace', color: 'text.secondary', letterSpacing: '0.05em' }}>
             SALA #{roomCode}
           </Typography>
         </Stack>
@@ -263,7 +263,7 @@ export const ConsultaAtivaCard = ({
                 <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: isDark ? '#fbbf24' : '#b45309' }}>
                   ⏳ Aguardando pagamento
                 </Typography>
-                <Typography sx={{ fontSize: 11, color: 'text.secondary', mt: 0.15 }}>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.15 }}>
                   {dateLabel} às {timeLabel} · R$ {fmtBrl(r.consultPriceCents)}
                 </Typography>
               </Box>

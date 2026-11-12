@@ -92,7 +92,7 @@ export const ReferralCard = ({ code }: { code?: string }) => {
         {/* Código e Link com CopyableInput (ReUI c-input-group-11) */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <span className="mb-1.5 block text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+            <span className="mb-1.5 block text-xs font-bold tracking-wider text-muted-foreground uppercase">
               Código pessoal
             </span>
             <CopyableInput
@@ -101,7 +101,7 @@ export const ReferralCard = ({ code }: { code?: string }) => {
             />
           </div>
           <div>
-            <span className="mb-1.5 block text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+            <span className="mb-1.5 block text-xs font-bold tracking-wider text-muted-foreground uppercase">
               Link direto com bônus
             </span>
             <CopyableInput value={link} />
@@ -169,7 +169,7 @@ export const ReferralCard = ({ code }: { code?: string }) => {
 
             {stats.friends?.length > 0 && (
               <div className="rounded-xl border border-border/60 bg-card p-3">
-                <span className="mb-2 block text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+                <span className="mb-2 block text-xs font-bold tracking-wider text-muted-foreground uppercase">
                   Amigos que entraram com seu convite
                 </span>
                 <div className="flex flex-wrap gap-1.5">

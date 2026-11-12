@@ -232,7 +232,7 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {/* Kicker de papel: desambigua MÉDICO × PACIENTE */}
-          <Typography component="div" sx={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', lineHeight: 1.4, color: (t) => copperText(t.palette.mode) }}>
+          <Typography component="div" sx={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', lineHeight: 1.4, color: (t) => copperText(t.palette.mode) }}>
             PACIENTE · PRONTUÁRIO COMPARTILHADO
           </Typography>
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ minWidth: 0, mt: 0.25 }}>
@@ -359,7 +359,7 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
                 </Typography>
               )}
               {!loading && t.sub && (Array.isArray(t.sub)
-                ? t.sub.map((line) => <Typography key={line} variant="caption" sx={{ color: isCritical ? 'error.dark' : 'text.secondary', display: 'block', lineHeight: 1.3, fontSize: 11.5 }}>{line}</Typography>)
+                ? t.sub.map((line) => <Typography key={line} variant="caption" sx={{ color: isCritical ? 'error.dark' : 'text.secondary', display: 'block', lineHeight: 1.3, fontSize: 12 }}>{line}</Typography>)
                 : (
                   <Typography
                     variant="caption"
@@ -370,7 +370,7 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       lineHeight: 1.3,
-                      fontSize: 11.5,
+                      fontSize: 12,
                       fontWeight: isCritical ? 700 : 500,
                     }}
                   >

@@ -196,17 +196,17 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                   <Box>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>Rodrigo Silva, 31 anos</Typography>
-                      <Chip label="Atleta Ativo" size="small" sx={{ height: 20, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.15)', color: TEAL_DARK }} />
+                      <Chip label="Atleta Ativo" size="small" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.15)', color: TEAL_DARK }} />
                     </Stack>
                     <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Contexto: Musculação Intensa + Suplementação</Typography>
                   </Box>
                 </Stack>
-                <Chip icon={<AutoAwesomeIcon sx={{ fontSize: 14 }} />} label="Modo Esporte Ativo" sx={{ height: 26, fontSize: 11.5, fontWeight: 700, bgcolor: 'background.paper', color: TEAL_DARK, border: '1px solid rgba(13,148,136,0.25)' }} />
+                <Chip icon={<AutoAwesomeIcon sx={{ fontSize: 14 }} />} label="Modo Esporte Ativo" sx={{ height: 26, fontSize: 12, fontWeight: 700, bgcolor: 'background.paper', color: TEAL_DARK, border: '1px solid rgba(13,148,136,0.25)' }} />
               </Box>
 
               {/* Cenários */}
               <Box sx={{ px: { xs: 2, sm: 2.5 }, py: 1.75, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Typography sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', mb: 1.25, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', mb: 1.25, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Toque num cenário pra testar:
                 </Typography>
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1 }}>
@@ -240,14 +240,14 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                         }}
                       >
                         <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
-                          <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: active ? TEAL_DARK : 'rgba(15,95,90,0.12)', color: active ? '#ffffff' : 'text.primary', fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: active ? TEAL_DARK : 'rgba(15,95,90,0.12)', color: active ? '#ffffff' : 'text.primary', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             {tab.num}
                           </Box>
-                          <Typography sx={{ fontSize: { xs: 11.5, sm: 12 }, fontWeight: 800, color: active ? TEAL_DARK : 'text.primary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <Typography sx={{ fontSize: { xs: 12, sm: 12 }, fontWeight: 800, color: active ? TEAL_DARK : 'text.primary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {tab.name}
                           </Typography>
                         </Stack>
-                        <Typography sx={{ fontSize: 10, color: active ? TEAL_DARK : 'text.secondary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', pl: { xs: 0, sm: 3 } }}>
+                        <Typography sx={{ fontSize: 12, color: active ? TEAL_DARK : 'text.secondary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', pl: { xs: 0, sm: 3 } }}>
                           {tab.sub}
                         </Typography>
                       </Box>
@@ -261,7 +261,7 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                 <Box sx={{ mb: 2.25 }}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={0.75} sx={{ mb: 1 }}>
                     <Typography sx={{ fontSize: { xs: 16, sm: 18 }, fontWeight: 800, color: 'text.primary', lineHeight: 1.3 }}>{data.markerName}</Typography>
-                    <Chip label="Laudo Sabin · 02/10/2026" size="small" sx={{ height: 22, fontSize: 10.5, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary', flexShrink: 0 }} />
+                    <Chip label="Laudo Sabin · 02/10/2026" size="small" sx={{ height: 22, fontSize: 12, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary', flexShrink: 0 }} />
                   </Stack>
                   <Box sx={{ bgcolor: 'rgba(15,95,90,0.04)', border: '1px solid rgba(15,95,90,0.08)', borderRadius: '10px', px: 1.5, py: 1, mt: 0.5 }}>
                     <Typography sx={{ fontSize: 12, color: 'text.primary', lineHeight: 1.5 }}>
@@ -275,7 +275,7 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                     <Typography sx={{ fontSize: { xs: 30, sm: 36 }, fontWeight: 900, color: 'text.primary', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{data.val}</Typography>
                     <Typography sx={{ fontSize: 15, fontWeight: 700, color: 'text.secondary' }}>{data.unit}</Typography>
                   </Stack>
-                  <Box sx={{ px: 1.5, py: 0.6, borderRadius: '8px', bgcolor: data.statusBg, color: data.statusColor, fontWeight: 800, fontSize: { xs: 11.5, sm: 12.5 }, display: 'inline-flex', alignItems: 'center', gap: 0.75, lineHeight: 1.3 }}>
+                  <Box sx={{ px: 1.5, py: 0.6, borderRadius: '8px', bgcolor: data.statusBg, color: data.statusColor, fontWeight: 800, fontSize: { xs: 12, sm: 12.5 }, display: 'inline-flex', alignItems: 'center', gap: 0.75, lineHeight: 1.3 }}>
                     <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: data.statusColor, flexShrink: 0 }} />
                     {data.status}
                   </Box>
@@ -284,19 +284,19 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                 {/* Régua de camadas — meta do médico em COBRE (paleta da casa; roxo fora) */}
                 <Box sx={{ mb: 2.5, bgcolor: 'background.default', p: { xs: 1.5, sm: 2 }, borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={0.75} sx={{ mb: 1.25 }}>
-                    <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.primary' }}>Régua do Dr. Exame</Typography>
+                    <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.primary' }}>Régua do Dr. Exame</Typography>
                     <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
                       <Stack direction="row" spacing={0.5} alignItems="center">
                         <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: '#cbd5e1' }} />
-                        <Typography sx={{ fontSize: 10.5, color: 'text.secondary' }}>Lab Convencional</Typography>
+                        <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Lab Convencional</Typography>
                       </Stack>
                       <Stack direction="row" spacing={0.5} alignItems="center">
                         <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: COPPER }} />
-                        <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: COPPER }}>Meta do seu médico</Typography>
+                        <Typography sx={{ fontSize: 12, fontWeight: 700, color: COPPER }}>Meta do seu médico</Typography>
                       </Stack>
                       <Stack direction="row" spacing={0.5} alignItems="center">
                         <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: TEAL_DARK }} />
-                        <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: TEAL_DARK }}>Seu Laudo</Typography>
+                        <Typography sx={{ fontSize: 12, fontWeight: 700, color: TEAL_DARK }}>Seu Laudo</Typography>
                       </Stack>
                     </Stack>
                   </Stack>
@@ -308,8 +308,8 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                   </Box>
 
                   <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={0.5} sx={{ mt: 0.5 }}>
-                    <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{data.labRef}</Typography>
-                    <Typography sx={{ fontSize: 11, fontWeight: 700, color: COPPER }}>{data.targetRef}</Typography>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{data.labRef}</Typography>
+                    <Typography sx={{ fontSize: 12, fontWeight: 700, color: COPPER }}>{data.targetRef}</Typography>
                   </Stack>
                 </Box>
 
@@ -330,7 +330,7 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
               </Box>
 
               <Box sx={{ p: 2, bgcolor: 'background.default', borderTop: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
-                <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
                   🔒 Conformidade com a LGPD · Dados isolados e protegidos por criptografia de ponta a ponta.
                 </Typography>
               </Box>

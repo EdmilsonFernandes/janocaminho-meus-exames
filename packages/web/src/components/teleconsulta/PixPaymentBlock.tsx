@@ -273,7 +273,7 @@ export const PixPaymentBlock = ({
                 <Typography
                   noWrap
                   sx={{
-                    fontSize: 11.5,
+                    fontSize: 12,
                     fontFamily: 'monospace',
                     color: 'text.secondary',
                     maxWidth: '85%',

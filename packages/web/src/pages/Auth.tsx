@@ -119,7 +119,7 @@ const Shell = ({ children, subtitle }: { children: ReactNode; subtitle?: string 
           <Box sx={{ flexShrink: 0, display: 'flex', color: '#0d9488' }}><I.Shield /></Box>
           <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#0f172a', lineHeight: 1.45 }}>{translate('auth.lgpd')}</Typography>
         </Box>
-        <Typography sx={{ fontSize: 11.5, color: '#64748b', lineHeight: 1.5, mt: 0.5 }}>
+        <Typography sx={{ fontSize: 12, color: '#64748b', lineHeight: 1.5, mt: 0.5 }}>
           <strong style={{ color: '#475569' }}>{translate('auth.disclaimer_strong')}</strong> {translate('auth.disclaimer')}
         </Typography>
       </Box>
@@ -716,7 +716,7 @@ export const RegisterPage = () => {
                 <Typography sx={{ fontWeight: 800, fontSize: 13.5, color: 'text.primary', lineHeight: 1.2 }}>
                   Prefere se cadastrar pelo app oficial?
                 </Typography>
-                <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 0.25 }}>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>
                   ★ 5,0 no Google Play · Acesso biométrico e notificações
                 </Typography>
               </Box>
@@ -741,7 +741,7 @@ export const RegisterPage = () => {
             >
               Abrir no Google Play Store
             </Button>
-            <Typography variant="caption" sx={{ textAlign: 'center', fontSize: 11, color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ textAlign: 'center', fontSize: 12, color: 'text.secondary' }}>
               ou preencha os dados abaixo pelo navegador
             </Typography>
           </Box>

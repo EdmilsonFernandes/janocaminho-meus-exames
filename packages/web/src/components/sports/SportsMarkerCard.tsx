@@ -152,7 +152,7 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx, showLegend = false
           >
             {prettyName(it.nameCanonical)}
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 11.5 }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 12 }}>
             {fmtDay(it.lastDate)}{it.count > 1 ? ` · ${it.count} medições` : ''}{pts[pts.length - 1]?.method ? ` · ${pts[pts.length - 1].method}` : ''}
           </Typography>
         </Box>
@@ -176,7 +176,7 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx, showLegend = false
                 ? (out ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode])
                 : 'text.secondary',
               fontWeight: 800,
-              fontSize: 11.5,
+              fontSize: 12,
               fontVariantNumeric: 'tabular-nums',
             }}
           >
@@ -214,7 +214,7 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx, showLegend = false
             alignItems: 'center',
           }}
         >
-          <Typography component="span" sx={{ fontSize: 11.5, fontWeight: 800, color: statusColor }}>
+          <Typography component="span" sx={{ fontSize: 12, fontWeight: 800, color: statusColor }}>
             {statusText}
           </Typography>
         </Box>
@@ -306,19 +306,19 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx, showLegend = false
 
           {/* Marcadores numéricos de limite da régua */}
           <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.6 }}>
-            <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+            <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
               {fmtNum(it.refLow)}
             </Typography>
-            <Typography variant="caption" sx={{ fontSize: 10.5, color: 'text.secondary', fontWeight: 600, opacity: 0.85 }}>
+            <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, opacity: 0.85 }}>
               Faixa laboratório
             </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+            <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
               {fmtNum(it.refHigh)}
             </Typography>
           </Stack>
         </Box>
       ) : (
-        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: out ? statusColor : 'text.secondary', fontWeight: out ? 700 : 500, fontSize: 11.5 }}>
+        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: out ? statusColor : 'text.secondary', fontWeight: out ? 700 : 500, fontSize: 12 }}>
           {it.abnormal
             ? 'Marcado como alterado no laudo — faixa de referência não informada pelo laboratório.'
             : 'Sem faixa de referência informada pelo laboratório.'}
@@ -335,7 +335,7 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx, showLegend = false
                 <Typography sx={{ fontWeight: 800, fontSize: 13 }}>🎯 Meta Clínica: {goalRangeText(goal)}</Typography>
                 {goal.setBy && <Typography sx={{ fontSize: 12, opacity: 0.9, mt: 0.5 }}>Definida por: {goal.setBy}</Typography>}
                 {goal.justification && <Typography sx={{ fontSize: 12, opacity: 0.9, mt: 0.5 }}>Justificativa: {goal.justification}</Typography>}
-                {goal.source && <Typography sx={{ fontSize: 11, opacity: 0.75, mt: 0.5 }}>Diretriz: {goal.source}</Typography>}
+                {goal.source && <Typography sx={{ fontSize: 12, opacity: 0.75, mt: 0.5 }}>Diretriz: {goal.source}</Typography>}
               </Box>
             }
             arrow
@@ -354,7 +354,7 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx, showLegend = false
                 cursor: 'help',
               }}
             >
-              <Typography component="span" sx={{ fontSize: 11.5, fontWeight: 700, color: accent }}>
+              <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: accent }}>
                 🎯 Meta {goalRangeText(goal)}
               </Typography>
             </Box>
@@ -369,7 +369,7 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx, showLegend = false
             label={c}
             sx={{
               height: 22,
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 700,
               bgcolor: 'action.hover',
               color: 'text.secondary',
@@ -382,7 +382,7 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx, showLegend = false
 
       {/* Duplo-status explícito quando há meta vigente */}
       {goal && dual && (
-        <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.secondary', fontWeight: 700, fontSize: 11.5, lineHeight: 1.35 }}>
+        <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.secondary', fontWeight: 700, fontSize: 12, lineHeight: 1.35 }}>
           {dual}
         </Typography>
       )}
@@ -392,18 +392,18 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx, showLegend = false
         <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap" sx={{ mt: 1.25, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
           <Stack direction="row" spacing={0.5} alignItems="center">
             <Box sx={{ width: 10, height: 6, borderRadius: '3px', bgcolor: 'rgba(46,125,50,.55)' }} />
-            <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary' }}>Régua lab</Typography>
+            <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary' }}>Régua lab</Typography>
           </Stack>
           {it.count > 1 && (
             <Stack direction="row" spacing={0.5} alignItems="center">
               <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: 'text.disabled' }} />
-              <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary' }}>Histórico ({it.count})</Typography>
+              <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary' }}>Histórico ({it.count})</Typography>
             </Stack>
           )}
           {goal && (
             <Stack direction="row" spacing={0.5} alignItems="center">
               <Box sx={{ width: 12, height: 0, borderTop: `2px dashed ${accent}` }} />
-              <Typography variant="caption" sx={{ fontSize: 11, color: accent }}>Meta clínica</Typography>
+              <Typography variant="caption" sx={{ fontSize: 12, color: accent }}>Meta clínica</Typography>
             </Stack>
           )}
         </Stack>

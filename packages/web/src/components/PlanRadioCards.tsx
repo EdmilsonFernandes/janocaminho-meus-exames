@@ -153,7 +153,7 @@ export const PlanRadioCards = ({ label, options, value, onChange, summaryLabel, 
                   </Typography>
                   {o.badge && (
                     <Box component="em" sx={{
-                      fontStyle: 'normal', fontSize: 11, fontWeight: 700, px: '7px', py: '3px', borderRadius: 99,
+                      fontStyle: 'normal', fontSize: 12, fontWeight: 700, px: '7px', py: '3px', borderRadius: 99,
                       bgcolor: amber ? 'rgba(217,119,6,.15)' : alpha(accent, 0.12),
                       color: amber ? (t.palette.mode === 'dark' ? '#fcd34d' : '#b45309') : tealText(t.palette.mode),
                     }}>
@@ -177,7 +177,7 @@ export const PlanRadioCards = ({ label, options, value, onChange, summaryLabel, 
                   {o.price}
                 </Typography>
                 {o.priceSub && (
-                  <Typography component="small" sx={{ fontSize: 11.5, color: 'text.disabled' }}>
+                  <Typography component="small" sx={{ fontSize: 12, color: 'text.disabled' }}>
                     {o.priceSub}
                   </Typography>
                 )}

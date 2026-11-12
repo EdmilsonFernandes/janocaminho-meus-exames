@@ -111,7 +111,7 @@ export const ActivationChecklist = ({ exams }: { exams: number }) => {
               }}>
                 {s.title}
               </Typography>
-              <Typography sx={{ fontSize: 11.5, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {s.done ? 'Concluído ✓' : s.sub}
               </Typography>
             </Box>

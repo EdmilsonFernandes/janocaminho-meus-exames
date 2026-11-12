@@ -57,7 +57,7 @@ export const GymAudienceSection = () => {
           <Box sx={{ flex: 1, minWidth: 0, order: { xs: 1, lg: 2 } }}>
             <Chip
               label="PARA QUEM TREINA"
-              sx={{ mb: 1.5, fontWeight: 800, fontSize: 11.5, letterSpacing: '.08em', bgcolor: 'rgba(212,165,116,.16)', color: '#d4a574', borderRadius: '8px' }}
+              sx={{ mb: 1.5, fontWeight: 800, fontSize: 12, letterSpacing: '.08em', bgcolor: 'rgba(212,165,116,.16)', color: '#d4a574', borderRadius: '8px' }}
               size="small"
             />
             <Typography
@@ -113,7 +113,7 @@ export const GymAudienceSection = () => {
                 Ver como funciona
               </Button>
             </Stack>
-            <Typography sx={{ fontSize: 11.5, color: 'text.secondary', fontStyle: 'italic', mt: 2 }}>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', fontStyle: 'italic', mt: 2 }}>
               Educacional — o Dr. Exame organiza e contextualiza exames; nunca prescreve, sugere dose ou substitui seu médico.
             </Typography>
           </Box>

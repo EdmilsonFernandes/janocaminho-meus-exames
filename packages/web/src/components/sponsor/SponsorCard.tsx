@@ -61,12 +61,12 @@ export const SponsorCard = ({ campaign, logoSrc, imageSrc, onPrimary, onClose, v
               border: '1px solid',
               borderColor: dark ? 'rgba(245, 158, 11, 0.28)' : 'rgba(245, 158, 11, 0.22)',
               color: dark ? '#fde68a' : '#b45309',
-              fontSize: 10.5,
+              fontSize: 12,
               fontWeight: 700,
               letterSpacing: '0.01em',
             }}
           >
-            <Box component="span" sx={{ fontSize: 9.5 }}>★</Box>
+            <Box component="span" sx={{ fontSize: 12 }}>★</Box>
             <Box component="span">Parceiro Oficial · Patrocinado</Box>
           </Box>
         </Box>
@@ -173,7 +173,7 @@ export const SponsorCard = ({ campaign, logoSrc, imageSrc, onPrimary, onClose, v
         </Button>
       </Box>
 
-      <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', px: 2.25, pb: 1.75, color: 'text.disabled', fontSize: 10.5, lineHeight: 1.45 }}>
+      <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', px: 2.25, pb: 1.75, color: 'text.disabled', fontSize: 12, lineHeight: 1.45 }}>
         Conteúdo publicitário de parceiro homologado. Não tem relação com seus exames nem é uma recomendação médica.
       </Typography>
     </Box>

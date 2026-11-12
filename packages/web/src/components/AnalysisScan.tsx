@@ -173,11 +173,11 @@ export const AnalysisScan = ({ label }: { label?: string }) => {
             >
               <Typography
                 component="span"
-                sx={{ fontSize: 10.5, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}
+                sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}
               >
                 {c.label}
               </Typography>
-              <Typography component="span" sx={{ fontSize: 10.5, fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>
+              <Typography component="span" sx={{ fontSize: 12, fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>
                 {c.value}
               </Typography>
             </Box>

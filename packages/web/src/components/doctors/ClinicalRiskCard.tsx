@@ -339,7 +339,7 @@ export const ClinicalRiskCard = ({
                   size="small"
                   sx={{
                     height: 20,
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: 800,
                     bgcolor: isDark ? alpha(COPPER.mid, 0.2) : alpha(COPPER.deep, 0.12),
                     color: (t) => copperText(t.palette.mode),
@@ -367,7 +367,7 @@ export const ClinicalRiskCard = ({
                 size="small"
                 sx={{
                   fontWeight: 800,
-                  fontSize: 11,
+                  fontSize: 12,
                   bgcolor: riskAnalysis.levelBg,
                   color: riskAnalysis.levelColor,
                   display: { xs: 'none', sm: 'inline-flex' },
@@ -387,7 +387,7 @@ export const ClinicalRiskCard = ({
                     startIcon={<AutorenewIcon sx={{ fontSize: 16, animation: (loading || refreshing) ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} />}
                     sx={{
                       height: 28,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: 700,
                       textTransform: 'none',
                       borderRadius: '14px',
@@ -449,7 +449,7 @@ export const ClinicalRiskCard = ({
               size="small"
               sx={{
                 fontWeight: 800,
-                fontSize: 11,
+                fontSize: 12,
                 bgcolor: riskAnalysis.levelBg,
                 color: riskAnalysis.levelColor,
                 boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
@@ -462,7 +462,7 @@ export const ClinicalRiskCard = ({
               sx={{
                 textTransform: 'none',
                 fontWeight: 700,
-                fontSize: 11,
+                fontSize: 12,
                 p: 0,
                 minWidth: 'auto',
                 color: (t) => copperText(t.palette.mode),
@@ -494,11 +494,11 @@ export const ClinicalRiskCard = ({
           >
             {/* Cabeçalho da Lista de Atenção */}
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, pb: 0.75, borderBottom: '1px solid', borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 11, display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 12, display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 <Box component="span" sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: 'error.main', display: 'inline-block' }} />
                 Lista de Atenção · Principais Marcadores
               </Typography>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: 'error.main', fontSize: 11.5 }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'error.main', fontSize: 12 }}>
                 {riskAnalysis.totalCurrentAbnormal} fora da faixa
               </Typography>
             </Box>
@@ -685,7 +685,7 @@ export const ClinicalRiskCard = ({
                 <Typography
                   variant="caption"
                   sx={{
-                    fontSize: 9,
+                    fontSize: 12,
                     fontWeight: 700,
                     color: 'text.secondary',
                     lineHeight: 1,
@@ -727,7 +727,7 @@ export const ClinicalRiskCard = ({
                     bgcolor: riskAnalysis.levelBg,
                     color: riskAnalysis.levelColor,
                     fontWeight: 800,
-                    fontSize: 11.5,
+                    fontSize: 12,
                     border: '1px solid',
                     borderColor: alpha(riskAnalysis.levelColor, 0.3),
                   }}
@@ -739,7 +739,7 @@ export const ClinicalRiskCard = ({
                     bgcolor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
                     color: 'text.secondary',
                     fontWeight: 700,
-                    fontSize: 11.5,
+                    fontSize: 12,
                   }}
                 />
                 {riskAnalysis.totalCurrentAbnormal > 0 && (
@@ -750,7 +750,7 @@ export const ClinicalRiskCard = ({
                       bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
                       color: 'text.secondary',
                       fontWeight: 700,
-                      fontSize: 11,
+                      fontSize: 12,
                     }}
                   />
                 )}
@@ -818,7 +818,7 @@ export const ClinicalRiskCard = ({
                     {/* Rótulo do estágio */}
                     <Typography
                       sx={{
-                        fontSize: { xs: 10, sm: 11.5 },
+                        fontSize: { xs: 12, sm: 12 },
                         fontWeight: isCurrent ? 800 : 700,
                         color: isCurrent
                           ? riskAnalysis.levelColor
@@ -975,7 +975,7 @@ export const ClinicalRiskCard = ({
                         sx={{
                           height: 22,
                           fontWeight: 800,
-                          fontSize: 10.5,
+                          fontSize: 12,
                         }}
                       />
                       {onNavigateToAlterados && (
@@ -986,7 +986,7 @@ export const ClinicalRiskCard = ({
                             onClick={() => onNavigateToAlterados(act.targetTab || 'alterados')}
                             endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
                             sx={{
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: 800,
                               textTransform: 'none',
                               color: (t) => copperText(t.palette.mode),

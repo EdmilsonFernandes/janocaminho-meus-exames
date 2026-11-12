@@ -50,7 +50,7 @@ const ChipLevel = ({ idx }: { idx: ClinicalIndexView }) => {
             <strong>{idx.howTo}</strong> = {fmt(idx.value)} {idx.unit}
           </Typography>
           <Typography sx={{ fontSize: 12, mb: 0.5 }}>{idx.interpretation}</Typography>
-          <Typography sx={{ fontSize: 11, opacity: 0.8, fontStyle: 'italic' }}>Fonte: {idx.source}</Typography>
+          <Typography sx={{ fontSize: 12, opacity: 0.8, fontStyle: 'italic' }}>Fonte: {idx.source}</Typography>
         </Box>
       }
     >
@@ -60,7 +60,7 @@ const ChipLevel = ({ idx }: { idx: ClinicalIndexView }) => {
           <Box component="span" sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
             <Box component="span">{idx.name}</Box>
             <Box component="span" sx={{ fontWeight: 800 }}>{fmt(idx.value)}</Box>
-            <Box component="span" sx={{ opacity: 0.75, fontSize: 11 }}>{idx.unit === 'razão' || idx.unit === 'índice' || idx.unit === 'log' ? '' : idx.unit}</Box>
+            <Box component="span" sx={{ opacity: 0.75, fontSize: 12 }}>{idx.unit === 'razão' || idx.unit === 'índice' || idx.unit === 'log' ? '' : idx.unit}</Box>
           </Box>
         }
         sx={{

@@ -37,6 +37,7 @@ import {
 import { API_URL, token as authToken, doctorPhotoUrl } from '../../config';
 import { tealText } from '../../theme';
 import { CommissionRulesCard } from './CommissionRulesCard';
+import { ListEmpty } from '@/components/reui/list-empty';
 
 const brl = (cents: number | null | undefined) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((cents ?? 0) / 100);
@@ -100,25 +101,25 @@ function PaidTeleGrid({ rows, onRefund }: { rows: any[]; onRefund: (p: any) => v
     { accessorFn: (r) => Number((r as any).priceCents ?? 0), id: 'valor', header: 'Valor', cell: (i) => <span className="text-[13px] font-extrabold tabular-nums whitespace-nowrap">{brl(i.row.original?.priceCents)}</span> },
     { accessorKey: 'paidAt', header: 'Pago em', cell: (i) => { const v = i.getValue() as string | null; return <span className="text-[12px] text-muted-foreground whitespace-nowrap">{v ? new Date(v).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</span>; } },
     { accessorKey: 'teleStatus', header: 'Status', enableSorting: false, cell: (i) => { const p = i.row.original as any; return p.refundedAt ? (
-      <Chip size="small" label="Estornada ✓" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(139,92,246,0.12)', color: '#7c3aed' }} />
+      <Chip size="small" label="Estornada ✓" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(139,92,246,0.12)', color: '#7c3aed' }} />
     ) : p.teleStatus === 'completed' ? (
-      <Chip size="small" label="Realizada" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669' }} />
+      <Chip size="small" label="Realizada" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669' }} />
     ) : p.teleStatus === 'no_show' ? (
-      <Chip size="small" label={`Não realizada${p.noShowBy === 'doctor' ? ' (médico ausente)' : ''}`} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309' }} />
+      <Chip size="small" label={`Não realizada${p.noShowBy === 'doctor' ? ' (médico ausente)' : ''}`} sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309' }} />
     ) : p.teleStatus === 'cancelled' ? (
-      <Chip size="small" label="Cancelada" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b' }} />
+      <Chip size="small" label="Cancelada" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b' }} />
     ) : (
-      <Chip size="small" label="Agendada (paga)" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: '#0d9488' }} />
+      <Chip size="small" label="Agendada (paga)" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: (t) => tealText(t.palette.mode) }} />
     ); } },
     { id: 'acao', header: 'Ação', enableSorting: false, cell: (i) => { const p = i.row.original as any; return p.refundedAt ? (
-      <span className="text-[11px] text-muted-foreground">{new Date(p.refundedAt).toLocaleDateString('pt-BR')}</span>
+      <span className="text-xs text-muted-foreground">{new Date(p.refundedAt).toLocaleDateString('pt-BR')}</span>
     ) : (
       <Button size="small" color="error" variant="outlined" onClick={() => onRefund(p)} sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, fontSize: 12, height: 28 }}>Estornar</Button>
     ); } },
   ];
   const table = useTable({ features: dataGridFeatures, data: rows, columns });
   if (!rows || rows.length === 0) {
-    return <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">Nenhuma consulta paga no período.</div>;
+    return <ListEmpty title="Nenhuma consulta paga no período" />;
   }
   return (
     <DataGrid table={table} recordCount={rows.length}>
@@ -348,7 +349,7 @@ export const TeleFinanceTab = () => {
                 <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {option.name}
                 </Typography>
-                <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
                   CRM {option.crm}{option.crmUf ? `-${option.crmUf}` : ''}{option.specialty ? ` · ${option.specialty}` : ''}
                 </Typography>
               </Box>
@@ -523,7 +524,7 @@ export const TeleFinanceTab = () => {
               >
                 <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 0.5 }}>
                   <Typography sx={{ fontWeight: 800, fontSize: 13.5 }} noWrap>{p.patientName}</Typography>
-                  <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: '#0d9488', flexShrink: 0 }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: (t) => tealText(t.palette.mode), flexShrink: 0 }}>
                     {brl(p.priceCents)}
                   </Typography>
                 </Stack>
@@ -531,27 +532,27 @@ export const TeleFinanceTab = () => {
                   <Typography variant="caption" color="text.secondary" noWrap sx={{ maxWidth: '65%' }}>
                     {p.doctorName || '—'}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, fontSize: 11 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, fontSize: 12 }}>
                     {p.paidAt ? new Date(p.paidAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}
                   </Typography>
                 </Stack>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
                   <Box sx={{ flexShrink: 0 }}>
                     {p.refundedAt ? (
-                      <Chip size="small" label="Estornada ✓" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(139,92,246,0.12)', color: '#7c3aed', whiteSpace: 'nowrap' }} />
+                      <Chip size="small" label="Estornada ✓" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(139,92,246,0.12)', color: '#7c3aed', whiteSpace: 'nowrap' }} />
                     ) : p.teleStatus === 'completed' ? (
-                      <Chip size="small" label="Realizada" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669', whiteSpace: 'nowrap' }} />
+                      <Chip size="small" label="Realizada" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669', whiteSpace: 'nowrap' }} />
                     ) : p.teleStatus === 'no_show' ? (
-                      <Chip size="small" label={`Não realizada${p.noShowBy === 'doctor' ? ' (médico)' : ''}`} sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', whiteSpace: 'nowrap' }} />
+                      <Chip size="small" label={`Não realizada${p.noShowBy === 'doctor' ? ' (médico)' : ''}`} sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', whiteSpace: 'nowrap' }} />
                     ) : p.teleStatus === 'cancelled' ? (
-                      <Chip size="small" label="Cancelada" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b', whiteSpace: 'nowrap' }} />
+                      <Chip size="small" label="Cancelada" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b', whiteSpace: 'nowrap' }} />
                     ) : (
-                      <Chip size="small" label="Agendada (paga)" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: '#0d9488', whiteSpace: 'nowrap' }} />
+                      <Chip size="small" label="Agendada (paga)" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: (t) => tealText(t.palette.mode), whiteSpace: 'nowrap' }} />
                     )}
                   </Box>
                   <Box sx={{ flexShrink: 0 }}>
                     {p.refundedAt ? (
-                      <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
                         Estornado {new Date(p.refundedAt).toLocaleDateString('pt-BR')}
                       </Typography>
                     ) : (

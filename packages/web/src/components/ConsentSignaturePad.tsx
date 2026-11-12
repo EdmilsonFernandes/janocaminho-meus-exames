@@ -69,7 +69,7 @@ export const ConsentSignaturePad = ({ onChange }: { onChange: (dataUrl: string |
           Assine o termo <Box component="span" sx={{ color: 'text.secondary', fontWeight: 600 }}>(opcional — com o dedo)</Box>
         </Typography>
         {strokes > 0 && (
-          <Button size="small" onClick={clear} sx={{ ml: 'auto', minWidth: 0, fontSize: 11, fontWeight: 700, color: 'text.secondary', textTransform: 'none' }}>limpar</Button>
+          <Button size="small" onClick={clear} sx={{ ml: 'auto', minWidth: 0, fontSize: 12, fontWeight: 700, color: 'text.secondary', textTransform: 'none' }}>limpar</Button>
         )}
       </Box>
       <canvas
@@ -88,7 +88,7 @@ export const ConsentSignaturePad = ({ onChange }: { onChange: (dataUrl: string |
         }}
       />
       {strokes === 0 && (
-        <Typography sx={{ fontSize: 10.5, color: 'text.disabled', mt: 0.5, textAlign: 'center' }}>
+        <Typography sx={{ fontSize: 12, color: 'text.disabled', mt: 0.5, textAlign: 'center' }}>
           sua assinatura fica anexada ao termo, com data e hora
         </Typography>
       )}

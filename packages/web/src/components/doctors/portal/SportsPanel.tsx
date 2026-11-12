@@ -297,7 +297,7 @@ export const SportsPanel = ({ patientId, token, doctorId }: { patientId: string;
                 label={DECLARED_BADGE}
                 sx={{
                   fontWeight: 800,
-                  fontSize: 11,
+                  fontSize: 12,
                   bgcolor: 'rgba(212,165,116,0.20)',
                   color: (t: Theme) => copperText(t.palette.mode),
                   border: '1px solid rgba(212,165,116,0.45)',
@@ -354,7 +354,7 @@ export const SportsPanel = ({ patientId, token, doctorId }: { patientId: string;
                 <Row label="Frequência de treino" value={p.trainingFreq ?? null} />
                 <Row label="Objetivos declarados" value={p.goals ?? null} />
                 {p.updatedAt && (
-                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1, fontSize: 11.5 }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1, fontSize: 12 }}>
                     Última atualização pelo paciente: {new Date(p.updatedAt).toLocaleDateString('pt-BR')}
                   </Typography>
                 )}
@@ -608,7 +608,7 @@ export const SportsPanel = ({ patientId, token, doctorId }: { patientId: string;
                               label={`Compartilhado em ${new Date(pl.sharedAt).toLocaleDateString('pt-BR')}`}
                               sx={{
                                 height: 22,
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: 800,
                                 bgcolor: (t: Theme) => alpha(t.palette.primary.main, 0.12),
                                 color: (t: Theme) => tealText(t.palette.mode),
@@ -626,7 +626,7 @@ export const SportsPanel = ({ patientId, token, doctorId }: { patientId: string;
                                 borderRadius: '999px',
                                 minHeight: 26,
                                 py: 0.2,
-                                fontSize: 11.5,
+                                fontSize: 12,
                               }}
                             >
                               Compartilhar com o paciente

@@ -104,7 +104,7 @@ export const MobileBottomNav = () => {
         </Box>
       )}
       <Typography sx={{
-        fontSize: { xs: 9, sm: 11.5 },
+        fontSize: { xs: 9, sm: 12 },
         fontWeight: on ? 800 : 500,
         mt: it.robot ? 0 : 0.2,
         fontFamily: 'Poppins, sans-serif',
@@ -146,7 +146,7 @@ export const MobileBottomNav = () => {
         {on ? <MenuIcon /> : <MenuIcon sx={{ opacity: 0.65 }} />}
       </Box>
       <Typography sx={{
-        fontSize: { xs: 9, sm: 11.5 },
+        fontSize: { xs: 9, sm: 12 },
         fontWeight: on ? 800 : 500,
         mt: 0.2,
         fontFamily: 'Poppins, sans-serif',

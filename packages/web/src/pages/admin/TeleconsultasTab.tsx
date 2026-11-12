@@ -40,6 +40,7 @@ import {
 import { IconTile } from '@/components/reui/icon-tile';
 import { Rating } from '@/components/reui/rating';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
+import { tealText } from '../../theme';
 
 const H = () => ({ Authorization: `Bearer ${token()}` });
 
@@ -101,7 +102,7 @@ function FunnelKpi({
       <FramePanel className="flex h-full flex-col justify-between gap-2.5">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <span className="text-muted-foreground block text-[11px] font-bold tracking-wider uppercase">
+            <span className="text-muted-foreground block text-xs font-bold tracking-wider uppercase">
               {label}
             </span>
             <div className="mt-1 flex flex-wrap items-baseline gap-1.5">
@@ -119,7 +120,7 @@ function FunnelKpi({
             {icon}
           </IconTile>
         </div>
-        <p className="text-muted-foreground m-0 text-[11px] leading-snug">
+        <p className="text-muted-foreground m-0 text-xs leading-snug">
           {hint}
         </p>
       </FramePanel>
@@ -240,7 +241,7 @@ export const TeleconsultasTab = () => {
                 gap: 1,
               }}
             >
-              <VideoCameraFrontIcon sx={{ color: '#0d9488' }} /> Teleconsultas & Avaliações
+              <VideoCameraFrontIcon sx={{ color: (t) => tealText(t.palette.mode) }} /> Teleconsultas & Avaliações
             </Typography>
             <Badge variant="primary-light" size="sm">
               CSAT & NPS Clínico
@@ -412,7 +413,7 @@ export const TeleconsultasTab = () => {
                 <span className="text-foreground text-lg font-extrabold tabular-nums">
                   {total}
                 </span>
-                <span className="text-muted-foreground text-[11px]">
+                <span className="text-muted-foreground text-xs">
                   avaliações verificadas
                 </span>
               </div>
@@ -467,10 +468,10 @@ export const TeleconsultasTab = () => {
             {/* CSAT de Áudio pós-consulta */}
             <div className="border-t border-border/70 pt-3">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-1 text-[11px] font-bold tracking-wider uppercase">
+                <span className="text-muted-foreground flex items-center gap-1 text-xs font-bold tracking-wider uppercase">
                   <GraphicEqIcon sx={{ fontSize: 15 }} /> Qualidade de Áudio
                 </span>
-                <span className="text-muted-foreground text-[11px] tabular-nums">
+                <span className="text-muted-foreground text-xs tabular-nums">
                   {audioRated} reportados
                 </span>
               </div>
@@ -489,7 +490,7 @@ export const TeleconsultasTab = () => {
 
             {/* Top Sinais / Filtros Rápidos (review-3 Top Mentions) */}
             <div className="border-t border-border/70 pt-3">
-              <span className="text-muted-foreground mb-2 block text-[11px] font-bold tracking-wider uppercase">
+              <span className="text-muted-foreground mb-2 block text-xs font-bold tracking-wider uppercase">
                 Recortes Rápidos
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -734,7 +735,7 @@ export const TeleconsultasTab = () => {
                         }
                       >
                         <p className="text-foreground m-0 italic">“{item.note}”</p>
-                        <footer className="text-muted-foreground mt-1 text-[11px] font-semibold">
+                        <footer className="text-muted-foreground mt-1 text-xs font-semibold">
                           — Relato enviado pelo {isDoctorAuthor ? 'Médico' : 'Paciente'}
                         </footer>
                       </blockquote>

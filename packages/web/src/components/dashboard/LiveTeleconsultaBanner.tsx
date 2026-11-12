@@ -147,7 +147,7 @@ export const LiveTeleconsultaBanner: React.FC = () => {
                   bgcolor: '#ef4444',
                   color: '#ffffff',
                   fontWeight: 800,
-                  fontSize: 11,
+                  fontSize: 12,
                   height: 22,
                   letterSpacing: '0.04em',
                   whiteSpace: 'nowrap',
@@ -163,7 +163,7 @@ export const LiveTeleconsultaBanner: React.FC = () => {
                     py: 0.25,
                     borderRadius: '6px',
                     fontWeight: 700,
-                    fontSize: 11,
+                    fontSize: 12,
                     letterSpacing: '0.04em',
                     fontFamily: 'monospace',
                   }}

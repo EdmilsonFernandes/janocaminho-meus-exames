@@ -156,7 +156,7 @@ export const PaymentLogos = ({
             <Stack direction="row" spacing={1} alignItems="center">
               <AsaasLogo height={height} />
               {provider === 'asaas' && (
-                <Typography sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600 }}>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600 }}>
                   Processado diretamente pelo Asaas
                 </Typography>
               )}
@@ -171,7 +171,7 @@ export const PaymentLogos = ({
             <Stack direction="row" spacing={1} alignItems="center">
               <OpenPixLogo height={height} />
               {provider === 'openpix' && (
-                <Typography sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600 }}>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600 }}>
                   PIX Banco Central
                 </Typography>
               )}
@@ -179,7 +179,7 @@ export const PaymentLogos = ({
           )}
         </Stack>
 
-        <Typography sx={{ fontSize: 10.5, color: 'text.disabled', textAlign: 'center', lineHeight: 1.4 }}>
+        <Typography sx={{ fontSize: 12, color: 'text.disabled', textAlign: 'center', lineHeight: 1.4 }}>
           🛡️ Seus dados de cartão não são salvos em nossos servidores · Em conformidade com PCI-DSS Level 1
         </Typography>
       </Box>

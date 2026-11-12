@@ -217,7 +217,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
                 {/* Régua Comparativa entre Idade Cronológica e Biológica */}
                 {chronoAge && (
                   <Box sx={{ maxWidth: 320, mx: 'auto', mt: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, fontWeight: 700, color: 'text.secondary', mb: 0.5 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, color: 'text.secondary', mb: 0.5 }}>
                       <span>Sua idade real: <b>{chronoAge} anos</b></span>
                       <span>Sangue: <b>{data.age} anos</b></span>
                     </Box>

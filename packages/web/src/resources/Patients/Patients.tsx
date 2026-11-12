@@ -119,7 +119,7 @@ const PatientCards = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: 11,
+                    fontSize: 12,
                     color: '#fff',
                     fontWeight: 900,
                   }}

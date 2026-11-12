@@ -80,7 +80,7 @@ export const ClinicalActionsCard = ({ actions, loaded }: { actions: ClinicalActi
             ({loaded ? `${list.length} sugerida${list.length === 1 ? '' : 's'}` : '…'})
           </Box>
         </Typography>
-        {nUrgent > 0 && <Chip size="small" color="error" label={`${nUrgent} prioridade`} sx={{ height: 20, fontSize: 11, fontWeight: 800 }} />}
+        {nUrgent > 0 && <Chip size="small" color="error" label={`${nUrgent} prioridade`} sx={{ height: 20, fontSize: 12, fontWeight: 800 }} />}
         <KeyboardArrowDownIcon sx={{ color: 'text.secondary', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
       </Stack>
 
@@ -90,7 +90,7 @@ export const ClinicalActionsCard = ({ actions, loaded }: { actions: ClinicalActi
             <Box key={`${a.domain}-${i}`} sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(32,178,170,.06)', border: '1px solid rgba(32,178,170,.18)' }}>
               <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
                 <Typography sx={{ fontWeight: 800, fontSize: 13.5, flex: 1, minWidth: 140 }}><ActionIcon domain={a.domain} /> {a.title}</Typography>
-                <Chip size="small" label={TF_META[a.timeframe]?.label ?? a.timeframe} color={TF_META[a.timeframe]?.color ?? 'default'} variant={a.timeframe === 'rotina' ? 'outlined' : 'filled'} sx={{ height: 20, fontSize: 10.5, fontWeight: 700 }} />
+                <Chip size="small" label={TF_META[a.timeframe]?.label ?? a.timeframe} color={TF_META[a.timeframe]?.color ?? 'default'} variant={a.timeframe === 'rotina' ? 'outlined' : 'filled'} sx={{ height: 20, fontSize: 12, fontWeight: 700 }} />
               </Stack>
               <Typography sx={{ fontSize: 13, lineHeight: 1.55, mt: 0.75, fontStyle: 'italic', color: 'text.primary' }}>
                 “{a.question}”

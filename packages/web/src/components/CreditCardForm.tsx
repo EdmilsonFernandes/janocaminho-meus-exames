@@ -438,11 +438,11 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, c
               <Stack direction="row" justifyContent="space-between" alignItems="flex-end" sx={{ position: 'relative', mt: 0.5 }}>
                 <Box sx={{ minWidth: 0, flex: 1, mr: 1 }}>
                   <Typography sx={{ fontSize: 8, color: 'rgba(255,255,255,.65)', letterSpacing: 1, fontWeight: 700 }}>NOME NO CARTÃO</Typography>
-                  <Typography noWrap sx={{ fontSize: { xs: 11, sm: 12 }, color: '#fff', fontWeight: 700, textTransform: 'uppercase' }}>{holderName || 'SEU NOME'}</Typography>
+                  <Typography noWrap sx={{ fontSize: { xs: 12, sm: 12 }, color: '#fff', fontWeight: 700, textTransform: 'uppercase' }}>{holderName || 'SEU NOME'}</Typography>
                 </Box>
                 <Box>
                   <Typography sx={{ fontSize: 8, color: 'rgba(255,255,255,.65)', letterSpacing: 1, fontWeight: 700 }}>VALIDADE</Typography>
-                  <Typography sx={{ fontSize: { xs: 11, sm: 12 }, color: '#fff', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{expiry || 'MM/AA'}</Typography>
+                  <Typography sx={{ fontSize: { xs: 12, sm: 12 }, color: '#fff', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{expiry || 'MM/AA'}</Typography>
                 </Box>
               </Stack>
             </CardFace>
@@ -636,7 +636,7 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, c
                 <Typography sx={{ mt: 0.5, fontSize: 12.5, color: (t) => t.palette.mode === 'dark' ? '#fecaca' : '#7f1d1d', lineHeight: 1.45, fontWeight: 500 }}>
                   {apiErr}
                 </Typography>
-                <Typography sx={{ mt: 0.75, fontSize: 11.5, color: (t) => t.palette.mode === 'dark' ? '#f87171' : '#b91c1c', lineHeight: 1.4 }}>
+                <Typography sx={{ mt: 0.75, fontSize: 12, color: (t) => t.palette.mode === 'dark' ? '#f87171' : '#b91c1c', lineHeight: 1.4 }}>
                   Dica: Verifique se o cartão está liberado para compras online no app do seu banco ou utilize o PIX instantâneo.
                 </Typography>
                 {onSwitchToPix && (

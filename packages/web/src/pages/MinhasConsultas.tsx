@@ -498,9 +498,9 @@ export const MinhasConsultasPage = () => {
                             color: '#0d9488',
                             animation: s.current ? 'consultPulse 2s ease-in-out infinite' : 'none',
                             '@keyframes consultPulse': { '0%,100%': { boxShadow: '0 0 0 0 rgba(13,148,136,.30)' }, '50%': { boxShadow: '0 0 0 5px rgba(13,148,136,0)' } },
-                            fontSize: 11, fontWeight: 800, zIndex: 1,
+                            fontSize: 12, fontWeight: 800, zIndex: 1,
                           }}>{s.done ? <CheckCircleRoundedIcon sx={{ fontSize: 13 }} /> : i + 1}</Box>
-                          <Typography sx={{ fontSize: 10, fontWeight: 700, color: s.done ? 'text.primary' : 'text.disabled', textAlign: 'center', mt: 0.5 }}>{s.l}</Typography>
+                          <Typography sx={{ fontSize: 12, fontWeight: 700, color: s.done ? 'text.primary' : 'text.disabled', textAlign: 'center', mt: 0.5 }}>{s.l}</Typography>
                         </Box>
                       ));
                     })()}

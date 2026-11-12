@@ -6,6 +6,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import KeyIcon from '@mui/icons-material/Key';
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError } from './parts';
+import { ListEmpty } from '@/components/reui/list-empty';
+import { tealText } from '../../theme';
 
 const H = () => ({ Authorization: `Bearer ${token()}` });
 const fmt = (d: string | null) => (d ? new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—');
@@ -63,7 +65,7 @@ export const ApiTab = () => {
         {!!pending.length && <Chip size="small" color="warning" label={`${pending.length} solicitação(ões)`} />}
         <Box sx={{ flex: 1 }} />
         <Chip size="small" label={`💰 ${data?.totals?.purchases ?? 0} pacotes · ${Number(data?.totals?.callsSold ?? 0).toLocaleString('pt-BR')} chamadas vendidas`} sx={{ fontWeight: 700, bgcolor: 'rgba(212,165,116,.16)', color: '#b88a54' }} />
-        <Chip size="small" label={`⚡ ${Number(data?.totals?.callsUsed ?? 0).toLocaleString('pt-BR')} chamadas usadas`} sx={{ fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: '#178f89' }} />
+        <Chip size="small" label={`⚡ ${Number(data?.totals?.callsUsed ?? 0).toLocaleString('pt-BR')} chamadas usadas`} sx={{ fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }} />
       </Stack>
 
       {/* FILA — pendentes primeiro */}
@@ -106,14 +108,14 @@ export const ApiTab = () => {
       {/* CHAVES ATIVAS com saldo */}
       <Typography sx={{ fontWeight: 700, fontSize: 14, mb: 1 }}>Chaves ativas</Typography>
       {(data?.keys ?? []).length === 0 ? (
-        <Card variant="outlined"><CardContent><Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>Nenhuma chave ativa.</Typography></CardContent></Card>
+        <ListEmpty title="Nenhuma chave ativa" />
       ) : (
         <Stack spacing={1}>
           {data.keys.map((k: any) => (
             <Card key={k.id} variant="outlined">
               <CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
                 <Stack direction="row" alignItems="center" spacing={1} useFlexGap flexWrap="wrap">
-                  <KeyIcon sx={{ fontSize: 17, color: '#178f89' }} />
+                  <KeyIcon sx={{ fontSize: 17, color: (t) => tealText(t.palette.mode) }} />
                   <Typography sx={{ fontFamily: 'ui-monospace, monospace', fontSize: 13, fontWeight: 700 }}>{k.prefix}…</Typography>
                   <Typography variant="caption" color="text.secondary">{k.name} · {k.user?.email}</Typography>
                   <Box sx={{ flex: 1 }} />

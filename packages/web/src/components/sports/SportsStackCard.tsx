@@ -113,7 +113,7 @@ export const SportsStackCard = ({ pid, substances, onAdd, onEdit, onChanged }: S
           Seu stack
         </Typography>
         {substances.length > 0 && (
-          <Typography noWrap sx={{ ml: 'auto', fontSize: 11, fontWeight: 600, color: 'text.disabled' }}>
+          <Typography noWrap sx={{ ml: 'auto', fontSize: 12, fontWeight: 600, color: 'text.disabled' }}>
             {active} {active === 1 ? 'ativo' : 'ativos'}{stopped > 0 ? ` · ${stopped} ${stopped === 1 ? 'passado' : 'passados'}` : ''}
           </Typography>
         )}
@@ -164,12 +164,12 @@ export const SportsStackCard = ({ pid, substances, onAdd, onEdit, onChanged }: S
                     size="small"
                     label={badge.label}
                     sx={{
-                      height: 20, fontSize: 9.5, fontWeight: 800, letterSpacing: '.06em',
+                      height: 20, fontSize: 12, fontWeight: 800, letterSpacing: '.06em',
                       bgcolor: badge.bg, color: badge.color, '& .MuiChip-label': { px: 1 },
                     }}
                   />
                 </Stack>
-                <Typography sx={{ display: 'block', fontSize: 11.5, fontWeight: 500, color: 'text.secondary', mt: 0.25, lineHeight: 1.4, wordBreak: 'break-word' }}>
+                <Typography sx={{ display: 'block', fontSize: 12, fontWeight: 500, color: 'text.secondary', mt: 0.25, lineHeight: 1.4, wordBreak: 'break-word' }}>
                   {metaParts.join(' · ')}
                 </Typography>
                 <Stack direction="row" spacing={0.6} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
@@ -179,7 +179,7 @@ export const SportsStackCard = ({ pid, substances, onAdd, onEdit, onChanged }: S
                       size="small"
                       label={c.label}
                       sx={{
-                        height: 22, fontSize: 10.5, fontWeight: 700,
+                        height: 22, fontSize: 12, fontWeight: 700,
                         bgcolor: c.warn ? 'rgba(212,165,116,.09)' : alpha(theme.palette.text.primary, 0.05),
                         border: `1px solid ${c.warn ? 'rgba(212,165,116,.25)' : alpha(theme.palette.text.primary, 0.09)}`,
                         color: c.warn ? copperText : 'text.secondary',

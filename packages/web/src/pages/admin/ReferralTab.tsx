@@ -90,6 +90,9 @@ import { useTable, type ColumnDef } from '@tanstack/react-table';
 import { DataGrid, DataGridContainer, dataGridFeatures } from '@/components/reui/data-grid/data-grid';
 import { DataGridTable } from '@/components/reui/data-grid/data-grid-table';
 import '../../doctor-v2/tw.css';
+import { snackbar } from '../../components/ConfirmDialog';
+import { ListEmpty } from '@/components/reui/list-empty';
+import { tealText } from '../../theme';
 
 /** ReUI DataGrid — leaderboard de promotores (Fase B, worktree admin-reui). */
 function PromotersGrid({ rows, copiedCode, onCopy, onOpen }: { rows: any[]; copiedCode: string | null; onCopy: (c: string) => void; onOpen: (code: string) => void }) {
@@ -98,22 +101,22 @@ function PromotersGrid({ rows, copiedCode, onCopy, onOpen }: { rows: any[]; copi
     { accessorKey: 'userName', header: 'Promotor (Padrinho)', cell: (c) => (
       <div className="min-w-0">
         <p className="truncate text-[13.5px] font-bold">{c.getValue() as string}</p>
-        <p className="truncate text-[11px] text-muted-foreground">{(c.row.original as any).userEmail}</p>
+        <p className="truncate text-xs text-muted-foreground">{(c.row.original as any).userEmail}</p>
       </div>
     ) },
     { accessorKey: 'referralCode', header: 'Código', cell: (c) => { const code = c.getValue() as string; return (
-      <button type="button" onClick={() => onCopy(code)} title={copiedCode === code ? 'Copiado!' : 'Copiar código'} className="inline-flex items-center gap-1 rounded-md border border-border px-1.5 py-0.5 font-mono text-[11.5px] font-extrabold transition-colors hover:bg-muted">
+      <button type="button" onClick={() => onCopy(code)} title={copiedCode === code ? 'Copiado!' : 'Copiar código'} className="inline-flex items-center gap-1 rounded-md border border-border px-1.5 py-0.5 font-mono text-xs font-extrabold transition-colors hover:bg-muted">
         {code}<ContentCopyIcon sx={{ fontSize: 12 }} />
       </button>
     ); } },
-    { accessorKey: 'count', header: 'Indicados', cell: (c) => { const n = c.getValue() as number; return <span className={'rounded-full px-2 py-0.5 text-[11px] font-extrabold ' + (n >= 5 ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground')}>{n} indicados</span>; } },
+    { accessorKey: 'count', header: 'Indicados', cell: (c) => { const n = c.getValue() as number; return <span className={'rounded-full px-2 py-0.5 text-xs font-extrabold ' + (n >= 5 ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground')}>{n} indicados</span>; } },
     { accessorFn: (r) => Number((r as any).userCredits ?? 0), id: 'credits', header: 'Saldo', cell: (c) => <span className="whitespace-nowrap text-[13px] font-bold tabular-nums text-muted-foreground">{(c.getValue() as number).toLocaleString('pt-BR')} cr</span> },
     { id: 'acao', header: 'Ações', enableSorting: false, cell: (c) => (
       <Button size="small" variant="text" startIcon={<VisibilityIcon fontSize="small" />} onClick={() => onOpen((c.row.original as any).referralCode)} sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12 }}>Ver indicados</Button>
     ) },
   ];
   const table = useTable({ features: dataGridFeatures, data: rows, columns });
-  if (!rows || rows.length === 0) return <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">Nenhum promotor encontrado com os filtros atuais.</div>;
+  if (!rows || rows.length === 0) return <ListEmpty title="Nenhum promotor encontrado" description="Ajuste a busca ou os filtros." />;
   return <DataGrid table={table} recordCount={rows.length}><DataGridContainer><DataGridTable /></DataGridContainer></DataGrid>;
 }
 
@@ -209,7 +212,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
         load();
       }
     } catch (e) {
-      alert('Erro ao conceder bônus.');
+      snackbar({ message: 'Não foi possível conceder o bônus. Tente de novo.', severity: 'error' });
     } finally {
       setAwardingBonus(false);
     }
@@ -303,7 +306,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 1.5 }}>
         <Box>
           <Stack direction="row" spacing={1} alignItems="center">
-            <CardGiftcardIcon sx={{ color: '#20b2aa', fontSize: 28 }} />
+            <CardGiftcardIcon sx={{ color: (t) => tealText(t.palette.mode), fontSize: 28 }} />
             <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>
               Indicações & Crescimento (MGM)
             </Typography>
@@ -341,7 +344,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
         <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper' }}>
           <CardContent sx={{ p: 2 }}>
             <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block' }}>Total de Indicados</Typography>
-            <Typography sx={{ fontSize: { xs: 24, sm: 28 }, fontWeight: 800, color: '#178f89', mt: 0.25, lineHeight: 1.1 }}>
+            <Typography sx={{ fontSize: { xs: 24, sm: 28 }, fontWeight: 800, color: (t) => tealText(t.palette.mode), mt: 0.25, lineHeight: 1.1 }}>
               {stats.totalReferred.toLocaleString('pt-BR')}
             </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>cadastros com código</Typography>
@@ -477,7 +480,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
         <Box sx={{ p: 2, pb: 1.5, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1.5 }}>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography sx={{ fontWeight: 800, fontSize: { xs: 14, sm: 15 } }}>🏆 Top Promotores (Usuários que mais indicam)</Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: 11.5 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: 12 }}>
               Clique em qualquer promotor para ver todos os indicados e gerenciar bônus.
             </Typography>
           </Box>
@@ -515,10 +518,10 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
                       </Box>
                     </Stack>
                     <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
-                      <Typography sx={{ fontWeight: 800, fontSize: 13, color: '#178f89' }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: 13, color: (t) => tealText(t.palette.mode) }}>
                         {r.userCredits.toLocaleString('pt-BR')} cr
                       </Typography>
-                      <Typography variant="caption" color="text.disabled" sx={{ fontSize: 10 }}>saldo</Typography>
+                      <Typography variant="caption" color="text.disabled" sx={{ fontSize: 12 }}>saldo</Typography>
                     </Box>
                   </Stack>
 
@@ -529,7 +532,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
                         size="small"
                         onClick={(e) => { e.stopPropagation(); copy(r.referralCode); }}
                         icon={<ContentCopyIcon sx={{ fontSize: '12px !important' }} />}
-                        sx={{ fontFamily: 'monospace', fontWeight: 800, cursor: 'pointer', height: 24, fontSize: 11.5 }}
+                        sx={{ fontFamily: 'monospace', fontWeight: 800, cursor: 'pointer', height: 24, fontSize: 12 }}
                       />
                     </Tooltip>
                     <Stack direction="row" spacing={1} alignItems="center">
@@ -537,13 +540,13 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
                         label={`${r.count} indicados`}
                         size="small"
                         color={r.count >= 5 ? 'primary' : 'default'}
-                        sx={{ fontWeight: 800, height: 24, fontSize: 11.5, flexShrink: 0 }}
+                        sx={{ fontWeight: 800, height: 24, fontSize: 12, flexShrink: 0 }}
                       />
                       <Button
                         size="small"
                         variant="text"
                         onClick={(e) => { e.stopPropagation(); openPromoterDetail(r.referralCode); }}
-                        sx={{ textTransform: 'none', fontWeight: 700, fontSize: 11.5, minWidth: 'auto', p: 0.5 }}
+                        sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, minWidth: 'auto', p: 0.5 }}
                       >
                         Ver →
                       </Button>
@@ -559,84 +562,6 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
             <PromotersGrid rows={filteredPromoters} copiedCode={copiedCode} onCopy={copy} onOpen={openPromoterDetail} />
           </div>
 
-          {/* Tabela MUI legada (OCULTA — remover na limpeza) */}
-          <div style={{ display: 'none' }}>
-          <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-            <Table size="small" sx={{ minWidth: 640 }}>
-              <TableHead>
-                <TableRow sx={{ bgcolor: 'action.hover' }}>
-                  <TableCell sx={{ py: 1.25, fontWeight: 800 }}>#</TableCell>
-                  <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Promotor (Padrinho)</TableCell>
-                  <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Código</TableCell>
-                  <TableCell align="right" sx={{ py: 1.25, fontWeight: 800 }}>Total Indicados</TableCell>
-                  <TableCell align="right" sx={{ py: 1.25, fontWeight: 800 }}>Saldo Atual</TableCell>
-                  <TableCell align="center" sx={{ py: 1.25, fontWeight: 800 }}>Ações</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredPromoters.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} sx={{ py: 4, textAlign: 'center' }}>
-                      <Typography variant="body2" color="text.secondary">Nenhum promotor encontrado com os filtros atuais.</Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredPromoters.map((r, i) => (
-                    <TableRow
-                      key={r.referralCode}
-                      hover
-                      sx={{ cursor: 'pointer' }}
-                      onClick={() => openPromoterDetail(r.referralCode)}
-                    >
-                      <TableCell sx={{ fontWeight: 800, color: i < 3 ? '#178f89' : 'text.secondary', whiteSpace: 'nowrap' }}>
-                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`}
-                      </TableCell>
-                      <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{r.userName}</Typography>
-                        <Typography variant="caption" color="text.secondary">{r.userEmail}</Typography>
-                      </TableCell>
-                      <TableCell onClick={(e) => e.stopPropagation()} sx={{ whiteSpace: 'nowrap' }}>
-                        <Tooltip title={copiedCode === r.referralCode ? 'Copiado!' : 'Copiar código'}>
-                          <Chip
-                            label={r.referralCode}
-                            size="small"
-                            onClick={() => copy(r.referralCode)}
-                            icon={<ContentCopyIcon sx={{ fontSize: '13px !important' }} />}
-                            sx={{ fontFamily: 'monospace', fontWeight: 800, cursor: 'pointer' }}
-                          />
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                        <Chip
-                          label={`${r.count} indicados`}
-                          size="small"
-                          color={r.count >= 5 ? 'primary' : 'default'}
-                          sx={{ fontWeight: 800 }}
-                        />
-                      </TableCell>
-                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: 13, color: 'text.secondary' }}>
-                          {r.userCredits.toLocaleString('pt-BR')} cr
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center" onClick={(e) => e.stopPropagation()} sx={{ whiteSpace: 'nowrap' }}>
-                        <Button
-                          size="small"
-                          variant="text"
-                          startIcon={<VisibilityIcon fontSize="small" />}
-                          onClick={() => openPromoterDetail(r.referralCode)}
-                          sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12 }}
-                        >
-                          Ver indicados
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          </div>
           </>
         )}
       </Card>
@@ -646,7 +571,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
         <Box sx={{ p: 2, pb: 1.5, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1.5 }}>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography sx={{ fontWeight: 800, fontSize: { xs: 14, sm: 15 } }}>⏱️ Últimos Usuários que Vieram de Indicação</Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: 11.5 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: 12 }}>
               Rastreamento de novos cadastros gerados por links de indicação.
             </Typography>
           </Box>
@@ -675,7 +600,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
                       <Typography sx={{ fontWeight: 800, fontSize: 13.5 }} noWrap>{u.name}</Typography>
                       <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>{u.email}</Typography>
                     </Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11.5, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12, flexShrink: 0, whiteSpace: 'nowrap' }}>
                       {fmtDate(u.createdAt)}
                     </Typography>
                   </Stack>
@@ -683,12 +608,12 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
                   <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} flexWrap="wrap" sx={{ my: 0.75 }}>
                     <Stack direction="row" spacing={0.6} alignItems="center">
                       {u.emailVerified ? (
-                        <Chip label="Verificado" size="small" color="success" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, whiteSpace: 'nowrap' }} />
+                        <Chip label="Verificado" size="small" color="success" sx={{ height: 20, fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }} />
                       ) : (
-                        <Chip label="Pendente" size="small" sx={{ height: 20, fontSize: 10.5, fontWeight: 600, whiteSpace: 'nowrap' }} />
+                        <Chip label="Pendente" size="small" sx={{ height: 20, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }} />
                       )}
                       {u.isPremium && (
-                        <Chip label="Premium" size="small" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.18)', color: '#b45309', whiteSpace: 'nowrap' }} />
+                        <Chip label="Premium" size="small" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.18)', color: '#b45309', whiteSpace: 'nowrap' }} />
                       )}
                     </Stack>
                     <Chip
@@ -696,7 +621,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
                       size="small"
                       color={u.examCount > 0 ? 'info' : 'default'}
                       variant={u.examCount > 0 ? 'filled' : 'outlined'}
-                      sx={{ fontWeight: 700, height: 20, fontSize: 10.5, whiteSpace: 'nowrap' }}
+                      sx={{ fontWeight: 700, height: 20, fontSize: 12, whiteSpace: 'nowrap' }}
                     />
                   </Stack>
 
@@ -706,7 +631,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
                       <Typography
                         component="span"
                         variant="caption"
-                        sx={{ fontWeight: 800, cursor: 'pointer', color: '#178f89', '&:hover': { textDecoration: 'underline' } }}
+                        sx={{ fontWeight: 800, cursor: 'pointer', color: (t) => tealText(t.palette.mode), '&:hover': { textDecoration: 'underline' } }}
                         onClick={() => openPromoterDetail(u.referredByCode)}
                       >
                         {u.referrerName} [{u.referredByCode}]
@@ -751,18 +676,18 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
                       <TableCell sx={{ whiteSpace: 'nowrap' }}>
                         <Stack direction="row" spacing={0.5} alignItems="center">
                           {u.emailVerified ? (
-                            <Chip label="Verificado" size="small" color="success" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, whiteSpace: 'nowrap' }} />
+                            <Chip label="Verificado" size="small" color="success" sx={{ height: 20, fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }} />
                           ) : (
-                            <Chip label="Pendente" size="small" sx={{ height: 20, fontSize: 10.5, fontWeight: 600, whiteSpace: 'nowrap' }} />
+                            <Chip label="Pendente" size="small" sx={{ height: 20, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }} />
                           )}
                           {u.isPremium && (
-                            <Chip label="Premium" size="small" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.18)', color: '#b45309', whiteSpace: 'nowrap' }} />
+                            <Chip label="Premium" size="small" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.18)', color: '#b45309', whiteSpace: 'nowrap' }} />
                           )}
                         </Stack>
                       </TableCell>
                       <TableCell sx={{ whiteSpace: 'nowrap' }}>
                         <Typography
-                          sx={{ fontWeight: 700, fontSize: 13, cursor: 'pointer', color: '#178f89', '&:hover': { textDecoration: 'underline' } }}
+                          sx={{ fontWeight: 700, fontSize: 13, cursor: 'pointer', color: (t) => tealText(t.palette.mode), '&:hover': { textDecoration: 'underline' } }}
                           onClick={() => openPromoterDetail(u.referredByCode)}
                         >
                           {u.referrerName}
@@ -817,7 +742,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
         <DialogContent dividers>
           {loadingPromoter ? (
             <Box sx={{ py: 6, textAlign: 'center' }}>
-              <CircularProgress size={36} sx={{ color: '#178f89' }} />
+              <CircularProgress size={36} sx={{ color: (t) => tealText(t.palette.mode) }} />
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
                 Buscando rede de indicados...
               </Typography>
@@ -847,7 +772,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, minWidth: 220 }}>
                     <Box sx={{ p: 1, borderRadius: '8px', bgcolor: 'background.paper', border: 1, borderColor: 'divider', textAlign: 'center' }}>
                       <Typography variant="caption" color="text.secondary">Total Indicados</Typography>
-                      <Typography sx={{ fontWeight: 800, fontSize: 18, color: '#178f89' }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: 18, color: (t) => tealText(t.palette.mode) }}>
                         {promoterDetail.totalInvitees}
                       </Typography>
                     </Box>
@@ -942,12 +867,12 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
                             <TableCell>
                               <Stack direction="row" spacing={0.5}>
                                 {inv.emailVerified ? (
-                                  <Chip label="Verificado" size="small" color="success" sx={{ height: 20, fontSize: 10, fontWeight: 700 }} />
+                                  <Chip label="Verificado" size="small" color="success" sx={{ height: 20, fontSize: 12, fontWeight: 700 }} />
                                 ) : (
-                                  <Chip label="Pendente" size="small" sx={{ height: 20, fontSize: 10 }} />
+                                  <Chip label="Pendente" size="small" sx={{ height: 20, fontSize: 12 }} />
                                 )}
                                 {inv.isPremium && (
-                                  <Chip label="Premium" size="small" sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.18)', color: '#b45309' }} />
+                                  <Chip label="Premium" size="small" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.18)', color: '#b45309' }} />
                                 )}
                               </Stack>
                             </TableCell>
@@ -956,7 +881,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
                                 label={inv.examCount > 0 ? `${inv.examCount} exames` : '0'}
                                 size="small"
                                 color={inv.examCount > 0 ? 'info' : 'default'}
-                                sx={{ height: 20, fontSize: 10.5, fontWeight: 700 }}
+                                sx={{ height: 20, fontSize: 12, fontWeight: 700 }}
                               />
                             </TableCell>
                           </TableRow>

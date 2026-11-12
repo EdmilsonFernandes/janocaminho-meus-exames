@@ -429,7 +429,7 @@ export const FamilyPage = () => {
                   bgcolor: dark ? 'rgba(15, 118, 110, 0.2)' : '#CCFBF1',
                   color: dark ? '#5EEAD4' : '#0F766E',
                   fontWeight: 800,
-                  fontSize: 11,
+                  fontSize: 12,
                   height: 24,
                 }}
               />
@@ -465,7 +465,7 @@ export const FamilyPage = () => {
                         label={pName.split(' ')[0]}
                         sx={{
                           height: 22,
-                          fontSize: 11.5,
+                          fontSize: 12,
                           fontWeight: 800,
                           bgcolor: 'rgba(239, 68, 68, 0.12)',
                           color: '#b91c1c',
@@ -586,7 +586,7 @@ export const FamilyPage = () => {
                                 border: '2px solid #ffffff',
                                 display: 'grid',
                                 placeItems: 'center',
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: 900,
                               }}
                             >
@@ -617,7 +617,7 @@ export const FamilyPage = () => {
                               label={isTit ? 'Titular · Responsável' : p.relationship || 'Dependente'}
                               sx={{
                                 height: 21,
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: 800,
                                 bgcolor: isTit ? 'rgba(32, 178, 170, 0.14)' : 'rgba(212, 165, 116, 0.18)',
                                 color: isTit ? (dark ? '#5fc9c3' : '#178f89') : (dark ? '#e6c8a5' : '#8c6031'),
@@ -650,12 +650,12 @@ export const FamilyPage = () => {
                             >
                               {p.score}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, fontSize: 11 }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, fontSize: 12 }}>
                               /100
                             </Typography>
                           </Box>
                         ) : (
-                          <Chip size="small" label="Aguardando exames" sx={{ fontSize: 10.5, height: 20 }} />
+                          <Chip size="small" label="Aguardando exames" sx={{ fontSize: 12, height: 20 }} />
                         )}
                       </Box>
                     </Box>
@@ -698,7 +698,7 @@ export const FamilyPage = () => {
                             : 'Nenhum exame enviado ainda'}
                         </Typography>
                         {fmtDate(p.performedAt) && (
-                          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
                             {fmtDate(p.performedAt)}
                           </Typography>
                         )}
@@ -713,7 +713,7 @@ export const FamilyPage = () => {
                               label={`${prettyName(a.name)}: ${a.value || 'Alterado'}`}
                               sx={{
                                 height: 21,
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: 700,
                                 bgcolor: 'rgba(239, 68, 68, 0.1)',
                                 color: dark ? '#fca5a5' : '#b91c1c',
@@ -1179,7 +1179,7 @@ export const FamilyPage = () => {
                                 bgcolor: dark ? 'rgba(239, 68, 68, 0.18)' : '#FEF2F2',
                                 color: dark ? '#fca5a5' : '#b91c1c',
                                 fontWeight: 800,
-                                fontSize: 11.5,
+                                fontSize: 12,
                                 borderRadius: '999px',
                                 border: '1px solid',
                                 borderColor: dark ? 'rgba(239, 68, 68, 0.3)' : '#fecaca',
@@ -1193,7 +1193,7 @@ export const FamilyPage = () => {
                                 bgcolor: dark ? 'rgba(245, 158, 11, 0.16)' : '#FFFBEB',
                                 color: dark ? '#fcd34d' : '#b45309',
                                 fontWeight: 800,
-                                fontSize: 11.5,
+                                fontSize: 12,
                                 borderRadius: '999px',
                                 border: '1px solid',
                                 borderColor: dark ? 'rgba(245, 158, 11, 0.3)' : '#fde68a',
@@ -1207,7 +1207,7 @@ export const FamilyPage = () => {
                                 bgcolor: dark ? 'rgba(16, 185, 129, 0.16)' : '#ECFDF5',
                                 color: dark ? '#6ee7b7' : '#047857',
                                 fontWeight: 800,
-                                fontSize: 11.5,
+                                fontSize: 12,
                                 borderRadius: '999px',
                                 border: '1px solid',
                                 borderColor: dark ? 'rgba(16, 185, 129, 0.3)' : '#a7f3d0',
@@ -1241,7 +1241,7 @@ export const FamilyPage = () => {
                                         borderRadius: '50%',
                                         bgcolor: m.color,
                                         color: '#ffffff',
-                                        fontSize: 11,
+                                        fontSize: 12,
                                         fontWeight: 800,
                                         display: 'grid',
                                         placeItems: 'center',
@@ -1270,7 +1270,7 @@ export const FamilyPage = () => {
                                       label={m.isAbn ? (m.flag === 'LOW' ? 'Baixo' : 'Elevado') : 'Na Meta'}
                                       sx={{
                                         height: 20,
-                                        fontSize: 10.5,
+                                        fontSize: 12,
                                         fontWeight: 800,
                                         bgcolor: m.isAbn ? 'rgba(239, 68, 68, 0.14)' : 'rgba(16, 185, 129, 0.14)',
                                         color: m.isAbn ? '#dc2626' : '#059669',
@@ -1309,7 +1309,7 @@ export const FamilyPage = () => {
                                 </Box>
 
                                 {/* Labels de Metas Individuais */}
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, color: 'text.secondary', fontFamily: 'monospace' }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'text.secondary', fontFamily: 'monospace' }}>
                                   <span>{m.refLow != null ? `Min: ${m.refLow}` : '—'}</span>
                                   <span style={{ color: '#059669', fontWeight: 700 }}>
                                     {m.refLow != null && m.refHigh != null ? `Meta: ${m.refLow} a ${m.refHigh}` : 'Faixa de Referência'}
@@ -1369,15 +1369,15 @@ export const FamilyPage = () => {
                 <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
                   <Box component="thead" sx={{ bgcolor: dark ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderBottom: '1px solid', borderColor: 'divider' }}>
                     <Box component="tr">
-                      <Box component="th" sx={{ p: 1.75, fontWeight: 800, fontSize: 11.5, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      <Box component="th" sx={{ p: 1.75, fontWeight: 800, fontSize: 12, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                         Marcador Clínico
                       </Box>
                       {data?.patients?.map((p) => (
-                        <Box key={p.id} component="th" sx={{ p: 1.75, fontWeight: 800, fontSize: 11.5, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        <Box key={p.id} component="th" sx={{ p: 1.75, fontWeight: 800, fontSize: 12, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                           {p.fullName.split(' ')[0]} {p.relationship ? `(${p.relationship})` : ''}
                         </Box>
                       ))}
-                      <Box component="th" sx={{ p: 1.75, fontWeight: 800, fontSize: 11.5, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      <Box component="th" sx={{ p: 1.75, fontWeight: 800, fontSize: 12, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                         Diagnóstico Familiar
                       </Box>
                     </Box>
@@ -1400,7 +1400,7 @@ export const FamilyPage = () => {
                         >
                           <Box component="td" sx={{ p: 1.75, fontWeight: 700, color: 'text.primary' }}>
                             <div>{prettyName(row.analyte)}</div>
-                            <div style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace' }}>
+                            <div style={{ fontSize: 12, color: '#94a3b8', fontFamily: 'monospace' }}>
                               {row.unit ? `Unidade: ${row.unit}` : ''}
                             </div>
                           </Box>
@@ -1422,7 +1422,7 @@ export const FamilyPage = () => {
                                   label={`${m.value} ${isAbn ? (m.flag === 'LOW' ? '↓' : '↑') : '✓'}`}
                                   sx={{
                                     fontWeight: 800,
-                                    fontSize: 11.5,
+                                    fontSize: 12,
                                     bgcolor: isAbn ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.12)',
                                     color: isAbn ? '#dc2626' : '#059669',
                                     border: '1px solid',
@@ -1430,7 +1430,7 @@ export const FamilyPage = () => {
                                   }}
                                 />
                                 {m.refLow != null && m.refHigh != null && (
-                                  <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
+                                  <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>
                                     Ref: {m.refLow}-{m.refHigh}
                                   </div>
                                 )}
@@ -1440,11 +1440,11 @@ export const FamilyPage = () => {
 
                           <Box component="td" sx={{ p: 1.75, fontSize: 12 }}>
                             {isBoth ? (
-                              <Chip size="small" label="🚨 Ambos Fora da Meta" sx={{ bgcolor: '#FEF2F2', color: '#b91c1c', fontWeight: 800, fontSize: 11 }} />
+                              <Chip size="small" label="🚨 Ambos Fora da Meta" sx={{ bgcolor: '#FEF2F2', color: '#b91c1c', fontWeight: 800, fontSize: 12 }} />
                             ) : isOne ? (
-                              <Chip size="small" label={`⚠️ ${(altered[0].name || '').split(' ')[0]} Fora`} sx={{ bgcolor: '#FFFBEB', color: '#b45309', fontWeight: 800, fontSize: 11 }} />
+                              <Chip size="small" label={`⚠️ ${(altered[0].name || '').split(' ')[0]} Fora`} sx={{ bgcolor: '#FFFBEB', color: '#b45309', fontWeight: 800, fontSize: 12 }} />
                             ) : (
-                              <Chip size="small" label="✓ Normal em Ambos" sx={{ bgcolor: '#ECFDF5', color: '#047857', fontWeight: 800, fontSize: 11 }} />
+                              <Chip size="small" label="✓ Normal em Ambos" sx={{ bgcolor: '#ECFDF5', color: '#047857', fontWeight: 800, fontSize: 12 }} />
                             )}
                           </Box>
                         </Box>

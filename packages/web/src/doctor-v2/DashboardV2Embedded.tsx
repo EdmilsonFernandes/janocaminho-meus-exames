@@ -334,7 +334,7 @@ export const DashboardV2Embedded = () => {
                     </div>
                   );
                 })}
-                <p className="text-[11px] text-muted-foreground/70">Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.</p>
+                <p className="text-xs text-muted-foreground/70">Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.</p>
               </section>
             );
           })()}
@@ -365,7 +365,7 @@ export const DashboardV2Embedded = () => {
                 )) : (
                   <p className="text-xs text-muted-foreground">Envie exames com colesterol/glicose e cadastre peso e pressão em Medições pra dimensionar o risco.</p>
                 )}
-                <p className="text-[11px] text-muted-foreground/70">Identifica fatores de risco — não calcula probabilidade individual de infarto/AVC. A avaliação completa é com seu médico.</p>
+                <p className="text-xs text-muted-foreground/70">Identifica fatores de risco — não calcula probabilidade individual de infarto/AVC. A avaliação completa é com seu médico.</p>
               </section>
             );
           })()}

@@ -55,7 +55,7 @@ export const SportsSinceLast = ({ items, abnormalCount, substancesCount, onPrep,
             <Stack key={a.nameCanonical} direction="row" alignItems="center" spacing={1} sx={{ minHeight: 40 }}>
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 700 }}>{a.nameCanonical}</Typography>
-                <Typography noWrap sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary' }}>
                   {fmtVal(a)} · {fmtDay(a.firstDate)} → {fmtDay(a.lastDate)}
                 </Typography>
               </Box>
@@ -100,7 +100,7 @@ export const SportsSinceLast = ({ items, abnormalCount, substancesCount, onPrep,
           </Button>
         </Stack>
       </Stack>
-      <Typography sx={{ fontSize: 11, color: 'text.secondary', fontStyle: 'italic', mt: 1 }}>
+      <Typography sx={{ fontSize: 12, color: 'text.secondary', fontStyle: 'italic', mt: 1 }}>
         Mudança após começar algo não prova causa — o contexto completo é avaliação médica.
       </Typography>
     </AppCard>

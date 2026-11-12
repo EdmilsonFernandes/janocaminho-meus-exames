@@ -6,6 +6,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { API_URL, token } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
 import { TabLoader, SectionError } from './parts';
+import { tealText } from '../../theme';
 
 /**
  * ADMIN — Monetização (redesign 2026-08: clareza operacional > densidade).
@@ -156,7 +157,7 @@ export const PricingTab = () => {
       {/* ESTADO ATUAL — o que está valendo AGORA (uma olhada e o admin sabe onde está) */}
       <Alert severity="info" icon={false} sx={{ borderRadius: '12px', '& .MuiAlert-message': { width: '100%' } }}>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ alignItems: 'center' }}>
-          <Chip size="small" label={`Plano: ${fmtBRL(config?.plans?.monthly?.price ?? 0)}/mês · ${config?.grants?.monthly ?? 0} créditos`} sx={{ fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: '#178f89' }} />
+          <Chip size="small" label={`Plano: ${fmtBRL(config?.plans?.monthly?.price ?? 0)}/mês · ${config?.grants?.monthly ?? 0} créditos`} sx={{ fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
           <Chip size="small" label={Number(config?.founder?.enabled) === 1 ? `🎯 Fundador ATIVO: ${fmtBRL(config?.founder?.price)} · ${config?.founder?.used}/${config?.founder?.limit} vagas` : 'Fundador desligado'} sx={{ fontWeight: 700 }} color={Number(config?.founder?.enabled) === 1 ? 'warning' : 'default'} variant="outlined" />
           <Chip size="small" label={`${(config?.creditPacks ?? []).length} pacotes avulsos`} variant="outlined" />
           <Chip size="small" label={Number(config?.premium?.consolidatedFree) === 1 ? 'Relatório incluído no premium' : 'Relatório custa créditos p/ todos'} variant="outlined" />

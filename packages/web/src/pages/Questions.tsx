@@ -348,10 +348,10 @@ export const QuestionsPage = () => {
                           {g.items.length} pergunta(s) · última {new Date(g.lastDate).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
                         </Typography>
                         {g.pendingCount > 0 && (
-                          <Chip size="small" label={`${g.pendingCount} pendente(s)`} sx={{ height: 18, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(245,158,11,0.15)', color: '#b45309' }} />
+                          <Chip size="small" label={`${g.pendingCount} pendente(s)`} sx={{ height: 18, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(245,158,11,0.15)', color: '#b45309' }} />
                         )}
                         {g.answeredCount > 0 && (
-                          <Chip size="small" label={`${g.answeredCount} respondida(s)`} sx={{ height: 18, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(16,185,129,0.12)', color: '#059669' }} />
+                          <Chip size="small" label={`${g.answeredCount} respondida(s)`} sx={{ height: 18, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(16,185,129,0.12)', color: '#059669' }} />
                         )}
                       </Stack>
                     </Box>
@@ -362,7 +362,7 @@ export const QuestionsPage = () => {
                         sx={{
                           height: 24,
                           fontWeight: 700,
-                          fontSize: 11,
+                          fontSize: 12,
                           bgcolor: openQ >= maxQ ? 'rgba(239,68,68,.12)' : 'rgba(32,178,170,.10)',
                           color: openQ >= maxQ ? '#ef4444' : TEAL,
                           flexShrink: 0,

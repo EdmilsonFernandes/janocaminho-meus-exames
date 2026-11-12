@@ -165,6 +165,7 @@ const fmtWait = (sec?: number | null) => {
  * Perguntas=chat, Anotações=lápis. */
 import { Receipt, Flag, ChartLineUp, FileText, ChatCircle, NotePencil, Stethoscope, CalendarBlank, Diamond, Medal } from '@phosphor-icons/react';
 import { tealText } from '../theme';
+import { ListEmpty } from '@/components/reui/list-empty';
 
 const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
   prontuario: { label: 'Prontuário', icon: <Stethoscope size={22} weight="duotone" /> },
@@ -640,7 +641,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       setInvResult({ link: d.link, wa: phone ? `https://wa.me/${phone.startsWith('55') ? '' : '55'}${phone}?text=${encodeURIComponent(msg)}` : '', name: inv.name.trim() });
       setInv({ name: '', phone: '', email: '' });
       void loadInvites();
-    } catch (e: any) { window.alert(e?.message || 'Falha ao gerar convite.'); }
+    } catch (e: any) { snackbar({ message: e?.message || 'Não foi possível gerar o convite. Tente de novo.', severity: 'error' }); }
     finally { setInvBusy(false); }
   };
   const cancelInvite = async (id: string) => { await fetch(`${API_URL}/doctor/invites/${id}`, { method: 'DELETE', headers: h }); void loadInvites(); };
@@ -1411,12 +1412,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               }}
             />
             <Box sx={{ minWidth: 0 }}>
-              <Typography noWrap sx={{ fontSize: { xs: 11.5, md: 12.5 }, fontWeight: 800, color: 'success.main', lineHeight: 1.2 }}>
+              <Typography noWrap sx={{ fontSize: { xs: 12, md: 12.5 }, fontWeight: 800, color: 'success.main', lineHeight: 1.2 }}>
                 Paciente concluindo pagamento…
               </Typography>
               {acceptedCall && (
                 <Stack direction="row" spacing={0.75} sx={{ mt: 0.25 }}>
-                  <Button size="small" variant="contained" onClick={enterAcceptedRoom} sx={{ minHeight: 30, px: 1.25, borderRadius: '8px', textTransform: 'none', fontWeight: 800, fontSize: 11.5, bgcolor: '#178f89', '&:hover': { bgcolor: '#0f766e' } }}>
+                  <Button size="small" variant="contained" onClick={enterAcceptedRoom} sx={{ minHeight: 30, px: 1.25, borderRadius: '8px', textTransform: 'none', fontWeight: 800, fontSize: 12, bgcolor: '#178f89', '&:hover': { bgcolor: '#0f766e' } }}>
                     Entrar na sala
                   </Button>
                   <Button size="small" onClick={() => setAcceptedCall(null)} aria-label="Dispensar aviso de pagamento" sx={{ minHeight: 36, px: 1, textTransform: 'none', fontWeight: 700, fontSize: 12, color: 'text.disabled', minWidth: 0 }}>
@@ -1453,7 +1454,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   }}
                 />
               )}
-              <Typography noWrap sx={{ fontSize: { xs: 11.5, md: 12.5 }, fontWeight: 800, color: atendOn ? 'success.main' : 'text.secondary' }}>
+              <Typography noWrap sx={{ fontSize: { xs: 12, md: 12.5 }, fontWeight: 800, color: atendOn ? 'success.main' : 'text.secondary' }}>
                 Atender agora
               </Typography>
               <Switch
@@ -1490,7 +1491,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     Você recebe <b style={{ color: '#20b2aa' }}>R$ {(pricing.netCents / 100).toFixed(2).replace('.', ',')}</b> líquido{pricing.platformBps > 0 ? ` (taxa ${(pricing.platformBps / 100).toFixed(1)}%)` : ''}
                   </Typography>
                 )}
-                <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 0.5 }}>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.5 }}>
                   {pricing.instantPriceCents == null ? 'Usando o valor da sua consulta agendada — defina um valor próprio abaixo se quiser.' : 'Valor próprio do imediato.'}
                 </Typography>
               </Box>
@@ -1520,11 +1521,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 </Button>
               </Stack>
               {pricing.city && (
-                <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
                   Pacientes veem: <b style={{ color: '#20b2aa' }}>📍 {pricing.city}</b> no seu card da fila.
                 </Typography>
               )}
-              <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
                 Enquanto online, chamados chegam aqui com <b>45s</b> para aceitar. Mín. R$ 20,00 (garante estorno integral); 0 = usar o valor da consulta.
               </Typography>
             </>
@@ -1560,7 +1561,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             </DialogTitle>
             <DialogContent>
               <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
-                <Avatar sx={{ bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', fontWeight: 800, width: 44, height: 44, fontSize: 18 }}>
+                <Avatar sx={{ bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode), fontWeight: 800, width: 44, height: 44, fontSize: 18 }}>
                   {queueOffer.patientName?.charAt(0)?.toUpperCase() || 'P'}
                 </Avatar>
                 <Box sx={{ minWidth: 0, flex: 1 }}>
@@ -1585,7 +1586,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     R$ {((queueOffer.priceCents ?? 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </Typography>
                   {queueOffer.netPriceCents != null && (
-                    <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
                       seu líquido: R$ {(queueOffer.netPriceCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </Typography>
                   )}
@@ -1887,13 +1888,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           <Typography sx={{ fontWeight: 800, fontSize: 13.5, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1.2 }}>
                             {isFuture ? 'Próxima Teleconsulta' : 'Última Teleconsulta'}
                           </Typography>
-                          <Chip size="small" label={`Sala ${String(upcoming.id).slice(-5).toUpperCase()}`} sx={{ height: 20, fontSize: 11, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.15)', color: 'secondary.dark' }} />
+                          <Chip size="small" label={`Sala ${String(upcoming.id).slice(-5).toUpperCase()}`} sx={{ height: 20, fontSize: 12, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.15)', color: 'secondary.dark' }} />
                           {!teleEnded ? (
                             <Chip
                               size="small"
                               label={upcoming.consentAt ? '✓ Autorizado (CFM)' : '⏳ Aguardando aceite'}
                               sx={{
-                                height: 20, fontSize: 11, fontWeight: 700,
+                                height: 20, fontSize: 12, fontWeight: 700,
                                 bgcolor: upcoming.consentAt ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
                                 color: upcoming.consentAt ? '#059669' : '#d97706',
                               }}
@@ -1902,7 +1903,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                             <Chip
                               size="small"
                               label="✓ Concluída"
-                              sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89' }}
+                              sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: (t) => tealText(t.palette.mode) }}
                             />
                           )}
                         </Stack>
@@ -1973,7 +1974,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           setSelected(null);
                           setSelExam(null);
                         }}
-                        sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, borderRadius: '999px', color: '#178f89' }}
+                        sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, borderRadius: '999px', color: (t) => tealText(t.palette.mode) }}
                       >
                         Agenda ({patientTele.length}) →
                       </Button>
@@ -2022,7 +2023,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <DialogTitle sx={{ fontWeight: 800 }}>💊 Remédios de {selected.patient?.fullName ?? 'paciente'}</DialogTitle>
               <DialogContent>
                 {(!medsInfo || medsInfo.medications.length === 0) && (
-                  <Typography sx={{ color: 'text.secondary', py: 2 }}>Nenhum remédio cadastrado pelo paciente.</Typography>
+                  <ListEmpty title="Nenhum remédio cadastrado pelo paciente" />
                 )}
                 {medsInfo && medsInfo.medications.length > 0 && (
                   <Stack spacing={0.75} sx={{ mt: 1 }}>
@@ -2086,7 +2087,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     document.getElementById('patient-tabs-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   });
                 } else {
-                  window.alert('Este paciente ainda não compartilhou exames com você — a aba "Alterados" aparece após o compartilhamento.');
+                  snackbar({ message: 'Este paciente ainda não compartilhou exames com você. A aba "Alterados" aparece depois do compartilhamento.', severity: 'info' });
                 }
               }}
               onRefreshAnalysis={refreshPatientDetail}
@@ -2159,7 +2160,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                               <Box
                                 component="span"
                                 sx={{
-                                  fontSize: 11,
+                                  fontSize: 12,
                                   fontWeight: 800,
                                   lineHeight: 1,
                                   px: 0.65,
@@ -2353,7 +2354,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
                 {/* F4: data REAL de encerramento (endedAt) — âncora do resumo no histórico. */}
                 {!!postSummary?.endedAt && (
-                  <Chip size="small" label={`Encerrada ${new Date(postSummary.endedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`} sx={{ height: 24, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(15,118,110,.10)', color: '#178f89' }} />
+                  <Chip size="small" label={`Encerrada ${new Date(postSummary.endedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`} sx={{ height: 24, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(15,118,110,.10)', color: (t) => tealText(t.palette.mode) }} />
                 )}
                 {postSummary?.durationHint && (
                   <Chip size="small" icon={<ScheduleOutlinedIcon sx={{ fontSize: 14 }} />} label={`Encerrada · ${postSummary.durationHint}`} sx={{ height: 24, fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary', '& .MuiChip-icon': { color: 'text.secondary' } }} />

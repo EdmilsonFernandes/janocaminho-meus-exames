@@ -731,7 +731,7 @@ export const MedicosPage = () => {
                                   }
                                 }}
                                 sx={{
-                                  py: 0.25, px: 1.25, fontSize: 11.5, fontWeight: 800,
+                                  py: 0.25, px: 1.25, fontSize: 12, fontWeight: 800,
                                   borderRadius: '999px', textTransform: 'none', bgcolor: '#0f766e',
                                   '&:hover': { bgcolor: '#115e59' },
                                 }}
@@ -777,7 +777,7 @@ export const MedicosPage = () => {
           <Typography sx={{ fontWeight: 900, fontSize: 14, color: 'text.primary', mb: 0.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', fontFamily: 'Poppins, sans-serif' }}>
             <span>🔖 Salvos sem acesso ({semAcesso.length})</span>
             {/* Fix 05/11: era uma seção "morta" no fim da tela — agora grita a ação. */}
-            <Chip size="small" label="toque em Compartilhar para liberar" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#b45309', border: '1px solid rgba(245,158,11,.35)' }} />
+            <Chip size="small" label="toque em Compartilhar para liberar" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#b45309', border: '1px solid rgba(245,158,11,.35)' }} />
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.25 }}>
             Estão na sua lista, mas <strong>não veem seus exames</strong> — compartilhe só quando quiser.
@@ -808,10 +808,10 @@ export const MedicosPage = () => {
                         {it.doctor?.name}
                       </Typography>
                       <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" alignItems="center">
-                        <Chip size="small" label={`CRM ${it.doctor?.crm}`} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.08)', color: '#0f5f5a' }} />
+                        <Chip size="small" label={`CRM ${it.doctor?.crm}`} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.08)', color: '#0f5f5a' }} />
                         {it.doctor?.specialty && <Typography variant="caption" color="text.secondary">{it.doctor.specialty}</Typography>}
                         {it.consultationCount > 0 && (
-                          <Chip size="small" label={`${it.consultationCount} ${it.consultationCount === 1 ? 'consulta' : 'consultas'}`} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary' }} />
+                          <Chip size="small" label={`${it.consultationCount} ${it.consultationCount === 1 ? 'consulta' : 'consultas'}`} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary' }} />
                         )}
                       </Stack>
                     </Box>

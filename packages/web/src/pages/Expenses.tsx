@@ -227,7 +227,7 @@ export const ExpensesPage = () => {
                 <WalletReceiptIcon size={24} />
               </IconTile>
               <div>
-                <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Total acumulado
                 </div>
                 <div className="font-heading text-2xl font-extrabold tracking-tight text-primary tabular-nums sm:text-3xl">

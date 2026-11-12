@@ -2329,7 +2329,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             transition: 'opacity .5s ease', pointerEvents: 'none',
           }}>
             <HeadphonesIcon sx={{ fontSize: 16, color: '#d4a574', flexShrink: 0 }} />
-            <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: '#e0bc97' }}>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#e0bc97' }}>
               Dica: use fones ou mute o microfone pra evitar chiado
             </Typography>
           </Box>
@@ -3260,7 +3260,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             );
           })}
         </Stack>
-        <Typography variant="caption" sx={{ display: 'block', fontSize: 11.5, color: 'text.disabled', textAlign: 'center' }}>
+        <Typography variant="caption" sx={{ display: 'block', fontSize: 12, color: 'text.disabled', textAlign: 'center' }}>
           Opcional — pode pular.
         </Typography>
       </Box>
@@ -3545,7 +3545,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                           <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
                             {wasRealCall ? 'Transcrição da Consulta' : 'Entrada Rápida / Saída'}
                           </Typography>
-                          <Chip size="small" label={wasRealCall ? 'Sem gravação autorizada' : 'Consulta Não Iniciada'} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(100,116,139,0.12)', color: 'text.secondary' }} />
+                          <Chip size="small" label={wasRealCall ? 'Sem gravação autorizada' : 'Consulta Não Iniciada'} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(100,116,139,0.12)', color: 'text.secondary' }} />
                         </Stack>
                         <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>
                           {wasRealCall
@@ -3676,7 +3676,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.25 }}>
               <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15, flex: 1 }}>Resumo da consulta</Typography>
               {areaSummary?.consultSummary && (
-                <Chip size="small" label={`versão ${areaSummary.consultSummary.version}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
+                <Chip size="small" label={`versão ${areaSummary.consultSummary.version}`} sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
               )}
             </Stack>
             <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', borderColor: 'divider', boxShadow: 'none' }}>
@@ -3747,7 +3747,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                         </Stack>
                       )}
                       {cs.status === 'draft' && (
-                        <Chip size="small" label="Rascunho — ainda não visível ao paciente" sx={{ alignSelf: 'flex-start', height: 24, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#b45309', borderRadius: '8px' }} />
+                        <Chip size="small" label="Rascunho — ainda não visível ao paciente" sx={{ alignSelf: 'flex-start', height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#b45309', borderRadius: '8px' }} />
                       )}
                       {renderSummaryMd((cs.status === 'approved' ? cs.summaryMd : cs.draftMd) ?? '')}
                       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -3938,7 +3938,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                         <Box>
                           {!cidNav ? (
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
-                              <Typography component="span" sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', alignSelf: 'center', mr: 0.5 }}>ou toque no capítulo:</Typography>
+                              <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', alignSelf: 'center', mr: 0.5 }}>ou toque no capítulo:</Typography>
                               {CID_CHAPTERS.map((ch) => (
                                 <Box
                                   key={ch.letter} component="button" type="button" title={ch.label}
@@ -3957,7 +3957,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                                 </Typography>
                                 {cidNav.cat && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>› {cidNav.cat}</Typography>}
                                 <Box sx={{ flex: 1 }} />
-                                <Button size="small" sx={{ minWidth: 0, fontSize: 11, textTransform: 'none', color: 'text.secondary', p: 0 }} onClick={() => setCidNav(null)}>fechar</Button>
+                                <Button size="small" sx={{ minWidth: 0, fontSize: 12, textTransform: 'none', color: 'text.secondary', p: 0 }} onClick={() => setCidNav(null)}>fechar</Button>
                               </Stack>
                               {cidNavBusy ? (
                                 <Typography sx={{ fontSize: 12, color: 'text.secondary', py: 1 }}>buscando…</Typography>
@@ -4361,7 +4361,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                       top: 10,
                       left: 10,
                       height: 24,
-                      fontSize: 11.5,
+                      fontSize: 12,
                       fontWeight: 700,
                       bgcolor: 'rgba(0,0,0,0.6)',
                       color: '#fff',
@@ -4388,7 +4388,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                     <Box sx={{ height: 6, borderRadius: 999, bgcolor: 'rgba(255,255,255,.18)', overflow: 'hidden' }}>
                       <Box sx={{ height: '100%', width: `${Math.max(2, Math.round(micLevel * 100))}%`, borderRadius: 999, background: 'linear-gradient(90deg,#20b2aa,#5fc9c3)', transition: 'width .08s linear' }} />
                     </Box>
-                    <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: micSilentHint ? '#fbbf24' : 'rgba(255,255,255,.78)' }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 700, color: micSilentHint ? '#fbbf24' : 'rgba(255,255,255,.78)' }}>
                       {micSilentHint ? '⚠️ Sem captura — troque o microfone ou verifique volume/mudo do sistema' : '🎤 Fale — a barra deve mexer'}
                     </Typography>
                   </Stack>
@@ -4478,7 +4478,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                   sx={{
                     color: soundTested ? '#10b981' : '#fff',
                     bgcolor: soundTested ? 'rgba(16,185,129,0.18)' : 'rgba(255,255,255,0.12)',
-                    fontSize: 11.5,
+                    fontSize: 12,
                     fontWeight: 700,
                     textTransform: 'none',
                     borderRadius: '999px',
@@ -4519,7 +4519,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 Conexão Segura Criptografada (LiveKit E2EE)
               </Typography>
             </Stack>
-            <Typography variant="caption" sx={{ fontSize: 11.5, color: 'text.secondary', display: 'block' }}>
+            <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary', display: 'block' }}>
               Áudio e vídeo de alta fidelidade protegidos conforme Resolução CFM 2.314/2022.
             </Typography>
           </Box>
@@ -4699,11 +4699,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.primary', lineHeight: 1.3 }}>
                   Dica de Preparo: {PREP_TIPS[prepTipIdx].title}
                 </Typography>
-                <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.35, mt: 0.25 }}>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.35, mt: 0.25 }}>
                   {PREP_TIPS[prepTipIdx].desc}
                 </Typography>
               </Box>
-              <Typography sx={{ fontSize: 10, color: 'text.disabled', fontWeight: 600 }}>
+              <Typography sx={{ fontSize: 12, color: 'text.disabled', fontWeight: 600 }}>
                 {prepTipIdx + 1}/{PREP_TIPS.length}
               </Typography>
             </Stack>

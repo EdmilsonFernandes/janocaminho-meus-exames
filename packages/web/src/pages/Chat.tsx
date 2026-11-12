@@ -516,7 +516,7 @@ export const ChatPage = () => {
                   Copilot
                 </ReuiBadge>
               </div>
-              <p className="text-[11px] text-muted-foreground truncate">
+              <p className="text-xs text-muted-foreground truncate">
                 {firstName ? `Contexto ativo: exames de ${firstName}` : 'Contexto ativo: seus exames laboratoriais'}
               </p>
             </div>
@@ -544,7 +544,7 @@ export const ChatPage = () => {
             <History className="size-3.5 text-teal-600 dark:text-teal-400" />
             <span className="hidden xs:inline">Histórico</span>
             {convs.length > 0 && (
-              <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-teal-600 px-1 text-[10px] font-extrabold text-white">
+              <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-teal-600 px-1 text-xs font-extrabold text-white">
                 {convs.length > 9 ? '9+' : convs.length}
               </span>
             )}
@@ -575,7 +575,7 @@ export const ChatPage = () => {
               <FramePanel className="p-4 sm:p-5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-border/60">
                   <div className="space-y-1">
-                    <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/10 px-2.5 py-0.5 text-[11px] font-bold text-teal-700 dark:text-teal-300">
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/10 px-2.5 py-0.5 text-xs font-bold text-teal-700 dark:text-teal-300">
                       <Sparkles className="size-3" />
                       <span>Inteligência Clínica Personalizada</span>
                     </div>
@@ -627,7 +627,7 @@ export const ChatPage = () => {
                           <div className="text-[13.5px] font-bold text-foreground group-hover:text-teal-700 dark:group-hover:text-teal-300 truncate">
                             {a.title}
                           </div>
-                          <div className="text-[11.5px] text-muted-foreground truncate">
+                          <div className="text-xs text-muted-foreground truncate">
                             {a.subtitle}
                           </div>
                         </div>
@@ -637,7 +637,7 @@ export const ChatPage = () => {
                   })}
                 </div>
               </FramePanel>
-              <FrameFooter className="px-4 py-2 flex items-center justify-between flex-wrap gap-2 text-[11px] text-muted-foreground">
+              <FrameFooter className="px-4 py-2 flex items-center justify-between flex-wrap gap-2 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
                   <ShieldCheck className="size-3.5 text-teal-600" />
                   Respostas baseadas nos seus laudos · Caráter educativo, não substitui consulta médica
@@ -695,7 +695,7 @@ export const ChatPage = () => {
                             aria-hidden="true"
                             className="bg-muted-foreground/40 size-1 shrink-0 rounded-full"
                           />
-                          <span className="tabular-nums text-[11px]">{fmtTime(m.ts)}</span>
+                          <span className="tabular-nums text-xs">{fmtTime(m.ts)}</span>
                         </>
                       )}
                     </MessageHeader>
@@ -794,7 +794,7 @@ export const ChatPage = () => {
                           >
                             <Typography
                               component="span"
-                              sx={{ fontSize: 11.5, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}
+                              sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}
                             >
                               📚 Diretrizes de referência:
                             </Typography>
@@ -1037,7 +1037,7 @@ export const ChatPage = () => {
               <div className="font-heading text-sm font-extrabold text-foreground">
                 Histórico de Conversas
               </div>
-              <div className="text-[11px] text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 {convs.length === 0 ? 'Nenhuma conversa salva' : `${convs.length} ${convs.length === 1 ? 'conversa salva' : 'conversas salvas'}`}
               </div>
             </div>
@@ -1088,7 +1088,7 @@ export const ChatPage = () => {
               <Box key={bk} sx={{ mb: 1.5 }}>
                 <Typography
                   sx={{
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: 800,
                     color: 'text.secondary',
                     textTransform: 'uppercase',

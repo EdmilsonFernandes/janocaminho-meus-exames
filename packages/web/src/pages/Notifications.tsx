@@ -266,7 +266,7 @@ export const NotificationsPage = () => {
                     <span>{c.label}</span>
                     {c.unread > 0 && (
                       <span
-                        className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-extrabold tabular-nums ${
+                        className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs font-extrabold tabular-nums ${
                           active
                             ? 'bg-white/25 text-white'
                             : 'bg-primary/15 text-primary'
@@ -407,11 +407,11 @@ export const NotificationsPage = () => {
                         </ReuiBadge>
                         {targetPerson && (
                           <ReuiBadge variant="primary-light" size="xs">
-                            <PersonRoundedIcon sx={{ fontSize: 11 }} />
+                            <PersonRoundedIcon sx={{ fontSize: 12 }} />
                             {targetPerson}
                           </ReuiBadge>
                         )}
-                        <span className="ml-auto text-[11px] font-semibold text-muted-foreground tabular-nums">
+                        <span className="ml-auto text-xs font-semibold text-muted-foreground tabular-nums">
                           {fmtDt(n.createdAt)}
                         </span>
                       </div>

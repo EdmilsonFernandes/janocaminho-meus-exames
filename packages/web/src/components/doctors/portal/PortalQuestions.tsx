@@ -265,7 +265,7 @@ export const PortalQuestions = ({
                   )}
                   badge={
                     <ReuiBadge variant="success-light" size="xs">
-                      <DoneAllRoundedIcon sx={{ fontSize: 11 }} />
+                      <DoneAllRoundedIcon sx={{ fontSize: 12 }} />
                       Entregue
                     </ReuiBadge>
                   }
@@ -280,7 +280,7 @@ export const PortalQuestions = ({
         {isOpen && !answered && (
           <div className="mt-3.5 rounded-xl border border-primary/25 bg-primary/[0.04] p-3.5 space-y-3">
             <div>
-              <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-primary">
+              <div className="mb-1.5 text-xs font-bold uppercase tracking-wider text-primary">
                 ⚡ Respostas rápidas recomendadas
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -415,7 +415,7 @@ export const PortalQuestions = ({
               <div className="font-heading text-xl font-extrabold leading-none text-foreground tabular-nums">
                 {openQ.length}
               </div>
-              <div className="mt-0.5 text-[11px] font-semibold leading-tight text-muted-foreground sm:text-xs">
+              <div className="mt-0.5 text-xs font-semibold leading-tight text-muted-foreground sm:text-xs">
                 Aguardando
               </div>
             </div>
@@ -437,7 +437,7 @@ export const PortalQuestions = ({
               <div className="font-heading text-xl font-extrabold leading-none text-foreground tabular-nums">
                 {answeredQ.length}
               </div>
-              <div className="mt-0.5 text-[11px] font-semibold leading-tight text-muted-foreground sm:text-xs">
+              <div className="mt-0.5 text-xs font-semibold leading-tight text-muted-foreground sm:text-xs">
                 Respondidas
               </div>
             </div>
@@ -457,7 +457,7 @@ export const PortalQuestions = ({
               <div className="font-heading text-xl font-extrabold leading-none text-foreground tabular-nums">
                 {allQ.length}
               </div>
-              <div className="mt-0.5 text-[11px] font-semibold leading-tight text-muted-foreground sm:text-xs">
+              <div className="mt-0.5 text-xs font-semibold leading-tight text-muted-foreground sm:text-xs">
                 Todas
               </div>
             </div>
@@ -491,7 +491,7 @@ export const PortalQuestions = ({
               >
                 <span>{tab.label}</span>
                 <span
-                  className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-extrabold tabular-nums ${
+                  className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs font-extrabold tabular-nums ${
                     active
                       ? 'bg-white/25 text-white'
                       : 'bg-muted text-muted-foreground'

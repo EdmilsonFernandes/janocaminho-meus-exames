@@ -619,7 +619,7 @@ export const BodyMap = ({
               label={`${nAlt} fora da faixa`}
               sx={{
                 fontWeight: 700,
-                fontSize: 11.5,
+                fontSize: 12,
                 bgcolor: dark ? 'rgba(239, 68, 68, 0.16)' : '#fef2f2',
                 color: dark ? '#fca5a5' : '#dc2626',
                 border: '1px solid',
@@ -646,7 +646,7 @@ export const BodyMap = ({
               label={`${nAtn} em atenção`}
               sx={{
                 fontWeight: 700,
-                fontSize: 11.5,
+                fontSize: 12,
                 bgcolor: dark ? 'rgba(245, 158, 11, 0.16)' : '#fff7ed',
                 color: dark ? '#fcd34d' : '#b45309',
                 border: '1px solid',
@@ -754,7 +754,7 @@ export const BodyMap = ({
                       borderRadius: '999px',
                       bgcolor: col,
                       color: '#ffffff',
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: 800,
                       display: 'inline-grid',
                       placeItems: 'center',
@@ -955,7 +955,7 @@ export const BodyMap = ({
                           color: '#0f172a',
                           fontFamily: 'Inter, sans-serif',
                           fontWeight: 700,
-                          fontSize: 11,
+                          fontSize: 12,
                           px: 1,
                           py: 0.35,
                           borderRadius: '8px',
@@ -980,19 +980,19 @@ export const BodyMap = ({
 
           {/* Legenda Resumida dos Status */}
           <Stack direction="row" spacing={1.5} sx={{ mt: 1.5, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 11.5, color: 'text.secondary' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 12, color: 'text.secondary' }}>
               <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dark ? SEM.bad.dark : SEM.bad.light }} />
               Fora da faixa
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 11.5, color: 'text.secondary' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 12, color: 'text.secondary' }}>
               <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dark ? SEM.warn.dark : SEM.warn.light }} />
               Atenção
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 11.5, color: 'text.secondary' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 12, color: 'text.secondary' }}>
               <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dark ? SEM.ok.dark : SEM.ok.light }} />
               Normal
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 11.5, color: 'text.secondary' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 12, color: 'text.secondary' }}>
               <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dark ? '#64748b' : '#94a3b8' }} />
               Sem exames
             </Box>
@@ -1097,7 +1097,7 @@ export const BodyMap = ({
                         sx={{
                           fontFamily: 'Inter, sans-serif',
                           fontWeight: 700,
-                          fontSize: 11,
+                          fontSize: 12,
                           letterSpacing: '0.08em',
                           textTransform: 'uppercase',
                           color: 'text.secondary',
@@ -1278,7 +1278,7 @@ export const BodyMap = ({
                                             alignItems: 'center',
                                             gap: 0.25,
                                             fontWeight: 800,
-                                            fontSize: 11.5,
+                                            fontSize: 12,
                                             color: 'text.secondary',
                                             whiteSpace: 'nowrap',
                                             flexShrink: 0,
@@ -1298,7 +1298,7 @@ export const BodyMap = ({
                                         variant="text"
                                         onClick={() => handleGoExam(m.examId!)}
                                         sx={{
-                                          fontSize: 11.5,
+                                          fontSize: 12,
                                           fontWeight: 700,
                                           textTransform: 'none',
                                           color: 'text.secondary',
@@ -1317,7 +1317,7 @@ export const BodyMap = ({
                                       onClick={() => handleGoTrend(m.nameCanonical)}
                                       endIcon={<OpenInNewIcon sx={{ fontSize: 12 }} />}
                                       sx={{
-                                        fontSize: 11.5,
+                                        fontSize: 12,
                                         fontWeight: 700,
                                         textTransform: 'none',
                                         color: 'primary.main',
@@ -1345,7 +1345,7 @@ export const BodyMap = ({
                         sx={{
                           fontFamily: 'Inter, sans-serif',
                           fontWeight: 700,
-                          fontSize: 11,
+                          fontSize: 12,
                           letterSpacing: '0.08em',
                           textTransform: 'uppercase',
                           color: 'text.secondary',
@@ -1526,7 +1526,7 @@ export const BodyMap = ({
                                             alignItems: 'center',
                                             gap: 0.25,
                                             fontWeight: 800,
-                                            fontSize: 11.5,
+                                            fontSize: 12,
                                             color: 'text.secondary',
                                             whiteSpace: 'nowrap',
                                             flexShrink: 0,
@@ -1546,7 +1546,7 @@ export const BodyMap = ({
                                         variant="text"
                                         onClick={() => handleGoExam(m.examId!)}
                                         sx={{
-                                          fontSize: 11.5,
+                                          fontSize: 12,
                                           fontWeight: 700,
                                           textTransform: 'none',
                                           color: 'text.secondary',
@@ -1565,7 +1565,7 @@ export const BodyMap = ({
                                       onClick={() => handleGoTrend(m.nameCanonical)}
                                       endIcon={<OpenInNewIcon sx={{ fontSize: 12 }} />}
                                       sx={{
-                                        fontSize: 11.5,
+                                        fontSize: 12,
                                         fontWeight: 700,
                                         textTransform: 'none',
                                         color: 'primary.main',
@@ -1710,7 +1710,7 @@ export const BodyMap = ({
                                 <Typography sx={{ fontWeight: 700, fontSize: 13, color: 'text.primary', lineHeight: 1.2 }}>
                                   {ex.name}
                                 </Typography>
-                                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
+                                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
                                   {ex.purpose}
                                 </Typography>
                               </Box>
@@ -1719,7 +1719,7 @@ export const BodyMap = ({
                                 label={ex.type}
                                 sx={{
                                   height: 20,
-                                  fontSize: 10.5,
+                                  fontSize: 12,
                                   fontWeight: 800,
                                   bgcolor: alpha(activeColor, 0.12),
                                   color: activeColor,

@@ -266,7 +266,7 @@ export const CommissionRulesCard = ({
                 sx={{
                   borderRadius: 8,
                   fontWeight: 800,
-                  fontSize: 11.5,
+                  fontSize: 12,
                   minHeight: 24,
                   bgcolor: activeDocRule ? 'rgba(212,165,116,0.22)' : 'rgba(32,178,170,0.16)',
                   color: activeDocRule ? '#b45309' : tealText(mode),
@@ -279,7 +279,7 @@ export const CommissionRulesCard = ({
               <Button
                 size="small"
                 onClick={() => onSelectDoctor('')}
-                sx={{ textTransform: 'none', fontSize: 11.5, p: 0, minHeight: 'auto', color: 'text.secondary', textDecoration: 'underline' }}
+                sx={{ textTransform: 'none', fontSize: 12, p: 0, minHeight: 'auto', color: 'text.secondary', textDecoration: 'underline' }}
               >
                 Ver condição geral de todos os médicos →
               </Button>
@@ -420,7 +420,7 @@ export const CommissionRulesCard = ({
                           <Button
                             size="small"
                             onClick={() => openForm(docId)}
-                            sx={{ textTransform: 'none', fontSize: 11.5, fontWeight: 700, minHeight: 28, py: 0 }}
+                            sx={{ textTransform: 'none', fontSize: 12, fontWeight: 700, minHeight: 28, py: 0 }}
                           >
                             Editar
                           </Button>
@@ -428,7 +428,7 @@ export const CommissionRulesCard = ({
                             size="small"
                             color="warning"
                             onClick={() => setResetDoctorTarget({ id: docId, name: doctorName(docId) })}
-                            sx={{ textTransform: 'none', fontSize: 11.5, fontWeight: 700, minHeight: 28, py: 0 }}
+                            sx={{ textTransform: 'none', fontSize: 12, fontWeight: 700, minHeight: 28, py: 0 }}
                           >
                             Voltar ao geral
                           </Button>

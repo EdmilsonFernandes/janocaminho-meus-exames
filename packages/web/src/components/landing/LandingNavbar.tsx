@@ -249,7 +249,7 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
                             <Box
                               component="span"
                               sx={{
-                                fontSize: 10,
+                                fontSize: 12,
                                 fontWeight: 800,
                                 px: 0.75,
                                 py: 0.2,
@@ -379,7 +379,7 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
             </IconButton>
           </Stack>
 
-          <Typography sx={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: TEAL_DARK, mb: 1.5 }}>
+          <Typography sx={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: TEAL_DARK, mb: 1.5 }}>
             Recursos Clínicos & Órgãos
           </Typography>
 

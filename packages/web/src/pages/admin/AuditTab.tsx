@@ -300,7 +300,7 @@ export const AuditTab = () => {
             size="small"
             color={color(l.action)}
             label={actionLabel(l.action)}
-            sx={{ fontWeight: 700, fontSize: 11 }}
+            sx={{ fontWeight: 700, fontSize: 12 }}
           />
           <Typography variant="body2" sx={{ flex: 1, minWidth: 160, fontSize: 13 }}>
             <strong>{d.actors?.[l.actorId]?.name ?? l.actorType}</strong>
@@ -310,7 +310,7 @@ export const AuditTab = () => {
               ? ` → ${l.targetType}`
               : ''}
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
             {new Date(l.createdAt).toLocaleString('pt-BR')}
             {l.ip ? ` · IP: ${l.ip}` : ''}
           </Typography>
@@ -322,7 +322,7 @@ export const AuditTab = () => {
               display: 'block',
               mt: 0.5,
               fontFamily: 'monospace',
-              fontSize: 11,
+              fontSize: 12,
               color: 'text.secondary',
               bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
               px: 1,
@@ -413,7 +413,7 @@ export const AuditTab = () => {
               label={`Ação: ${actionLabel(selectedAction)}`}
               onDelete={() => setSelectedAction('')}
               deleteIcon={<CloseIcon sx={{ fontSize: 14 }} />}
-              sx={{ fontWeight: 700, borderRadius: '999px', fontSize: 11.5 }}
+              sx={{ fontWeight: 700, borderRadius: '999px', fontSize: 12 }}
             />
           )}
           {hasActiveFilters && (
@@ -553,7 +553,7 @@ export const AuditTab = () => {
           <Box sx={{ mt: 2, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
               <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap" useFlexGap sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: 10.5, mr: 0.5 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: 12, mr: 0.5 }}>
                   Atalhos rápidos:
                 </Typography>
                 {topActions.map((a: any) => {
@@ -572,7 +572,7 @@ export const AuditTab = () => {
                       sx={{
                         cursor: 'pointer',
                         fontWeight: isSelected ? 800 : 600,
-                        fontSize: 11,
+                        fontSize: 12,
                         borderRadius: '999px',
                         transition: 'all .15s ease',
                         boxShadow: isSelected ? '0 2px 6px rgba(0,0,0,0.15)' : 'none',
@@ -610,7 +610,7 @@ export const AuditTab = () => {
                   
                   {/* Coluna 1: Autenticação & Acesso */}
                   <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', border: '1px solid', borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 0.5, mb: 1, textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: 10.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 0.5, mb: 1, textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: 12 }}>
                       🔐 Autenticação & Acessos ({categorizedActions.auth.length})
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.65 }}>
@@ -630,7 +630,7 @@ export const AuditTab = () => {
                             sx={{
                               cursor: 'pointer',
                               fontWeight: isSelected ? 800 : 500,
-                              fontSize: 10.5,
+                              fontSize: 12,
                               height: 24,
                               bgcolor: isSelected ? undefined : (isDark ? 'rgba(255,255,255,0.04)' : '#ffffff'),
                             }}
@@ -642,7 +642,7 @@ export const AuditTab = () => {
 
                   {/* Coluna 2: Teleconsulta & Atendimento */}
                   <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', border: '1px solid', borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 0.5, mb: 1, textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: 10.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 0.5, mb: 1, textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: 12 }}>
                       🩺 Telemedicina & Consultas ({categorizedActions.tele.length})
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.65 }}>
@@ -662,7 +662,7 @@ export const AuditTab = () => {
                             sx={{
                               cursor: 'pointer',
                               fontWeight: isSelected ? 800 : 500,
-                              fontSize: 10.5,
+                              fontSize: 12,
                               height: 24,
                               bgcolor: isSelected ? undefined : (isDark ? 'rgba(255,255,255,0.04)' : '#ffffff'),
                             }}
@@ -674,7 +674,7 @@ export const AuditTab = () => {
 
                   {/* Coluna 3: Gestão & Sistema */}
                   <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', border: '1px solid', borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 0.5, mb: 1, textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: 10.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 0.5, mb: 1, textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: 12 }}>
                       ⚙️ Gestão & Sistema ({categorizedActions.admin.length})
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.65 }}>
@@ -694,7 +694,7 @@ export const AuditTab = () => {
                             sx={{
                               cursor: 'pointer',
                               fontWeight: isSelected ? 800 : 500,
-                              fontSize: 10.5,
+                              fontSize: 12,
                               height: 24,
                               bgcolor: isSelected ? undefined : (isDark ? 'rgba(255,255,255,0.04)' : '#ffffff'),
                             }}
@@ -781,7 +781,7 @@ export const AuditTab = () => {
                       <Chip
                         size="small"
                         label={`${g.logs.length} ${g.logs.length === 1 ? 'ação' : 'ações no total'}`}
-                        sx={{ fontWeight: 800, fontSize: 11, height: 22 }}
+                        sx={{ fontWeight: 800, fontSize: 12, height: 22 }}
                       />
                       {actionKeys.map((act) => (
                         <Chip
@@ -790,7 +790,7 @@ export const AuditTab = () => {
                           variant="outlined"
                           color={color(act)}
                           label={`${actionLabel(act)}: ${g.actionCounts[act]}`}
-                          sx={{ fontWeight: 700, fontSize: 10.5, height: 22 }}
+                          sx={{ fontWeight: 700, fontSize: 12, height: 22 }}
                         />
                       ))}
                     </Stack>

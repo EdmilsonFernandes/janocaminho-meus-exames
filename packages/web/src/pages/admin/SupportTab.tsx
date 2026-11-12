@@ -214,7 +214,7 @@ export const SupportTab = () => {
                   <span>{f.label}</span>
                   {count != null && (
                     <span
-                      className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-extrabold tabular-nums ${
+                      className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs font-extrabold tabular-nums ${
                         active
                           ? 'bg-white/25 text-white'
                           : 'bg-muted text-muted-foreground'
@@ -540,7 +540,7 @@ const Conversation = ({
 
           {/* Macros rápidas em chips */}
           <div>
-            <div className="mb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="mb-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Macros de resposta rápida (toque para inserir)
             </div>
             <div className="flex flex-wrap gap-1.5">

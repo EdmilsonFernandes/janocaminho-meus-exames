@@ -12,6 +12,9 @@ import UploadIcon from '@mui/icons-material/Upload';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import { useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
+import { confirmDialog } from '../../components/ConfirmDialog';
+import { ListEmpty } from '@/components/reui/list-empty';
+import { tealText } from '../../theme';
 
 interface LabItem {
   id: string;
@@ -150,7 +153,7 @@ export const LabsTab = () => {
   };
 
   const remove = async (lab: LabItem) => {
-    if (!confirm(`Excluir a rede de laboratório "${lab.name}"?`)) return;
+    if (!(await confirmDialog({ title: 'Excluir rede de laboratório', message: `A rede "${lab.name}" será removida. Essa ação não pode ser desfeita.`, confirmLabel: 'Excluir', tone: 'danger' }))) return;
     try {
       const r = await fetch(`${API_URL}/admin/labs/${lab.id}`, {
         method: 'DELETE',
@@ -190,7 +193,7 @@ export const LabsTab = () => {
       {adding && (
         <Card variant="outlined" sx={{ mb: 3, borderRadius: '16px', border: '2px solid #20b2aa', bgcolor: 'rgba(32,178,170,0.03)' }}>
           <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-            <Typography sx={{ fontWeight: 800, fontSize: 15, color: '#178f89', mb: 1.5 }}>
+            <Typography sx={{ fontWeight: 800, fontSize: 15, color: (t) => tealText(t.palette.mode), mb: 1.5 }}>
               ➕ Cadastrar nova rede de laboratório
             </Typography>
             <Stack spacing={2}>
@@ -246,10 +249,10 @@ export const LabsTab = () => {
 
       {/* Lista de Laboratórios */}
       {loading ? (
-        <Box sx={{ py: 6, textAlign: 'center' }}><CircularProgress size={32} sx={{ color: '#20b2aa' }} /></Box>
+        <Box sx={{ py: 6, textAlign: 'center' }}><CircularProgress size={32} sx={{ color: (t) => tealText(t.palette.mode) }} /></Box>
       ) : labs.length === 0 ? (
         <Card variant="outlined" sx={{ borderRadius: '16px', p: 4, textAlign: 'center' }}>
-          <Typography color="text.secondary">Nenhum laboratório cadastrado ainda.</Typography>
+          <ListEmpty title="Nenhum laboratório cadastrado" />
         </Card>
       ) : (
         <Stack spacing={1.5}>
@@ -273,7 +276,7 @@ export const LabsTab = () => {
                   {isEditing ? (
                     /* EDIÇÃO INLINE */
                     <Stack spacing={2}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#178f89' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>
                         ✏️ Editando {lab.name}
                       </Typography>
 
@@ -349,7 +352,7 @@ export const LabsTab = () => {
                           size="small"
                           component="label"
                           startIcon={<UploadIcon sx={{ fontSize: 16 }} />}
-                          sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, color: '#178f89', bgcolor: 'rgba(32,178,170,0.08)', px: 1.5, py: 0.5, borderRadius: '8px', '&:hover': { bgcolor: 'rgba(32,178,170,0.18)' } }}
+                          sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, color: (t) => tealText(t.palette.mode), bgcolor: 'rgba(32,178,170,0.08)', px: 1.5, py: 0.5, borderRadius: '8px', '&:hover': { bgcolor: 'rgba(32,178,170,0.18)' } }}
                         >
                           {lab.logoUrl ? 'Trocar logo' : 'Subir logo'}
                           <input
@@ -426,7 +429,7 @@ export const LabsTab = () => {
                           <IconButton
                             size="small"
                             onClick={() => startEdit(lab)}
-                            sx={{ color: 'text.secondary', '&:hover': { color: '#178f89', bgcolor: 'rgba(32,178,170,0.1)' } }}
+                            sx={{ color: 'text.secondary', '&:hover': { color: (t) => tealText(t.palette.mode), bgcolor: 'rgba(32,178,170,0.1)' } }}
                           >
                             <EditIcon fontSize="small" />
                           </IconButton>

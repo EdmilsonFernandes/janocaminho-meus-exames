@@ -10,6 +10,7 @@ import {
 import { Frame, FramePanel, FrameHeader, FrameTitle, FrameDescription } from '@/components/reui/frame';
 import { Badge } from '@/components/reui/badge';
 import { IconTile } from '@/components/reui/patterns';
+import { tealText } from '../../../theme';
 
 /**
  * PRONTUÁRIO DO PACIENTE — documento clínico consolidado no portal do médico.
@@ -90,7 +91,7 @@ export const ProntuarioTab = ({
                 {age != null && <Chip size="small" label={`${age} anos`} sx={{ height: 22, fontWeight: 700 }} />}
                 {sex && <Chip size="small" label={sex === 'F' ? 'Feminino' : 'Masculino'} sx={{ height: 22, fontWeight: 700 }} />}
                 {patient?.relationship && patient.relationship !== 'self' && <Chip size="small" label={patient.relationship} sx={{ height: 22, fontWeight: 700 }} />}
-                {lastExam && <Chip size="small" label={`último exame: ${fmtDate(lastExam.performedAt)}`} sx={{ height: 22, fontWeight: 700, bgcolor: 'rgba(15,118,110,.1)', color: '#178f89' }} />}
+                {lastExam && <Chip size="small" label={`último exame: ${fmtDate(lastExam.performedAt)}`} sx={{ height: 22, fontWeight: 700, bgcolor: 'rgba(15,118,110,.1)', color: (t) => tealText(t.palette.mode) }} />}
               </Stack>
             </Box>
             {/* Score de risco resumido */}
@@ -218,7 +219,7 @@ export const ProntuarioTab = ({
                 <Typography sx={{ flex: 1, fontSize: 13.5, fontWeight: 600, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {t.title || 'Teleconsulta'}
                 </Typography>
-                {t.cid10Code && <Chip size="small" label={t.cid10Code} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, fontFamily: 'monospace', bgcolor: 'action.hover' }} />}
+                {t.cid10Code && <Chip size="small" label={t.cid10Code} sx={{ height: 20, fontSize: 12, fontWeight: 700, fontFamily: 'monospace', bgcolor: 'action.hover' }} />}
                 {t.consultSummaryApproved && <Badge variant="success-light" size="xs">laudo ✓</Badge>}
                 {t.endedAt && !t.consultSummaryApproved && <Badge variant="outline" size="xs">sem laudo</Badge>}
               </Box>

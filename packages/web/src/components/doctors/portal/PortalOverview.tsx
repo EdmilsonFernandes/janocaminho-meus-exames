@@ -227,7 +227,7 @@ export const PortalOverview = ({
       sub: 'carteira ativa',
       color: '#0d9488',
       bg: 'rgba(13, 148, 136, 0.12)',
-      icon: <GroupsIcon sx={{ fontSize: 26, color: '#0d9488' }} />,
+      icon: <GroupsIcon sx={{ fontSize: 26, color: (t) => tealText(t.palette.mode) }} />,
       onClick: () => onSetView('patients'),
     },
     {
@@ -305,7 +305,7 @@ export const PortalOverview = ({
                 icon={<Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#10b981', display: 'inline-block' }} />}
                 sx={{
                   height: 22,
-                  fontSize: 10.5,
+                  fontSize: 12,
                   fontWeight: 800,
                   bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.10)',
                   color: (t) => t.palette.mode === 'dark' ? '#34d399' : '#059669',
@@ -392,7 +392,7 @@ export const PortalOverview = ({
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.04em',
-                    fontSize: { xs: 11, sm: 11.5 },
+                    fontSize: { xs: 12, sm: 12 },
                     display: 'block',
                     mb: 0.25,
                     lineHeight: 1.2,
@@ -410,7 +410,7 @@ export const PortalOverview = ({
                     fontWeight: 600,
                     mt: 0.5,
                     display: 'block',
-                    fontSize: { xs: 11, sm: 11.5 },
+                    fontSize: { xs: 12, sm: 12 },
                     lineHeight: 1.2,
                   }}
                 >
@@ -457,7 +457,7 @@ export const PortalOverview = ({
                   <Chip
                     size="small"
                     label={`${totalActionCount} pendente${totalActionCount === 1 ? '' : 's'}`}
-                    sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89', borderRadius: '8px' }}
+                    sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: (t) => tealText(t.palette.mode), borderRadius: '8px' }}
                   />
                 </Stack>
                 {onViewTeleconsultas && (
@@ -624,7 +624,7 @@ export const PortalOverview = ({
                                 },
                               }}
                             >
-                              <VideocamIcon sx={{ fontSize: 11 }} />
+                              <VideocamIcon sx={{ fontSize: 12 }} />
                             </Box>
                           )}
                         </Box>
@@ -635,7 +635,7 @@ export const PortalOverview = ({
                               {patName}
                             </Typography>
                             {p.code && (
-                              <Typography variant="caption" sx={{ color: 'text.disabled', fontFamily: 'monospace', fontSize: 11.5, fontWeight: 700, flexShrink: 0 }}>
+                              <Typography variant="caption" sx={{ color: 'text.disabled', fontFamily: 'monospace', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
                                 {p.code}
                               </Typography>
                             )}
@@ -657,7 +657,7 @@ export const PortalOverview = ({
                                     icon={<VideocamIcon sx={{ fontSize: 13 }} />}
                                     label={`🔴 Agora · ${timeStr}`}
                                     sx={{
-                                      height: 24, fontSize: 11.5, fontWeight: 800, maxWidth: '100%',
+                                      height: 24, fontSize: 12, fontWeight: 800, maxWidth: '100%',
                                       bgcolor: 'rgba(239,68,68,0.12)', color: '#dc2626',
                                       border: '1px solid rgba(239,68,68,0.3)',
                                       '& .MuiChip-icon': { color: '#dc2626' }, borderRadius: '8px',
@@ -673,7 +673,7 @@ export const PortalOverview = ({
                                     icon={<VideocamIcon sx={{ fontSize: 13 }} />}
                                     label={p.tele.consentAt ? `Hoje ${timeStr}` : `Hoje ${timeStr} · aceite pendente`}
                                     sx={{
-                                      height: 24, fontSize: 11.5, fontWeight: 700, maxWidth: '100%',
+                                      height: 24, fontSize: 12, fontWeight: 700, maxWidth: '100%',
                                       bgcolor: p.tele.consentAt ? 'rgba(15,118,110,0.08)' : 'rgba(245,158,11,0.08)',
                                       color: p.tele.consentAt ? '#178f89' : '#d97706',
                                       border: '1px solid',
@@ -690,7 +690,7 @@ export const PortalOverview = ({
                                   icon={<VideocamIcon sx={{ fontSize: 13 }} />}
                                   label={`Consulta ${dateStr}`}
                                   sx={{
-                                    height: 24, fontSize: 11.5, fontWeight: 700, maxWidth: '100%',
+                                    height: 24, fontSize: 12, fontWeight: 700, maxWidth: '100%',
                                     bgcolor: 'action.hover', color: 'text.secondary',
                                     '& .MuiChip-icon': { color: 'text.secondary' }, borderRadius: '8px',
                                   }}
@@ -703,7 +703,7 @@ export const PortalOverview = ({
                                 icon={<WarningAmberIcon sx={{ fontSize: 13 }} />}
                                 label={`Alterados${alertSuffix}`}
                                 sx={{
-                                  height: 24, fontSize: 11.5, fontWeight: 700, maxWidth: '100%',
+                                  height: 24, fontSize: 12, fontWeight: 700, maxWidth: '100%',
                                   bgcolor: isCritical ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
                                   color: isCritical ? '#ef4444' : '#d97706',
                                   '& .MuiChip-icon': { color: isCritical ? '#ef4444' : '#d97706' }, borderRadius: '8px',
@@ -716,7 +716,7 @@ export const PortalOverview = ({
                                 icon={<QuestionAnswerIcon sx={{ fontSize: 13 }} />}
                                 label={`${p.openQuestions} ${p.openQuestions > 1 ? 'dúvidas' : 'dúvida'}`}
                                 sx={{
-                                  height: 24, fontSize: 11.5, fontWeight: 700,
+                                  height: 24, fontSize: 12, fontWeight: 700,
                                   bgcolor: 'rgba(245,158,11,0.08)', color: '#d97706',
                                   '& .MuiChip-icon': { color: '#d97706' }, borderRadius: '8px',
                                 }}
@@ -728,7 +728,7 @@ export const PortalOverview = ({
                                 icon={<CalendarBlank size={13} />}
                                 label={(p.examsCount ?? 0) === 0 ? 'Sem exames compartilhados' : 'Exames > 1 ano'}
                                 sx={{
-                                  height: 24, fontSize: 11.5, fontWeight: 600,
+                                  height: 24, fontSize: 12, fontWeight: 600,
                                   bgcolor: 'action.hover', color: 'text.secondary', borderRadius: '8px',
                                 }}
                               />
@@ -741,7 +741,7 @@ export const PortalOverview = ({
                                 size="small"
                                 label="👤 Paciente em dia"
                                 sx={{
-                                  height: 24, fontSize: 11.5, fontWeight: 600,
+                                  height: 24, fontSize: 12, fontWeight: 600,
                                   bgcolor: 'rgba(16,185,129,.08)', color: 'success.main', borderRadius: '8px',
                                 }}
                               />
@@ -904,13 +904,13 @@ export const PortalOverview = ({
                         : 'border-border bg-card hover:bg-muted/50'
                       }`}
                   >
-                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                       <span className="size-2 rounded-full bg-emerald-500" />
                       Em dia
                     </span>
                     <span className="mt-1 text-base font-extrabold text-foreground tabular-nums">
                       {upToDateCount}
-                      <span className="ml-1 text-[11px] font-semibold text-muted-foreground">
+                      <span className="ml-1 text-xs font-semibold text-muted-foreground">
                         ({upToDatePct}%)
                       </span>
                     </span>
@@ -924,13 +924,13 @@ export const PortalOverview = ({
                         : 'border-border bg-card hover:bg-muted/50'
                       }`}
                   >
-                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-rose-600 dark:text-rose-400">
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400">
                       <span className="size-2 rounded-full bg-rose-500" />
                       Alterados
                     </span>
                     <span className="mt-1 text-base font-extrabold text-foreground tabular-nums">
                       {alertCount}
-                      <span className="ml-1 text-[11px] font-semibold text-muted-foreground">
+                      <span className="ml-1 text-xs font-semibold text-muted-foreground">
                         ({alertPct}%)
                       </span>
                     </span>
@@ -944,13 +944,13 @@ export const PortalOverview = ({
                         : 'border-border bg-card hover:bg-muted/50'
                       }`}
                   >
-                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
                       <span className="size-2 rounded-full bg-amber-500" />
                       Renovar
                     </span>
                     <span className="mt-1 text-base font-extrabold text-foreground tabular-nums">
                       {staleCount}
-                      <span className="ml-1 text-[11px] font-semibold text-muted-foreground">
+                      <span className="ml-1 text-xs font-semibold text-muted-foreground">
                         ({stalePct}%)
                       </span>
                     </span>

@@ -7,6 +7,7 @@ import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import { useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError, ConfirmDialog, FEATURE_LABELS } from './parts';
+import { tealText } from '../../theme';
 const H = () => ({ Authorization: `Bearer ${token()}` });
 
 const PROVIDER_LABEL: Record<string, string> = {
@@ -315,7 +316,7 @@ export const IaTab = () => {
           { l: 'Latência média', v: `${d.avgLatency ?? 0}ms` },
         ].map((k) => (
           <Card key={k.l} variant="outlined" sx={{ borderRadius: '12px' }}><CardContent sx={{ textAlign: 'center', py: 1.5 }}>
-            <Typography sx={{ fontWeight: 800, fontSize: 20, color: '#178f89' }}>{k.v}</Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: 20, color: (t) => tealText(t.palette.mode) }}>{k.v}</Typography>
             <Typography variant="caption" color="text.secondary">{k.l}{k.sub ? ` · ${k.sub}` : ''}</Typography>
           </CardContent></Card>
         ))}

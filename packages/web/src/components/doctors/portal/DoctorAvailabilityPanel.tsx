@@ -6,6 +6,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import { API_URL, token as userToken } from '../../../config';
+import { tealText } from '../../../theme';
 
 /**
  * MOTOR DE SLOTS (item 7, peça 4/4) — painel de disponibilidade do médico.
@@ -70,7 +71,7 @@ export const DoctorAvailabilityPanel = () => {
   return (
     <Box sx={{ mb: 3, p: { xs: 2, sm: 2.5 }, borderRadius: '20px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
       <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 0.5 }}>
-        <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: 'rgba(15,118,110,0.12)', display: 'grid', placeItems: 'center', color: '#178f89' }}>
+        <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: 'rgba(15,118,110,0.12)', display: 'grid', placeItems: 'center', color: (t) => tealText(t.palette.mode) }}>
           <EventAvailableIcon />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -107,7 +108,7 @@ export const DoctorAvailabilityPanel = () => {
                 <TextField select size="small" label="Duração" value={w.slot} onChange={(e) => setW(i, { slot: Number(e.target.value) })} sx={{ minWidth: 100 }}>
                   {SLOTS.map((s) => <MenuItem key={s} value={s}>{s} min</MenuItem>)}
                 </TextField>
-                <Chip size="small" label={`${Math.max(0, Math.floor((toMinutes(w.end) - toMinutes(w.start)) / w.slot))} horários`} sx={{ fontWeight: 700, bgcolor: 'rgba(15,118,110,0.1)', color: '#178f89' }} />
+                <Chip size="small" label={`${Math.max(0, Math.floor((toMinutes(w.end) - toMinutes(w.start)) / w.slot))} horários`} sx={{ fontWeight: 700, bgcolor: 'rgba(15,118,110,0.1)', color: (t) => tealText(t.palette.mode) }} />
                 <Box sx={{ flex: 1 }} />
                 <IconButton size="small" aria-label="Remover janela" onClick={() => setWindows((ws) => ws.filter((_, j) => j !== i))}>
                   <DeleteOutlineIcon fontSize="small" />

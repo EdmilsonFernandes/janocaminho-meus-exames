@@ -196,7 +196,7 @@ export const SinaisPage = () => {
                 size="small"
                 variant="outlined"
                 label={`Sincronizado ${st.label}${st.stale ? ' · pelo celular' : ''}`}
-                sx={{ fontSize: 11, fontWeight: 600, borderColor: 'divider' }}
+                sx={{ fontSize: 12, fontWeight: 600, borderColor: 'divider' }}
               />
             );
           })()}
@@ -205,7 +205,7 @@ export const SinaisPage = () => {
               size="small"
               variant="outlined"
               label={`Sincronizado ${updatedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`}
-              sx={{ fontSize: 11, fontWeight: 600, borderColor: 'divider' }}
+              sx={{ fontSize: 12, fontWeight: 600, borderColor: 'divider' }}
             />
           )}
           {supported && phase === 'data' && (
@@ -413,7 +413,7 @@ export const SinaisPage = () => {
                           >
                             {met ? '✓' : ''}
                           </Box>
-                          <Typography sx={{ fontSize: 10, fontWeight: 700, color: 'text.secondary' }}>
+                          <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>
                             {dayLetter}
                           </Typography>
                         </Stack>
@@ -425,7 +425,7 @@ export const SinaisPage = () => {
 
               {/* Mensagem OMS */}
               <Box sx={{ mt: 1.5, pt: 1.25, borderTop: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
                   🏛️ <strong>Meta OMS:</strong> 150 min de atividade aeróbica moderada por semana ajudam a reduzir em até 30% o risco cardiovascular e melhoram marcadores de glicose e triglicerídeos.
                 </Typography>
               </Box>
@@ -760,7 +760,7 @@ const TrendCard = ({ icon, tone, label, value, valueSub, series, goal, fmtBar, d
               })}
             </Box>
           )}
-          {footer && <Typography sx={{ fontSize: 11.5, color: 'text.disabled', mt: 1, lineHeight: 1.45 }}>{footer}</Typography>}
+          {footer && <Typography sx={{ fontSize: 12, color: 'text.disabled', mt: 1, lineHeight: 1.45 }}>{footer}</Typography>}
         </div>
       </FramePanel>
     </Frame>

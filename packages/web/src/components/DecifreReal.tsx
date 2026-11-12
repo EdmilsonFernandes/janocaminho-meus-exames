@@ -392,7 +392,7 @@ export const DecifreReal = () => {
                     transition: 'all .2s ease',
                   }}
                 >
-                  <Typography sx={{ fontSize: 11, fontWeight: 800, color: current ? '#5eead4' : done ? '#86efac' : 'rgba(255,255,255,0.5)' }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 800, color: current ? '#5eead4' : done ? '#86efac' : 'rgba(255,255,255,0.5)' }}>
                     {done ? '✓' : s.step}. {s.label.split(' ')[0]}
                   </Typography>
                 </Box>

@@ -45,6 +45,7 @@ import {
   ReuiTextarea,
 } from '@/components/reui/form-controls';
 import { FirstAidKitIcon } from '@/components/reui/icons';
+import { snackbar } from '../../components/ConfirmDialog';
 
 const H = () => ({
   Authorization: `Bearer ${token()}`,
@@ -133,7 +134,7 @@ export const DoctorsTab = () => {
         };
       });
     } catch (e: any) {
-      alert(e?.message ?? 'Erro ao bloquear.');
+      snackbar({ message: e?.message ?? 'Erro ao bloquear.', severity: 'error' });
     } finally {
       setSubmitting(false);
     }
@@ -170,7 +171,7 @@ export const DoctorsTab = () => {
         };
       });
     } catch (e: any) {
-      alert(e?.message ?? 'Erro ao desbloquear.');
+      snackbar({ message: e?.message ?? 'Erro ao desbloquear.', severity: 'error' });
     } finally {
       setSubmitting(false);
     }
@@ -304,7 +305,7 @@ export const DoctorsTab = () => {
                 >
                   <span>{fp.label}</span>
                   <span
-                    className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-extrabold tabular-nums ${
+                    className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs font-extrabold tabular-nums ${
                       active
                         ? 'bg-white/25 text-white'
                         : 'bg-muted text-muted-foreground'

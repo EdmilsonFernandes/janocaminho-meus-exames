@@ -3,6 +3,7 @@ import { Card, CardContent, Typography, Box, Stack, Chip, TextField, Button, Cir
 import { useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError } from './parts';
+import { ListEmpty } from '@/components/reui/list-empty';
 
 export const SecurityTab = () => {
   const notify = useNotify();
@@ -54,7 +55,7 @@ export const SecurityTab = () => {
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Domínios descartáveis (mailinator, guerrillamail…) não conseguem se cadastrar — evita farm de contas pra roubar o bônus de créditos. Lista no banco, configurável.</Typography>
       <Box sx={{ mb: 2, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
         {blocked.map((d) => (<Chip key={d} label={d} size="small" onDelete={() => void removeDomain(d)} />))}
-        {!blocked.length && <Typography variant="body2" color="text.secondary">Nenhum domínio bloqueado.</Typography>}
+        {!blocked.length && <ListEmpty title="Nenhum domínio bloqueado" />}
       </Box>
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }} useFlexGap flexWrap="wrap">
         <TextField size="small" placeholder="exemplo.com" value={newDomain} onChange={(e) => setNewDomain(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') void addDomain(); }} sx={{ width: 220 }} />

@@ -247,7 +247,7 @@ export const ValoresAlteradosPage = () => {
                     >
                       <div className="flex items-center gap-1.5">
                         <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: tile.dot }} />
-                        <span className="text-[11px] font-bold text-muted-foreground">{tile.label}</span>
+                        <span className="text-xs font-bold text-muted-foreground">{tile.label}</span>
                       </div>
                       <span className="mt-1 font-heading text-xl font-extrabold tabular-nums text-foreground">
                         {tile.count}
@@ -257,12 +257,12 @@ export const ValoresAlteradosPage = () => {
                 })}
               </div>
               {suspectCount > 0 && (
-                <div className="text-[11.5px] text-muted-foreground">
+                <div className="text-xs text-muted-foreground">
                   ⚠️ {plural(suspectCount, 'valor')} com faixa de referência possivelmente em outra escala — exibidos como “conferir”.
                 </div>
               )}
             </FramePanel>
-            <FrameFooter className="px-4 py-2 text-[11.5px] text-muted-foreground">
+            <FrameFooter className="px-4 py-2 text-xs text-muted-foreground">
               {counts.importante > 0
                 ? 'Priorize conversar sobre os itens importantes com seu médico. Alterações moderadas e leves servem de acompanhamento.'
                 : 'Nenhum marcador crítico — comente sobre os ajustes moderados ou leves na próxima consulta.'}
@@ -412,7 +412,7 @@ export const ValoresAlteradosPage = () => {
                         <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.25 }}>
                           {showAll ? 'Recolher histórico' : `Histórico de alterações (${histGroups.length} ${histGroups.length === 1 ? 'exame' : 'exames'})`}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: 11.5 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: 12 }}>
                           {showAll ? 'Exibindo todas as ocorrências, inclusive as que normalizaram' : 'Todas as ocorrências alteradas, inclusive as de antes de normalizar'}
                         </Typography>
                       </Box>

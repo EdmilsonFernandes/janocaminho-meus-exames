@@ -146,7 +146,7 @@ export const NotesTab = ({
         <FramePanel className="space-y-3">
           {/* Modelos rápidos pré-formatados com 1 clique */}
           <div>
-            <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="mb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               ⚡ Modelos rápidos (toque para inserir)
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -246,7 +246,7 @@ export const NotesTab = ({
                   <TimelineItem key={n.id} step={step}>
                     <TimelineSeparator />
                     <TimelineIndicator className="bg-primary/15 text-primary border-primary/40">
-                      <CheckRoundedIcon sx={{ fontSize: 11 }} />
+                      <CheckRoundedIcon sx={{ fontSize: 12 }} />
                     </TimelineIndicator>
 
                     <TimelineHeader className="flex items-center justify-between gap-2">

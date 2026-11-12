@@ -619,7 +619,7 @@ export const RemindersPage = () => {
                     animation: `${pulse} 1.2s ease-in-out infinite`,
                   }}
                 />
-                <Typography sx={{ fontSize: 11.5, fontWeight: 800, color: '#059669', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#059669', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                   Chamada Entrando Agora
                 </Typography>
               </Stack>
@@ -634,21 +634,21 @@ export const RemindersPage = () => {
                     animation: `${livePulse} 1.6s infinite`,
                   }}
                 />
-                <Typography sx={{ fontSize: 11.5, fontWeight: 800, color: '#059669', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#059669', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                   Teleconsulta Online • Médico na Sala
                 </Typography>
               </Stack>
             ) : hasEnded ? (
               <Stack direction="row" alignItems="center" spacing={0.75}>
                 <CheckCircleOutlineIcon sx={{ fontSize: 15, color: '#0d9488' }} />
-                <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.secondary', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
                   Consulta Concluída • Prontuário Arquivado
                 </Typography>
               </Stack>
             ) : (
               <Stack direction="row" alignItems="center" spacing={0.75}>
                 <CalendarMonthIcon sx={{ fontSize: 15, color: '#0d9488' }} />
-                <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: '#0d9488', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#0d9488', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                   Teleconsulta Agendada
                 </Typography>
               </Stack>
@@ -657,7 +657,7 @@ export const RemindersPage = () => {
 
           <Typography
             sx={{
-              fontSize: 11.5,
+              fontSize: 12,
               fontWeight: 800,
               fontFamily: 'monospace',
               color: 'text.secondary',
@@ -727,7 +727,7 @@ export const RemindersPage = () => {
                       <Chip
                         size="small"
                         label={label}
-                        sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(13,148,136,0.1)', color: '#0d9488', borderRadius: '6px', fontFamily: 'monospace' }}
+                        sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(13,148,136,0.1)', color: '#0d9488', borderRadius: '6px', fontFamily: 'monospace' }}
                       />
                     );
                   })()}
@@ -746,7 +746,7 @@ export const RemindersPage = () => {
                     </Typography>
                   </Stack>
                   {timeAgo(r.dueDate) && !isPast && (
-                    <Chip size="small" label={timeAgo(r.dueDate)} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(13,148,136,.12)', color: '#0d9488', borderRadius: '6px' }} />
+                    <Chip size="small" label={timeAgo(r.dueDate)} sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,.12)', color: '#0d9488', borderRadius: '6px' }} />
                   )}
                 </Stack>
 
@@ -759,7 +759,7 @@ export const RemindersPage = () => {
                       label="Telemedicina autorizada"
                       sx={{
                         height: 22,
-                        fontSize: 11.5,
+                        fontSize: 12,
                         fontWeight: 700,
                         borderRadius: '6px',
                         bgcolor: 'rgba(13,148,136,.10)',
@@ -774,14 +774,14 @@ export const RemindersPage = () => {
                       clickable
                       label={`${pendingReqs[r.id]} pedido(s) de exame`}
                       onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`, { state: { reminder: r, doctor: r.doctor } }); }}
-                      sx={{ height: 22, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(245,158,11,.15)', color: '#b45309', borderRadius: '6px' }}
+                      sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,.15)', color: '#b45309', borderRadius: '6px' }}
                     />
                   )}
                   {hasEnded && (
                     <Chip
                       size="small"
                       label="✓ Prontuário Assinado"
-                      sx={{ height: 22, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(13,148,136,.12)', color: '#0d9488', borderRadius: '6px' }}
+                      sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,.12)', color: '#0d9488', borderRadius: '6px' }}
                     />
                   )}
                   {/* §14.1: consulta encerrada com resumo APROVADO pelo médico → CTA
@@ -793,7 +793,7 @@ export const RemindersPage = () => {
                       icon={<SummarizeIcon sx={{ fontSize: 14 }} />}
                       label="Ver resumo da consulta"
                       onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`, { state: { reminder: r, doctor: r.doctor } }); }}
-                      sx={{ height: 22, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(13,148,136,.16)', color: '#0d9488', borderRadius: '6px', '& .MuiChip-icon': { color: '#0d9488' } }}
+                      sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,.16)', color: '#0d9488', borderRadius: '6px', '& .MuiChip-icon': { color: '#0d9488' } }}
                     />
                   )}
                 </Stack>
@@ -955,7 +955,7 @@ export const RemindersPage = () => {
                       label={r.paidAt ? 'Consulta paga' : 'Concluída'}
                       sx={{
                         height: 26,
-                        fontSize: 11.5,
+                        fontSize: 12,
                         fontWeight: 800,
                         bgcolor: 'rgba(16,185,129,.14)',
                         color: '#059669',

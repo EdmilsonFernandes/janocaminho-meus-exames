@@ -382,7 +382,7 @@ export const EncontrarEspecialistasPage = () => {
                       onClick={() => setCity(c.city)}
                       sx={{
                         height: 26,
-                        fontSize: 11.5,
+                        fontSize: 12,
                         fontWeight: 700,
                         borderRadius: '999px',
                         bgcolor: 'rgba(0,0,0,0.04)',
@@ -472,12 +472,12 @@ export const EncontrarEspecialistasPage = () => {
                         <Typography sx={{ fontWeight: 800, fontSize: 15, fontFamily: '"Poppins",sans-serif', color: 'text.primary' }}>
                           {s.name}
                         </Typography>
-                        <Chip size="small" label="Catálogo Oficial CNES" sx={{ height: 22, fontSize: 10.5, fontWeight: 800, bgcolor: 'rgba(15,95,90,0.12)', color: '#0f766e', borderRadius: '6px' }} />
+                        <Chip size="small" label="Catálogo Oficial CNES" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,95,90,0.12)', color: '#0f766e', borderRadius: '6px' }} />
                       </Stack>
 
                       <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap" sx={{ mb: 0.5 }}>
                         {s.crm && (
-                          <Chip size="small" label={`CRM ${String(s.crm).replace(/\D/g, '')}-${s.crmUf ?? ''}`} sx={{ height: 20, fontSize: 11, fontWeight: 700, fontFamily: 'monospace', bgcolor: 'rgba(15,95,90,0.08)', color: '#0f5f5a', borderRadius: '4px' }} />
+                          <Chip size="small" label={`CRM ${String(s.crm).replace(/\D/g, '')}-${s.crmUf ?? ''}`} sx={{ height: 20, fontSize: 12, fontWeight: 700, fontFamily: 'monospace', bgcolor: 'rgba(15,95,90,0.08)', color: '#0f5f5a', borderRadius: '4px' }} />
                         )}
                         {s.specialty && (
                           <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
@@ -492,7 +492,7 @@ export const EncontrarEspecialistasPage = () => {
                       {s.address && (
                         <Typography variant="caption" sx={{ display: 'block', color: 'text.disabled' }}>{s.address}</Typography>
                       )}
-                      <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.disabled', fontSize: 10.5 }}>
+                      <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.disabled', fontSize: 12 }}>
                         🏛️ {s.provenance.label}
                       </Typography>
                     </Box>
@@ -571,7 +571,7 @@ export const EncontrarEspecialistasPage = () => {
                             bgcolor: 'rgba(15,118,110,0.09)',
                             color: '#0f766e',
                             fontWeight: 800,
-                            fontSize: 11,
+                            fontSize: 12,
                             height: 24,
                             borderRadius: '6px',
                             border: '1px solid rgba(15,118,110,0.25)',
@@ -582,8 +582,8 @@ export const EncontrarEspecialistasPage = () => {
                     </Stack>
 
                     <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mb: 0.75 }}>
-                      {s.specialty && <Chip size="small" label={s.specialty} sx={{ height: 22, fontSize: 11.5, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode) }} />}
-                      <Chip size="small" label={`CRM ${s.crm}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary', borderRadius: '4px' }} />
+                      {s.specialty && <Chip size="small" label={s.specialty} sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode) }} />}
+                      <Chip size="small" label={`CRM ${s.crm}`} sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary', borderRadius: '4px' }} />
                     </Stack>
 
                     {(s.clinicName || s.clinicCity) && (
@@ -605,19 +605,19 @@ export const EncontrarEspecialistasPage = () => {
                             <Chip key={idx} size="small"
                               label={`${ins.operator}${ins.plan ? ` • ${ins.plan}` : ''}${ins.verificationStatus === 'confirmed' ? ' ✓' : ''}`}
                               title={ins.verificationLabel}
-                              sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: ins.verificationStatus === 'confirmed' ? 'rgba(16,185,129,0.12)' : 'rgba(0,0,0,0.04)', color: ins.verificationStatus === 'confirmed' ? '#065f46' : 'text.secondary' }}
+                              sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: ins.verificationStatus === 'confirmed' ? 'rgba(16,185,129,0.12)' : 'rgba(0,0,0,0.04)', color: ins.verificationStatus === 'confirmed' ? '#065f46' : 'text.secondary' }}
                             />
                           ))}
                         </Stack>
                       ) : (
-                        <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 11 }}>
+                        <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 12 }}>
                           🏥 Convênios não informados — confirme com o consultório
                         </Typography>
                       )}
                     </Box>
 
                     {/* Informação de procedência */}
-                    <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.disabled', fontSize: 10.5 }}>
+                    <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.disabled', fontSize: 12 }}>
                       {s.claimed ? '✓ ' : 'ℹ️ '}{s.provenance.label}
                     </Typography>
                   </Box>

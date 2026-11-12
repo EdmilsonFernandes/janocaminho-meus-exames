@@ -232,11 +232,11 @@ export const SaudeMentalPage = () => {
                       </Box>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15.5, lineHeight: 1.2 }}>{meta.title}</Typography>
-                        <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>{meta.code} · {meta.n} perguntas · 2 min</Typography>
+                        <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{meta.code} · {meta.n} perguntas · 2 min</Typography>
                       </Box>
                       {last && (
                         <Chip size="small" label={due ? 'Pode refazer' : `Em ${dias} ${dias === 1 ? 'dia' : 'dias'}`}
-                          sx={{ height: 22, fontSize: 11, fontWeight: 800,
+                          sx={{ height: 22, fontSize: 12, fontWeight: 800,
                             bgcolor: due ? 'rgba(32,178,170,.14)' : 'action.hover',
                             color: due ? (th) => tealText(th.palette.mode) : 'text.secondary' }} />
                       )}
@@ -249,7 +249,7 @@ export const SaudeMentalPage = () => {
                           <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 600 }}>/{maxScoreOf(t)}</Typography>
                           <Chip size="small" label={last.severity.label} sx={{ ml: 0.5, height: 22, fontWeight: 800, textTransform: 'capitalize', bgcolor: (th) => `${sevColor(last.severity.key)(th.palette.mode)}1f`, color: (th) => sevColor(last.severity.key)(th.palette.mode) }} />
                           {delta && prev && (
-                            <Chip size="small" label={deltaLabel(delta, prev.createdAt)} sx={{ height: 22, fontSize: 11.5, fontWeight: 800,
+                            <Chip size="small" label={deltaLabel(delta, prev.createdAt)} sx={{ height: 22, fontSize: 12, fontWeight: 800,
                               ...(dTone ? { bgcolor: (th) => `${SEM[dTone][th.palette.mode]}1f`, color: (th) => SEM[dTone][th.palette.mode] } : { bgcolor: 'action.selected', color: 'text.secondary' }) }} />
                           )}
                         </Stack>
@@ -284,7 +284,7 @@ export const SaudeMentalPage = () => {
                   {[['Humor', '#20b2aa'], ['Ansiedade', '#d4a574']].map(([l, c]) => (
                     <Stack key={l} direction="row" spacing={0.5} alignItems="center">
                       <Box sx={{ width: 10, height: 3, borderRadius: 2, bgcolor: c }} />
-                      <Typography sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600 }}>{l}</Typography>
+                      <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600 }}>{l}</Typography>
                     </Stack>
                   ))}
                 </Stack>
@@ -371,7 +371,7 @@ export const SaudeMentalPage = () => {
               igual ao sono "dificuldade OU dormir mais"). Explicar uma vez evita o estranhamento
               sem quebrar a validação científica do questionário. */}
           {step === 0 && (
-            <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.45, mt: 0.75, px: 1.25, py: 0.75, borderRadius: '10px', bgcolor: 'action.hover' }}>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.45, mt: 0.75, px: 1.25, py: 0.75, borderRadius: '10px', bgcolor: 'action.hover' }}>
               💡 Algumas perguntas juntam dois lados com "ou" (apetite, sono…). Responda pelo
               que <strong>você</strong> sentiu — vale qualquer um dos dois lados.
             </Typography>

@@ -582,7 +582,7 @@ const ExamCards = () => {
                     px: 0.85,
                     py: 0.15,
                     borderRadius: '6px',
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: 700,
                     bgcolor: `${cc.color}14`,
                     color: cc.color,
@@ -663,7 +663,7 @@ const ExamCards = () => {
                     bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : '#ffffff'),
                     border: '1px solid',
                     borderColor: 'divider',
-                    fontSize: 11.5,
+                    fontSize: 12,
                     fontWeight: 700,
                     color: 'text.primary',
                     fontVariantNumeric: 'tabular-nums',
@@ -697,7 +697,7 @@ const ExamCards = () => {
                           ? 'rgba(245,158,11,0.35)'
                           : 'rgba(245,158,11,0.28)'
                         : alpha(SEM.ok[t.palette.mode], 0.25),
-                    fontSize: 11.5,
+                    fontSize: 12,
                     fontWeight: 800,
                     color: (t) =>
                       altered > 0
@@ -746,7 +746,7 @@ const ExamCards = () => {
                 label={statusLabel[r.status] ?? r.status}
                 sx={{
                   height: 20,
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 700,
                   bgcolor: (t) => alpha(toneMain(t, sc), 0.12),
                   color: (t) => toneMain(t, sc),
@@ -761,7 +761,7 @@ const ExamCards = () => {
                     color: (t) => SEM.warn[t.palette.mode],
                     fontWeight: 800,
                     height: 20,
-                    fontSize: 11,
+                    fontSize: 12,
                   }}
                 />
               )}

@@ -178,7 +178,7 @@ export const CollectionChecklistPanel = ({
         {/* Formulário de prescrição de coleta */}
         <FramePanel className="space-y-3.5">
           <div>
-            <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="mb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Sugestões rápidas de exames
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -360,7 +360,7 @@ export const CollectionChecklistPanel = ({
 
               {history.length > 0 && (
                 <div className="pt-2">
-                  <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <div className="mb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Histórico de coletas concluídas / expiradas
                   </div>
                   <div className="divide-y divide-border rounded-xl border border-border overflow-hidden">

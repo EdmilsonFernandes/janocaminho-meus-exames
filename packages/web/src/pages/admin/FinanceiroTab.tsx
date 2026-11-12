@@ -43,6 +43,8 @@ import { DataGrid, DataGridContainer, dataGridFeatures } from '@/components/reui
 import { DataGridTable } from '@/components/reui/data-grid/data-grid-table';
 import '../../doctor-v2/tw.css';
 import { DonutResplit, fmtBRLFull, type DonutSlice } from '../../components/admin/DonutResplit';
+import { ListEmpty } from '@/components/reui/list-empty';
+import { tealText } from '../../theme';
 
 const PAGE_SIZE = 20;
 const authH = () => ({ Authorization: `Bearer ${token()}` });
@@ -110,7 +112,7 @@ function PaymentsGrid({ rows, copiedId, onCopy, onPayload }: { rows: any[]; copi
         return (
           <div className="min-w-0">
             <p className="truncate text-[13px] font-bold">{email}</p>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {new Date(p.createdAt).toLocaleDateString('pt-BR')} às {new Date(p.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
             </p>
           </div>
@@ -122,7 +124,7 @@ function PaymentsGrid({ rows, copiedId, onCopy, onPayload }: { rows: any[]; copi
       cell: (i) => {
         const cfg = getStatusConfig(i.getValue() as string);
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[11px] font-bold" style={{ background: cfg.bg, border: cfg.border, color: cfg.text }}>
+          <span className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-xs font-bold" style={{ background: cfg.bg, border: cfg.border, color: cfg.text }}>
             <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: cfg.dotColor }} />
             {cfg.label}
           </span>
@@ -131,7 +133,7 @@ function PaymentsGrid({ rows, copiedId, onCopy, onPayload }: { rows: any[]; copi
     },
     {
       id: 'tipo', header: 'Tipo', accessorFn: (r) => ((r as any).periodDays > 0 ? 'Assinatura' : 'Créditos'),
-      cell: (i) => <span className={'text-[11.5px] font-bold ' + ((i.getValue() as string) === 'Assinatura' ? 'text-purple-700 dark:text-purple-300' : 'text-primary')}>{i.getValue() as string}</span>,
+      cell: (i) => <span className={'text-xs font-bold ' + ((i.getValue() as string) === 'Assinatura' ? 'text-purple-700 dark:text-purple-300' : 'text-primary')}>{i.getValue() as string}</span>,
     },
     {
       accessorFn: (r) => Number((r as any).amount ?? 0), id: 'amount', header: 'Valor',
@@ -146,7 +148,7 @@ function PaymentsGrid({ rows, copiedId, onCopy, onPayload }: { rows: any[]; copi
         const p = i.row.original as any;
         return (
           <div className="flex items-center gap-1">
-            <span className="font-mono text-[11px] text-muted-foreground">{p.mpPaymentId ?? '—'}</span>
+            <span className="font-mono text-xs text-muted-foreground">{p.mpPaymentId ?? '—'}</span>
             {p.mpPaymentId && (
               <button type="button" onClick={() => onCopy(p.mpPaymentId)} className="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground" aria-label="Copiar referência">
                 {copiedId === p.mpPaymentId ? <CheckIcon sx={{ fontSize: 14, color: '#16a34a' }} /> : <ContentCopyIcon sx={{ fontSize: 13 }} />}
@@ -164,7 +166,7 @@ function PaymentsGrid({ rows, copiedId, onCopy, onPayload }: { rows: any[]; copi
   ];
   const table = useTable({ features: dataGridFeatures, data: rows, columns });
   if (!rows || rows.length === 0) {
-    return <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">Nenhum registro de pagamento encontrado.</div>;
+    return <ListEmpty title="Nenhum pagamento encontrado" description="Ajuste a busca ou os filtros." />;
   }
   return (
     <DataGrid table={table} recordCount={rows.length}>
@@ -452,7 +454,7 @@ export const FinanceiroTab = () => {
           }}
         >
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.04em' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', fontSize: 12, letterSpacing: '0.04em' }}>
               Receita na Página
             </Typography>
             <Box sx={{ width: 28, height: 28, borderRadius: '6px', bgcolor: 'rgba(22, 163, 74, 0.1)', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -479,10 +481,10 @@ export const FinanceiroTab = () => {
           }}
         >
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.04em' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', fontSize: 12, letterSpacing: '0.04em' }}>
               Vendas Concluídas
             </Typography>
-            <Box sx={{ width: 28, height: 28, borderRadius: '6px', bgcolor: 'rgba(23, 143, 137, 0.1)', color: '#178f89', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ width: 28, height: 28, borderRadius: '6px', bgcolor: 'rgba(23, 143, 137, 0.1)', color: (t) => tealText(t.palette.mode), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
             </Box>
           </Stack>
@@ -506,7 +508,7 @@ export const FinanceiroTab = () => {
           }}
         >
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.04em' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', fontSize: 12, letterSpacing: '0.04em' }}>
               Aguardando PIX / Cartão
             </Typography>
             <Box sx={{ width: 28, height: 28, borderRadius: '6px', bgcolor: 'rgba(217, 119, 6, 0.1)', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -533,7 +535,7 @@ export const FinanceiroTab = () => {
           }}
         >
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.04em' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', fontSize: 12, letterSpacing: '0.04em' }}>
               Cancelados / Não Pagos
             </Typography>
             <Box sx={{ width: 28, height: 28, borderRadius: '6px', bgcolor: 'rgba(100, 116, 139, 0.1)', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -779,7 +781,7 @@ export const FinanceiroTab = () => {
                     <Typography sx={{ fontWeight: 700, fontSize: 13.5, wordBreak: 'break-word', lineHeight: 1.25 }}>
                       {email}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11.5 }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
                       {new Date(p.createdAt).toLocaleDateString('pt-BR')} às{' '}
                       {new Date(p.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </Typography>
@@ -813,7 +815,7 @@ export const FinanceiroTab = () => {
                   }}
                 >
                   <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: cfg.dotColor }} />
-                  <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: cfg.text }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 700, color: cfg.text }}>
                     {cfg.label}
                   </Typography>
                 </Box>
@@ -823,7 +825,7 @@ export const FinanceiroTab = () => {
                   label={p.periodDays > 0 ? 'Assinatura' : 'Créditos'}
                   sx={{
                     height: 22,
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: 700,
                     bgcolor: p.periodDays > 0 ? 'rgba(147, 51, 234, 0.08)' : 'rgba(23, 143, 137, 0.08)',
                     color: p.periodDays > 0 ? '#7e22ce' : '#178f89',
@@ -833,7 +835,7 @@ export const FinanceiroTab = () => {
 
                 {p.mpPaymentId && (
                   <Stack direction="row" spacing={0.5} alignItems="center" sx={{ ml: 'auto !important' }}>
-                    <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.secondary', fontSize: 11 }}>
+                    <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.secondary', fontSize: 12 }}>
                       {p.mpPaymentId}
                     </Typography>
                     <IconButton size="small" onClick={() => handleCopy(p.mpPaymentId)} sx={{ p: 0.25 }}>
@@ -848,7 +850,7 @@ export const FinanceiroTab = () => {
 
                 {p.rawWebhook && (
                   <IconButton size="small" onClick={() => setPayloadRow(p)} title="Ver payload do Mercado Pago" sx={{ ml: 0.5 }}>
-                    <ReceiptLongIcon sx={{ fontSize: 16, color: '#178f89' }} />
+                    <ReceiptLongIcon sx={{ fontSize: 16, color: (t) => tealText(t.palette.mode) }} />
                   </IconButton>
                 )}
               </Stack>
@@ -867,194 +869,6 @@ export const FinanceiroTab = () => {
         <PaymentsGrid rows={payments} copiedId={copiedId} onCopy={handleCopy} onPayload={setPayloadRow} />
       </div>
 
-      {/* 4b. Tabela MUI legada (OCULTA — remover na limpeza da Fase A) */}
-      <div style={{ display: 'none' }}>
-      <TableContainer
-        component={Paper}
-        elevation={0}
-        sx={{
-          borderRadius: '12px',
-          border: '1px solid',
-          borderColor: 'divider',
-          display: { xs: 'none', md: 'block' },
-          bgcolor: 'background.paper',
-          overflow: 'hidden',
-        }}
-      >
-        <Table size="medium" sx={{ minWidth: 680 }}>
-          <TableHead>
-            <TableRow sx={{ bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#f8fafc' }}>
-              <TableCell sx={{ fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary', py: 1.5 }}>
-                Data & Hora
-              </TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary', py: 1.5 }}>
-                Usuário / Cliente
-              </TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary', py: 1.5 }}>
-                Valor
-              </TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary', py: 1.5 }}>
-                Tipo
-              </TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary', py: 1.5 }}>
-                Status
-              </TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary', py: 1.5 }}>
-                Referência
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {payments.map((p) => {
-              const cfg = getStatusConfig(p.status);
-              const email = p.user?.email || '—';
-              const name = p.user?.name;
-              const initial = email.charAt(0).toUpperCase();
-
-              return (
-                <TableRow
-                  key={p.id}
-                  hover
-                  sx={{
-                    transition: 'background-color 0.15s ease',
-                    '&:hover': {
-                      bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#f1f5f9 !important',
-                    },
-                  }}
-                >
-                  {/* Data & Hora */}
-                  <TableCell sx={{ py: 1.5 }}>
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: 'text.primary' }}>
-                      {new Date(p.createdAt).toLocaleDateString('pt-BR')}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
-                      {new Date(p.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                    </Typography>
-                  </TableCell>
-
-                  {/* Usuário / Cliente */}
-                  <TableCell sx={{ py: 1.5, maxWidth: 240 }}>
-                    <Stack direction="row" spacing={1.25} alignItems="center">
-                      <Avatar
-                        sx={{
-                          width: 30,
-                          height: 30,
-                          fontSize: 12,
-                          fontWeight: 800,
-                          bgcolor: 'rgba(23, 143, 137, 0.1)',
-                          color: '#178f89',
-                          border: '1px solid rgba(23, 143, 137, 0.2)',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {initial}
-                      </Avatar>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography noWrap sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>
-                          {email}
-                        </Typography>
-                        {name && (
-                          <Typography noWrap variant="caption" sx={{ color: 'text.secondary', fontSize: 11, display: 'block' }}>
-                            {name}
-                          </Typography>
-                        )}
-                      </Box>
-                    </Stack>
-                  </TableCell>
-
-                  {/* Valor */}
-                  <TableCell sx={{ py: 1.5 }}>
-                    <Typography
-                      sx={{
-                        fontSize: 13.5,
-                        fontWeight: 800,
-                        fontFamily: 'monospace',
-                        color: p.status === 'APPROVED' ? '#15803d' : 'text.primary',
-                      }}
-                    >
-                      R$ {Number(p.amount ?? 0).toFixed(2).replace('.', ',')}
-                    </Typography>
-                  </TableCell>
-
-                  {/* Tipo */}
-                  <TableCell sx={{ py: 1.5 }}>
-                    <Chip
-                      size="small"
-                      label={p.periodDays > 0 ? 'Assinatura' : 'Créditos'}
-                      sx={{
-                        height: 24,
-                        fontSize: 11.5,
-                        fontWeight: 700,
-                        bgcolor: p.periodDays > 0 ? 'rgba(147, 51, 234, 0.08)' : 'rgba(23, 143, 137, 0.08)',
-                        color: p.periodDays > 0 ? '#7e22ce' : '#178f89',
-                        borderRadius: '6px',
-                      }}
-                    />
-                  </TableCell>
-
-                  {/* Status com Live Dot */}
-                  <TableCell sx={{ py: 1.5 }}>
-                    <Box
-                      sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 0.75,
-                        px: 1.25,
-                        py: 0.4,
-                        borderRadius: '6px',
-                        bgcolor: cfg.bg,
-                        border: cfg.border,
-                      }}
-                    >
-                      <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: cfg.dotColor }} />
-                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: cfg.text }}>
-                        {cfg.label}
-                      </Typography>
-                    </Box>
-                  </TableCell>
-
-                  {/* Referência + Copy Button + Webhook Button */}
-                  <TableCell sx={{ py: 1.5 }}>
-                    <Stack direction="row" spacing={0.75} alignItems="center">
-                      <Typography sx={{ fontSize: 11.5, fontFamily: 'monospace', color: p.mpPaymentId ? 'text.secondary' : 'text.disabled' }}>
-                        {p.mpPaymentId ?? '—'}
-                      </Typography>
-                      {p.mpPaymentId && (
-                        <Tooltip title={copiedId === p.mpPaymentId ? 'Copiado!' : 'Copiar referência'}>
-                          <IconButton size="small" onClick={() => handleCopy(p.mpPaymentId)} sx={{ p: 0.35 }}>
-                            {copiedId === p.mpPaymentId ? (
-                              <CheckIcon sx={{ fontSize: 14, color: 'success.main' }} />
-                            ) : (
-                              <ContentCopyIcon sx={{ fontSize: 13, color: 'text.disabled', '&:hover': { color: 'text.primary' } }} />
-                            )}
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                      {p.rawWebhook && (
-                        <Tooltip title="Inspecionar webhook / payload">
-                          <IconButton size="small" onClick={() => setPayloadRow(p)} sx={{ p: 0.35 }}>
-                            <ReceiptLongIcon sx={{ fontSize: 15, color: '#178f89' }} />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-            {payments.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Nenhum registro de pagamento encontrado.
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      </div>
 
       {/* 5. PAGINATION FOOTER */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 2.5, px: 0.5 }}>
@@ -1128,13 +942,13 @@ export const FinanceiroTab = () => {
           onClick={() => setCouponsOpen((v) => !v)}
         >
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Box sx={{ width: 28, height: 28, borderRadius: '6px', bgcolor: 'rgba(23, 143, 137, 0.1)', color: '#178f89', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ width: 28, height: 28, borderRadius: '6px', bgcolor: 'rgba(23, 143, 137, 0.1)', color: (t) => tealText(t.palette.mode), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <SellOutlinedIcon sx={{ fontSize: 17 }} />
             </Box>
             <Typography sx={{ fontWeight: 800, fontSize: 14 }}>
               Cupons de desconto
             </Typography>
-            <Chip size="small" label={`${coupons?.filter((c) => c.active).length ?? 0} ativos`} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(23, 143, 137, 0.08)', color: '#178f89', borderRadius: '6px' }} />
+            <Chip size="small" label={`${coupons?.filter((c) => c.active).length ?? 0} ativos`} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(23, 143, 137, 0.08)', color: (t) => tealText(t.palette.mode), borderRadius: '6px' }} />
           </Stack>
           <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600 }}>
             {couponsOpen ? 'Ocultar ▲' : 'Gerenciar ▼'}
@@ -1180,13 +994,13 @@ export const FinanceiroTab = () => {
               <Table size="small">
                 <TableHead>
                   <TableRow sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,.03)' : '#f8fafc') }}>
-                    <TableCell sx={{ fontWeight: 700, fontSize: 11.5 }}>Código</TableCell>
-                    <TableCell sx={{ fontWeight: 700, fontSize: 11.5 }}>Desconto</TableCell>
-                    <TableCell sx={{ fontWeight: 700, fontSize: 11.5 }}>Aplica a</TableCell>
-                    <TableCell sx={{ fontWeight: 700, fontSize: 11.5 }}>Usos</TableCell>
-                    <TableCell sx={{ fontWeight: 700, fontSize: 11.5 }}>Validade</TableCell>
-                    <TableCell sx={{ fontWeight: 700, fontSize: 11.5 }}>Status</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700, fontSize: 11.5 }}>Ação</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Código</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Desconto</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Aplica a</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Usos</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Validade</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Status</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 700, fontSize: 12 }}>Ação</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -1211,7 +1025,7 @@ export const FinanceiroTab = () => {
                         <TableCell sx={{ py: 1 }}>
                           <Chip size="small"
                             label={!c.active ? 'Inativo' : expired ? 'Expirado' : soldOut ? 'Esgotado' : 'Ativo'}
-                            sx={{ height: 22, fontSize: 11, fontWeight: 700, borderRadius: '6px',
+                            sx={{ height: 22, fontSize: 12, fontWeight: 700, borderRadius: '6px',
                               bgcolor: !c.active || expired || soldOut ? 'rgba(100,116,139,.1)' : 'rgba(22,163,74,.1)',
                               color: !c.active || expired || soldOut ? '#475569' : '#15803d' }} />
                         </TableCell>
@@ -1236,7 +1050,7 @@ export const FinanceiroTab = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1, fontSize: 11 }}>
+            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1, fontSize: 12 }}>
               Desconto aplica no preço de criação da cobrança (PIX/cartão). Contagem de uso só incrementa quando o pagamento é confirmado. 1 uso por usuário por tipo de produto.
             </Typography>
           </Box>

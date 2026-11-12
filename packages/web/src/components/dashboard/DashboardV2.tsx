@@ -439,14 +439,14 @@ export const MentalCard = ({ mental, mentalOffline, introDismissed, onDismissInt
           {d && prev && (
             <Typography component="span" aria-label={`Diferença desde o rastreamento anterior: ${d.dir === 'down' ? 'menos' : d.dir === 'up' ? 'mais' : 'igual'} ${d.abs} pontos`}
               title={deltaLabel(d, prev.createdAt)}
-              sx={{ fontSize: 11, fontWeight: 800, color: tk ? (t) => SEM[tk][t.palette.mode] : 'text.secondary' }}>
+              sx={{ fontSize: 12, fontWeight: 800, color: tk ? (t) => SEM[tk][t.palette.mode] : 'text.secondary' }}>
               {d.dir === 'down' ? '↓' : d.dir === 'up' ? '↑' : '±'}{d.abs}
             </Typography>
           )}
         </Stack>
         <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ mt: 0.25 }}>
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 22, lineHeight: 1.1, letterSpacing: '-0.02em' }}>{row.total}</Typography>
-          <Typography sx={{ fontSize: 11.5, color: 'text.disabled', fontWeight: 600 }}>/{kind === 'phq9' ? 27 : 21}</Typography>
+          <Typography sx={{ fontSize: 12, color: 'text.disabled', fontWeight: 600 }}>/{kind === 'phq9' ? 27 : 21}</Typography>
           <Typography noWrap sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', ml: 0.5 }}>{row.severity?.label ?? ''}</Typography>
         </Stack>
         <Box sx={{ mt: 0.5 }}><SeverityBar type={kind} score={row.total} compact /></Box>
@@ -466,10 +466,10 @@ export const MentalCard = ({ mental, mentalOffline, introDismissed, onDismissInt
           background: 'linear-gradient(135deg, rgba(32,178,170,.22), rgba(212,165,116,.22))' }} aria-hidden="true"><PsychologyIcon sx={{ fontSize: 21, color: 'primary.main' }} /></Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 14.5, lineHeight: 1.2 }}>Saúde mental</Typography>
-          <Typography noWrap sx={{ fontSize: 11.5, color: 'text.secondary' }}>Último retrato em {fmtDay(latest.createdAt)}</Typography>
+          <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary' }}>Último retrato em {fmtDay(latest.createdAt)}</Typography>
         </Box>
         <Chip size="small" label={due ? 'Pode refazer' : `Refazer em ${dias}d`}
-          sx={{ height: 22, fontSize: 11, fontWeight: 800, flexShrink: 0,
+          sx={{ height: 22, fontSize: 12, fontWeight: 800, flexShrink: 0,
             bgcolor: due ? 'rgba(32,178,170,.15)' : 'action.hover',
             color: due ? (t) => tealText(t.palette.mode) : 'text.secondary' }} />
         <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0, ml: -0.5 }} />
@@ -548,7 +548,7 @@ const GoalRingsCard = ({ phq9, lastExamAt, markerCount, altered, onMental, onUpl
               </Box>
               <Box sx={{ textAlign: 'center' }}>
                 <Typography sx={{ fontSize: 12, fontWeight: 800 }}>{r.label}</Typography>
-                <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{r.value}</Typography>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{r.value}</Typography>
               </Box>
             </Box>
           );
@@ -623,7 +623,7 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
             borderRadius: '8px',
             bgcolor: (th) => alpha(th.palette.primary.main, th.palette.mode === 'dark' ? 0.16 : 0.08),
             border: (th) => `1px solid ${alpha(th.palette.primary.main, th.palette.mode === 'dark' ? 0.35 : 0.22)}`,
-            fontSize: 11.5,
+            fontSize: 12,
             fontWeight: 800,
             letterSpacing: '0.03em',
             textTransform: 'uppercase',
@@ -967,7 +967,7 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeB
       },
     }}>
       <Box sx={{ minWidth: 0, flex: 1, pr: 1.25 }}>
-        <Typography noWrap sx={{ fontSize: { xs: 10.5, sm: 12 }, color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+        <Typography noWrap sx={{ fontSize: { xs: 12, sm: 12 }, color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
           {label}
         </Typography>
         <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5vw, 1.375rem)', sm: 22 }, color: 'text.primary', lineHeight: 1.2, mt: 0.25, fontVariantNumeric: 'tabular-nums' }}>
@@ -1053,7 +1053,7 @@ const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen, loaded = true }
           <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: bar, flexShrink: 0, boxShadow: `0 0 0 3px ${bar}22` }} />
           <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>
             {label}{' '}
-            <Box component="span" sx={{ color: 'text.secondary', fontSize: 11.5, fontWeight: 600, ml: 0.25 }}>
+            <Box component="span" sx={{ color: 'text.secondary', fontSize: 12, fontWeight: 600, ml: 0.25 }}>
               ver →
             </Box>
           </Typography>
@@ -1065,7 +1065,7 @@ const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen, loaded = true }
           <Box
             component="span"
             sx={{
-              px: 0.8, py: 0.15, borderRadius: '6px', fontSize: 11, fontWeight: 800,
+              px: 0.8, py: 0.15, borderRadius: '6px', fontSize: 12, fontWeight: 800,
               bgcolor: `${bar}18`, color, fontVariantNumeric: 'tabular-nums',
             }}
           >
@@ -1108,7 +1108,7 @@ const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen, loaded = true }
             label={`${total} total`}
             sx={{
               height: 22,
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 800,
               fontVariantNumeric: 'tabular-nums',
               bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(13,148,136,0.1)',
@@ -1201,7 +1201,7 @@ const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen, loaded = true }
               <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 17, lineHeight: 1, color: '#10b981', fontVariantNumeric: 'tabular-nums' }}>
                 {bonsPct}%
               </Typography>
-              <Typography sx={{ fontSize: 9.5, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.03em', mt: 0.25 }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.03em', mt: 0.25 }}>
                 na faixa
               </Typography>
             </Box>
@@ -1212,7 +1212,7 @@ const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen, loaded = true }
             <Typography sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary', lineHeight: 1.25 }}>
               {buckets.bons} de {total} normais
             </Typography>
-            <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 0.25, mb: 1.25, lineHeight: 1.35 }}>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25, mb: 1.25, lineHeight: 1.35 }}>
               {buckets.alterados + buckets.alerta > 0
                 ? `${buckets.alterados + buckets.alerta} fora da referência laboratorial`
                 : 'Todos dentro da faixa ideal'}
@@ -1254,7 +1254,7 @@ const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen, loaded = true }
         ) : [0, 1, 2].map((i) => <Shimmer key={i} h={36} r={8} />)}
       </Stack>
 
-      <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 1.75, lineHeight: 1.35 }}>
+      <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 1.75, lineHeight: 1.35 }}>
         <LightbulbIcon sx={{ fontSize: 13, mr: 0.25, verticalAlign: '-2px' }} /> Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.
       </Typography>
     </AppCard>

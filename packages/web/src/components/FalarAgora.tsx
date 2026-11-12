@@ -170,7 +170,7 @@ const DoctorRow = ({ d, fastest, onClick, isDark }: { d: QueueDoctor; fastest?: 
           {doctorTitle(d.name)}
         </Typography>
         {fastest && (
-          <Box component="span" sx={{ flexShrink: 0, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', px: 0.8, py: 0.25, borderRadius: '6px', bgcolor: 'rgba(34,197,94,.15)', color: isDark ? '#4ade80' : '#16a34a' }}>
+          <Box component="span" sx={{ flexShrink: 0, fontSize: 12, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', px: 0.8, py: 0.25, borderRadius: '6px', bgcolor: 'rgba(34,197,94,.15)', color: isDark ? '#4ade80' : '#16a34a' }}>
             mais rápido
           </Box>
         )}
@@ -186,7 +186,7 @@ const DoctorRow = ({ d, fastest, onClick, isDark }: { d: QueueDoctor; fastest?: 
           data-testid="identity-verified-badge"
           sx={{
             display: 'inline-flex', alignItems: 'flex-start', gap: 0.5, maxWidth: '100%', mt: 0.4, px: 0.8, py: 0.25, borderRadius: '6px',
-            fontSize: 10.5, fontWeight: 700, lineHeight: 1.25, color: isDark ? '#5fd8d1' : '#0f766e',
+            fontSize: 12, fontWeight: 700, lineHeight: 1.25, color: isDark ? '#5fd8d1' : '#0f766e',
             bgcolor: isDark ? 'rgba(95,216,209,.12)' : 'rgba(32,178,170,.10)',
           }}
         >
@@ -196,7 +196,7 @@ const DoctorRow = ({ d, fastest, onClick, isDark }: { d: QueueDoctor; fastest?: 
         </Box>
       )}
       {d.city && (
-        <Typography noWrap sx={{ fontSize: 11.5, fontWeight: 500, color: 'text.secondary', mt: 0.15 }}>
+        <Typography noWrap sx={{ fontSize: 12, fontWeight: 500, color: 'text.secondary', mt: 0.15 }}>
           <Box component="span" aria-hidden="true" sx={{ display: 'inline' }}>📍 </Box>{d.city}
         </Typography>
       )}
@@ -205,7 +205,7 @@ const DoctorRow = ({ d, fastest, onClick, isDark }: { d: QueueDoctor; fastest?: 
       <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
         {d.priceCents > 0 ? `R$ ${fmtBrl(d.priceCents)}` : 'Grátis'}
       </Typography>
-      <Typography sx={{ fontSize: 10.5, fontWeight: 500, color: 'text.secondary' }}>na hora</Typography>
+      <Typography sx={{ fontSize: 12, fontWeight: 500, color: 'text.secondary' }}>na hora</Typography>
     </Box>
   </Stack>
 );
@@ -451,7 +451,7 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
             label={doctorsOnline > 0 ? `${doctorsOnline} online` : '0 online'}
             aria-label={`${doctorsOnline} médicos online agora`}
             sx={{
-              height: 24, flexShrink: 0, fontWeight: 800, fontSize: 11,
+              height: 24, flexShrink: 0, fontWeight: 800, fontSize: 12,
               bgcolor: doctorsOnline > 0 ? 'rgba(16,185,129,.12)' : 'action.hover',
               color: doctorsOnline > 0 ? (isDark ? '#34d399' : '#059669') : 'text.secondary',
               border: '1px solid', borderColor: doctorsOnline > 0 ? 'rgba(52,211,153,.3)' : 'transparent',
@@ -559,7 +559,7 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
                         <Box component="span" aria-hidden="true" sx={{ fontSize: 18, flexShrink: 0 }}>{specialtyEmoji(esp)}</Box>
                         <Box sx={{ minWidth: 0 }}>
                           <Typography noWrap sx={{ fontWeight: 800, fontSize: 12.5, color: 'text.primary' }}>{esp}</Typography>
-                          <Typography sx={{ fontWeight: 700, fontSize: 10.5, color: isDark ? '#5fd8d1' : '#0f766e' }}>{n} online</Typography>
+                          <Typography sx={{ fontWeight: 700, fontSize: 12, color: isDark ? '#5fd8d1' : '#0f766e' }}>{n} online</Typography>
                         </Box>
                       </Stack>
                     ))}
@@ -642,7 +642,7 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
                 ? `Falar com ${doctorTitle(ctaDoctor.name)}${ctaDoctor.priceCents > 0 ? ` — R$ ${fmtBrl(ctaDoctor.priceCents)}` : ' — grátis'}`
                 : `Sem preferência — falar com o primeiro${firstPrice && firstPrice !== 'grátis' ? ` (R$ ${firstPrice.replace(/^R\$ /, '')})` : firstPrice === 'grátis' ? ' (grátis)' : ''}`}
             </Button>
-            <Typography sx={{ mt: 1, fontSize: 11, fontWeight: 500, color: 'text.secondary', textAlign: 'center', lineHeight: 1.5 }}>
+            <Typography sx={{ mt: 1, fontSize: 12, fontWeight: 500, color: 'text.secondary', textAlign: 'center', lineHeight: 1.5 }}>
               <Box component="span" aria-hidden="true" sx={{ display: 'inline' }}>🔒 </Box>Consulta registrada · CFM 2.314 · cobrança só quando um médico aceitar
             </Typography>
           </Box>
@@ -671,7 +671,7 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
                   : range ? `Valor: ${range}` : 'Valor definido pelo médico que atender'}
               </Typography>
               {(choice ? choice.priceCents > 0 : rangeMax > 0) && (
-                <Chip size="small" label={`autorizo até R$ ${fmtBrl(choice ? choice.priceCents : rangeMax)}`} sx={{ height: 24, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,.15)', color: isDark ? '#d4a574' : '#8a5a1f', border: '1px solid rgba(212,165,116,.35)' }} />
+                <Chip size="small" label={`autorizo até R$ ${fmtBrl(choice ? choice.priceCents : rangeMax)}`} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(212,165,116,.15)', color: isDark ? '#d4a574' : '#8a5a1f', border: '1px solid rgba(212,165,116,.35)' }} />
               )}
             </Stack>
             <Box
@@ -754,7 +754,7 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
                 <Typography noWrap sx={{ fontSize: 13, fontWeight: 800, color: isDark ? '#34d399' : '#059669' }}>
                   {matched.doctorName?.toLowerCase().startsWith('dr') ? matched.doctorName : `Dr(a). ${matched.doctorName || 'médico'}`} vai te atender
                 </Typography>
-                <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
                   {matched.priceCents > 0 ? `Conclua o pagamento de R$ ${fmtBrl(matched.priceCents)} para liberar a sala.` : 'Sala liberada — entre na consulta.'}
                 </Typography>
               </Box>
@@ -781,7 +781,7 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
                 )}
                 {pay.qrCode && (
                   <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 1.25, p: 1.25, px: 1.5, borderRadius: '10px', bgcolor: 'action.hover', border: '1px dashed', borderColor: 'divider' }}>
-                    <Typography noWrap sx={{ fontSize: 11.5, fontFamily: 'monospace', color: 'text.secondary', maxWidth: '78%' }}>
+                    <Typography noWrap sx={{ fontSize: 12, fontFamily: 'monospace', color: 'text.secondary', maxWidth: '78%' }}>
                       {pay.qrCode.slice(0, 24)}…{pay.qrCode.slice(-12)}
                     </Typography>
                     <Button
@@ -893,7 +893,7 @@ const PixCountdown = ({ expiresAt }: { expiresAt: string }) => {
     <Chip
       size="small"
       label={`Vence em ${mmss(secs)}`}
-      sx={{ height: 24, borderRadius: '999px', fontWeight: 800, fontSize: 11, fontVariantNumeric: 'tabular-nums', bgcolor: 'rgba(23,143,137,.12)', color: isDark ? '#5fd8d1' : '#0d5f5a', border: '1px solid rgba(23,143,137,.3)' }}
+      sx={{ height: 24, borderRadius: '999px', fontWeight: 800, fontSize: 12, fontVariantNumeric: 'tabular-nums', bgcolor: 'rgba(23,143,137,.12)', color: isDark ? '#5fd8d1' : '#0d5f5a', border: '1px solid rgba(23,143,137,.3)' }}
     />
   );
 };
@@ -952,7 +952,7 @@ export const FalarAgoraCompact = () => {
         <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 13.5, color: 'text.primary', lineHeight: 1.2 }}>
           {label}
         </Typography>
-        <Typography noWrap sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+        <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary' }}>
           {active ? 'Acompanhar na tela Minhas Consultas' : 'Teleconsulta imediata, sem agendamento'}
         </Typography>
       </Box>

@@ -456,7 +456,7 @@ export const ActivityView = ({
               px: 0.75,
               py: 0.2,
               borderRadius: RADIUS.sm,
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 700,
               bgcolor: alpha(theme.palette.primary.main, 0.08),
               color: 'text.secondary',
@@ -768,9 +768,9 @@ export const MetricMini = ({ icon, tone, label, labelTitle, value, unit, context
   >
     <Box sx={{ width: 30, height: 30, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: `${tone}1E`, color: tone }}>{icon}</Box>
     <Box sx={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
-      <Typography noWrap title={labelTitle} sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600, lineHeight: 1.2 }}>{label}</Typography>
+      <Typography noWrap title={labelTitle} sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, lineHeight: 1.2 }}>{label}</Typography>
       <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 14.5, lineHeight: 1.2, fontVariantNumeric: 'tabular-nums' }}>
-        {value}{unit ? <Typography component="span" sx={{ fontSize: 11, color: 'text.disabled', fontWeight: 600 }}> {unit}</Typography> : null}
+        {value}{unit ? <Typography component="span" sx={{ fontSize: 12, color: 'text.disabled', fontWeight: 600 }}> {unit}</Typography> : null}
       </Typography>
       {contextLabel && <Typography noWrap sx={{ fontSize: 12, color: 'text.disabled', lineHeight: 1.1 }}>{contextLabel}</Typography>}
     </Box>

@@ -275,7 +275,7 @@ export const LandingBodyMapSection = () => {
               }}
             >
               <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#5fc9c3', boxShadow: '0 0 8px #5fc9c3' }} />
-              <Typography sx={{ fontSize: 10, fontWeight: 800, color: '#5fc9c3', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#5fc9c3', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                 Bio-Scan Clínico
               </Typography>
             </Box>
@@ -475,7 +475,7 @@ export const LandingBodyMapSection = () => {
                   border: '1px solid rgba(255,255,255,0.06)',
                 }}
               >
-                <Typography sx={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#5fc9c3', mb: 0.5 }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#5fc9c3', mb: 0.5 }}>
                   ⚡ Cálculo Clínico Literário (Zero Alucinação)
                 </Typography>
                 <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 0.5 }}>

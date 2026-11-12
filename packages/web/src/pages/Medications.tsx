@@ -146,7 +146,7 @@ const SignalBars = ({ events }: { events: SignalEvent[] }) => {
         <Stack key={e.term} direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
           <Box sx={{
             width: 26, height: 26, flexShrink: 0, borderRadius: '9px', display: 'grid', placeItems: 'center',
-            fontSize: 11.5, fontWeight: 800, fontFamily: 'Poppins, sans-serif',
+            fontSize: 12, fontWeight: 800, fontFamily: 'Poppins, sans-serif',
             ...(i === 0
               ? { background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', boxShadow: 'inset 1px 1px 0 rgba(255,255,255,.35), 0 6px 12px -6px rgba(23,143,137,.6)' }
               : { bgcolor: 'rgba(32,178,170,.1)', color: '#0b5c57', boxShadow: 'inset 0 0 0 1px rgba(32,178,170,.2)' }),
@@ -157,7 +157,7 @@ const SignalBars = ({ events }: { events: SignalEvent[] }) => {
             <Stack direction="row" spacing={0.75} alignItems="baseline" sx={{ minWidth: 0 }}>
               <Typography noWrap sx={{ fontSize: 13, fontWeight: 700, minWidth: 0 }}>{e.termPt}</Typography>
               {e.termPt !== e.term && (
-                <Typography noWrap component="span" sx={{ fontSize: 10, fontWeight: 600, color: 'text.disabled', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 1, minWidth: 0 }}>
+                <Typography noWrap component="span" sx={{ fontSize: 12, fontWeight: 600, color: 'text.disabled', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 1, minWidth: 0 }}>
                   {e.term}
                 </Typography>
               )}
@@ -171,7 +171,7 @@ const SignalBars = ({ events }: { events: SignalEvent[] }) => {
           </Box>
           <Stack alignItems="flex-end" sx={{ flexShrink: 0 }}>
             <Typography sx={{ fontSize: 14, fontWeight: 800, lineHeight: 1, fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>{fmtCount(e.count)}</Typography>
-            <Typography sx={{ fontSize: 10, color: 'text.secondary', lineHeight: 1.3 }}>relatos</Typography>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.3 }}>relatos</Typography>
           </Stack>
         </Stack>
       ))}
@@ -244,7 +244,7 @@ const SignalsToggle = ({ medId, name }: { medId: string; name: string }) => {
               {data.stale && (
                 <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6, px: 1, py: 0.4, mb: 0.5, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.12)', boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.3)' }}>
                   <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#f59e0b', flexShrink: 0 }} />
-                  <Typography sx={{ fontSize: 11.5, fontWeight: 600, color: (t) => t.palette.mode === 'dark' ? '#fbbf24' : '#92400e' }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: (t) => t.palette.mode === 'dark' ? '#fbbf24' : '#92400e' }}>
                     Dados em cache — a base da FDA não respondeu agora
                   </Typography>
                 </Box>
@@ -878,7 +878,7 @@ export const MedicationsPage = () => {
                   <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
                     <Typography noWrap sx={{ fontWeight: 700, fontSize: 17, lineHeight: 1.2, fontFamily: 'Poppins, sans-serif', minWidth: 0, flex: 1 }}>{pricesFor.name}</Typography>
                     {best && (
-                      <Box component="span" sx={{ flexShrink: 0, px: 1, py: 0.3, borderRadius: '999px', bgcolor: 'rgba(255,255,255,.18)', boxShadow: 'inset 1px 1px 0 rgba(255,255,255,.35)', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.06em' }}>MELHOR OFERTA</Box>
+                      <Box component="span" sx={{ flexShrink: 0, px: 1, py: 0.3, borderRadius: '999px', bgcolor: 'rgba(255,255,255,.18)', boxShadow: 'inset 1px 1px 0 rgba(255,255,255,.35)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em' }}>MELHOR OFERTA</Box>
                     )}
                   </Stack>
                   {[pricesFor.dosage, pricesFor.packQty ? `${pricesFor.packQty} un.` : null].filter(Boolean).join(' · ') && (
@@ -902,7 +902,7 @@ export const MedicationsPage = () => {
                       </Box>
                     )}
                     {savings > 0 && (
-                      <Box component="span" sx={{ px: 1, py: 0.3, borderRadius: '999px', bgcolor: 'rgba(255,255,255,.18)', boxShadow: 'inset 1px 1px 0 rgba(255,255,255,.3)', fontSize: 11.5, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                      <Box component="span" sx={{ px: 1, py: 0.3, borderRadius: '999px', bgcolor: 'rgba(255,255,255,.18)', boxShadow: 'inset 1px 1px 0 rgba(255,255,255,.3)', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>
                         economize {fmtBRL(savings)} vs. a mais cara
                       </Box>
                     )}
@@ -957,7 +957,7 @@ export const MedicationsPage = () => {
                   <Stack alignItems="flex-end" spacing={0.35}>
                     <PriceBig cents={o.priceCents} size={18} color={i === 0 ? 'primary.dark' : 'text.primary'} />
                     {i === 0 && (
-                      <Box component="span" sx={{ px: 0.9, py: 0.25, borderRadius: '999px', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: '0.05em', boxShadow: 'inset 1px 1px 0 rgba(255,255,255,.35)' }}>MELHOR PREÇO</Box>
+                      <Box component="span" sx={{ px: 0.9, py: 0.25, borderRadius: '999px', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', fontSize: 12, fontWeight: 800, letterSpacing: '0.05em', boxShadow: 'inset 1px 1px 0 rgba(255,255,255,.35)' }}>MELHOR PREÇO</Box>
                     )}
                   </Stack>
                   <ChevronRightIcon sx={{ fontSize: 18, color: 'text.disabled' }} />

@@ -92,7 +92,7 @@ const ConsoleShell = ({ title, children, kpis }: { title: string; children: Reac
     <Stack direction="row" flexWrap="wrap" useFlexGap sx={{ px: { xs: 1.5, sm: 2.5 }, py: 1.25, gap: 1, borderBottom: '1px solid', borderColor: alpha(TEAL, 0.12), bgcolor: alpha('#ffffff', 0.02) }}>
       {kpis.map((k) => (
         <Stack key={k.label} sx={{ minWidth: 96, flex: { sm: '1 1 0' } }}>
-          <Typography variant="caption" sx={{ color: 'rgba(155,196,192,0.6)', fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700 }}>
+          <Typography variant="caption" sx={{ color: 'rgba(155,196,192,0.6)', fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700 }}>
             {k.label}
           </Typography>
           <Typography sx={{ color: k.tone === 'copper' ? '#d4a574' : k.tone === 'ok' ? '#7bd88f' : TEAL_LIGHT, fontFamily: "'Poppins',sans-serif", fontWeight: 800, fontSize: 16, lineHeight: 1.3 }}>
@@ -157,7 +157,7 @@ const HeroConsole = () => {
               <Typography sx={{ color: '#e8eef0', fontWeight: 700, fontSize: 14.5 }}>Carlos M., 51 · videoconsulta 15:30</Typography>
               <Typography variant="caption" sx={{ color: 'rgba(155,196,192,0.65)' }}>Exames 12/10 · 5 documentos · consentimento Art. 15 registrado</Typography>
             </Box>
-            <Chip size="small" sx={{ bgcolor: `linear-gradient(135deg,${TEAL},${TEAL_DEEP})`, color: '#fff', fontWeight: 700, borderRadius: '10px', '& .MuiChip-label': { px: 1.25 } }} label={<Stack direction="row" spacing={0.5} alignItems="center"><AutoAwesomeIcon sx={{ fontSize: 13 }} /><Box component="span" sx={{ fontSize: 11.5 }}>Brief</Box></Stack>} />
+            <Chip size="small" sx={{ bgcolor: `linear-gradient(135deg,${TEAL},${TEAL_DEEP})`, color: '#fff', fontWeight: 700, borderRadius: '10px', '& .MuiChip-label': { px: 1.25 } }} label={<Stack direction="row" spacing={0.5} alignItems="center"><AutoAwesomeIcon sx={{ fontSize: 13 }} /><Box component="span" sx={{ fontSize: 12 }}>Brief</Box></Stack>} />
           </Stack>
           <Box sx={{ mx: -0.5 }}>
             {item('Glicose', '118 mg/dL', 'up')}
@@ -342,7 +342,7 @@ const ActCard = ({ icon, title, metric, metricLabel, strong, soft, delay }: { ic
             <Box sx={{ flex: 1 }} />
             <Stack sx={{ textAlign: 'right' }}>
               <Typography sx={{ fontFamily: "'Poppins',sans-serif", fontWeight: 800, fontSize: 20, lineHeight: 1, color: tealText(t.palette.mode) }}>{metric}</Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 10.5, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700 }}>{metricLabel}</Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700 }}>{metricLabel}</Typography>
             </Stack>
           </Stack>
           <Typography sx={{ fontFamily: (th: Theme) => th.typography.h6.fontFamily, fontWeight: 700, fontSize: 17, mb: 1 }}>{title}</Typography>
@@ -609,7 +609,7 @@ export const ParaMedicosPage: React.FC = () => {
           <Box sx={{ maxWidth: 760, mx: 'auto', textAlign: 'center', animation: 'pmFadeUp .7s cubic-bezier(.22,1,.36,1) both', ...HERO_IN }}>
             <Chip
               size="small"
-              sx={{ mb: 3, borderRadius: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11.5, color: '#d4a574', bgcolor: alpha(COPPER.main, 0.16), border: `1px solid ${alpha(COPPER.main, 0.35)}`, '& .MuiChip-label': { px: 1.5, py: 0.25 } }}
+              sx={{ mb: 3, borderRadius: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 12, color: '#d4a574', bgcolor: alpha(COPPER.main, 0.16), border: `1px solid ${alpha(COPPER.main, 0.35)}`, '& .MuiChip-label': { px: 1.5, py: 0.25 } }}
               label="Consulta online · PIX embutido"
             />
             <Typography variant="h1" sx={{ fontSize: { xs: '2.15rem', sm: '2.9rem', md: '3.4rem' }, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.08, mb: 2.5, color: '#fff', fontFamily: "'Poppins',sans-serif" }}>

@@ -9,6 +9,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 import { API_URL, token } from '../../config';
+import { confirmDialog } from '../../components/ConfirmDialog';
+import { ListEmpty } from '@/components/reui/list-empty';
+import { tealText } from '../../theme';
 
 interface Pharmacy {
   id: string;
@@ -80,7 +83,7 @@ export const PharmaciesTab = () => {
   };
 
   const remove = async (p: Pharmacy) => {
-    if (!confirm(`Remover a farmácia ${p.name}?`)) return;
+    if (!(await confirmDialog({ title: 'Remover farmácia', message: `${p.name} será removida da lista.`, confirmLabel: 'Remover', tone: 'danger' }))) return;
     await fetch(`${API_URL}/admin/pharmacies/${p.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
     void load();
   };
@@ -88,7 +91,7 @@ export const PharmaciesTab = () => {
   if (rows === null) {
     return (
       <Box sx={{ py: 6, textAlign: 'center' }}>
-        <CircularProgress size={32} sx={{ color: '#20b2aa' }} />
+        <CircularProgress size={32} sx={{ color: (t) => tealText(t.palette.mode) }} />
       </Box>
     );
   }
@@ -118,7 +121,7 @@ export const PharmaciesTab = () => {
       {/* Form de Cadastro */}
       {adding && (
         <Card variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: '16px', border: '2px solid #20b2aa', bgcolor: 'rgba(32,178,170,0.03)' }}>
-          <Typography sx={{ fontWeight: 800, fontSize: 15, color: '#178f89', mb: 2 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: 15, color: (t) => tealText(t.palette.mode), mb: 2 }}>
             ➕ Cadastrar Nova Parceira (VTEX)
           </Typography>
           <Stack spacing={2}>
@@ -168,7 +171,7 @@ export const PharmaciesTab = () => {
       {/* Lista de Farmácias */}
       {rows.length === 0 ? (
         <Card variant="outlined" sx={{ borderRadius: '16px', p: 4, textAlign: 'center' }}>
-          <Typography color="text.secondary">Nenhuma farmácia cadastrada.</Typography>
+          <ListEmpty title="Nenhuma farmácia cadastrada" />
         </Card>
       ) : (
         rows.map((p) => (
@@ -248,7 +251,7 @@ export const PharmaciesTab = () => {
                   ) : (
                     <Typography
                       variant="caption"
-                      sx={{ color: '#178f89', cursor: 'pointer', display: 'inline-block', mt: 0.5, fontWeight: 600 }}
+                      sx={{ color: (t) => tealText(t.palette.mode), cursor: 'pointer', display: 'inline-block', mt: 0.5, fontWeight: 600 }}
                       onClick={() => { setEditingId(p.id); setEditingLogoUrl(p.logoUrl || ''); }}
                     >
                       {p.logoUrl ? '🖼️ Editar URL do logo' : '➕ Adicionar URL do logo'}

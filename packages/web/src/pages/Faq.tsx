@@ -242,7 +242,7 @@ export const FaqPage = () => {
             </GradientButton>
           </div>
         </FramePanel>
-        <FrameFooter className="px-4 py-2.5 flex items-center justify-between flex-wrap gap-2 text-[11.5px] text-muted-foreground">
+        <FrameFooter className="px-4 py-2.5 flex items-center justify-between flex-wrap gap-2 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <Mail className="size-3.5 text-teal-600" />
             Prefere e-mail? <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontWeight: 700 }}>contato@janocaminho.com.br</MuiLink>

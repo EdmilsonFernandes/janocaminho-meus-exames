@@ -149,7 +149,7 @@ const TrustBadge = ({ badge, index, rm }: { badge: BadgeData; index: number; rm:
             px: '10px', border: 0, borderRadius: '8px', cursor: 'pointer',
             bgcolor: verify === 'ok' ? GREEN : 'text.primary',
             color: (t) => (t.palette.mode === 'dark' ? '#0f1818' : '#ffffff'),
-            fontFamily: 'inherit', fontSize: 10, fontWeight: 850,
+            fontFamily: 'inherit', fontSize: 12, fontWeight: 850,
             transition: 'background-color .2s ease',
             // Alvo de toque ≥44px sem mudar o visual (hit area estendida via pseudo-elemento).
             '&::after': { content: '""', position: 'absolute', left: '-9px', right: '-9px', top: '-6px', bottom: '-9px' },
@@ -203,7 +203,7 @@ export const TrustBadges = () => {
             <Typography component="b" sx={{ display: 'block', fontFamily: '"Poppins","Inter",sans-serif', fontSize: 17, fontWeight: 900, letterSpacing: '-.03em', color: 'text.primary' }}>
               Por que confiar no Dr. Exame
             </Typography>
-            <Typography component="small" sx={{ display: 'block', mt: '4px', fontSize: 11, fontWeight: 650, color: 'text.secondary' }}>
+            <Typography component="small" sx={{ display: 'block', mt: '4px', fontSize: 12, fontWeight: 650, color: 'text.secondary' }}>
               Toque em um selo pra ver o que existe por trás dele
             </Typography>
           </Box>

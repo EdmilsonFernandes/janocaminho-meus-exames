@@ -6,6 +6,7 @@ import { DataGridTable } from '@/components/reui/data-grid/data-grid-table';
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError } from './parts';
 import '../../doctor-v2/tw.css';
+import { tealText } from '../../theme';
 const H = () => ({ Authorization: `Bearer ${token()}` });
 
 /**
@@ -79,7 +80,7 @@ export const RiskTab = () => {
           { l: 'Cond. no dataset', v: String(ds.byCondition?.length ?? 0) },
         ].map((k) => (
           <Card key={k.l} variant="outlined" sx={{ borderRadius: '12px' }}><CardContent sx={{ textAlign: 'center', py: 1.5 }}>
-            <Typography sx={{ fontWeight: 800, fontSize: 20, color: '#178f89' }}>{k.v}</Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: 20, color: (t) => tealText(t.palette.mode) }}>{k.v}</Typography>
             <Typography variant="caption" color="text.secondary">{k.l}</Typography>
           </CardContent></Card>
         ))}

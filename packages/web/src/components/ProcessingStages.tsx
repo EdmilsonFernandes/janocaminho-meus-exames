@@ -31,7 +31,7 @@ export const ProcessingStages = ({ active, labels = STAGE_LABELS }: { active: 0 
               sx={{
                 width: 22, height: 22, borderRadius: '50%',
                 display: 'grid', placeItems: 'center',
-                fontSize: 11, fontWeight: 800,
+                fontSize: 12, fontWeight: 800,
                 border: '2px solid',
                 borderColor: done || current ? TEAL : 'rgba(15,95,90,.25)',
                 bgcolor: done ? TEAL : 'transparent',
@@ -52,7 +52,7 @@ export const ProcessingStages = ({ active, labels = STAGE_LABELS }: { active: 0 
             <Typography
               noWrap
               sx={{
-                fontSize: 10.5, fontWeight: current ? 800 : 600, mt: 0.4,
+                fontSize: 12, fontWeight: current ? 800 : 600, mt: 0.4,
                 color: done ? 'text.secondary' : current ? 'text.primary' : 'text.disabled',
                 maxWidth: { xs: 84, sm: 120 },
                 overflow: 'hidden', textOverflow: 'ellipsis',

@@ -69,7 +69,7 @@ const Frame = ({ url, children, ariaLabel }: { url: string; children: ReactNode;
           mx: 'auto',
           maxWidth: 240,
           textAlign: 'center',
-          fontSize: 11.5,
+          fontSize: 12,
           fontWeight: 700,
           color: 'text.secondary',
           bgcolor: 'background.paper',
@@ -114,7 +114,7 @@ const ScoreRing = ({ value }: { value: number }) => {
         <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 32, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
           {value}
         </Typography>
-        <Typography sx={{ fontSize: 11, fontWeight: 600, color: 'text.secondary', mt: 0.25 }}>de 100</Typography>
+        <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', mt: 0.25 }}>de 100</Typography>
       </Stack>
     </Box>
   );
@@ -149,7 +149,7 @@ const MarkerRuler = () => (
 const SlideDashboard = () => (
   <Frame url="app · painel" ariaLabel="Painel com Score de Saúde 72 e idade biológica 34 anos">
     <Stack spacing={2}>
-      <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+      <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
         Sua saúde hoje
       </Typography>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5} alignItems="center">
@@ -157,7 +157,7 @@ const SlideDashboard = () => (
         <Stack spacing={1} sx={{ flex: 1, minWidth: 0, width: '100%' }}>
           <Chip size="small" label="Em boa forma" sx={{ alignSelf: 'flex-start', height: 24, fontWeight: 800, bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK }} />
           <Box sx={{ p: 1.5, borderRadius: '14px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
-            <Typography sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 700 }}>🧬 Idade biológica</Typography>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 700 }}>🧬 Idade biológica</Typography>
             <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 20, color: 'text.primary', lineHeight: 1.2, mt: 0.25 }}>
               34 anos <Box component="span" sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600 }}>(cronológica: 41)</Box>
             </Typography>
@@ -176,7 +176,7 @@ const SlideRuler = () => (
       <Stack direction="row" spacing={1} alignItems="center">
         <AutoAwesomeIcon sx={{ fontSize: 18, color: TEAL_DARK }} />
         <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: 'text.primary' }}>Resumo do Dr. Exame</Typography>
-        <Chip size="small" label="exemplo" sx={{ height: 20, ml: 'auto', fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
+        <Chip size="small" label="exemplo" sx={{ height: 20, ml: 'auto', fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
       </Stack>
       <Box sx={{ flex: 1, p: 2, borderRadius: '16px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
         <MarkerRuler />
@@ -196,9 +196,9 @@ const SlideChat = () => (
       <Box sx={{ alignSelf: 'flex-start', maxWidth: '94%', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider', px: 1.75, py: 1.35, borderRadius: '16px 16px 16px 4px', fontSize: 13, lineHeight: 1.55, color: 'text.primary' }}>
         Acima da referência (&lt; 130 mg/dL), mas um valor só não define nada — o padrão importa.
         <b> Perguntas prontas pro seu médico:</b> “meu risco é individual?”, “devo repetir em jejum?”.
-        <Box component="span" sx={{ display: 'block', mt: 0.75, fontSize: 11, fontWeight: 700, color: TEAL_DARK }}>Fontes: SBC · SBD · ADA</Box>
+        <Box component="span" sx={{ display: 'block', mt: 0.75, fontSize: 12, fontWeight: 700, color: TEAL_DARK }}>Fontes: SBC · SBD · ADA</Box>
       </Box>
-      <Typography sx={{ fontSize: 11, color: 'text.disabled', textAlign: 'center' }}>Educativo — nunca diagnóstico. A decisão é do seu médico.</Typography>
+      <Typography sx={{ fontSize: 12, color: 'text.disabled', textAlign: 'center' }}>Educativo — nunca diagnóstico. A decisão é do seu médico.</Typography>
     </Stack>
   </Frame>
 );
@@ -211,9 +211,9 @@ const SlideSports = () => (
         <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center', fontSize: 18 }}>🏋️</Box>
         <Box sx={{ flex: 1 }}>
           <Typography sx={{ fontSize: 14, fontWeight: 800, fontFamily: 'Poppins, sans-serif', lineHeight: 1.2 }}>Modo Saúde Esportiva</Typography>
-          <Typography sx={{ fontSize: 11, color: '#5fc9c3', fontWeight: 700 }}>marcadores no contexto de quem treina</Typography>
+          <Typography sx={{ fontSize: 12, color: '#5fc9c3', fontWeight: 700 }}>marcadores no contexto de quem treina</Typography>
         </Box>
-        <Chip size="small" label="PREMIUM" sx={{ height: 20, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(212,165,116,.22)', color: '#d4a574', border: '1px solid rgba(212,165,116,.45)' }} />
+        <Chip size="small" label="PREMIUM" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(212,165,116,.22)', color: '#d4a574', border: '1px solid rgba(212,165,116,.45)' }} />
       </Stack>
       {[
         { n: 'Hematócrito', v: '47%', pct: 62, note: 'meta do médico: 48–54%' },
@@ -229,11 +229,11 @@ const SlideSports = () => (
             <Box sx={{ flex: 1, height: 5, borderRadius: 3, bgcolor: 'rgba(255,255,255,.14)', overflow: 'hidden' }}>
               <Box sx={{ width: `${r.pct}%`, height: '100%', borderRadius: 3, background: `linear-gradient(90deg,${TEAL},#5fc9c3)` }} />
             </Box>
-            <Typography sx={{ fontSize: 10.5, color: 'rgba(255,255,255,.7)', whiteSpace: 'nowrap' }}>{r.note}</Typography>
+            <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,.7)', whiteSpace: 'nowrap' }}>{r.note}</Typography>
           </Stack>
         </Box>
       ))}
-      <Typography sx={{ fontSize: 10.5, color: 'rgba(255,255,255,.6)', mt: 1 }}>Valores de exemplo · diretrizes SBEM e Endocrine Society citadas</Typography>
+      <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,.6)', mt: 1 }}>Valores de exemplo · diretrizes SBEM e Endocrine Society citadas</Typography>
     </Box>
   </Frame>
 );
@@ -246,12 +246,12 @@ const SlideDoctor = () => (
         <Box sx={{ width: 38, height: 38, borderRadius: '50%', bgcolor: 'rgba(212,165,116,.18)', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 14, color: '#b88a54', flexShrink: 0 }}>M</Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontSize: 14, fontWeight: 800, color: 'text.primary', lineHeight: 1.2 }}>Dra. Marina · Cardiologia</Typography>
-          <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>acompanhando 3 exames do paciente</Typography>
+          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>acompanhando 3 exames do paciente</Typography>
         </Box>
-        <Chip size="small" label="portal do médico" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(212,165,116,.14)', color: '#b88a54' }} />
+        <Chip size="small" label="portal do médico" sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(212,165,116,.14)', color: '#b88a54' }} />
       </Stack>
       <Box sx={{ p: 1.75, borderRadius: '16px', border: `1.5px dashed ${TEAL}`, bgcolor: 'rgba(32,178,170,.06)' }}>
-        <Typography sx={{ fontSize: 11, fontWeight: 800, color: TEAL_DARK, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Meta clínica definida pela médica</Typography>
+        <Typography sx={{ fontSize: 12, fontWeight: 800, color: TEAL_DARK, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Meta clínica definida pela médica</Typography>
         <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 18, color: 'text.primary', mt: 0.25 }}>
           LDL &lt; 100 mg/dL
         </Typography>

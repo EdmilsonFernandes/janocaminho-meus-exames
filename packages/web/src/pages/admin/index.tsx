@@ -232,7 +232,7 @@ export const AdminPage = () => {
                 label="ADMIN"
                 sx={{
                   height: 18,
-                  fontSize: 9.5,
+                  fontSize: 12,
                   fontWeight: 800,
                   bgcolor: 'rgba(23, 143, 137, 0.12)',
                   color: '#178f89',
@@ -244,7 +244,7 @@ export const AdminPage = () => {
             </Stack>
             <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.25 }}>
               <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#22c55e' }} />
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11, fontWeight: 500 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12, fontWeight: 500 }}>
                 Gestão & Controle
               </Typography>
             </Stack>
@@ -280,7 +280,7 @@ export const AdminPage = () => {
                 </InputAdornment>
               ) : (
                 <InputAdornment position="end">
-                  <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: 'text.disabled', bgcolor: 'action.hover', px: 0.6, py: 0.2, borderRadius: '4px', fontFamily: 'monospace' }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.disabled', bgcolor: 'action.hover', px: 0.6, py: 0.2, borderRadius: '4px', fontFamily: 'monospace' }}>
                     /
                   </Typography>
                 </InputAdornment>
@@ -319,7 +319,7 @@ export const AdminPage = () => {
                       px: 2,
                       pt: 1.75,
                       pb: 0.5,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: 800,
                       color: 'text.disabled',
                       textTransform: 'uppercase',
@@ -471,7 +471,7 @@ export const AdminPage = () => {
               </Box>
               <Box sx={{ minWidth: 0 }}>
                 <Stack direction="row" spacing={0.75} alignItems="center">
-                  <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', display: { xs: 'none', sm: 'inline-block' } }}>
+                  <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.04em', display: { xs: 'none', sm: 'inline-block' } }}>
                     {active?.group} /
                   </Typography>
                   <Typography noWrap sx={{ fontWeight: 800, fontSize: { xs: 14.5, sm: 16 }, fontFamily: '"Poppins",sans-serif', color: 'text.primary' }}>
@@ -492,7 +492,7 @@ export const AdminPage = () => {
                 sx={{
                   display: { xs: 'none', md: 'inline-flex' },
                   height: 26,
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 700,
                   bgcolor: 'rgba(34, 197, 94, 0.08)',
                   color: '#166534',
@@ -520,7 +520,7 @@ export const AdminPage = () => {
                     <Typography sx={{ fontSize: 12, fontWeight: 800, fontFamily: 'monospace' }}>
                       {stats.users}
                     </Typography>
-                    <Typography sx={{ fontSize: 11, color: 'text.secondary', display: { xs: 'none', lg: 'inline' } }}>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary', display: { xs: 'none', lg: 'inline' } }}>
                       usuários
                     </Typography>
                   </Box>
@@ -543,7 +543,7 @@ export const AdminPage = () => {
                     <Typography sx={{ fontSize: 12, fontWeight: 800, fontFamily: 'monospace' }}>
                       {stats.exams}
                     </Typography>
-                    <Typography sx={{ fontSize: 11, color: 'text.secondary', display: { xs: 'none', lg: 'inline' } }}>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary', display: { xs: 'none', lg: 'inline' } }}>
                       exames
                     </Typography>
                   </Box>

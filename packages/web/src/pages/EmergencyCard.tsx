@@ -194,7 +194,7 @@ export const EmergencyCardPage = () => {
                         {patient.fullName?.charAt(0)?.toUpperCase() || '?'}
                         {age ?? ''}
                       </div>
-                      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         ID emergencial
                       </div>
                     </div>

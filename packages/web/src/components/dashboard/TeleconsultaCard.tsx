@@ -153,7 +153,7 @@ export const TeleconsultaCard: React.FC = () => {
                 bgcolor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.10)',
                 color: isDark ? '#34d399' : '#059669',
                 fontWeight: 800,
-                fontSize: 11,
+                fontSize: 12,
                 border: '1px solid',
                 borderColor: isDark ? 'rgba(52, 211, 153, 0.3)' : 'rgba(16, 185, 129, 0.3)',
                 letterSpacing: '0.03em',
@@ -171,7 +171,7 @@ export const TeleconsultaCard: React.FC = () => {
                 bgcolor: isDark ? 'rgba(13, 148, 136, 0.18)' : 'rgba(13, 148, 136, 0.10)',
                 color: isDark ? '#2dd4bf' : '#0f766e',
                 fontWeight: 800,
-                fontSize: 11,
+                fontSize: 12,
                 border: '1px solid rgba(13, 148, 136, 0.3)',
                 letterSpacing: '0.04em',
                 '& .MuiChip-label': { px: 0.9, whiteSpace: 'nowrap' },
@@ -188,7 +188,7 @@ export const TeleconsultaCard: React.FC = () => {
                 bgcolor: isDark ? 'rgba(13, 148, 136, 0.15)' : 'rgba(13, 148, 136, 0.08)',
                 color: isDark ? '#2dd4bf' : '#0d9488',
                 fontWeight: 700,
-                fontSize: 11,
+                fontSize: 12,
                 border: '1px solid rgba(13, 148, 136, 0.25)',
                 '& .MuiChip-label': { px: 0.9, whiteSpace: 'nowrap' },
               }}
@@ -196,11 +196,11 @@ export const TeleconsultaCard: React.FC = () => {
           )}
 
           {isLive ? (
-            <Typography noWrap sx={{ fontSize: 11.5, fontWeight: 700, color: isDark ? '#34d399' : '#059669' }}>
+            <Typography noWrap sx={{ fontSize: 12, fontWeight: 700, color: isDark ? '#34d399' : '#059669' }}>
               • Médico aguardando
             </Typography>
           ) : tele.relativeLabel ? (
-            <Typography noWrap sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.secondary' }}>
+            <Typography noWrap sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>
               {tele.relativeLabel}
             </Typography>
           ) : null}
@@ -224,7 +224,7 @@ export const TeleconsultaCard: React.FC = () => {
                 whiteSpace: 'nowrap',
                 bgcolor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)',
                 color: 'text.primary',
-                fontSize: 11,
+                fontSize: 12,
                 fontFamily: 'monospace',
                 fontWeight: 700,
                 cursor: 'pointer',
@@ -296,7 +296,7 @@ export const TeleconsultaCard: React.FC = () => {
           </Stack>
 
           {doctorCrm && (
-            <Typography sx={{ fontSize: 11.5, fontWeight: 600, color: 'text.secondary', fontFamily: 'monospace', mt: 0.2 }}>
+            <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', fontFamily: 'monospace', mt: 0.2 }}>
               {doctorCrm}
             </Typography>
           )}
@@ -322,7 +322,7 @@ export const TeleconsultaCard: React.FC = () => {
         }}
       >
         <Box>
-          <Typography sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary' }}>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary' }}>
             Data & Horário
           </Typography>
           <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary' }}>
@@ -331,7 +331,7 @@ export const TeleconsultaCard: React.FC = () => {
         </Box>
 
         <Box>
-          <Typography sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary' }}>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary' }}>
             Ambiente Seguro
           </Typography>
           <Stack direction="row" alignItems="center" spacing={0.5}>
@@ -343,7 +343,7 @@ export const TeleconsultaCard: React.FC = () => {
         </Box>
 
         <Box>
-          <Typography sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary' }}>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary' }}>
             Protocolo
           </Typography>
           <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', fontFamily: 'monospace' }}>

@@ -292,7 +292,7 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
                     <Typography sx={{ fontWeight: 800, fontSize: 13 }}>{goalRangeText(goal)}</Typography>
                     {goal.setBy && <Typography sx={{ fontSize: 12, opacity: 0.85, mt: 0.5 }}>{goal.setBy}</Typography>}
                     {goal.justification && <Typography sx={{ fontSize: 12, opacity: 0.85, mt: 0.5 }}>{goal.justification}</Typography>}
-                    {goal.source && <Typography sx={{ fontSize: 11, opacity: 0.7, mt: 0.5 }}>Fonte: {goal.source}</Typography>}
+                    {goal.source && <Typography sx={{ fontSize: 12, opacity: 0.7, mt: 0.5 }}>Fonte: {goal.source}</Typography>}
                   </Box>
                 }
                 arrow
@@ -430,7 +430,7 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
           marcos vivem ABAIXO do gráfico: "vi quando o tratamento começou". */}
       {(markers ?? []).length > 0 && (
         <Box sx={{ mt: 1.25, display: 'flex', flexWrap: 'wrap', gap: 0.75, alignItems: 'center' }}>
-          <Typography component="span" sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary' }}>
+          <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>
             Tratamento no período:
           </Typography>
           {(markers ?? []).map((m, i) => (
@@ -439,11 +439,11 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
               bgcolor: alpha('#d4a574', 0.10), border: '1px solid', borderColor: alpha('#d4a574', 0.45),
               whiteSpace: 'nowrap',
             }}>
-              <Box component="span" sx={{ color: '#d4a574', fontWeight: 800, fontSize: 11 }}>◆</Box>
-              <Typography component="span" sx={{ fontSize: 11.5, fontWeight: 700, color: isDark ? '#e0bc97' : '#8a6240' }}>
+              <Box component="span" sx={{ color: '#d4a574', fontWeight: 800, fontSize: 12 }}>◆</Box>
+              <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: isDark ? '#e0bc97' : '#8a6240' }}>
                 {m.label}
               </Typography>
-              <Typography component="span" sx={{ fontSize: 10.5, color: 'text.secondary', fontWeight: 600 }}>
+              <Typography component="span" sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600 }}>
                 {new Date(m.date).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', '')}
               </Typography>
             </Box>

@@ -265,7 +265,7 @@ export const LandingPage = () => {
             <Box sx={{ ...FADE_SLIDE_UP }}>
               {isSports ? (
                 <>
-                  <Typography sx={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: { xs: 11.5, sm: 13 }, fontWeight: 700, letterSpacing: { xs: '0.14em', sm: '0.2em' }, color: '#d4a574', mb: 1.5, animation: 'fadeSlideUp .6s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
+                  <Typography sx={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: { xs: 12, sm: 13 }, fontWeight: 700, letterSpacing: { xs: '0.14em', sm: '0.2em' }, color: '#d4a574', mb: 1.5, animation: 'fadeSlideUp .6s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     VOCÊ ACOMPANHA SEUS TREINOS.
                   </Typography>
                   <Typography variant="h1" sx={{ fontSize: { xs: '2.2rem', sm: '2.8rem', md: '3.8rem' }, fontWeight: 800, lineHeight: 1.1, mb: 2.5, letterSpacing: '-0.03em', color: '#fff', animation: 'fadeSlideUp .7s .1s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
@@ -372,7 +372,7 @@ export const LandingPage = () => {
                     <DrExame size={40} />
                     <Box>
                       <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: '#e8eef0', lineHeight: 1.2, fontFamily: '"Poppins",sans-serif' }}>Modo Saúde Esportiva</Typography>
-                      <Typography sx={{ fontSize: 11, color: '#5fc9c3', fontWeight: 700 }}>contexto de quem treina</Typography>
+                      <Typography sx={{ fontSize: 12, color: '#5fc9c3', fontWeight: 700 }}>contexto de quem treina</Typography>
                     </Box>
                   </Stack>
                 </Box>
@@ -479,7 +479,7 @@ export const LandingPage = () => {
         <Box sx={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '80%', height: '100%', background: 'radial-gradient(ellipse at 50% 15%, rgba(32,178,170,0.09) 0%, transparent 65%)', pointerEvents: 'none' }} />
         <Container maxWidth="lg" sx={{ position: 'relative' }}>
           <Box sx={{ textAlign: 'center', mb: { xs: 3.5, md: 5 } }}>
-            <Chip icon={<AutoAwesomeIcon sx={{ fontSize: 16 }} />} label="EXPERIMENTE AGORA AO VIVO" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 800, fontSize: 11.5, letterSpacing: '0.06em', mb: 1.5, px: 0.5 }} />
+            <Chip icon={<AutoAwesomeIcon sx={{ fontSize: 16 }} />} label="EXPERIMENTE AGORA AO VIVO" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 800, fontSize: 12, letterSpacing: '0.06em', mb: 1.5, px: 0.5 }} />
             <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.5rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>Cole seu exame. <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>De graça, sem cadastro.</Box></Typography>
             <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 620, mx: 'auto', lineHeight: 1.6 }}>A gente organiza cada valor na hora e mostra o que está dentro — e o que pede atenção. A interpretação completa com IA é o próximo passo, no app.</Typography>
           </Box>
@@ -523,7 +523,7 @@ export const LandingPage = () => {
                 </Box>
                 <Box>
                   <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', lineHeight: 1.2 }}>{t}</Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>{d}</Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>{d}</Typography>
                 </Box>
               </Stack>
             ))}
@@ -933,7 +933,7 @@ export const LandingPage = () => {
         border: '1px solid rgba(32,178,170,0.25)',
         px: { xs: 2.5, sm: 6 }, py: { xs: 5, md: 7 }, textAlign: 'center',
       }}>
-        <Chip size="small" label="Para médicos" sx={{ mb: 2.5, borderRadius: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11.5, color: '#d4a574', bgcolor: 'rgba(212,165,116,0.16)', border: '1px solid rgba(212,165,116,0.35)', '& .MuiChip-label': { px: 1.5 } }} />
+        <Chip size="small" label="Para médicos" sx={{ mb: 2.5, borderRadius: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 12, color: '#d4a574', bgcolor: 'rgba(212,165,116,0.16)', border: '1px solid rgba(212,165,116,0.35)', '& .MuiChip-label': { px: 1.5 } }} />
         <Typography sx={{ fontSize: { xs: '1.55rem', md: '2.1rem' }, fontWeight: 800, fontFamily: '"Poppins",sans-serif', letterSpacing: '-0.02em', lineHeight: 1.15, color: '#fff', mb: 1.5 }}>
           É médico? A consulta termina, <Box component="span" sx={{ color: '#5fc9c3' }}>o PIX já chegou.</Box>{' '}
           <Box component="span" sx={{ ...SERIF_I, color: '#d4a574', fontSize: '1.05em' }}>E o prontuário se escreveu.</Box>
@@ -1020,7 +1020,7 @@ export const LandingPage = () => {
                       bgcolor: TEAL,
                       color: '#fff',
                       fontWeight: 800,
-                      fontSize: 11.5,
+                      fontSize: 12,
                       letterSpacing: '0.04em',
                       whiteSpace: 'nowrap',
                       height: 28,

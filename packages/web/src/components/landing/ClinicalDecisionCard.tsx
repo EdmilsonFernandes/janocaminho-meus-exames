@@ -86,7 +86,7 @@ export const ClinicalDecisionCard = () => {
           sx={{
             fontFamily: 'Poppins, sans-serif',
             fontWeight: 800,
-            fontSize: 10,
+            fontSize: 12,
             letterSpacing: '0.06em',
             color: '#64748b',
             bgcolor: dark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
@@ -130,7 +130,7 @@ export const ClinicalDecisionCard = () => {
             <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 900, fontSize: 24, lineHeight: 1, color: '#ef4444' }}>
               78
             </Typography>
-            <Typography variant="caption" sx={{ fontSize: 9.5, fontWeight: 700, color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>
               de 100
             </Typography>
           </Box>
@@ -149,7 +149,7 @@ export const ClinicalDecisionCard = () => {
                 bgcolor: 'rgba(239, 68, 68, 0.12)',
                 color: '#ef4444',
                 fontWeight: 800,
-                fontSize: 10.5,
+                fontSize: 12,
                 borderRadius: '999px',
               }}
             />
@@ -160,7 +160,7 @@ export const ClinicalDecisionCard = () => {
                 bgcolor: 'rgba(245, 158, 11, 0.12)',
                 color: '#d97706',
                 fontWeight: 800,
-                fontSize: 10.5,
+                fontSize: 12,
                 borderRadius: '999px',
               }}
             />
@@ -222,7 +222,7 @@ export const ClinicalDecisionCard = () => {
                 variant="caption"
                 sx={{
                   mt: 0.5,
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: step.active ? 800 : 600,
                   color: step.active ? 'text.primary' : 'text.disabled',
                 }}
@@ -264,7 +264,7 @@ export const ClinicalDecisionCard = () => {
                 bgcolor: 'rgba(239, 68, 68, 0.1)',
                 color: '#ef4444',
                 fontWeight: 800,
-                fontSize: 10,
+                fontSize: 12,
                 borderRadius: '8px',
                 height: 22,
                 flexShrink: 0,
@@ -286,7 +286,7 @@ export const ClinicalDecisionCard = () => {
           bgcolor: dark ? 'rgba(32, 178, 170, 0.12)' : 'rgba(32, 178, 170, 0.08)',
           border: '1px solid rgba(32, 178, 170, 0.25)',
           color: dark ? '#5fc9c3' : '#0f766e',
-          fontSize: 11.5,
+          fontSize: 12,
           fontWeight: 700,
         }}
       >

@@ -68,7 +68,7 @@ export const SeverityBar = ({ type, score, compact = false }: { type: ScreeningT
         <Box sx={{ display: 'flex', gap: '3px', mt: 0.5 }}>
           {bands.map((b) => (
             <Typography key={b.short} sx={{
-              flex: b.to - b.from + 1, textAlign: 'center', fontSize: 10.5, lineHeight: 1.3,
+              flex: b.to - b.from + 1, textAlign: 'center', fontSize: 12, lineHeight: 1.3,
               fontWeight: b === cur ? 800 : 500,
               color: b === cur ? 'text.primary' : 'text.disabled',
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',

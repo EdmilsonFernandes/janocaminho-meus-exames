@@ -256,7 +256,7 @@ export const MeasurementsPage = () => {
                     {fmtVal(d!.latest)}<Typography component="span" sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 600 }}> {t.u}</Typography>
                   </Typography>
 
-                  <Typography noWrap sx={{ fontSize: 11.5, color: 'text.secondary', minHeight: 14 }}>{tileSub(t, d)}</Typography>
+                  <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', minHeight: 14 }}>{tileSub(t, d)}</Typography>
 
                   <Box sx={{ mt: 'auto', minHeight: 32, display: 'flex', alignItems: 'flex-end', pt: 0.5 }}>
                     {d && d.series7.length >= 2 && <Sparkline points={d.series7} width={118} height={30} color={t.color} />}
@@ -312,7 +312,7 @@ export const MeasurementsPage = () => {
                   <MonitorWeightIcon sx={{ fontSize: 16, color: '#20b2aa' }} />
                   <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>Peso</Typography>
                 </Stack>
-                <Chip size="small" label="+ Adicionar" sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'background.paper', color: '#0f766e', border: '1px solid rgba(15,118,110,0.3)' }} />
+                <Chip size="small" label="+ Adicionar" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'background.paper', color: '#0f766e', border: '1px solid rgba(15,118,110,0.3)' }} />
               </Stack>
               <Typography variant="caption" sx={{ color: 'text.disabled' }}>Último: não informado</Typography>
             </Card>
@@ -343,7 +343,7 @@ export const MeasurementsPage = () => {
                   <Box sx={{ color: t.color, display: 'inline-flex' }}>{t.icon}</Box>
                   <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>{t.l}</Typography>
                 </Stack>
-                <Chip size="small" label={t.synced ? '+ Conectar' : '+ Adicionar'} sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'background.paper', color: '#0f766e', border: '1px solid rgba(15,118,110,0.3)' }} />
+                <Chip size="small" label={t.synced ? '+ Conectar' : '+ Adicionar'} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'background.paper', color: '#0f766e', border: '1px solid rgba(15,118,110,0.3)' }} />
               </Stack>
               <Typography variant="caption" sx={{ color: 'text.disabled' }}>
                 {t.synced ? 'Via Health Connect' : 'Último: não informado'}

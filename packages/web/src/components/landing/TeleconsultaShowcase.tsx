@@ -382,7 +382,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                       >
                         {DOCTOR.name}
                       </Typography>
-                      <Typography sx={{ fontSize: 10.5, color: '#86efac', fontWeight: 600 }}>
+                      <Typography sx={{ fontSize: 12, color: '#86efac', fontWeight: 600 }}>
                         {DOCTOR.crm}
                       </Typography>
                     </Box>
@@ -418,7 +418,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                           '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
                         }}
                       />
-                      <Typography sx={{ fontSize: 11, fontWeight: 800, fontFamily: 'monospace', color: '#fff' }}>
+                      <Typography sx={{ fontSize: 12, fontWeight: 800, fontFamily: 'monospace', color: '#fff' }}>
                         {mm}:{ss}
                       </Typography>
                     </Box>
@@ -463,7 +463,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                       />
                     ))}
                   </Stack>
-                  <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: '#99f6e4' }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#99f6e4' }}>
                     Dr. Lucas falando…
                   </Typography>
                 </Box>
@@ -518,7 +518,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                         placeItems: 'center',
                       }}
                     >
-                      <MicOffIcon sx={{ fontSize: 11, color: '#fff' }} />
+                      <MicOffIcon sx={{ fontSize: 12, color: '#fff' }} />
                     </Box>
                   )}
                 </Box>
@@ -669,7 +669,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                     label="Criptografia ponta a ponta ativa"
                     sx={{
                       height: 24,
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: 700,
                       bgcolor: 'rgba(32,178,170,0.15)',
                       color: '#99f6e4',
@@ -702,7 +702,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                       <Typography sx={{ fontSize: 15, fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>
                         Teleconsulta de Retorno
                       </Typography>
-                      <Typography sx={{ fontSize: 11.5, color: '#99f6e4', fontWeight: 600 }}>
+                      <Typography sx={{ fontSize: 12, color: '#99f6e4', fontWeight: 600 }}>
                         {DOCTOR.name} · {DOCTOR.crm}
                       </Typography>
                     </Box>
@@ -779,7 +779,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                           boxShadow: '0 0 6px #10b981',
                         }}
                       />
-                      <Typography sx={{ fontSize: 9.5, fontWeight: 700, color: '#fff', letterSpacing: '0.03em' }}>
+                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#fff', letterSpacing: '0.03em' }}>
                         SUA CÂMERA AO VIVO
                       </Typography>
                     </Box>
@@ -801,7 +801,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                       }}
                     >
                       <CheckCircleIcon sx={{ fontSize: 12, color: '#10b981' }} />
-                      <Typography sx={{ fontSize: 9.5, fontWeight: 700, color: '#e2e8f0' }}>
+                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0' }}>
                         1080p HD · Microfone OK
                       </Typography>
                     </Box>
@@ -810,7 +810,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                   {/* Texto Legal CFM Art. 15 */}
                   <Typography
                     sx={{
-                      fontSize: 11,
+                      fontSize: 12,
                       lineHeight: 1.5,
                       color: 'rgba(255,255,255,0.72)',
                       mt: 1.5,
@@ -848,7 +848,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                   <Typography
                     sx={{
                       textAlign: 'center',
-                      fontSize: 10.5,
+                      fontSize: 12,
                       color: 'rgba(255,255,255,0.5)',
                       mt: 1,
                     }}

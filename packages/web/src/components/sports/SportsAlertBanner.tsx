@@ -235,7 +235,7 @@ export const SportsAlertBanner = ({ loaded, exams, importante, moderada, abnorma
                     onClick={() => navigate(`/tendencias?select=${encodeURIComponent(m.nameCanonical || m.name)}`)}
                     sx={{
                       height: 24,
-                      fontSize: 11.5,
+                      fontSize: 12,
                       fontWeight: 700,
                       bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.12),
                       color: (t) => SEM.warn[t.palette.mode],
@@ -254,7 +254,7 @@ export const SportsAlertBanner = ({ loaded, exams, importante, moderada, abnorma
                   label={r}
                   sx={{
                     height: 24,
-                    fontSize: 11.5,
+                    fontSize: 12,
                     fontWeight: 700,
                     bgcolor: 'action.hover',
                     color: 'text.secondary',
@@ -309,7 +309,7 @@ export const SportsAlertBanner = ({ loaded, exams, importante, moderada, abnorma
 
           {staleWarning && (
             <Box sx={{ mt: 1 }}>
-              <Chip size="small" label={`⏳ ${staleWarning}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
+              <Chip size="small" label={`⏳ ${staleWarning}`} sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
             </Box>
           )}
 

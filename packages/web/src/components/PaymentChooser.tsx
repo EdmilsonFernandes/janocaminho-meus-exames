@@ -241,7 +241,7 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, on
 
         {/* ── Section label ── */}
         <Typography sx={{
-          px: 2.5, pt: 2.25, pb: 1, fontSize: 11.5, fontWeight: 700,
+          px: 2.5, pt: 2.25, pb: 1, fontSize: 12, fontWeight: 700,
           color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.06em',
         }}>
           Escolha a forma
@@ -308,7 +308,7 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, on
                     {key === 'pix' && (
                       <Box sx={{
                         display: 'inline-flex', alignItems: 'center', gap: '3px',
-                        fontSize: 10, fontWeight: 800, color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0f6e68',
+                        fontSize: 12, fontWeight: 800, color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0f6e68',
                         bgcolor: (t) => alpha('#20b2aa', t.palette.mode === 'dark' ? 0.18 : 0.10), px: 1, py: '2px',
                         borderRadius: 99, letterSpacing: '.02em', lineHeight: 1.4,
                       }}>
@@ -323,7 +323,7 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, on
                   </Typography>
                   <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.75 }}>
                     <ShieldOutlinedIcon sx={{ fontSize: 13, color: 'text.disabled' }} />
-                    <Typography sx={{ fontSize: 10.5, color: 'text.disabled', fontWeight: 500 }}>
+                    <Typography sx={{ fontSize: 12, color: 'text.disabled', fontWeight: 500 }}>
                       {opt.trust}
                     </Typography>
                   </Stack>
@@ -372,7 +372,7 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, on
               width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
               bgcolor: (t) => alpha('#16a34a', t.palette.mode === 'dark' ? 0.2 : 0.1),
             }}>
-              <LockOutlinedIcon sx={{ fontSize: 11, color: '#16a34a' }} />
+              <LockOutlinedIcon sx={{ fontSize: 12, color: '#16a34a' }} />
             </Box>
             <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', whiteSpace: 'nowrap' }}>
               Pagamento 100% seguro
@@ -391,7 +391,7 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, on
               <Stack key={b.label} direction="row" alignItems="center" spacing={0.4} sx={{ whiteSpace: 'nowrap' }}>
                 {i > 0 && <Box component="span" sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: 'text.disabled', opacity: 0.6, mr: 0.85 }} />}
                 {b.icon}
-                <Typography component="span" sx={{ fontSize: 11, fontWeight: 500, color: 'text.disabled' }}>{b.label}</Typography>
+                <Typography component="span" sx={{ fontSize: 12, fontWeight: 500, color: 'text.disabled' }}>{b.label}</Typography>
               </Stack>
             ))}
           </Stack>

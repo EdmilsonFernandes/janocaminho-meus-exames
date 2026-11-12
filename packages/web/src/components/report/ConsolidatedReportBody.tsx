@@ -157,7 +157,7 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam, hide
                     <div className="text-xs font-bold text-foreground truncate" title={e.title}>
                       {e.title}
                     </div>
-                    <div className="text-[11px] text-muted-foreground truncate">
+                    <div className="text-xs text-muted-foreground truncate">
                       {e.performedAt ? fmtDate(e.performedAt) : 's/d'}
                       {e.sourceLab ? ` · ${trimLab(e.sourceLab)}` : ''}
                     </div>

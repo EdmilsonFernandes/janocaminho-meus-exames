@@ -76,7 +76,7 @@ export const IdentityChip = ({ status }: { status?: string | null }) => {
       icon={<Icon sx={{ fontSize: '14px !important', color: `${t.fg} !important` }} />}
       label={c.label}
       sx={{
-        height: 22, fontSize: 11.5, fontWeight: 700, color: t.fg, bgcolor: t.bg, border: '1px solid', borderColor: t.bd,
+        height: 22, fontSize: 12, fontWeight: 700, color: t.fg, bgcolor: t.bg, border: '1px solid', borderColor: t.bd,
         '& .MuiChip-label': { px: 0.9 }, '& .MuiChip-icon': { ml: 0.75, mr: -0.25 },
       }}
     />
@@ -110,7 +110,7 @@ export const StatTiles = ({ counts }: { counts: { waiting: number; inUaiid: numb
             <Typography data-testid={`kyc-count-${t.key}-n`} sx={{ fontFamily: HEAD, fontWeight: 800, fontSize: { xs: 24, sm: 30 }, lineHeight: 1.1, color: numColor[t.key] }}>
               {counts[t.key]}
             </Typography>
-            <Typography sx={{ fontSize: { xs: 11, sm: 12.5 }, fontWeight: 600, color: 'text.secondary', mt: 0.5, lineHeight: 1.3 }}>
+            <Typography sx={{ fontSize: { xs: 12, sm: 12.5 }, fontWeight: 600, color: 'text.secondary', mt: 0.5, lineHeight: 1.3 }}>
               {t.label}
             </Typography>
           </Card>
@@ -130,7 +130,7 @@ const NameLabel = ({ children, divided }: { children: ReactNode; divided?: boole
     aria-hidden="true"
     sx={{ minWidth: 0, px: cellPx, pt: { xs: 1.5, sm: 2 }, pb: 0.75, borderLeft: divided ? '1px solid' : 'none', borderColor: 'divider' }}
   >
-    <Typography sx={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '.07em', textTransform: 'uppercase', color: 'text.secondary', lineHeight: 1.35 }}>
+    <Typography sx={{ fontSize: 12, fontWeight: 800, letterSpacing: '.07em', textTransform: 'uppercase', color: 'text.secondary', lineHeight: 1.35 }}>
       {children}
     </Typography>
   </Box>
@@ -237,7 +237,7 @@ const ReasonBand = ({ reason }: { reason: { text: string; tone: Tone } }) => {
 
 const MetaChip = ({ label, value }: { label: string; value: string }) => (
   <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.75, px: 1.1, py: 0.5, borderRadius: '10px', border: '1px solid', borderColor: 'divider', bgcolor: 'action.hover' }}>
-    <Typography component="span" sx={{ fontSize: 11.5, fontWeight: 600, color: 'text.secondary' }}>{label}</Typography>
+    <Typography component="span" sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary' }}>{label}</Typography>
     <Typography component="span" sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary' }}>{value}</Typography>
   </Box>
 );
@@ -249,8 +249,8 @@ const CopyId = ({ value }: { value: string }) => {
   useEffect(() => () => clearTimeout(timer.current), []);
   return (
     <Stack direction="row" alignItems="center" sx={{ gap: 0.5, mt: 0.5, minWidth: 0, flexWrap: 'wrap' }}>
-      <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>ID da verificação:</Typography>
-      <Typography component="code" sx={{ fontSize: 11.5, fontFamily: 'ui-monospace, Menlo, Consolas, monospace', color: 'text.primary', overflowWrap: 'anywhere' }}>
+      <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>ID da verificação:</Typography>
+      <Typography component="code" sx={{ fontSize: 12, fontFamily: 'ui-monospace, Menlo, Consolas, monospace', color: 'text.primary', overflowWrap: 'anywhere' }}>
         {value}
       </Typography>
       <IconButton
@@ -296,7 +296,7 @@ export const ReviewCard = ({ item, onApprove, onReject, disabled }: {
           <Stack direction="row" spacing={1.5} alignItems="flex-start">
             <Avatar
               aria-hidden="true"
-              sx={{ width: 46, height: 46, borderRadius: '14px', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', fontWeight: 800, fontSize: 18, fontFamily: HEAD, flexShrink: 0, border: '2px solid rgba(32,178,170,.25)' }}
+              sx={{ width: 46, height: 46, borderRadius: '14px', bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode), fontWeight: 800, fontSize: 18, fontFamily: HEAD, flexShrink: 0, border: '2px solid rgba(32,178,170,.25)' }}
             >
               {initialOf(item.doctor.name)}
             </Avatar>
@@ -309,7 +309,7 @@ export const ReviewCard = ({ item, onApprove, onReject, disabled }: {
                   size="small"
                   label={mine ? 'Aguardando você' : 'No painel do UaiID'}
                   sx={{
-                    height: 22, fontSize: 11.5, fontWeight: 800, border: '1px solid',
+                    height: 22, fontSize: 12, fontWeight: 800, border: '1px solid',
                     ...(mine
                       ? { color: copperText(mode), bgcolor: COPPER.wash, borderColor: 'rgba(212,165,116,.55)' }
                       : { color: info.fg, bgcolor: info.bg, borderColor: info.bd }),
@@ -320,7 +320,7 @@ export const ReviewCard = ({ item, onApprove, onReject, disabled }: {
                 {crmLabel(item.doctor.crm || item.crm, item.doctor.crmUf)}
               </Typography>
               <Typography sx={{ fontSize: 12, color: 'text.secondary', overflowWrap: 'anywhere' }}>{item.doctor.email}</Typography>
-              {started && <Typography sx={{ fontSize: 11.5, color: 'text.disabled', mt: 0.25 }}>Verificação iniciada em {started}</Typography>}
+              {started && <Typography sx={{ fontSize: 12, color: 'text.disabled', mt: 0.25 }}>Verificação iniciada em {started}</Typography>}
             </Box>
           </Stack>
 
@@ -476,7 +476,7 @@ export const RejectForm = ({ item, reason, onReason, error, busy }: {
         <Typography sx={{ fontSize: 13.5, fontWeight: 800, lineHeight: 1.4 }}>{REJECT_EMAIL_NOTICE}</Typography>
       </Stack>
       <Box>
-        <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.secondary', mb: 0.75 }}>Atalhos de motivo</Typography>
+        <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', mb: 0.75 }}>Atalhos de motivo</Typography>
         <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap' }}>
           {REJECT_SHORTCUTS.map((s) => (
             <Chip
@@ -612,7 +612,7 @@ export const LegacySection = ({
                     </Typography>
                   </Box>
                   {Number.isFinite(Date.parse(l.createdAt)) && (
-                    <Typography sx={{ fontSize: 11.5, color: 'text.disabled', flexShrink: 0, display: { xs: 'none', sm: 'block' } }}>
+                    <Typography sx={{ fontSize: 12, color: 'text.disabled', flexShrink: 0, display: { xs: 'none', sm: 'block' } }}>
                       {`Cadastro em ${formatDateBR(Date.parse(l.createdAt))}`}
                     </Typography>
                   )}
@@ -881,7 +881,7 @@ export const DoctorVerificationPanel = ({ onChanged }: { onChanged?: () => void 
         <>
           <StatTiles counts={counts} />
 
-          <Typography sx={{ fontSize: 11, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 1 }}>
+          <Typography sx={{ fontSize: 12, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 1 }}>
             Fila de análise
           </Typography>
           {cards.length ? (

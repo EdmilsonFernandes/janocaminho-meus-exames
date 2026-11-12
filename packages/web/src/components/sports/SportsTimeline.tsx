@@ -97,22 +97,22 @@ export const SportsTimeline = ({ events, hasActivityData, max = 8 }: {
                       <Box sx={{ minWidth: 0 }}>
                         <Typography sx={{ fontWeight: 800, fontSize: 13.5, lineHeight: 1.25, wordBreak: 'break-word', color: 'text.primary' }}>{e.title}</Typography>
                         {e.detail && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.3, mt: 0.25 }}>{e.detail}</Typography>}
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 11.5 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 12 }}>
                           {e.date ? new Date(e.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : 's/d'}
                         </Typography>
                       </Box>
                       <Stack spacing={0.5} sx={{ flexShrink: 0 }}>
-                        {e.type === 'exam' && alerta && <Chip size="small" label={`${e.abnormalCount} alterado${e.abnormalCount === 1 ? '' : 's'}`} sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'error.main', color: '#fff' }} />}
+                        {e.type === 'exam' && alerta && <Chip size="small" label={`${e.abnormalCount} alterado${e.abnormalCount === 1 ? '' : 's'}`} sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'error.main', color: '#fff' }} />}
                         {e.duringUse && (
                           <Chip
                             size="small"
                             label={`durante uso: ${e.duringUse.length > 18 ? `${e.duringUse.slice(0, 17)}…` : e.duringUse}`}
                             title={`Coleta durante uso relatado de ${e.duringUse} (não verificado)`}
-                            sx={{ height: 22, maxWidth: 150, fontSize: 10.5, fontWeight: 700, borderRadius: '8px', bgcolor: 'rgba(212,165,116,.14)', color: '#d4a574', border: '1px dashed rgba(212,165,116,.55)', '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}
+                            sx={{ height: 22, maxWidth: 150, fontSize: 12, fontWeight: 700, borderRadius: '8px', bgcolor: 'rgba(212,165,116,.14)', color: '#d4a574', border: '1px dashed rgba(212,165,116,.55)', '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}
                             variant="outlined"
                           />
                         )}
-                        {stale && <Chip size="small" label="antigo" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
+                        {stale && <Chip size="small" label="antigo" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
                       </Stack>
                     </Stack>
                   </Box>
