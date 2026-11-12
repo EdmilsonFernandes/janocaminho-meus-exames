@@ -21,6 +21,7 @@ import QueryStatsOutlinedIcon from '@mui/icons-material/QueryStatsOutlined';
 import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
 import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
 import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
+import AccessibilityNewOutlinedIcon from '@mui/icons-material/AccessibilityNewOutlined';
 import MedicationOutlinedIcon from '@mui/icons-material/MedicationOutlined';
 import VaccinesOutlinedIcon from '@mui/icons-material/VaccinesOutlined';
 import PsychologyOutlinedIcon from '@mui/icons-material/PsychologyOutlined';
@@ -99,6 +100,7 @@ const FaqPage = lazy(() => import('./pages/Faq').then(m => ({ default: m.FaqPage
 // Rota pública (noLayout) + item de menu — dados 100% fictícios, sem API.
 const HowWeValidatePage = lazy(() => import('./pages/HowWeValidate').then(m => ({ default: m.HowWeValidatePage })));
 import { MeasurementsPage } from './pages/Measurements';
+const BodyCompositionPage = lazy(() => import('./pages/BodyComposition').then(m => ({ default: m.BodyCompositionPage })));
 const MedicationsPage = lazy(() => import('./pages/Medications').then(m => ({ default: m.MedicationsPage })));
 const MeasurementHistoryPage = lazy(() => import('./pages/MeasurementHistory').then(m => ({ default: m.MeasurementHistoryPage })));
 const SaudeMentalPage = lazy(() => import('./pages/SaudeMental').then(m => ({ default: m.SaudeMentalPage })));
@@ -994,11 +996,12 @@ const AppMenu = () => {
       <MenuSectionAccordion
         title="Rotina de saúde"
         icon={<MonitorHeartOutlinedIcon />}
-        routes={['/medicamentos', '/sinais', '/medicoes', '/saude-mental', '/vacinas', '/despesas', '/conquistas', '/emergencia']}
+        routes={['/medicamentos', '/sinais', '/medicoes', '/composicao', '/saude-mental', '/vacinas', '/despesas', '/conquistas', '/emergencia']}
       >
         <NavItem to="/medicamentos" primaryText="Medicamentos e receitas" icon={<MedicationOutlinedIcon />} highlight />
         <NavItem to="/sinais" primaryText="Sinais Vitais" icon={<MonitorHeartOutlinedIcon />} />
         <NavItem to="/medicoes" primaryText={translate('menu.measurements', { _: 'Medições corporais' })} icon={<MonitorHeartOutlinedIcon />} />
+        <NavItem to="/composicao" primaryText="Composição corporal" icon={<AccessibilityNewOutlinedIcon />} />
         <NavItem to="/saude-mental" primaryText="Saúde Mental & Humor" icon={<PsychologyOutlinedIcon />} />
         <NavItem to="/vacinas" primaryText={translate('menu.vaccines', { _: 'Vacinas' })} icon={<VaccinesOutlinedIcon />} />
         <NavItem to="/despesas" primaryText={translate('menu.expenses', { _: 'Despesas médicas' })} icon={<AccountBalanceWalletOutlinedIcon />} />
@@ -1690,6 +1693,7 @@ export const App = () => {
           {/* Sinais Vitais (hub Health Connect) — PORTA pelo ActivityCard conectado: sem item
           de menu de propósito (exclusiva de quem conecta o celular; sem dado → convite). */}
           <Route path="/sinais" element={<Suspense fallback={<PageSkeleton />}><SinaisPage /></Suspense>} />
+          <Route path="/composicao" element={<Suspense fallback={<PageSkeleton />}><BodyCompositionPage /></Suspense>} />
           <Route path="/medicamentos" element={<MedicationsPage />} />
           <Route path="/vacinas" element={<VaccinesPage />} />
           <Route path="/despesas" element={<ExpensesPage />} />

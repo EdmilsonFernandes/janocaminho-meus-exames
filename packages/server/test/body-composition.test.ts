@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { api, authHeader, createUser, resetDb } from './helpers';
 import { prisma } from '../src/prisma';
 import { parseInBodyQr, bodyFatReference, extractIBData } from '../src/bodycomp/inbody-qr';
+import { DEMO_SCENARIOS, buildDemoScenario, type DemoScenarioKey } from '../src/bodycomp/demo-scenarios';
 
 // Amostra 100% SINTÉTICA no layout conferido do InBody 270 (pessoa e valores fictícios):
 // 175,0 cm · M · 15/01/2026 09:30:00 · peso 76,0 · gordura 16,0 · MLG 60,0 · SMM 34,0 · IMC 24,8 · PGC 21,1.
@@ -142,5 +143,58 @@ describe('API /body-composition', () => {
 
   it('exige autenticação', async () => {
     expect((await api().get('/api/body-composition')).status).toBe(401);
+  });
+});
+
+// Massa de dados sintética (a mesma do seed de demonstração e dos testes da tela):
+// garante que cenários com cara de vida real passam pela API sem perder nem distorcer nada.
+describe('Massa de dados sintética — cenários de vida real', () => {
+  beforeEach(resetDb);
+  const NOW = new Date('2026-11-12T15:00:00Z');
+  const KEYS = Object.keys(DEMO_SCENARIOS) as DemoScenarioKey[];
+
+  it.each(KEYS)('cenário "%s": valores fecham entre si e as datas são crescentes', (key) => {
+    const rows = buildDemoScenario(key, NOW);
+    expect(rows.length).toBeGreaterThan(0);
+    expect(buildDemoScenario(key, NOW)).toEqual(rows); // determinístico
+    rows.forEach((r, i) => {
+      if (i > 0) expect(r.measuredAt.getTime()).toBeGreaterThan(rows[i - 1].measuredAt.getTime());
+      expect(r.measuredAt.getTime()).toBeLessThanOrEqual(NOW.getTime());
+      expect(r.weightKg).toBeGreaterThan(20);
+      if (r.fatMassKg != null && r.fatFreeMassKg != null) expect(Math.abs(r.weightKg - r.fatMassKg - r.fatFreeMassKg)).toBeLessThanOrEqual(0.11);
+      if (r.fatMassKg != null && r.bodyFatPct != null) expect(Math.abs((r.fatMassKg / r.weightKg) * 100 - r.bodyFatPct)).toBeLessThanOrEqual(0.2);
+      if (r.skeletalMuscleKg != null && r.fatFreeMassKg != null) expect(r.skeletalMuscleKg).toBeLessThan(r.fatFreeMassKg);
+      if (r.bmi != null && r.heightCm != null) expect(Math.abs(r.bmi - r.weightKg / (r.heightCm / 100) ** 2)).toBeLessThanOrEqual(0.06);
+      for (const [lo, hi] of Object.values(r.ranges ?? {})) expect(hi).toBeGreaterThan(lo);
+    });
+  });
+
+  it.each(KEYS)('cenário "%s": a lista devolve tudo, da mais recente para a mais antiga', async (key) => {
+    const u = await createUser({});
+    const patient = await prisma.patient.findFirstOrThrow({ where: { ownerId: u.user.id } });
+    const rows = buildDemoScenario(key, NOW);
+    await prisma.bodyComposition.createMany({ data: rows.map((r) => ({ ...r, ranges: r.ranges ?? undefined, patientId: patient.id })) });
+    const res = await api().get('/api/body-composition').set(authHeader(u.token));
+    expect(res.status).toBe(200);
+    expect(res.body.items).toHaveLength(rows.length);
+    const times = res.body.items.map((i: any) => new Date(i.measuredAt).getTime());
+    expect(times).toEqual([...times].sort((a, b) => b - a));
+    const newest = rows[rows.length - 1];
+    expect(res.body.items[0].weightKg).toBe(newest.weightKg);
+    expect(res.body.items[0].deviceBrand).toBe(newest.deviceBrand);
+    expect(res.body.items[0].needsReview).toBe(newest.needsReview);
+    expect(res.body.items[0].ranges ?? null).toEqual(newest.ranges);
+    expect(res.body.items[0]).not.toHaveProperty('rawPayload');
+  });
+
+  it('histórico muito longo é limitado às 200 avaliações mais recentes', async () => {
+    const u = await createUser({});
+    const patient = await prisma.patient.findFirstOrThrow({ where: { ownerId: u.user.id } });
+    const base = buildDemoScenario('unica', NOW)[0];
+    const data = Array.from({ length: 230 }, (_, i) => ({ ...base, ranges: base.ranges ?? undefined, patientId: patient.id, measuredAt: new Date(NOW.getTime() - i * 86_400_000) }));
+    await prisma.bodyComposition.createMany({ data });
+    const res = await api().get('/api/body-composition').set(authHeader(u.token));
+    expect(res.body.items).toHaveLength(200);
+    expect(new Date(res.body.items[0].measuredAt).getTime()).toBe(NOW.getTime());
   });
 });

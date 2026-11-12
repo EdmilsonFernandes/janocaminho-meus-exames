@@ -33,7 +33,7 @@ const NAV = [
   // saía 100px da tela (incidente 25/10). Evolução fica no menu vertical (AppMenu).
   { icon: 'lembretes', label: 'nav.reminders', to: '/lembretes' },
 ] as const;
-const SECONDARY_ROUTES = ['/alterados', '/tendencias', '/evolucao', '/linha-do-tempo', '/medicoes', '/medicamentos', '/vacinas', '/lembretes', '/emergencia', '/conquistas', '/familia', '/patients', '/medicos', '/perguntas', '/relatorio', '/despesas', '/perfil', '/seguranca', '/privacidade', '/planos', '/suporte', '/admin'];
+const SECONDARY_ROUTES = ['/alterados', '/tendencias', '/evolucao', '/linha-do-tempo', '/medicoes', '/composicao', '/medicamentos', '/vacinas', '/lembretes', '/emergencia', '/conquistas', '/familia', '/patients', '/medicos', '/perguntas', '/relatorio', '/despesas', '/perfil', '/seguranca', '/privacidade', '/planos', '/suporte', '/admin'];
 
 export const MobileBottomNav = () => {
   const theme = useTheme();

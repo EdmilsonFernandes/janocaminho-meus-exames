@@ -17,6 +17,7 @@ import TimerIcon from '@mui/icons-material/Timer';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import { useNavigate } from 'react-router-dom';
+import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -352,6 +353,25 @@ export const MeasurementsPage = () => {
           ))}
         </Box>
       </Box>
+
+      {/* COMPOSIÇÃO CORPORAL — entrada da bioimpedância (tela própria em /composicao). */}
+      <AppCard
+        kind="interactive"
+        role="button"
+        tabIndex={0}
+        onClick={() => navigate('/composicao')}
+        onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/composicao'); } }}
+        aria-label="Abrir composição corporal (bioimpedância)"
+        sx={{ mb: 2, p: 2, display: 'flex', alignItems: 'center', gap: 1.5, '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 } }}
+      >
+        <Box aria-hidden="true" sx={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode), flexShrink: 0 }}>
+          <AccessibilityNewIcon />
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontWeight: 700 }}>Composição corporal</Typography>
+          <Typography variant="caption" color="text.secondary">Gordura, músculo e água da sua bioimpedância</Typography>
+        </Box>
+      </AppCard>
 
       {/* SAÚDE MENTAL — entrada do PHQ-9/GAD-7 (recurso gratuito, 2 min). Card aqui na
           Medições (SEM item de menu/tile novo — decisão de produto). */}

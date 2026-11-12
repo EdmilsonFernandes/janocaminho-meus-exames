@@ -630,6 +630,14 @@ export const ProfilePage = () => {
               <FrameDescription>
                 Calibra índices renais (TFG), risco cardiometabólico e faixas laboratoriais por sexo biológico
               </FrameDescription>
+              {/* Porta para a bioimpedância: gordura/músculo/água moram em /composicao, não aqui. */}
+              <button
+                type="button"
+                onClick={() => navigate('/composicao')}
+                className="mt-1 min-h-9 w-fit cursor-pointer border-0 bg-transparent p-0 text-start font-[inherit] text-sm font-semibold text-primary underline-offset-4 transition-colors hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring"
+              >
+                Ver composição corporal (gordura, músculo e água) →
+              </button>
             </FrameHeader>
             <FramePanel>
               <Grid container spacing={2.25}>

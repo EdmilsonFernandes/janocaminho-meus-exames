@@ -1,13 +1,24 @@
 // Composição corporal (bioimpedância) — avaliações do paciente.
 //  GET    /api/body-composition            lista (mais recente primeiro) + faixa de referência
 //  POST   /api/body-composition/inbody-qr  lê o QR da folha InBody (dryRun=true só confere)
-//  POST   /api/body-composition            registro manual (qualquer aparelho)
+//  POST   /api/body-composition/report     envia o LAUDO (PDF/foto, qualquer marca) → 202 { jobId }
+//  GET    /api/body-composition/report/:id  status da leitura → PRÉVIA (nada é gravado)
+//  POST   /api/body-composition            registro manual ou prévia do laudo confirmada
 //  DELETE /api/body-composition/:id
 // Educativo: mostra tendência e faixa; não conclui diagnóstico.
 import { Router } from 'express';
+import { randomUUID } from 'crypto';
+import rateLimit from 'express-rate-limit';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseInBodyQr, bodyFatReference } from '../bodycomp/inbody-qr';
+import { REPORT_INSTRUCTIONS, checkReportReading, looksLikeBodyComposition } from '../bodycomp/report-reader';
+import { upload } from '../middleware/upload';
+import { pdfToText } from '../extraction/pdfToText';
+import { ocrPdfPages } from '../extraction/ocrPdf';
+import { imageToText } from '../extraction/imageToText';
+import { getLlm, getModel } from '../llm';
+import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
 
 const router = Router();
 router.use(requireAuth);
@@ -85,6 +96,100 @@ router.post('/inbody-qr', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+/** Leitura de laudo usa IA: teto por usuário (o upload de exame já tem o seu). */
+const reportLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, max: 20,
+  standardHeaders: true, legacyHeaders: false,
+  keyGenerator: (req) => (req as AuthedRequest).userId ?? 'anon',
+  skip: () => process.env.NODE_ENV !== 'production',
+  message: { error: 'Limite diário de leitura de laudos atingido. Tente amanhã ou digite os valores.' },
+});
+
+/** Texto do laudo: PDF com texto → pdftotext; PDF escaneado → OCR por página; foto → OCR. */
+async function reportText(buffer: Buffer, mimetype: string): Promise<string> {
+  if (mimetype === 'application/pdf') {
+    let text = '';
+    try { text = await pdfToText(buffer); } catch { /* PDF inválido → tenta OCR */ }
+    if (text.trim().length < 50) { try { text = await ocrPdfPages(buffer, 4); } catch { /* sem poppler/tesseract */ } }
+    return text;
+  }
+  try { return await imageToText(buffer); } catch { return ''; }
+}
+
+/**
+ * Leitura do laudo roda em SEGUNDO PLANO: OCR + IA passam fácil de 60s, e o proxy de produção
+ * (nginx, padrão 60s) cortaria a requisição. POST devolve 202 { jobId }; a tela consulta
+ * GET /report/:jobId até ficar pronto. Estado em memória (1 container), expira em 15 min,
+ * e só o dono da tarefa a enxerga. Nada do laudo é gravado.
+ */
+type ReportJob = {
+  userId: string;
+  status: 'pending' | 'done' | 'error';
+  preview?: Record<string, unknown>;
+  dropped?: string[];
+  error?: string;
+  code?: string;
+  expiresAt: number;
+};
+const reportJobs = new Map<string, ReportJob>();
+const JOB_TTL_MS = 15 * 60 * 1000;
+const pruneJobs = () => { const now = Date.now(); for (const [id, job] of reportJobs) if (job.expiresAt < now) reportJobs.delete(id); };
+
+/** Lê o laudo inteiro e devolve a prévia ou o motivo da recusa. Nunca lança. */
+export async function readReport(buffer: Buffer, mimetype: string): Promise<Pick<ReportJob, 'status' | 'preview' | 'dropped' | 'error' | 'code'>> {
+  try {
+    const text = (await reportText(buffer, mimetype)).slice(0, 15_000);
+    if (text.trim().length < 50) {
+      return { status: 'error', code: 'UNREADABLE', error: 'Não consegui ler o texto deste arquivo. Tente uma foto mais nítida, de frente e com boa luz, ou digite os valores.' };
+    }
+    if (!looksLikeBodyComposition(text)) {
+      return { status: 'error', code: 'NOT_BODYCOMP', error: 'Este arquivo não parece um laudo de bioimpedância. Exames de sangue e imagem vão na tela de Exames.' };
+    }
+    const result = await getLlm().complete({
+      messages: [{ role: 'user', content: `${REPORT_INSTRUCTIONS}\n\n=== TEXTO DO LAUDO (use EXATAMENTE estes dados; NUNCA invente) ===\n${text}\n${JSON_SUFFIX}` }],
+      // Mesmo teto provado das outras extrações (com menos, o modelo pode gastar tudo pensando).
+      maxTokens: 16000,
+      model: getModel(),
+    });
+    let raw: unknown;
+    try { raw = extractJsonObject(result.text); } catch {
+      return { status: 'error', code: 'AI_FORMAT', error: 'Não consegui interpretar este laudo agora. Tente de novo ou digite os valores.' };
+    }
+    const checked = checkReportReading(raw, text);
+    if (!checked.ok) return { status: 'error', code: checked.code, error: checked.message };
+    const r = checked.reading;
+    return {
+      status: 'done',
+      preview: { measuredAt: r.measuredAt ? r.measuredAt.toISOString() : null, deviceBrand: r.deviceBrand, deviceModel: r.deviceModel, ...r.values, needsReview: true },
+      dropped: r.dropped,
+    };
+  } catch (e) {
+    console.warn('[body-composition] leitura de laudo falhou:', (e as Error).message);
+    return { status: 'error', code: 'FAILED', error: 'A leitura falhou agora. Tente de novo em instantes ou digite os valores.' };
+  }
+}
+
+router.post('/report', reportLimiter, upload.single('file'), async (req: AuthedRequest, res, next) => {
+  try {
+    if (!req.file) { res.status(400).json({ error: 'Envie o PDF ou a foto do laudo.' }); return; }
+    pruneJobs();
+    const jobId = randomUUID();
+    const job: ReportJob = { userId: req.userId!, status: 'pending', expiresAt: Date.now() + JOB_TTL_MS };
+    reportJobs.set(jobId, job);
+    const { buffer, mimetype } = req.file;
+    void readReport(buffer, mimetype).then((outcome) => { Object.assign(job, outcome, { expiresAt: Date.now() + JOB_TTL_MS }); });
+    res.status(202).json({ jobId });
+  } catch (e) { next(e); }
+});
+
+router.get('/report/:jobId', (req: AuthedRequest, res) => {
+  const job = reportJobs.get(String(req.params.jobId));
+  if (!job || job.userId !== req.userId || job.expiresAt < Date.now()) { res.status(404).json({ error: 'Leitura não encontrada. Envie o laudo de novo.' }); return; }
+  if (job.status === 'pending') { res.json({ status: 'pending' }); return; }
+  if (job.status === 'error') { res.status(422).json({ status: 'error', error: job.error, code: job.code }); return; }
+  res.json({ status: 'done', preview: job.preview, dropped: job.dropped });
+});
+
 /** Número opcional dentro de [min, max]; fora da faixa ou inválido → erro de validação. */
 function optNum(body: any, key: string, min: number, max: number, errors: string[]): number | null {
   const raw = body?.[key];
@@ -109,6 +214,10 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const visceralFatLevel = optNum(b, 'visceralFatLevel', 1, 59, errors);
     const bmrKcal = optNum(b, 'bmrKcal', 600, 4500, errors);
     const heightCm = optNum(b, 'heightCm', 100, 230, errors);
+    const proteinKg = optNum(b, 'proteinKg', 2, 30, errors);
+    const mineralKg = optNum(b, 'mineralKg', 1, 8, errors);
+    const waistHipRatio = optNum(b, 'waistHipRatio', 0.55, 1.5, errors);
+    const source = b.source === 'REPORT' ? 'REPORT' : 'MANUAL';
     if (errors.length) { res.status(400).json({ error: 'Confira os valores informados.', fields: errors }); return; }
     if (weightKg == null || (bodyFatPct == null && fatMassKg == null && skeletalMuscleKg == null)) {
       res.status(400).json({ error: 'Informe o peso e pelo menos % de gordura, massa de gordura ou massa muscular.' });
@@ -128,10 +237,12 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const h = heightCm ?? patient?.heightCm ?? null;
     const item = await prisma.bodyComposition.create({
       data: {
-        patientId: pid, measuredAt, source: 'MANUAL',
+        patientId: pid, measuredAt, source,
         deviceBrand: b.deviceBrand ? String(b.deviceBrand).slice(0, 40) : null,
         deviceModel: b.deviceModel ? String(b.deviceModel).slice(0, 40) : null,
         weightKg, heightCm: h, bodyFatPct: pct, fatMassKg, skeletalMuscleKg, fatFreeMassKg, bodyWaterL, visceralFatLevel,
+        proteinKg, mineralKg, waistHipRatio,
+        parserVersion: source === 'REPORT' ? 'report-llm@1' : null,
         bmrKcal: bmrKcal != null ? Math.round(bmrKcal) : null,
         bmi: h ? Math.round((weightKg / (h / 100) ** 2) * 10) / 10 : null,
         note: b.note ? String(b.note).slice(0, 280) : null,
