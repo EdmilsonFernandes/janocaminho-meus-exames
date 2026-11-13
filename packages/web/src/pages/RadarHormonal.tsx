@@ -271,8 +271,7 @@ export default function RadarHormonal() {
                 {Math.round(stats.swingPct)}%
               </p>
               <Badge
-                variant={stats.stability === 'estavel' ? 'success' : stats.stability === 'moderado' ? 'warning' : 'destructive'}
-                appearance="light"
+                variant={stats.stability === 'estavel' ? 'success-light' : stats.stability === 'moderado' ? 'warning-light' : 'destructive-light'}
                 size="xs"
               >
                 {stats.stability === 'estavel' ? 'Estável' : stats.stability === 'moderado' ? 'Moderado' : 'Oscilação Alta'}
