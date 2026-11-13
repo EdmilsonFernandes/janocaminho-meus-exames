@@ -36,7 +36,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { CompoundExplainDialog } from '@/components/radar/compound-explain';
 import { CompoundIcon, CompoundPicker } from '@/components/radar/compound-picker';
 import { MarkerSpark } from '@/components/radar/marker-spark';
-import { RadarChart } from '@/components/radar/radar-chart';
+import { RadarChart, radarDash } from '@/components/radar/radar-chart';
 import {
   RADAR_FAMILIES, RADAR_FREQUENCIES, compoundById, computeRadarSeries, computeRadarStats, doctorQuestions, familyTotal, findMarker, getDoseMg,
   markersForProtocol, nextComparableDraws, positionInSwing, staleMarkers, type EvolutionRow, type RadarProtocolItem,
@@ -46,6 +46,13 @@ const WEEK_OPTIONS = [8, 12, 16, 24];
 const DAY_MS = 86_400_000;
 const n1 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const n0 = (v: number) => Math.round(v).toLocaleString('pt-BR');
+/** Faixa do laudo em palavras; com um lado só não vira "40 a —". */
+const rangeText = (low: number | null, high: number | null) => {
+  const f = (v: number) => v.toLocaleString('pt-BR');
+  if (low != null && high != null) return `${f(low)} a ${f(high)}`;
+  if (low != null) return `a partir de ${f(low)}`;
+  return high != null ? `até ${f(high)}` : '';
+};
 const shortDate = (d: Date) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '').replace(' de ', ' ');
 const monthsAgo = (iso: string) => Math.floor((Date.now() - new Date(iso).getTime()) / (30.44 * DAY_MS));
 const weekdayDate = (d: Date) => d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).replace(/\./g, '').replace(' de ', ' ');
@@ -146,6 +153,7 @@ export default function RadarHormonal() {
     [compare2x, canSplit, protocol, totalDays, variationPct],
   );
   const compareStats = useMemo(() => (compare ? computeRadarStats(compare) : null), [compare]);
+  const mixedFamilies = new Set(series.seriesPerItem.map((s) => s.comp.family)).size > 1;
 
   // Só a testosterona se compara com o exame de testosterona.
   const testoValues = useMemo(() => familyTotal(series, 'testosterona'), [series]);
@@ -270,7 +278,7 @@ export default function RadarHormonal() {
       return `<tr><td>${esc(comp.name)}</td><td>${n0(getDoseMg(p))} mg</td><td>${esc(freq)}</td><td>semana ${p.startWeek} a ${p.endWeek}</td></tr>`;
     }).join('');
     const examRows = found.map(({ marker, row }) => row
-      ? `<tr><td>${esc(marker.label)}</td><td>${esc(row.lastValue.toLocaleString('pt-BR'))} ${esc(row.unit ?? '')}</td><td>${row.lastDate ? esc(fullDate(row.lastDate)) : '—'}</td><td>${row.refLow == null && row.refHigh == null ? 'sem faixa no laudo' : `${row.refLow ?? '—'} a ${row.refHigh ?? '—'}`}</td><td>${row.refLow == null && row.refHigh == null ? '' : row.inRange ? 'na faixa' : '<strong>fora da faixa</strong>'}</td></tr>`
+      ? `<tr><td>${esc(marker.label)}</td><td>${esc(row.lastValue.toLocaleString('pt-BR'))} ${esc(row.unit ?? '')}</td><td>${row.lastDate ? esc(fullDate(row.lastDate)) : '—'}</td><td>${row.refLow == null && row.refHigh == null ? 'sem faixa no laudo' : esc(rangeText(row.refLow, row.refHigh))}</td><td>${row.refLow == null && row.refHigh == null ? '' : row.inRange ? 'na faixa' : '<strong>fora da faixa</strong>'}</td></tr>`
       : `<tr><td>${esc(marker.label)}</td><td colspan="4" style="color:#667">sem resultado no app</td></tr>`).join('');
     const draw = testoInProtocolEarly && testoRow && testoRow.lastDate
       ? `<p>Testosterona colhida em ${esc(fullDate(testoRow.lastDate))}${autoInRange && daysAfterShot != null ? `, ${daysAfterShot} dia(s) depois da aplicação, ${swingPos > 0.72 ? 'perto do pico' : swingPos < 0.28 ? 'perto do vale' : 'no meio da oscilação'}` : ''}.</p>`
@@ -363,8 +371,8 @@ export default function RadarHormonal() {
             <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
               <IconTile variant="frame" size="sm" aria-hidden="true"><Waves aria-hidden="true" /></IconTile>
               <div className="flex min-w-0 flex-col gap-px">
-                <FrameTitle role="heading" aria-level={2}>Sua curva</FrameTitle>
-                <FrameDescription>Quanto hormônio entra no corpo a cada dia</FrameDescription>
+                <FrameTitle role="heading" aria-level={2}>Como a liberação estimada varia entre as aplicações</FrameTitle>
+                <FrameDescription>Simulação de quanto hormônio o depósito da injeção libera por dia (mg/dia). Não é o nível no sangue.</FrameDescription>
               </div>
             </div>
             <ToggleGroup value={[String(weeks)]} onValueChange={(next) => { if (next[0]) setWeeks(Number(next[0])); }} variant="outline" size="sm" spacing={0} aria-label="Período mostrado">
@@ -373,25 +381,29 @@ export default function RadarHormonal() {
           </FrameHeader>
           <FramePanel className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              {series.seriesPerItem.map((s) => {
+              {series.seriesPerItem.map((s, index) => {
                 const off = hidden.has(s.item.uid);
+                const dashed = series.seriesPerItem.length > 1 ? radarDash(index) : '';
                 return (
                   <button
                     key={s.item.uid}
                     type="button"
                     aria-pressed={!off}
+                    title={off ? 'Mostrar no gráfico' : 'Esconder do gráfico'}
                     onClick={() => setHidden((prev) => { const next = new Set(prev); if (off) next.delete(s.item.uid); else next.add(s.item.uid); return next; })}
                     className={cn('flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-transparent px-2.5 text-xs text-foreground transition-colors hover:bg-muted', off && 'text-muted-foreground line-through')}
                   >
-                    <span aria-hidden="true" className={cn('size-2 rounded-full', off && 'opacity-30')} style={{ backgroundColor: s.comp.color }} />
+                    <svg aria-hidden="true" width="20" height="6" viewBox="0 0 20 6" className={cn('shrink-0', off && 'opacity-30')}>
+                      <line x1="1" x2="19" y1="3" y2="3" stroke={s.comp.color} strokeWidth="2.5" strokeLinecap="round" strokeDasharray={dashed ? dashed.split(' ').map((n) => Number(n) / 2.2).join(' ') : undefined} />
+                    </svg>
                     {s.comp.short}
                   </button>
                 );
               })}
               {series.seriesPerItem.length > 1 ? (
-                <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden="true" className="h-0.5 w-4 rounded-full bg-foreground" />Total</span>
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden="true" className="h-0.5 w-4 rounded-full bg-foreground" />Soma dos compostos</span>
               ) : null}
-              <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden="true" className="h-0 w-4 border-t border-dotted border-foreground/60" />Nível médio</span>
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden="true" className="h-0 w-4 border-t border-dotted border-foreground/60" />Média diária</span>
               {canSplit ? (
                 <button
                   type="button"
@@ -407,12 +419,35 @@ export default function RadarHormonal() {
             <RadarChart series={series} compare={compare} stats={stats} weeks={weeks} examDay={testoInProtocol && testoRow ? examDay : null} hidden={hidden} dayLabel={dayLabel} />
             <p className="m-0 flex items-start gap-1.5 rounded-lg bg-muted/60 px-3 py-2 text-xs text-foreground">
               <Info aria-hidden="true" className="mt-px size-3.5 shrink-0 text-muted-foreground" />
-              <span><strong className="font-semibold">Curva estimada, não medida.</strong> Vem de médias de estudos; o seu corpo pode variar bastante. Só o exame de sangue mostra o valor real.</span>
+              <span><strong className="font-semibold">Este gráfico é uma simulação.</strong> Depois de cada aplicação a estimativa sobe e depois diminui. Ela vem de médias de estudos, e o seu organismo pode responder de forma diferente. O resultado do exame de sangue é medido separadamente e tem outra unidade.</span>
             </p>
-            <p className="m-0 text-xs text-muted-foreground">
-              Cada risquinho embaixo é uma aplicação. A faixa cinza é o trecho em que medimos pico e vale.
-              {testoInProtocol && testoRow ? ' O ponto vermelho é o dia do seu exame de testosterona.' : ''}
-            </p>
+            {compareStats ? (
+              <div className="flex flex-col gap-2 rounded-lg border border-warning/40 bg-warning/5 px-3 py-2.5 text-xs">
+                <strong className="text-sm font-semibold text-foreground">Mesma dose na semana, dividida em 2 aplicações</strong>
+                <div className="grid grid-cols-[auto_1fr_1fr] items-baseline gap-x-4 gap-y-1 tabular-nums">
+                  <span />
+                  <span className="text-muted-foreground">Como está</span>
+                  <span className="text-muted-foreground">Dividido em 2x</span>
+                  <span className="text-muted-foreground">Pico</span><span>{n1(stats.peakMg)} mg/dia</span><span>{n1(compareStats.peakMg)} mg/dia</span>
+                  <span className="text-muted-foreground">Vale</span><span>{n1(stats.troughMg)} mg/dia</span><span>{n1(compareStats.troughMg)} mg/dia</span>
+                  <span className="text-muted-foreground">Sobe e desce</span><span>{n0(stats.swingPct)}%</span><span className="font-semibold text-foreground">{n0(compareStats.swingPct)}%</span>
+                  <span className="text-muted-foreground">Média</span><span>{n1(stats.avgDailyMg)} mg/dia</span><span>{n1(compareStats.avgDailyMg)} mg/dia</span>
+                </div>
+                <span className="text-muted-foreground">A quantidade total não muda, só a divisão. É uma simulação: converse com o seu médico antes de mudar a forma de aplicar.</span>
+              </div>
+            ) : null}
+            <ul className="m-0 grid list-none gap-x-5 gap-y-1.5 p-0 text-xs text-muted-foreground sm:grid-cols-2">
+              <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 h-3 w-0.5 shrink-0 rounded-full bg-foreground" /><span><strong className="font-medium text-foreground">Dia da aplicação:</strong> cada risquinho embaixo do gráfico, na cor do composto.</span></li>
+              <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 size-3 shrink-0 rounded-full border-2 border-foreground" /><span><strong className="font-medium text-foreground">Pico:</strong> ponto mais alto estimado depois da aplicação. <strong className="font-medium text-foreground">Vale:</strong> ponto mais baixo estimado antes da próxima.</span></li>
+              <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 size-3 shrink-0 rounded-sm bg-muted-foreground/25" /><span><strong className="font-medium text-foreground">Período usado no cálculo:</strong> a faixa cinza, de onde saem o pico, o vale e a média mostrados acima.</span></li>
+              {testoInProtocol && testoRow ? (
+                <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 size-2.5 shrink-0 rotate-45 bg-destructive" /><span><strong className="font-medium text-foreground">Dia do exame:</strong> a linha vermelha marca só a data da coleta de testosterona, não o resultado.</span></li>
+              ) : null}
+              {series.seriesPerItem.length > 1 ? (
+                <li className="flex items-start gap-2 sm:col-span-2"><span aria-hidden="true" className="mt-1.5 h-0.5 w-3 shrink-0 rounded-full bg-foreground" /><span><strong className="font-medium text-foreground">Soma dos compostos:</strong> {mixedFamilies ? 'soma de substâncias diferentes, em mg por dia. Serve para ver o volume total, mas não corresponde a nenhum exame.' : 'soma, em mg por dia, do que cada aplicação ainda está liberando.'}</span></li>
+              ) : null}
+              <li className="flex items-start gap-2 sm:col-span-2"><span aria-hidden="true" className="mt-0.5 size-3 shrink-0" /><span><strong className="font-medium text-foreground">Primeiras semanas:</strong> a curva sobe porque cada aplicação se soma ao que sobrou da anterior. Quando o que entra e o que sai se equilibram, o desenho passa a se repetir.</span></li>
+            </ul>
           </FramePanel>
         </Frame>
 
