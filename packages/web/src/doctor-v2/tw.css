@@ -29,6 +29,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Orientação dos componentes Base UI (Slider, Separator, ToggleGroup, ButtonGroup): o atributo é
+   data-orientation="…", não data-horizontal. Mesma definição do shadcn/tailwind.css, que esta ilha
+   não importa inteiro por causa do preflight. Sem isto o trilho do Slider fica sem altura. */
+@custom-variant data-horizontal {
+  &:where([data-orientation="horizontal"]) {
+    @slot;
+  }
+}
+@custom-variant data-vertical {
+  &:where([data-orientation="vertical"]) {
+    @slot;
+  }
+}
+
 /* Light — superfícies do Dr. Exame (paper #fff, texto #1a202c, borda #d8ece9).
    AA/NÍTIDO (feedback dono 29/10): teal/cobre da MARCA servem como COR DE
    PREENCHIMENTO; como TEXTO usam os tons AA do projeto (teal-800).

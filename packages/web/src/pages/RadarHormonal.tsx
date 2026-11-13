@@ -14,7 +14,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotify } from 'react-admin';
 import {
-  Activity, BellPlus, CalendarDays, ChevronDown, CircleHelp, ClipboardList, Copy, FlaskConical, Info, Plus, Printer, Sparkles, TrendingDown, TrendingUp, TriangleAlert, Trash2, Waves,
+  Activity, BellPlus, CalendarDays, ChevronDown, CircleHelp, ClipboardList, Copy, FlaskConical, Gauge, Info, Plus, Printer, Sparkles, TrendingDown, TrendingUp, TriangleAlert, Trash2, Waves,
 } from 'lucide-react';
 import { cn } from 'cn';
 import { API_URL, token } from '../config';
@@ -31,11 +31,13 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { CompoundExplainDialog } from '@/components/radar/compound-explain';
 import { CompoundIcon, CompoundPicker } from '@/components/radar/compound-picker';
 import { MarkerSpark } from '@/components/radar/marker-spark';
+import { ProtocolItem } from '@/components/radar/protocol-item';
 import { RadarChart, radarDash } from '@/components/radar/radar-chart';
 import {
   RADAR_FAMILIES, RADAR_FREQUENCIES, compoundById, computeRadarSeries, computeRadarStats, doctorQuestions, familyTotal, findMarker, getDoseMg,
@@ -458,102 +460,55 @@ export default function RadarHormonal() {
               <IconTile variant="frame" size="sm" aria-hidden="true"><FlaskConical aria-hidden="true" /></IconTile>
               <div className="flex min-w-0 flex-col gap-px">
                 <FrameTitle role="heading" aria-level={2}>O que você usa</FrameTitle>
-                <FrameDescription>Informe como está prescrito; fica salvo neste aparelho</FrameDescription>
+                <FrameDescription>Informe como está prescrito. Fica salvo só neste aparelho.</FrameDescription>
               </div>
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">Exemplos:</span>
               <Button variant="outline" size="sm" onClick={() => preset('trt1')}>Reposição 1x/sem</Button>
               <Button variant="outline" size="sm" onClick={() => preset('trt2')}>Reposição 2x/sem</Button>
               <Button variant="outline" size="sm" onClick={() => preset('dura')}>Durateston + Masteron</Button>
             </div>
           </FrameHeader>
 
-          {protocol.map((item) => {
-            const comp = compoundById(item.compoundId);
-            const doseMg = getDoseMg(item);
-            return (
-              <FramePanel key={item.uid} className="flex flex-col gap-3">
-                <div className="flex items-end gap-2">
-                  <Field label="Composto" className="flex-1">
-                    <CompoundPicker value={item.compoundId} onChange={(id) => changeCompound(item.uid, id)} />
-                  </Field>
-                  <Button
-                    variant="outline" size="icon-lg" className="mb-1 size-10 shrink-0"
-                    aria-label={`O que é ${comp.short}? Abrir explicação`} title="O que é isso?"
-                    onClick={() => setExplainId(item.compoundId)}
-                  >
-                    <CircleHelp aria-hidden="true" />
-                  </Button>
-                  <Button
-                    variant="ghost" size="icon-lg" className="mb-1 size-10 shrink-0 bg-transparent text-muted-foreground"
-                    aria-label={`Remover ${comp.short}`} disabled={protocol.length <= 1}
-                    onClick={() => setProtocol((prev) => (prev.length <= 1 ? prev : prev.filter((p) => p.uid !== item.uid)))}
-                  >
-                    <Trash2 aria-hidden="true" />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-[1.3fr_1fr_1.4fr_1fr]">
-                  <Field label={item.unit === 'ml' ? 'Dose por aplicação (ml)' : 'Dose por aplicação (mg)'}>
-                    <div className="flex gap-1.5">
-                      <Input
-                        type="number" inputMode="decimal" min={0} step={item.unit === 'ml' ? 0.05 : 5} className="h-10 tabular-nums"
-                        value={Number.isFinite(item.amount) ? item.amount : ''}
-                        onChange={(e) => update(item.uid, { amount: Math.max(0, Number(e.target.value) || 0) })}
-                      />
-                      {comp.isOral ? null : (
-                        <ToggleGroup value={[item.unit]} onValueChange={(next) => { if (next[0]) changeUnit(item, next[0] as 'ml' | 'mg'); }} variant="outline" spacing={0} aria-label="Unidade da dose" className="h-10">
-                          <ToggleGroupItem value="ml" className="h-10">ml</ToggleGroupItem>
-                          <ToggleGroupItem value="mg" className="h-10">mg</ToggleGroupItem>
-                        </ToggleGroup>
-                      )}
-                    </div>
-                  </Field>
-                  {comp.isOral ? <span className="hidden sm:block" /> : (
-                    <Field label="Concentração (mg/ml)">
-                      <Input type="number" inputMode="numeric" min={1} className="h-10 tabular-nums" value={item.conc} onChange={(e) => update(item.uid, { conc: Math.max(1, Number(e.target.value) || 1) })} />
-                    </Field>
-                  )}
-                  <Field label="Frequência">
-                    <Select value={String(item.freqDays)} onValueChange={(next) => { if (next) update(item.uid, { freqDays: Number(next) }); }}>
-                      <SelectTrigger className="h-10 w-full">
-                        <SelectValue>{() => RADAR_FREQUENCIES.find((f) => f.days === item.freqDays)?.label ?? `A cada ${item.freqDays} dias`}</SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {RADAR_FREQUENCIES.map((f) => <SelectItem key={f.days} value={String(f.days)}>{f.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field label="Semanas (de – até)">
-                    <div className="flex items-center gap-1.5">
-                      <Input type="number" inputMode="numeric" min={1} max={weeks} className="h-10 tabular-nums" aria-label="Semana de início" value={item.startWeek} onChange={(e) => update(item.uid, { startWeek: Math.min(item.endWeek, Math.max(1, Math.round(Number(e.target.value) || 1))) })} />
-                      <span aria-hidden="true" className="text-muted-foreground">–</span>
-                      <Input type="number" inputMode="numeric" min={1} max={weeks} className="h-10 tabular-nums" aria-label="Semana de fim" value={item.endWeek} onChange={(e) => update(item.uid, { endWeek: Math.min(weeks, Math.max(item.startWeek, Math.round(Number(e.target.value) || 1))) })} />
-                    </div>
-                  </Field>
-                </div>
-                <p className="m-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground tabular-nums">
-                  <CompoundIcon comp={comp} className="size-5 rounded-md [&>svg]:size-3" />
-                  {item.unit === 'ml' && !comp.isOral ? <span>{item.amount.toLocaleString('pt-BR')} ml × {item.conc} mg/ml = <strong className="font-medium text-foreground">{n0(doseMg)} mg</strong> no frasco</span> : <span><strong className="font-medium text-foreground">{n0(doseMg)} mg</strong> por {comp.isOral ? 'dose' : 'aplicação'}</span>}
-                  {comp.esterRatio < 0.999 ? <span>· desses, <strong className="font-medium text-foreground">{n0(doseMg * comp.esterRatio)} mg</strong> são hormônio ({n0(comp.esterRatio * 100)}%); o resto é o éster que faz durar</span> : <span>· oral: não tem éster, tudo é hormônio</span>}
-                </p>
-              </FramePanel>
-            );
-          })}
+          {protocol.map((item, index) => (
+            <FramePanel key={item.uid}>
+              <ProtocolItem
+                item={item} index={index} weeks={weeks}
+                dash={protocol.length > 1 ? radarDash(index) : ''}
+                canRemove={protocol.length > 1}
+                onUpdate={(patch) => update(item.uid, patch)}
+                onChangeCompound={(id) => changeCompound(item.uid, id)}
+                onChangeUnit={(unit) => changeUnit(item, unit)}
+                onExplain={() => setExplainId(item.compoundId)}
+                onRemove={() => setProtocol((prev) => (prev.length <= 1 ? prev : prev.filter((x) => x.uid !== item.uid)))}
+              />
+            </FramePanel>
+          ))}
 
           <FramePanel className="flex flex-col gap-4">
-            <Button variant="outline" size="lg" className="h-10 w-full sm:w-fit" onClick={add}>
-              <Plus aria-hidden="true" />
+            <button
+              type="button" onClick={add}
+              className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-transparent px-4 text-sm font-medium text-foreground transition-colors hover:border-primary/60 hover:bg-primary/5"
+            >
+              <Plus aria-hidden="true" className="size-4" />
               Adicionar outro composto
-            </Button>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Quando começou? (opcional)">
+            </button>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="flex min-w-0 flex-col gap-2 rounded-lg border border-border px-3 py-3">
+                <span className="flex items-center gap-2 text-sm font-medium text-foreground"><CalendarDays aria-hidden="true" className="size-4 text-muted-foreground" />Quando começou? <span className="text-xs font-normal text-muted-foreground">(opcional)</span></span>
                 <Input type="date" className="h-10" value={startDate} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setStartDate(e.target.value)} />
                 <span className="text-xs text-muted-foreground">Com a data, o gráfico mostra dias de verdade e o seu exame cai no dia certo, sozinho.</span>
-              </Field>
-              <Field label={`Seu corpo elimina ${variationPct === 0 ? 'no ritmo médio' : variationPct > 0 ? `${variationPct}% mais rápido que a média` : `${-variationPct}% mais devagar que a média`}`}>
-                <input type="range" min={-30} max={30} step={5} value={variationPct} onChange={(e) => setVariationPct(Number(e.target.value))} className="h-10 w-full accent-[var(--primary)]" aria-label="Velocidade de eliminação em relação à média" />
+              </label>
+              <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-border px-3 py-3">
+                <span className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-sm font-medium text-foreground">
+                  <span className="flex items-center gap-2"><Gauge aria-hidden="true" className="size-4 text-muted-foreground" />Ritmo do seu corpo</span>
+                  <Badge variant={variationPct === 0 ? 'outline' : 'info-light'}>{variationPct === 0 ? 'Na média' : variationPct > 0 ? `${variationPct}% mais rápido` : `${-variationPct}% mais devagar`}</Badge>
+                </span>
+                <Slider min={-30} max={30} step={5} value={[variationPct]} onValueChange={(v) => setVariationPct(Array.isArray(v) ? v[0] : v)} aria-label="Velocidade com que o corpo elimina, em relação à média" className="py-2" />
+                <span aria-hidden="true" className="flex justify-between text-xs text-muted-foreground"><span>Elimina devagar</span><span>Média</span><span>Elimina rápido</span></span>
                 <span className="text-xs text-muted-foreground">Cada pessoa elimina num ritmo. Deixe no meio se não souber.</span>
-              </Field>
+              </div>
             </div>
           </FramePanel>
         </Frame>
