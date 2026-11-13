@@ -300,6 +300,7 @@ model Patient {
   queueEntries TeleconsultaQueue[]
   measurements Measurement[]
   bodyCompositions BodyComposition[]
+  hormoneDoses HormoneDose[]
   vaccines     Vaccine[]
   expenses     Expense[]
   // "Meus médicos" (28/10/26): vínculos privados + consultas registradas pelo paciente.
@@ -2016,4 +2017,22 @@ model DoctorAvailability {
 
   @@index([doctorId, active])
   @@map("doctor_availability")
+}
+
+// Radar Hormonal — aplicações que o paciente REGISTROU (13/11/26). A curva usa as datas reais
+// (atraso, dose pulada) em vez de supor que toda aplicação aconteceu no dia certo.
+// Só o próprio paciente lê; não entra em nenhum compartilhamento com médico.
+model HormoneDose {
+  id         String   @id @default(cuid())
+  patientId  String
+  patient    Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  ownerId    String
+  compoundId String   // id do catálogo do Radar (ex.: test_cyp)
+  doseMg     Float    // mg do produto aplicados (com o éster)
+  takenAt    DateTime
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([patientId, takenAt])
+  @@map("hormone_doses")
 }

@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   RADAR_COMPOUNDS, batemanReleasePerDay, compoundById, computeRadarSeries, computeRadarStats, familyTotal, findMarker,
-  doctorQuestions, markersForProtocol, nextComparableDraws, positionInSwing, RADAR_MARKERS, staleMarkers, type EvolutionRow, type RadarProtocolItem,
+  calibrationRange, doctorQuestions, doseStatus, examAlerts, markersForProtocol, nextComparableDraws, positionInSwing, RADAR_MARKERS, staleMarkers, type EvolutionRow, type RadarProtocolItem,
 } from './hormoneRadar';
 
 const item = (compoundId: string, over: Partial<RadarProtocolItem> = {}): RadarProtocolItem => ({
@@ -178,5 +178,103 @@ describe('próxima coleta, exames antigos e perguntas para o médico', () => {
   it('sem nada fora do comum ainda sobra a pergunta geral', () => {
     const qs = doctorQuestions({ found: [{ marker: m('hematocrito'), row: row(45, '2026-11-01') }], swingPct: 20, drawPosition: 0.5, settled: true, now: NOW });
     expect(qs).toEqual(['O que isso muda para a minha fertilidade e para o meu coração a longo prazo?']);
+  });
+});
+
+describe('aplicações registradas', () => {
+  it('sem registro, a curva é idêntica à de antes', () => {
+    const a = computeRadarSeries([item('test_cyp')], 12 * 7, 0);
+    const b = computeRadarSeries([item('test_cyp')], 12 * 7, 0, false, {});
+    expect(b.total).toEqual(a.total);
+    expect(b.seriesPerItem[0].loggedDays).toEqual([]);
+  });
+
+  it('registro igual ao calendário dá a mesma curva', () => {
+    const plan = computeRadarSeries([item('test_cyp', { conc: 200 })], 6 * 7, 0);
+    const days = plan.seriesPerItem[0].injectionDays;
+    const logged = computeRadarSeries([item('test_cyp', { conc: 200 })], 6 * 7, 0, false, { test_cyp: days.map((day) => ({ day, mg: 200 })) });
+    logged.total.forEach((v, i) => expect(v).toBeCloseTo(plan.total[i], 6));
+    expect(logged.seriesPerItem[0].loggedDays).toEqual(days);
+  });
+
+  it('aplicação atrasada desloca a curva e a previsão segue da última registrada', () => {
+    const it0 = item('test_cyp', { conc: 200, endWeek: 6 });
+    const plan = computeRadarSeries([it0], 6 * 7, 0);
+    const late = computeRadarSeries([it0], 6 * 7, 0, false, { test_cyp: [{ day: 0, mg: 200 }, { day: 7, mg: 200 }, { day: 17, mg: 200 }] });
+    expect(late.seriesPerItem[0].injectionDays).toEqual([0, 7, 17, 24, 31, 38]);
+    expect(late.seriesPerItem[0].loggedDays).toEqual([0, 7, 17]);
+    const at = (r: typeof plan, d: number) => r.total[d * 4];
+    expect(at(late, 16)).toBeLessThan(at(plan, 16)); // no dia 16 a dose do dia 14 não aconteceu
+    expect(at(late, 6)).toBeCloseTo(at(plan, 6), 6); // antes do atraso, igual
+  });
+
+  it('dose registrada diferente da do protocolo muda a altura', () => {
+    const base = computeRadarSeries([item('test_enan')], 4 * 7, 0, false, { test_enan: [{ day: 0, mg: 250 }] });
+    const half = computeRadarSeries([item('test_enan')], 4 * 7, 0, false, { test_enan: [{ day: 0, mg: 125 }] });
+    expect(half.total[8]).toBeCloseTo(base.total[8] / 2, 6);
+  });
+
+  it('o registro não entra no cenário "e se dividir em 2x"', () => {
+    const split = computeRadarSeries([item('test_cyp')], 6 * 7, 0, true, { test_cyp: [{ day: 3, mg: 999 }] });
+    expect(split.seriesPerItem[0].loggedDays).toEqual([]);
+  });
+
+  it('situação: última, próxima e atraso', () => {
+    const D = 86_400_000;
+    const now = Date.UTC(2026, 10, 13, 12);
+    expect(doseStatus(7, [], now)).toEqual({ last: null, next: null, lateDays: 0 });
+    expect(doseStatus(7, [now - 9 * D, now - 2 * D], now)).toEqual({ last: now - 2 * D, next: now + 5 * D, lateDays: 0 });
+    expect(doseStatus(7, [now - 10 * D], now).lateDays).toBe(3);
+  });
+});
+
+describe('pontos de atenção e calibração', () => {
+  const NOW = new Date('2026-11-13T12:00:00Z').getTime();
+  const START = new Date('2026-07-01T12:00:00Z').getTime();
+  const m = (key: string) => RADAR_MARKERS.find((x) => x.key === key)!;
+  const row = (lastValue: number, lastDate: string, over: Partial<EvolutionRow> = {}): EvolutionRow =>
+    ({ nameCanonical: 'X', unit: '%', refLow: 41, refHigh: 53, lastValue, lastDate, inRange: lastValue >= 41 && lastValue <= 53, ...over });
+
+  it('fora da faixa do laudo vira ponto de atenção, sem orientar conduta', () => {
+    const out = examAlerts({ found: [{ marker: m('hematocrito'), row: row(55, '2026-10-20T12:00:00Z') }], protocolStart: START, now: NOW });
+    expect(out).toHaveLength(1);
+    expect(out[0].level).toBe('atencao');
+    expect(out[0].title).toBe('Hematócrito acima da faixa do laudo');
+    expect(out[0].text).toContain('Leve ao seu médico');
+    expect(out[0].text).not.toMatch(/dose|reduz|aument|pare|suspend/i);
+  });
+
+  it('dentro da faixa mas subindo desde antes do protocolo: aviso de tendência', () => {
+    const points = [{ value: 44, date: '2026-05-01T12:00:00Z' }, { value: 51, date: '2026-10-20T12:00:00Z' }];
+    const out = examAlerts({ found: [{ marker: m('hematocrito'), row: row(51, '2026-10-20T12:00:00Z', { points }) }], protocolStart: START, now: NOW });
+    expect(out.map((a) => a.key)).toEqual(['tendencia-hematocrito']);
+    expect(out[0].title).toContain('subiu 16%');
+    // variação pequena não avisa
+    const calm = examAlerts({ found: [{ marker: m('hematocrito'), row: row(46, '2026-10-20T12:00:00Z', { points: [{ value: 44, date: '2026-05-01T12:00:00Z' }, { value: 46, date: '2026-10-20T12:00:00Z' }] }) }], protocolStart: START, now: NOW });
+    expect(calm).toEqual([]);
+  });
+
+  it('3 meses de protocolo sem exame depois do início: aviso de controle', () => {
+    const out = examAlerts({ found: [{ marker: m('hematocrito'), row: row(45, '2026-04-01T12:00:00Z') }], protocolStart: START, now: NOW });
+    expect(out.map((a) => a.key)).toEqual(['controle']);
+    expect(out[0].title).toBe('4 meses de protocolo sem exame de controle');
+    // com exame depois do início, nada
+    expect(examAlerts({ found: [{ marker: m('hematocrito'), row: row(45, '2026-09-01T12:00:00Z') }], protocolStart: START, now: NOW })).toEqual([]);
+    // sem data de início não dá para afirmar
+    expect(examAlerts({ found: [{ marker: m('hematocrito'), row: row(45, '2026-04-01T12:00:00Z') }], protocolStart: null, now: NOW })).toEqual([]);
+  });
+
+  it('calibração: precisa de 2 exames durante o protocolo e devolve menor e maior fator', () => {
+    const series = computeRadarSeries([item('test_cyp', { conc: 200, endWeek: 16 })], 16 * 7, 0);
+    const testo = familyTotal(series, 'testosterona')!;
+    const at = (day: number) => testo[day * 4];
+    const iso = (day: number) => new Date(START + day * 86_400_000).toISOString();
+    const pts = [{ value: at(40) * 30, date: iso(40) }, { value: at(75) * 36, date: iso(75) }, { value: 900, date: iso(3) }, { value: 500, date: iso(-20) }];
+    const cal = calibrationRange(pts, testo, 4, START, 16 * 7)!;
+    expect(cal.n).toBe(2);
+    expect(cal.lo).toBeCloseTo(30, 5);
+    expect(cal.hi).toBeCloseTo(36, 5);
+    expect(calibrationRange(pts.slice(0, 1), testo, 4, START, 16 * 7)).toBeNull();
+    expect(calibrationRange(pts, testo, 4, null, 16 * 7)).toBeNull();
   });
 });

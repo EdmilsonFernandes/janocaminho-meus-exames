@@ -36,12 +36,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { CompoundExplainDialog } from '@/components/radar/compound-explain';
 import { CompoundIcon, CompoundPicker } from '@/components/radar/compound-picker';
+import { DoseLog, type HormoneDose } from '@/components/radar/dose-log';
 import { MarkerSpark } from '@/components/radar/marker-spark';
 import { ProtocolItem } from '@/components/radar/protocol-item';
 import { RadarChart, radarDash } from '@/components/radar/radar-chart';
 import {
-  RADAR_FAMILIES, RADAR_FREQUENCIES, compoundById, computeRadarSeries, computeRadarStats, doctorQuestions, familyTotal, findMarker, getDoseMg,
-  markersForProtocol, nextComparableDraws, positionInSwing, staleMarkers, type EvolutionRow, type RadarProtocolItem,
+  RADAR_FAMILIES, RADAR_FREQUENCIES, calibrationRange, compoundById, computeRadarSeries, computeRadarStats, doctorQuestions, examAlerts, familyTotal, findMarker, getDoseMg,
+  markersForProtocol, nextComparableDraws, positionInSwing, staleMarkers, type EvolutionRow, type LoggedDose, type RadarProtocolItem,
 } from '@/utils/hormoneRadar';
 
 const WEEK_OPTIONS = [8, 12, 16, 24];
@@ -118,6 +119,10 @@ export default function RadarHormonal() {
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [explainId, setExplainId] = useState<string | null>(null);
   const [reminding, setReminding] = useState(false);
+  const [doses, setDoses] = useState<HormoneDose[]>([]);
+  const [dosesLoading, setDosesLoading] = useState(true);
+  const [dosesFailed, setDosesFailed] = useState(false);
+  const [dosesTick, setDosesTick] = useState(0);
 
   // Protocolo fica salvo no aparelho, por paciente (a 1ª versão perdia tudo ao sair da tela).
   useEffect(() => {
@@ -148,8 +153,31 @@ export default function RadarHormonal() {
     return () => { cancelled = true; };
   }, [pid]);
 
+  // Aplicações que o paciente registrou (diário). Falhar aqui não derruba a tela: a curva
+  // volta para o calendário do protocolo.
+  useEffect(() => {
+    if (!pid) return;
+    let cancelled = false;
+    setDosesLoading(true);
+    setDosesFailed(false);
+    fetch(`${API_URL}/hormone-doses?patientId=${encodeURIComponent(pid)}`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((data) => { if (!cancelled) setDoses(Array.isArray(data?.items) ? data.items : []); })
+      .catch(() => { if (!cancelled) { setDoses([]); setDosesFailed(true); } })
+      .finally(() => { if (!cancelled) setDosesLoading(false); });
+    return () => { cancelled = true; };
+  }, [pid, dosesTick]);
+
   const totalDays = weeks * 7;
-  const series = useMemo(() => computeRadarSeries(protocol, totalDays, variationPct), [protocol, totalDays, variationPct]);
+  // Registro → "dias desde o início". Sem data de início não há onde encaixar.
+  const logged = useMemo(() => {
+    if (!startDate || !doses.length) return undefined;
+    const startMs = new Date(`${startDate}T12:00:00`).getTime();
+    const map: Record<string, LoggedDose[]> = {};
+    for (const d of doses) (map[d.compoundId] ??= []).push({ day: (new Date(d.takenAt).getTime() - startMs) / DAY_MS, mg: d.doseMg });
+    return map;
+  }, [doses, startDate]);
+  const series = useMemo(() => computeRadarSeries(protocol, totalDays, variationPct, false, logged), [protocol, totalDays, variationPct, logged]);
   const stats = useMemo(() => computeRadarStats(series), [series]);
   const canSplit = protocol.some((p) => p.freqDays >= 7);
   const compare = useMemo(
@@ -249,7 +277,30 @@ export default function RadarHormonal() {
     ? nextComparableDraws(testoShots, daysAfterShot, todayDay, 2).map((d) => new Date(start.getTime() + d * DAY_MS))
     : [];
   const stale = rows ? staleMarkers(found) : [];
+  const alerts = rows ? examAlerts({ found, protocolStart: start ? start.getTime() : null }) : [];
+  const calibration = testoInProtocolEarly ? calibrationRange(testoRow?.points, testoValues, series.stepsPerDay, start ? start.getTime() : null, totalDays) : null;
+  const usingLog = series.seriesPerItem.some((x) => x.loggedDays.length > 0);
   const questions = rows ? doctorQuestions({ found, swingPct: stats.swingPct, drawPosition: testoInProtocolEarly && testoRow ? swingPos : null, settled: stats.settled }) : [];
+
+  const remindExams = async () => {
+    if (reminding) return;
+    setReminding(true);
+    try {
+      const due = new Date(Date.now() + 7 * DAY_MS); due.setHours(8, 0, 0, 0);
+      const names = Array.from(new Set(alerts.map((a) => a.title.split(' acima')[0].split(' abaixo')[0].split(' subiu')[0].split(' caiu')[0]).filter((t) => !/meses de protocolo/.test(t))));
+      const r = await fetch(`${API_URL}/reminders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({ patientId: pid, title: 'Exames de controle (Radar Hormonal)', dueDate: due.toISOString(), type: 'exame', note: names.length ? `Conversar com o médico e repetir: ${names.join(', ')}.` : 'Conversar com o médico sobre os exames de controle.' }),
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      notify(`Lembrete criado para ${weekdayDate(due)}.`, { type: 'success' });
+    } catch {
+      notify('Não foi possível criar o lembrete. Tente de novo.', { type: 'error' });
+    } finally {
+      setReminding(false);
+    }
+  };
 
   const remindNextDraw = async () => {
     if (!nextDraws.length) return;
@@ -443,7 +494,7 @@ export default function RadarHormonal() {
               </div>
             ) : null}
             <ul className="m-0 grid list-none gap-x-5 gap-y-1.5 p-0 text-xs text-muted-foreground sm:grid-cols-2">
-              <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 h-3 w-0.5 shrink-0 rounded-full bg-foreground" /><span><strong className="font-medium text-foreground">Dia da aplicação:</strong> cada risquinho embaixo do gráfico, na cor do composto.</span></li>
+              <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 h-3 w-0.5 shrink-0 rounded-full bg-foreground" /><span><strong className="font-medium text-foreground">Dia da aplicação:</strong> cada risquinho embaixo do gráfico, na cor do composto.{usingLog ? ' Os que têm bolinha são os que você registrou; os outros são previsão.' : ''}</span></li>
               <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 size-3 shrink-0 rounded-full border-2 border-foreground" /><span><strong className="font-medium text-foreground">Pico:</strong> ponto mais alto estimado depois da aplicação. <strong className="font-medium text-foreground">Vale:</strong> ponto mais baixo estimado antes da próxima.</span></li>
               <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 size-3 shrink-0 rounded-sm bg-muted-foreground/25" /><span><strong className="font-medium text-foreground">Período usado no cálculo:</strong> a faixa cinza, de onde saem o pico, o vale e a média mostrados acima.</span></li>
               {testoInProtocol && testoRow ? (
@@ -520,6 +571,12 @@ export default function RadarHormonal() {
           </FramePanel>
         </Frame>
 
+        {/* ───────── Suas aplicações (diário) ───────── */}
+        <DoseLog
+          pid={pid} protocol={protocol} doses={doses} loading={dosesLoading} failed={dosesFailed} hasStartDate={!!startDate}
+          onReload={() => setDosesTick((n) => n + 1)} onChange={setDoses}
+        />
+
         {/* ───────── Seus exames × este protocolo ───────── */}
         <Frame>
           <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
@@ -582,7 +639,11 @@ export default function RadarHormonal() {
                   ) : daysAfterShot != null && !start ? (
                     <p className="m-0 text-xs text-muted-foreground">Informe a data de início do protocolo para ver as próximas datas equivalentes e criar um lembrete.</p>
                   ) : null}
-                  {factor && afterSettle && testoStats.peakMg > testoStats.troughMg ? (
+                  {calibration && testoStats.peakMg > testoStats.troughMg ? (
+                    <p className="m-0 text-xs text-muted-foreground tabular-nums">
+                      <strong className="font-medium text-foreground">Ajustado com {calibration.n} exames seus:</strong> ao longo do ciclo sua testosterona ficaria entre ~{n0(testoStats.troughMg * calibration.lo)} e ~{n0(testoStats.peakMg * calibration.hi)} {testoRow.unit ?? ''}. A faixa é larga de propósito: é o quanto os seus exames se afastaram da curva.
+                    </p>
+                  ) : factor && afterSettle && testoStats.peakMg > testoStats.troughMg ? (
                     <p className="m-0 text-xs text-muted-foreground tabular-nums">
                       Estimativa grosseira, só para dar ideia: ao longo do ciclo sua testosterona ficaria entre ~{n0(testoStats.troughMg * factor)} e ~{n0(testoStats.peakMg * factor)} {testoRow.unit ?? ''}. Só outro exame, colhido em outro momento, confirma.
                     </p>
@@ -605,6 +666,28 @@ export default function RadarHormonal() {
                 <AlertTitle>Não consegui buscar seus exames agora</AlertTitle>
                 <AlertDescription><p className="m-0">A lista abaixo mostra o que acompanhar; os seus valores aparecem quando a conexão voltar.</p></AlertDescription>
               </Alert>
+            ) : null}
+            {alerts.length ? (
+              <div className="flex flex-col gap-2.5 border-b border-border px-4 py-3">
+                <h3 className="m-0 text-sm font-semibold text-foreground">Pontos de atenção</h3>
+                <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
+                  {alerts.map((a) => (
+                    <li key={a.key} className="flex items-start gap-2.5">
+                      {a.level === 'atencao'
+                        ? <TriangleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-warning" />
+                        : <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-muted-foreground" />}
+                      <span className="flex min-w-0 flex-col gap-0.5">
+                        <strong className="text-sm font-medium text-foreground">{a.title}</strong>
+                        <span className="text-xs text-muted-foreground">{a.text}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <Button variant="outline" size="sm" disabled={reminding} onClick={() => void remindExams()}><BellPlus aria-hidden="true" />Lembrar de fazer os exames</Button>
+                  <span className="text-xs text-muted-foreground">Avisos pela faixa do seu laudo e pela evolução. Quem avalia é o médico.</span>
+                </div>
+              </div>
             ) : null}
             {stale.length ? (
               <p className="m-0 border-b border-border px-4 py-3 text-xs text-muted-foreground">

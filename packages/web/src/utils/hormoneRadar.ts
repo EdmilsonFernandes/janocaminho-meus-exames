@@ -75,6 +75,15 @@ export interface RadarItemSeries {
   values: number[];
   /** Dias (a partir do dia 0) em que há aplicação. */
   injectionDays: number[];
+  /** Quais desses dias vieram do REGISTRO do paciente (o resto é previsão pelo intervalo). */
+  loggedDays: number[];
+}
+
+/** Aplicação registrada, já convertida para "dias desde o início do protocolo". */
+export interface LoggedDose {
+  day: number;
+  /** mg do produto (com o éster). */
+  mg: number;
 }
 
 export interface RadarSeriesResult {
@@ -171,7 +180,13 @@ export function batemanReleasePerDay(tDays: number, activeDoseMg: number, halfLi
   return Math.max(0, activeDoseMg * ((ka * ke) / (ka - ke)) * (Math.exp(-ke * tDays) - Math.exp(-ka * tDays)));
 }
 
-export function computeRadarSeries(items: RadarProtocolItem[], totalDays: number, variationPct: number, split2x = false): RadarSeriesResult {
+/**
+ * `logged` (por compoundId): aplicações que o paciente REGISTROU. Quando existem, valem no lugar
+ * do calendário teórico a partir da primeira registrada; depois da última, a previsão continua
+ * pelo intervalo do protocolo. Sem registro, tudo é o calendário teórico (como sempre foi).
+ */
+export function computeRadarSeries(items: RadarProtocolItem[], totalDays: number, variationPct: number, split2x = false, logged?: Record<string, LoggedDose[]>): RadarSeriesResult {
+  const usedLog = new Set<string>();
   const stepsPerDay = 4; // resolução de 6 horas
   const totalSteps = totalDays * stepsPerDay;
   // Metabolismo mais rápido (+) encurta meia-vida e pico; mais lento (−) alonga.
@@ -186,14 +201,24 @@ export function computeRadarSeries(items: RadarProtocolItem[], totalDays: number
 
     const startDay = Math.max(0, (item.startWeek - 1) * 7);
     const endDay = Math.min(totalDays, item.endWeek * 7);
-    const injectionDays: number[] = [];
-    for (let d = startDay; d < endDay - 1e-9; d += freq) injectionDays.push(d);
+    // Cada aplicação: dia e mg do produto. O registro só entra no cenário real (não no "e se 2x").
+    const real = !split2x && logged && !usedLog.has(item.compoundId)
+      ? (logged[item.compoundId] ?? []).filter((d) => Number.isFinite(d.day) && d.mg > 0 && d.day <= totalDays).sort((a, b) => a.day - b.day)
+      : [];
+    if (real.length) usedLog.add(item.compoundId);
+    const shots: Array<{ day: number; mg: number; logged: boolean }> = [];
+    const firstReal = real.length ? real[0].day : Infinity;
+    for (let d = startDay; d < Math.min(endDay, firstReal) - 1e-9; d += freq) shots.push({ day: d, mg: doseMg, logged: false });
+    for (const r of real) shots.push({ day: r.day, mg: r.mg, logged: true });
+    if (real.length) for (let d = real[real.length - 1].day + freq; d < endDay - 1e-9; d += freq) shots.push({ day: d, mg: doseMg, logged: false });
+    const injectionDays = shots.filter((x) => x.day >= 0).map((x) => x.day);
+    const loggedDays = shots.filter((x) => x.logged && x.day >= 0).map((x) => x.day);
 
     // Pré-calcula as constantes por éster (a conta roda milhares de vezes).
     const parts = comp.esters.map((e) => {
       const ke = Math.LN2 / Math.max(0.15, e.halfLife / speed);
       const ka = absorptionRate(ke, e.tmax / speed);
-      const active = doseMg * e.share * e.esterRatio;
+      const active = e.share * e.esterRatio; // por mg de produto; a dose entra em cada aplicação
       const same = Math.abs(ka - ke) < ke * 1e-3;
       return { ke, ka, same, scale: same ? active * ke * ke : active * ((ka * ke) / (ka - ke)) };
     });
@@ -202,16 +227,16 @@ export function computeRadarSeries(items: RadarProtocolItem[], totalDays: number
     for (let s = 0; s <= totalSteps; s++) {
       const day = s / stepsPerDay;
       let sum = 0;
-      for (const inj of injectionDays) {
-        const dt = day - inj;
+      for (const inj of shots) {
+        const dt = day - inj.day;
         if (dt < 0) break; // aplicações em ordem crescente
         for (const p of parts) {
-          sum += p.same ? p.scale * dt * Math.exp(-p.ke * dt) : p.scale * (Math.exp(-p.ke * dt) - Math.exp(-p.ka * dt));
+          sum += inj.mg * (p.same ? p.scale * dt * Math.exp(-p.ke * dt) : p.scale * (Math.exp(-p.ke * dt) - Math.exp(-p.ka * dt)));
         }
       }
       values[s] = Math.max(0, sum);
     }
-    return { item, comp, values, injectionDays };
+    return { item, comp, values, injectionDays, loggedDays };
   });
 
   const total = new Array<number>(totalSteps + 1).fill(0);
@@ -420,4 +445,124 @@ export function doctorQuestions(
   if (missing.length) out.push(`Não tenho resultado recente de ${missing.slice(0, 4).join(', ')}${missing.length > 4 ? ' e outros' : ''}. Quais desses eu devo acompanhar?`);
   out.push('O que isso muda para a minha fertilidade e para o meu coração a longo prazo?');
   return out.slice(0, max);
+}
+
+// ───────────────────────── Registro de aplicações ─────────────────────────
+
+const DAY = 86_400_000;
+
+/** Situação das aplicações de UM composto: última registrada, próxima prevista e atraso. */
+export function doseStatus(freqDays: number, takenAtMs: number[], now = Date.now()): { last: number | null; next: number | null; lateDays: number } {
+  if (!takenAtMs.length) return { last: null, next: null, lateDays: 0 };
+  const last = Math.max(...takenAtMs);
+  const next = last + Math.max(0.5, freqDays) * DAY;
+  return { last, next, lateDays: Math.max(0, Math.floor((now - next) / DAY)) };
+}
+
+// ───────────────────────── Pontos de atenção nos exames ─────────────────────────
+
+export interface ExamAlert {
+  key: string;
+  level: 'atencao' | 'info';
+  title: string;
+  text: string;
+}
+
+const fmtNum = (v: number) => v.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+const dateBr = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).split('.').join('').split(' de ').join(' ');
+
+/**
+ * Avisos por REGRA sobre os exames que os compostos do protocolo costumam mexer.
+ * Sempre presos à faixa do PRÓPRIO laudo e à tendência; nunca a um corte clínico fixo, e nunca
+ * dizem o que fazer com a dose: a saída é "leve ao seu médico".
+ */
+export function examAlerts(input: { found: MarkerFinding[]; protocolStart: number | null; now?: number }): ExamAlert[] {
+  const now = input.now ?? Date.now();
+  const start = input.protocolStart;
+  const out: ExamAlert[] = [];
+
+  for (const { marker, row } of input.found) {
+    if (!row) continue;
+    const unit = row.unit ? ` ${row.unit}` : '';
+    const when = row.lastDate ? ` em ${dateBr(row.lastDate)}` : '';
+    const hasRef = row.refLow != null || row.refHigh != null;
+
+    if (hasRef && !row.inRange) {
+      const above = row.refHigh != null && row.lastValue > row.refHigh;
+      const usual = marker.direction === 'varia'
+        ? 'Com o que você usa, esse exame varia bastante.'
+        : `Com o que você usa, esse exame costuma ${marker.direction === 'sobe' ? 'subir' : 'cair'}.`;
+      out.push({
+        key: `faixa-${marker.key}`, level: 'atencao',
+        title: `${marker.label} ${above ? 'acima' : 'abaixo'} da faixa do laudo`,
+        text: `${fmtNum(row.lastValue)}${unit}${when}. ${usual} Leve ao seu médico.`,
+      });
+      continue;
+    }
+
+    // Dentro da faixa, mas andando na direção esperada desde antes do protocolo.
+    if (start != null && marker.direction !== 'varia' && row.points?.length) {
+      const pts = row.points
+        .filter((pt) => pt.value != null && pt.date)
+        .map((pt) => ({ v: pt.value as number, t: new Date(pt.date as string).getTime() }))
+        .sort((a, b) => a.t - b.t);
+      const before = [...pts].reverse().find((pt) => pt.t < start);
+      const after = [...pts].reverse().find((pt) => pt.t >= start);
+      if (before && after && before.v > 0) {
+        const pct = ((after.v - before.v) / before.v) * 100;
+        const moved = marker.direction === 'sobe' ? pct >= 10 : pct <= -10;
+        if (moved) {
+          out.push({
+            key: `tendencia-${marker.key}`, level: 'info',
+            title: `${marker.label} ${pct > 0 ? 'subiu' : 'caiu'} ${Math.round(Math.abs(pct))}% desde antes do protocolo`,
+            text: `De ${fmtNum(before.v)} para ${fmtNum(after.v)}${unit}. Ainda está na faixa do laudo; vale mostrar a evolução ao seu médico.`,
+          });
+        }
+      }
+    }
+  }
+
+  // Controle: 3 meses de protocolo sem exame depois do início.
+  if (start != null && now - start >= 90 * DAY) {
+    const months = Math.floor((now - start) / (30.44 * DAY));
+    const missing = input.found
+      .filter((f) => (f.marker.key === 'hematocrito' || f.marker.key === 'testosterona') && f.row?.lastDate && new Date(f.row.lastDate).getTime() < start)
+      .map((f) => f.marker.label);
+    if (missing.length) {
+      out.push({
+        key: 'controle', level: 'info',
+        title: `${months} meses de protocolo sem exame de controle`,
+        text: `O último resultado de ${missing.join(' e ')} é de antes de você começar. Diretrizes médicas de reposição de testosterona pedem esse controle entre 3 e 6 meses depois do início.`,
+      });
+    }
+  }
+
+  return out.sort((a, b) => (a.level === b.level ? 0 : a.level === 'atencao' ? -1 : 1)).slice(0, 6);
+}
+
+// ───────────────────────── Calibração pelos exames da pessoa ─────────────────────────
+
+/**
+ * Com 2 ou mais exames de testosterona colhidos DURANTE o protocolo, mede quanto de ng/dL cada
+ * mg/dia estimado rendeu naquela pessoa, e devolve o menor e o maior fator. A diferença entre
+ * eles é a incerteza honesta da estimativa: quanto maior, menos a curva explica os exames.
+ */
+export function calibrationRange(
+  points: Array<{ value: number | null; date: string | null }> | undefined,
+  testoValues: number[] | null,
+  stepsPerDay: number,
+  protocolStart: number | null,
+  totalDays: number,
+): { n: number; lo: number; hi: number } | null {
+  if (!points?.length || !testoValues || protocolStart == null) return null;
+  const factors: number[] = [];
+  for (const pt of points) {
+    if (pt.value == null || !pt.date) continue;
+    const day = (new Date(pt.date).getTime() - protocolStart) / DAY;
+    if (day < 14 || day > totalDays) continue; // antes de 2 semanas a curva ainda está subindo
+    const model = testoValues[Math.round(day * stepsPerDay)] ?? 0;
+    if (model > 0.5 && pt.value > 0) factors.push(pt.value / model);
+  }
+  if (factors.length < 2) return null;
+  return { n: factors.length, lo: Math.min(...factors), hi: Math.max(...factors) };
 }

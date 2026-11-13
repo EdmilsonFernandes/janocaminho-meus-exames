@@ -160,6 +160,10 @@ export function RadarChart({
             stroke={s.comp.color} strokeWidth={2.5} strokeLinecap="round"
           />
         )))}
+        {/* Aplicações que o paciente REGISTROU: bolinha no topo do risco (o resto é previsão) */}
+        {shown.map((s, row) => s.loggedDays.map((d) => (
+          <circle key={`log-${s.item.uid}-${d}`} aria-hidden="true" cx={x(d * series.stepsPerDay)} cy={PAD.top + CH + 3 + row * 6} r={3.6} fill={s.comp.color} className="stroke-card" strokeWidth={1.2} />
+        )))}
 
         {/* Pico e vale no período usado no cálculo */}
         {showExtremes ? (
