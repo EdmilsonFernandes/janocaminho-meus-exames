@@ -110,6 +110,8 @@ export default function RadarHormonal() {
   const [variationPct, setVariationPct] = useState(0);
   const [compare2x, setCompare2x] = useState(false);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
+  /** Composto com o formulário aberto (um por vez); null = todos em modo leitura. */
+  const [editingUid, setEditingUid] = useState<string | null>(null);
   const [manualLabDay, setManualLabDay] = useState(28);
   const [rows, setRows] = useState<EvolutionRow[] | null>(null);
   const [rowsFailed, setRowsFailed] = useState(false);
@@ -201,14 +203,16 @@ export default function RadarHormonal() {
     if (unit === item.unit) return;
     update(item.uid, { unit, amount: unit === 'mg' ? Math.round(item.amount * item.conc) : Number((item.amount / Math.max(1, item.conc)).toFixed(2)) });
   };
-  const add = () => setProtocol((prev) => [
-    ...prev,
-    { uid: String(Date.now()), compoundId: 'test_enan', unit: 'ml', amount: 1, conc: 250, freqDays: 7, startWeek: 1, endWeek: weeks },
-  ]);
+  const add = () => {
+    const uid = String(Date.now());
+    setProtocol((prev) => [...prev, { uid, compoundId: 'test_enan', unit: 'ml', amount: 1, conc: 250, freqDays: 7, startWeek: 1, endWeek: weeks }]);
+    setEditingUid(uid);
+  };
   const preset = (kind: 'trt1' | 'trt2' | 'dura') => {
     const uid = String(Date.now());
     setCompare2x(kind === 'trt1');
     setHidden(new Set());
+    setEditingUid(null);
     if (kind === 'trt1') setProtocol([{ uid, compoundId: 'test_cyp', unit: 'ml', amount: 1, conc: 200, freqDays: 7, startWeek: 1, endWeek: weeks }]);
     else if (kind === 'trt2') setProtocol([{ uid, compoundId: 'test_cyp', unit: 'ml', amount: 0.5, conc: 200, freqDays: 3.5, startWeek: 1, endWeek: weeks }]);
     else setProtocol([
@@ -460,7 +464,7 @@ export default function RadarHormonal() {
               <IconTile variant="frame" size="sm" aria-hidden="true"><FlaskConical aria-hidden="true" /></IconTile>
               <div className="flex min-w-0 flex-col gap-px">
                 <FrameTitle role="heading" aria-level={2}>O que você usa</FrameTitle>
-                <FrameDescription>Informe como está prescrito. Fica salvo só neste aparelho.</FrameDescription>
+                <FrameDescription>O que você cadastrou. Toque em Editar para mudar; fica salvo só neste aparelho.</FrameDescription>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
@@ -477,11 +481,14 @@ export default function RadarHormonal() {
                 item={item} index={index} weeks={weeks}
                 dash={protocol.length > 1 ? radarDash(index) : ''}
                 canRemove={protocol.length > 1}
+                editing={editingUid === item.uid}
+                onEdit={() => setEditingUid(item.uid)}
+                onDone={() => setEditingUid(null)}
                 onUpdate={(patch) => update(item.uid, patch)}
                 onChangeCompound={(id) => changeCompound(item.uid, id)}
                 onChangeUnit={(unit) => changeUnit(item, unit)}
                 onExplain={() => setExplainId(item.compoundId)}
-                onRemove={() => setProtocol((prev) => (prev.length <= 1 ? prev : prev.filter((x) => x.uid !== item.uid)))}
+                onRemove={() => { setEditingUid(null); setProtocol((prev) => (prev.length <= 1 ? prev : prev.filter((x) => x.uid !== item.uid))); }}
               />
             </FramePanel>
           ))}
