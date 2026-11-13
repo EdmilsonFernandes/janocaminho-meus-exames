@@ -1,707 +1,610 @@
+/**
+ * Radar Hormonal — /radar-hormonal (2ª versão, 13/11/26).
+ *
+ * Plano ReUI: superfície operacional · arquétipo "Frame stack" · família Frame · regiões:
+ * resumo em português claro → curva → protocolo → seus exames × protocolo → como calculamos.
+ * Sem animação de entrada.
+ *
+ * Olhar de paciente: cada número vem com o que ele significa; o gráfico diz de onde saem
+ * pico e vale; os exames são os DELE (GET /items/evolution), com a faixa do próprio laudo.
+ * Educativo: mostra tendência e o que costuma mexer em quais exames. Não sugere dose,
+ * não diagnostica — quem ajusta protocolo é o médico.
+ */
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Activity, CalendarDays, ChevronDown, CircleHelp, FlaskConical, Info, Plus, Sparkles, TrendingDown, TrendingUp, TriangleAlert, Trash2, Waves,
+} from 'lucide-react';
+import { cn } from 'cn';
+import { API_URL, token } from '../config';
+import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
-import { HormoneRadarIcon } from '../components/reui/icons';
-import { Badge } from '../components/reui/badge';
-import { API_URL, token } from '../config';
+import { CREDIT_COSTS } from '../components/CreditBadge';
+import { HormoneRadarIcon } from '@/components/reui/icons';
+import { Frame, FrameDescription, FrameFooter, FrameHeader, FramePanel, FrameTitle } from '@/components/reui/frame';
+import { Badge } from '@/components/reui/badge';
+import { IconTile } from '@/components/reui/icon-tile';
+import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { CompoundExplainDialog } from '@/components/radar/compound-explain';
+import { CompoundIcon, CompoundPicker } from '@/components/radar/compound-picker';
+import { RadarChart } from '@/components/radar/radar-chart';
 import {
-  RADAR_COMPOUNDS,
-  RADAR_FREQUENCIES,
-  RadarProtocolItem,
-  computeRadarSeries,
-  computeRadarStats,
-  getDoseMg,
-} from '../utils/hormoneRadar';
+  RADAR_FAMILIES, RADAR_FREQUENCIES, compoundById, computeRadarSeries, computeRadarStats, familyTotal, findMarker, getDoseMg,
+  markersForProtocol, positionInSwing, type EvolutionRow, type RadarProtocolItem,
+} from '@/utils/hormoneRadar';
 
-interface LabSnapshot {
-  testosterone?: number;
-  estradiol?: number;
-  hematocrit?: number;
-  examDate?: string;
+const WEEK_OPTIONS = [8, 12, 16, 24];
+const DAY_MS = 86_400_000;
+const n1 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const n0 = (v: number) => Math.round(v).toLocaleString('pt-BR');
+const shortDate = (d: Date) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '').replace(' de ', ' ');
+const monthsAgo = (iso: string) => Math.floor((Date.now() - new Date(iso).getTime()) / (30.44 * DAY_MS));
+const fullDate = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/\./g, '').replace(/ de /g, ' ');
+
+interface Saved {
+  protocol: RadarProtocolItem[];
+  weeks: number;
+  startDate: string;
+  variationPct: number;
 }
 
-function activePatientId(): string {
+const DEFAULT_PROTOCOL: RadarProtocolItem[] = [
+  { uid: '1', compoundId: 'test_cyp', unit: 'ml', amount: 1, conc: 200, freqDays: 7, startWeek: 1, endWeek: 12 },
+];
+const storageKey = (pid: string | null | undefined) => `dx-radar-v2:${pid || 'anon'}`;
+
+function loadSaved(pid: string | null | undefined): Saved | null {
   try {
-    return localStorage.getItem('selPatientId') || localStorage.getItem('patientId') || '';
+    const raw = localStorage.getItem(storageKey(pid));
+    const parsed = raw ? (JSON.parse(raw) as Saved) : null;
+    return parsed && Array.isArray(parsed.protocol) && parsed.protocol.length ? parsed : null;
   } catch {
-    return '';
+    return null;
   }
 }
 
+/** Rótulo curto acima de um campo (a ilha não tem preflight: label precisa de display). */
+function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
+  return (
+    <label className={cn('flex min-w-0 flex-col gap-1.5', className)}>
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+const STABILITY = {
+  estavel: { label: 'Estável', variant: 'success-light', phrase: 'fica bem estável entre uma aplicação e outra' },
+  moderado: { label: 'Oscila um pouco', variant: 'warning-light', phrase: 'oscila de forma moderada entre uma aplicação e outra' },
+  alto: { label: 'Oscila bastante', variant: 'warning-light', phrase: 'sobe e desce bastante entre uma aplicação e outra' },
+} as const;
+
 export default function RadarHormonal() {
+  useReuiThemeSync();
+  const navigate = useNavigate();
+  const [pid] = useSelectedPatient();
+
+  const [protocol, setProtocol] = useState<RadarProtocolItem[]>(DEFAULT_PROTOCOL);
   const [weeks, setWeeks] = useState(12);
+  const [startDate, setStartDate] = useState('');
   const [variationPct, setVariationPct] = useState(0);
   const [compare2x, setCompare2x] = useState(false);
-  const [labDay, setLabDay] = useState(28);
-  const [labTesto, setLabTesto] = useState(1180);
-  const [realLab, setRealLab] = useState<LabSnapshot | null>(null);
-  const [hoverStep, setHoverStep] = useState<number | null>(null);
-  const [nextUid, setNextUid] = useState(3);
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [manualLabDay, setManualLabDay] = useState(28);
+  const [rows, setRows] = useState<EvolutionRow[] | null>(null);
+  const [rowsFailed, setRowsFailed] = useState(false);
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const [explainId, setExplainId] = useState<string | null>(null);
 
-  const [protocol, setProtocol] = useState<RadarProtocolItem[]>([
-    { uid: '1', compoundId: 'sustanon',  unit: 'ml', amount: 1.0, conc: 250, freqDays: 7,   startWeek: 1, endWeek: 12 },
-    { uid: '2', compoundId: 'mast_prop', unit: 'ml', amount: 1.0, conc: 100, freqDays: 3.5, startWeek: 1, endWeek: 12 },
-  ]);
-
-  // Carrega últimos exames reais de Testosterona, Estradiol e Hematócrito do paciente ativo
+  // Protocolo fica salvo no aparelho, por paciente (a 1ª versão perdia tudo ao sair da tela).
   useEffect(() => {
-    const pid = activePatientId();
+    const saved = loadSaved(pid);
+    setProtocol(saved?.protocol ?? DEFAULT_PROTOCOL);
+    setWeeks(saved?.weeks && WEEK_OPTIONS.includes(saved.weeks) ? saved.weeks : 12);
+    setStartDate(saved?.startDate ?? '');
+    setVariationPct(saved?.variationPct ?? 0);
+    setHidden(new Set());
+    setLoadedKey(storageKey(pid));
+  }, [pid]);
+  useEffect(() => {
+    if (loadedKey !== storageKey(pid)) return;
+    try { localStorage.setItem(loadedKey, JSON.stringify({ protocol, weeks, startDate, variationPct } satisfies Saved)); } catch { /* cota cheia: segue sem salvar */ }
+  }, [protocol, weeks, startDate, variationPct, pid, loadedKey]);
+
+  // Exames reais do paciente (último valor de cada analito, com a faixa do próprio laudo).
+  useEffect(() => {
     if (!pid) return;
     let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(`${API_URL}/items/evolution?patientId=${encodeURIComponent(pid)}`, {
-          headers: { Authorization: `Bearer ${token()}` },
-        });
-        if (!res.ok) return;
-        const rows = await res.json();
-        if (!Array.isArray(rows) || cancelled) return;
-
-        const pickLatest = (pattern: RegExp) => {
-          const matches = rows.filter((r: any) => pattern.test(String(r.nameCanonical ?? r.name ?? '').toUpperCase()) && Number.isFinite(Number(r.valueNum)));
-          if (!matches.length) return null;
-          matches.sort((a: any, b: any) => new Date(b.examDate ?? b.createdAt ?? 0).getTime() - new Date(a.examDate ?? a.createdAt ?? 0).getTime());
-          return matches[0];
-        };
-
-        const tRow = pickLatest(/TESTOSTERONA TOTAL/);
-        const eRow = pickLatest(/ESTRADIOL/);
-        const hRow = pickLatest(/HEMATOCRITO|HEMATÓCRITO/);
-
-        if (tRow || eRow || hRow) {
-          const snap: LabSnapshot = {
-            testosterone: tRow ? Number(tRow.valueNum) : undefined,
-            estradiol: eRow ? Number(eRow.valueNum) : undefined,
-            hematocrit: hRow ? Number(hRow.valueNum) : undefined,
-            examDate: (tRow?.examDate || eRow?.examDate || hRow?.examDate)
-              ? new Date(tRow?.examDate || eRow?.examDate || hRow?.examDate).toLocaleDateString('pt-BR')
-              : undefined,
-          };
-          setRealLab(snap);
-          if (snap.testosterone && snap.testosterone > 0) {
-            setLabTesto(Math.round(snap.testosterone));
-          }
-        }
-      } catch {
-        /* fallback mantém valores editáveis manualmente */
-      }
-    })();
+    setRows(null);
+    setRowsFailed(false);
+    fetch(`${API_URL}/items/evolution?patientId=${encodeURIComponent(pid)}`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      // A API devolve { patientId, items: [...] } (aceita lista pura por compatibilidade).
+      .then((data) => { if (!cancelled) setRows(Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []); })
+      .catch(() => { if (!cancelled) { setRows([]); setRowsFailed(true); } });
     return () => { cancelled = true; };
-  }, []);
+  }, [pid]);
 
   const totalDays = weeks * 7;
-  const mainSeries = useMemo(
-    () => computeRadarSeries(protocol, totalDays, variationPct, false),
-    [protocol, totalDays, variationPct],
+  const series = useMemo(() => computeRadarSeries(protocol, totalDays, variationPct), [protocol, totalDays, variationPct]);
+  const stats = useMemo(() => computeRadarStats(series), [series]);
+  const canSplit = protocol.some((p) => p.freqDays >= 7);
+  const compare = useMemo(
+    () => (compare2x && canSplit ? computeRadarSeries(protocol, totalDays, variationPct, true) : null),
+    [compare2x, canSplit, protocol, totalDays, variationPct],
   );
-  const compareSeries = useMemo(
-    () => (compare2x ? computeRadarSeries(protocol, totalDays, variationPct, true) : null),
-    [protocol, totalDays, variationPct, compare2x],
+  const compareStats = useMemo(() => (compare ? computeRadarStats(compare) : null), [compare]);
+
+  // Só a testosterona se compara com o exame de testosterona.
+  const testoValues = useMemo(() => familyTotal(series, 'testosterona'), [series]);
+  const testoStats = useMemo(
+    () => (testoValues ? computeRadarStats(series, testoValues, series.seriesPerItem.filter((s) => s.comp.family === 'testosterona')) : null),
+    [series, testoValues],
   );
-  const stats = useMemo(() => computeRadarStats(mainSeries), [mainSeries]);
 
-  const safeLabDay = Math.min(totalDays, Math.max(1, labDay));
-  const labStep = Math.min(mainSeries.totalSteps, safeLabDay * mainSeries.stepsPerDay);
-  const labMgDay = mainSeries.total[labStep] ?? 0;
-  const calibrationFactor = labMgDay > 0 ? labTesto / labMgDay : 0;
-  const relPos = stats.peakMg > stats.troughMg
-    ? (labMgDay - stats.troughMg) / (stats.peakMg - stats.troughMg)
-    : 0.5;
+  const markers = useMemo(() => markersForProtocol(protocol), [protocol]);
+  const found = useMemo(() => markers.map((marker) => ({ marker, row: rows ? findMarker(rows, marker) : null })), [markers, rows]);
+  const testoRow = found.find((f) => f.marker.key === 'testosterona')?.row ?? null;
 
-  const loadPreset = (type: 'dura_mast' | 'trt_1x' | 'trt_2x') => {
-    const id1 = String(nextUid);
-    const id2 = String(nextUid + 1);
-    setNextUid((n) => n + 2);
-    if (type === 'dura_mast') {
-      setProtocol([
-        { uid: id1, compoundId: 'sustanon',  unit: 'ml', amount: 1.0, conc: 250, freqDays: 7,   startWeek: 1, endWeek: weeks },
-        { uid: id2, compoundId: 'mast_prop', unit: 'ml', amount: 1.0, conc: 100, freqDays: 3.5, startWeek: 1, endWeek: weeks },
-      ]);
-      setCompare2x(false);
-    } else if (type === 'trt_1x') {
-      setProtocol([{ uid: id1, compoundId: 'test_cyp', unit: 'ml', amount: 1.0, conc: 200, freqDays: 7, startWeek: 1, endWeek: weeks }]);
-      setCompare2x(true);
-    } else {
-      setProtocol([{ uid: id1, compoundId: 'test_cyp', unit: 'ml', amount: 0.5, conc: 200, freqDays: 3.5, startWeek: 1, endWeek: weeks }]);
-      setCompare2x(false);
-    }
+  // Dia do exame: automático quando há data de início e o exame cai dentro do período.
+  const start = startDate ? new Date(`${startDate}T12:00:00`) : null;
+  const autoDay = start && testoRow?.lastDate ? Math.round((new Date(testoRow.lastDate).getTime() - start.getTime()) / DAY_MS) : null;
+  const autoInRange = autoDay != null && autoDay >= 0 && autoDay <= totalDays;
+  const examDay = autoInRange ? autoDay : Math.min(totalDays, Math.max(0, manualLabDay));
+  const examStep = Math.round(examDay * series.stepsPerDay);
+  const testoAtExam = testoValues ? testoValues[examStep] ?? 0 : 0;
+  const swingPos = testoStats ? positionInSwing(testoAtExam, testoStats) : 0.5;
+  const afterSettle = testoStats ? examDay >= testoStats.settleDay - 0.5 : false;
+  const factor = testoRow && testoAtExam > 0.5 ? testoRow.lastValue / testoAtExam : null;
+  // Há quantos dias foi a última aplicação de testosterona antes da coleta (para repetir no mesmo ponto).
+  const lastShot = Math.max(-1, ...series.seriesPerItem.filter((s) => s.comp.family === 'testosterona').flatMap((s) => s.injectionDays.filter((d) => d <= examDay + 1e-6)));
+  const daysAfterShot = lastShot >= 0 ? Math.round(examDay - lastShot) : null;
+
+  const dayLabel = (day: number) => {
+    const week = Math.floor(day / 7) + 1;
+    if (!start) return `Dia ${Math.floor(day) + 1} · semana ${week}`;
+    return `${shortDate(new Date(start.getTime() + day * DAY_MS))} · semana ${week}`;
   };
 
-  const addCompound = () => {
-    const uid = String(nextUid);
-    setNextUid((n) => n + 1);
-    setProtocol((prev) => [
-      ...prev,
-      { uid, compoundId: 'nand_npp', unit: 'ml', amount: 1.0, conc: 100, freqDays: 3.5, startWeek: 1, endWeek: weeks },
+  const update = (uid: string, patch: Partial<RadarProtocolItem>) => setProtocol((prev) => prev.map((p) => (p.uid === uid ? { ...p, ...patch } : p)));
+  const changeCompound = (uid: string, compoundId: string) => {
+    const comp = compoundById(compoundId);
+    const current = protocol.find((p) => p.uid === uid);
+    update(uid, comp.isOral
+      ? { compoundId, conc: comp.defaultConc, unit: 'mg', amount: 20, freqDays: 1 }
+      : { compoundId, conc: comp.defaultConc, unit: current?.unit === 'mg' && !compoundById(current.compoundId).isOral ? 'mg' : 'ml', amount: current && !compoundById(current.compoundId).isOral ? current.amount : 1, freqDays: current && current.freqDays > 1 ? current.freqDays : 7 });
+  };
+  const changeUnit = (item: RadarProtocolItem, unit: 'ml' | 'mg') => {
+    if (unit === item.unit) return;
+    update(item.uid, { unit, amount: unit === 'mg' ? Math.round(item.amount * item.conc) : Number((item.amount / Math.max(1, item.conc)).toFixed(2)) });
+  };
+  const add = () => setProtocol((prev) => [
+    ...prev,
+    { uid: String(Date.now()), compoundId: 'test_enan', unit: 'ml', amount: 1, conc: 250, freqDays: 7, startWeek: 1, endWeek: weeks },
+  ]);
+  const preset = (kind: 'trt1' | 'trt2' | 'dura') => {
+    const uid = String(Date.now());
+    setCompare2x(kind === 'trt1');
+    setHidden(new Set());
+    if (kind === 'trt1') setProtocol([{ uid, compoundId: 'test_cyp', unit: 'ml', amount: 1, conc: 200, freqDays: 7, startWeek: 1, endWeek: weeks }]);
+    else if (kind === 'trt2') setProtocol([{ uid, compoundId: 'test_cyp', unit: 'ml', amount: 0.5, conc: 200, freqDays: 3.5, startWeek: 1, endWeek: weeks }]);
+    else setProtocol([
+      { uid, compoundId: 'sustanon', unit: 'ml', amount: 1, conc: 250, freqDays: 7, startWeek: 1, endWeek: weeks },
+      { uid: `${uid}b`, compoundId: 'mast_prop', unit: 'ml', amount: 1, conc: 100, freqDays: 3.5, startWeek: 1, endWeek: weeks },
     ]);
   };
 
-  const removeCompound = (uid: string) => {
-    setProtocol((prev) => (prev.length <= 1 ? prev : prev.filter((p) => p.uid !== uid)));
+  /** Leva protocolo + exames para o chat do Dr. Exame; o usuário revisa e envia (custa créditos do chat). */
+  const askDrExame = () => {
+    const lines = protocol.map((p) => {
+      const comp = compoundById(p.compoundId);
+      const freq = RADAR_FREQUENCIES.find((f) => f.days === p.freqDays)?.label.toLowerCase() ?? `a cada ${p.freqDays} dias`;
+      return `- ${comp.name}: ${n0(getDoseMg(p))} mg, ${freq}, da semana ${p.startWeek} à ${p.endWeek}`;
+    });
+    const exams = found.filter((f) => f.row).map((f) => `- ${f.marker.label}: ${f.row!.lastValue.toLocaleString('pt-BR')}${f.row!.unit ? ` ${f.row!.unit}` : ''}${f.row!.lastDate ? ` (${fullDate(f.row!.lastDate)})` : ''}${f.row!.inRange ? '' : ' — fora da faixa do laudo'}`);
+    const text = [
+      'Estou usando este protocolo hormonal:',
+      ...lines,
+      '',
+      exams.length ? 'Meus exames mais recentes ligados a ele:' : 'Ainda não tenho exames ligados a ele no app.',
+      ...exams,
+      '',
+      'Com base nisso, me explique de forma simples: o que cada um desses exames está mostrando, quais devo acompanhar com mais atenção, quando faz sentido repetir a coleta em relação à aplicação, e que perguntas devo levar ao meu médico.',
+    ].join('\n');
+    try { sessionStorage.setItem('dx-chat-prefill', text); } catch { /* sem sessionStorage: abre o chat vazio */ }
+    navigate('/chat');
   };
 
-  const updateItem = (uid: string, field: keyof RadarProtocolItem, raw: string | number) => {
-    setProtocol((prev) =>
-      prev.map((item) => {
-        if (item.uid !== uid) return item;
-        if (field === 'compoundId') {
-          const cid = String(raw);
-          const comp = RADAR_COMPOUNDS.find((c) => c.id === cid);
-          return {
-            ...item,
-            compoundId: cid,
-            conc: comp?.defaultConc ?? item.conc,
-            unit: comp?.isOral ? 'mg' : item.unit,
-            amount: comp?.isOral ? 20 : item.amount,
-          };
-        }
-        if (field === 'unit') {
-          const nextUnit = raw as 'ml' | 'mg';
-          if (nextUnit === item.unit) return item;
-          const converted =
-            nextUnit === 'mg'
-              ? Math.round(item.amount * item.conc)
-              : Number((item.amount / Math.max(1, item.conc)).toFixed(2));
-          return { ...item, unit: nextUnit, amount: converted };
-        }
-        return { ...item, [field]: Number(raw) };
-      }),
-    );
-  };
-
-  // Geometria do gráfico SVG
-  const svgW = 820;
-  const svgH = 300;
-  const pad = { top: 20, right: 20, bottom: 32, left: 44 };
-  const cw = svgW - pad.left - pad.right;
-  const ch = svgH - pad.top - pad.bottom;
-
-  let maxY = 10;
-  for (let s = 0; s <= mainSeries.totalSteps; s++) {
-    if (mainSeries.total[s] > maxY) maxY = mainSeries.total[s];
-    if (compareSeries && compareSeries.total[s] > maxY) maxY = compareSeries.total[s];
-  }
-  maxY = Math.ceil(maxY * 1.15);
-
-  const xOf = (step: number) => pad.left + (step / Math.max(1, mainSeries.totalSteps)) * cw;
-  const yOf = (val: number) => pad.top + ch - (val / Math.max(1, maxY)) * ch;
-  const buildPath = (vals: number[]) =>
-    vals.map((v, idx) => `${idx === 0 ? 'M' : 'L'}${xOf(idx).toFixed(1)},${yOf(v).toFixed(1)}`).join(' ');
+  const stab = STABILITY[stats.stability];
+  const settleWeek = Math.ceil(stats.settleDay / 7);
+  const testoInProtocol = !!testoValues;
+  const withExam = found.filter((f) => f.row).length;
 
   return (
     <PageContainer width={1140} sx={{ pb: { xs: 14, sm: 6 } }}>
       <PageHeader
         title="Radar Hormonal"
-        subtitle="Veja quanto seu corpo absorve por dia, compare picos e vales e cruze com a data do seu exame de sangue."
+        subtitle="Veja como o hormônio se comporta no seu corpo entre as aplicações e o que isso tem a ver com os seus exames."
         icon={<HormoneRadarIcon size={24} />}
-        actions={
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => loadPreset('dura_mast')}
-              className="rounded-xl border border-teal-300 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-800 hover:bg-teal-100 transition cursor-pointer"
-            >
-              Durateston 1ml + Masteron 1ml
-            </button>
-            <button
-              type="button"
-              onClick={() => loadPreset('trt_1x')}
-              className="rounded-xl border border-slate-200 dark:border-white/15 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition cursor-pointer"
-            >
-              Reposição 1x/sem
-            </button>
-            <button
-              type="button"
-              onClick={() => loadPreset('trt_2x')}
-              className="rounded-xl border border-slate-200 dark:border-white/15 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition cursor-pointer"
-            >
-              Reposição 2x/sem
-            </button>
-          </div>
-        }
       />
 
-      <div className="space-y-5 mt-4">
-        {/* KPI Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <div className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 p-4 shadow-sm">
-            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Quanto entra por dia
-            </p>
-            <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white tabular-nums">
-              {stats.avgDailyMg.toFixed(1)} mg/d
-            </p>
-            <p className="mt-0.5 text-[11px] text-slate-500">Hormônio real (sem óleo/éster)</p>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 p-4 shadow-sm">
-            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Ponto Mais Alto (Pico)
-            </p>
-            <p className="mt-1 text-2xl font-bold text-teal-600 dark:text-teal-400 tabular-nums">
-              {stats.peakMg.toFixed(1)} mg/d
-            </p>
-            <p className="mt-0.5 text-[11px] text-slate-500">Quando bate mais forte</p>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 p-4 shadow-sm">
-            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Ponto Mais Baixo (Vale)
-            </p>
-            <p className="mt-1 text-2xl font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
-              {stats.troughMg.toFixed(1)} mg/d
-            </p>
-            <p className="mt-0.5 text-[11px] text-slate-500">Antes da próxima dose</p>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 p-4 shadow-sm">
-            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Efeito Montanha-Russa
-            </p>
-            <div className="mt-1 flex items-baseline gap-2">
-              <p
-                className={`text-2xl font-bold tabular-nums ${
-                  stats.stability === 'estavel'
-                    ? 'text-emerald-600'
-                    : stats.stability === 'moderado'
-                    ? 'text-amber-600'
-                    : 'text-rose-600'
-                }`}
-              >
-                {Math.round(stats.swingPct)}%
+      <div className="dx-island flex flex-col gap-4 [&_button]:font-[inherit]">
+        {/* ───────── Resumo em português claro ───────── */}
+        <Frame>
+          <FramePanel className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <p className="m-0 max-w-2xl text-base leading-relaxed text-foreground sm:text-lg">
+                Com este protocolo, o hormônio no seu corpo <strong className="font-semibold">{stab.phrase}</strong>.
+                {compareStats ? (
+                  <> Dividindo a mesma dose em 2 aplicações por semana, a oscilação cairia de <strong className="font-semibold tabular-nums">{n0(stats.swingPct)}%</strong> para <strong className="font-semibold tabular-nums">{n0(compareStats.swingPct)}%</strong>.</>
+                ) : null}
               </p>
-              <Badge
-                variant={stats.stability === 'estavel' ? 'success-light' : stats.stability === 'moderado' ? 'warning-light' : 'destructive-light'}
-                size="xs"
-              >
-                {stats.stability === 'estavel' ? 'Estável' : stats.stability === 'moderado' ? 'Moderado' : 'Oscilação Alta'}
-              </Badge>
-            </div>
-            <p className="mt-0.5 text-[11px] text-slate-500">Quanto menor, mais estável</p>
-          </div>
-        </div>
-
-        {/* Explicação direta em linguagem humana */}
-        <details className="rounded-xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 px-4 py-3 text-xs text-slate-600 dark:text-slate-300 shadow-sm">
-          <summary className="cursor-pointer font-semibold text-slate-800 dark:text-slate-100 select-none">
-            💡 Como o Dr. Exame calcula esses 4 números?
-          </summary>
-          <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2.5 border-t border-slate-100 dark:border-white/10 text-[11px] leading-relaxed">
-            <div>
-              <strong className="text-slate-900 dark:text-white">1. Desconto do éster:</strong><br />
-              Cada ml traz o hormônio + o éster (óleo). Ex.: 1 ml de Durateston (250 mg) entrega ~177,5 mg reais de testosterona.
-            </div>
-            <div>
-              <strong className="text-slate-900 dark:text-white">2. Acúmulo das doses:</strong><br />
-              Antes de uma dose zerar, você aplica a próxima — o que sobrou soma com a nova até estabilizar (~4ª semana).
-            </div>
-            <div>
-              <strong className="text-slate-900 dark:text-white">3. Pico e Vale:</strong><br />
-              <strong>Pico</strong> é o mais alto após aplicar; <strong>Vale</strong> é o mais baixo antes da próxima aplicação.
-            </div>
-            <div>
-              <strong className="text-slate-900 dark:text-white">4. Montanha-Russa (%):</strong><br />
-              (Pico − Vale) ÷ Média. Abaixo de 35% indica nível mais uniforme para humor, estradiol e hematócrito.
-            </div>
-          </div>
-        </details>
-
-        {/* Gráfico Principal */}
-        <section className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-sm space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-white/10 pb-3">
-            <div className="flex flex-wrap items-center gap-3 text-xs">
-              <span className="font-semibold text-slate-800 dark:text-white">Curva de Liberação (mg/dia)</span>
-              {mainSeries.seriesPerItem.map((s) => (
-                <span key={s.item.uid} className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.comp.color }} />
-                  {s.comp.name.split('(')[0].trim()}
-                </span>
-              ))}
-              {protocol.length > 1 && (
-                <span className="inline-flex items-center gap-1.5 font-semibold text-slate-900 dark:text-white">
-                  <span className="h-0.5 w-4 bg-slate-900 dark:bg-white inline-block" /> Total
-                </span>
-              )}
-              {compare2x && (
-                <span className="inline-flex items-center gap-1.5 font-semibold text-amber-600">
-                  <span className="h-0.5 w-4 border-b-2 border-dashed border-amber-500 inline-block" /> Comparação 2x/sem
-                </span>
-              )}
+              <Badge variant={stab.variant} size="lg">{stab.label}</Badge>
             </div>
 
+            <div className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3">
+              <div className="flex flex-col gap-1 bg-card p-4">
+                <span className="text-xs text-muted-foreground">Entra por dia, em média</span>
+                <span className="flex items-baseline gap-1">
+                  <span className="text-2xl leading-none font-semibold tracking-tight tabular-nums">{n1(stats.avgDailyMg)}</span>
+                  <span className="text-sm text-muted-foreground">mg</span>
+                </span>
+                <span className="text-xs text-muted-foreground">Hormônio de verdade, já sem o peso do éster.</span>
+              </div>
+              <div className="flex flex-col gap-1 bg-card p-4">
+                <span className="text-xs text-muted-foreground">Do ponto mais baixo ao mais alto</span>
+                <span className="flex items-baseline gap-1.5">
+                  <span className="text-2xl leading-none font-semibold tracking-tight tabular-nums">{n1(stats.troughMg)}</span>
+                  <span className="text-sm text-muted-foreground">a</span>
+                  <span className="text-2xl leading-none font-semibold tracking-tight tabular-nums">{n1(stats.peakMg)}</span>
+                  <span className="text-sm text-muted-foreground">mg/dia</span>
+                </span>
+                <span className="text-xs text-muted-foreground">Vale (antes de aplicar) e pico (depois de aplicar).</span>
+              </div>
+              <div className="flex flex-col gap-1 bg-card p-4">
+                <span className="text-xs text-muted-foreground">Sobe e desce</span>
+                <span className="flex items-baseline gap-1">
+                  <span className="text-2xl leading-none font-semibold tracking-tight tabular-nums">{n0(stats.swingPct)}</span>
+                  <span className="text-sm text-muted-foreground">%</span>
+                </span>
+                <span className="text-xs text-muted-foreground">Quanto o nível varia em volta da média. Menor = mais uniforme.</span>
+              </div>
+            </div>
+
+            {!stats.settled ? (
+              <Alert variant="info">
+                <Info aria-hidden="true" />
+                <AlertTitle>O nível ainda está subindo neste período</AlertTitle>
+                <AlertDescription>
+                  <p className="m-0">Cada aplicação soma com o que sobrou da anterior. Com estes compostos, isso só estabiliza por volta da semana {settleWeek}; os números acima são do último trecho mostrado.</p>
+                </AlertDescription>
+              </Alert>
+            ) : null}
+          </FramePanel>
+        </Frame>
+
+        {/* ───────── Curva ───────── */}
+        <Frame>
+          <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
+              <IconTile variant="frame" size="sm" aria-hidden="true"><Waves aria-hidden="true" /></IconTile>
+              <div className="flex min-w-0 flex-col gap-px">
+                <FrameTitle role="heading" aria-level={2}>Sua curva</FrameTitle>
+                <FrameDescription>Quanto hormônio entra no corpo a cada dia</FrameDescription>
+              </div>
+            </div>
+            <ToggleGroup value={[String(weeks)]} onValueChange={(next) => { if (next[0]) setWeeks(Number(next[0])); }} variant="outline" size="sm" spacing={0} aria-label="Período mostrado">
+              {WEEK_OPTIONS.map((w) => <ToggleGroupItem key={w} value={String(w)}>{w} sem</ToggleGroupItem>)}
+            </ToggleGroup>
+          </FrameHeader>
+          <FramePanel className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              <label className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-white/15 bg-slate-50 dark:bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={compare2x}
-                  onChange={(e) => setCompare2x(e.target.checked)}
-                  className="rounded text-teal-600"
-                />
-                <span>Comparar dividindo em 2x/sem</span>
-              </label>
-
-              <select
-                value={weeks}
-                onChange={(e) => setWeeks(Number(e.target.value))}
-                className="rounded-lg border border-slate-200 dark:border-white/15 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200"
-              >
-                <option value={8}>8 semanas</option>
-                <option value={12}>12 semanas</option>
-                <option value={16}>16 semanas</option>
-                <option value={24}>24 semanas</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="relative w-full">
-            <svg
-              viewBox={`0 0 ${svgW} ${svgH}`}
-              className="w-full h-auto max-h-[340px] select-none overflow-visible"
-              onMouseLeave={() => setHoverStep(null)}
-              onMouseMove={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const relX = (e.clientX - rect.left) / rect.width;
-                const svgX = relX * svgW;
-                const clamped = Math.max(0, Math.min(1, (svgX - pad.left) / cw));
-                setHoverStep(Math.round(clamped * mainSeries.totalSteps));
-              }}
-            >
-              {/* Grid Y */}
-              {[0, 0.25, 0.5, 0.75, 1].map((frac) => {
-                const val = maxY * frac;
-                const y = yOf(val);
+              {series.seriesPerItem.map((s) => {
+                const off = hidden.has(s.item.uid);
                 return (
-                  <g key={frac}>
-                    <line x1={pad.left} y1={y} x2={svgW - pad.right} y2={y} stroke="currentColor" className="text-slate-100 dark:text-white/10" />
-                    <text x={pad.left - 8} y={y + 4} textAnchor="end" className="fill-slate-400 text-[10px]">
-                      {Math.round(val)}
-                    </text>
-                  </g>
+                  <button
+                    key={s.item.uid}
+                    type="button"
+                    aria-pressed={!off}
+                    onClick={() => setHidden((prev) => { const next = new Set(prev); if (off) next.delete(s.item.uid); else next.add(s.item.uid); return next; })}
+                    className={cn('flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-transparent px-2.5 text-xs text-foreground transition-colors hover:bg-muted', off && 'text-muted-foreground line-through')}
+                  >
+                    <span aria-hidden="true" className={cn('size-2 rounded-full', off && 'opacity-30')} style={{ backgroundColor: s.comp.color }} />
+                    {s.comp.short}
+                  </button>
                 );
               })}
-
-              {/* Eixo X Semanas */}
-              {Array.from({ length: weeks + 1 }, (_, wk) => wk)
-                .filter((wk) => weeks <= 16 || wk % 2 === 0)
-                .map((wk) => {
-                  const x = xOf(wk * 7 * mainSeries.stepsPerDay);
-                  return (
-                    <text key={wk} x={x} y={svgH - 8} textAnchor="middle" className="fill-slate-400 text-[10px]">
-                      S{wk}
-                    </text>
-                  );
-                })}
-
-              {/* Séries individuais */}
-              {mainSeries.seriesPerItem.map((ser) => (
-                <path
-                  key={ser.item.uid}
-                  d={buildPath(ser.values)}
-                  fill="none"
-                  stroke={ser.comp.color}
-                  strokeWidth={protocol.length === 1 ? 2.6 : 1.8}
-                  strokeLinejoin="round"
-                />
-              ))}
-
-              {/* Total combinado */}
-              {protocol.length > 1 && (
-                <path
-                  d={buildPath(mainSeries.total)}
-                  fill="none"
-                  stroke="#0f172a"
-                  className="dark:stroke-white"
-                  strokeWidth={2.6}
-                  strokeLinejoin="round"
-                />
-              )}
-
-              {/* Linha de comparação 2x/semana */}
-              {compareSeries && (
-                <path
-                  d={buildPath(compareSeries.total)}
-                  fill="none"
-                  stroke="#d97706"
-                  strokeWidth={2.2}
-                  strokeDasharray="6 4"
-                />
-              )}
-
-              {/* Pino do Exame Real */}
-              <line
-                x1={xOf(labStep)}
-                y1={pad.top}
-                x2={xOf(labStep)}
-                y2={pad.top + ch}
-                stroke="#e11d48"
-                strokeWidth={1.6}
-                strokeDasharray="3 3"
-              />
-              <circle cx={xOf(labStep)} cy={yOf(labMgDay)} r={5.5} fill="#e11d48" stroke="#ffffff" strokeWidth={2} />
-
-              {/* Hover crosshair */}
-              {hoverStep !== null && (
-                <line
-                  x1={xOf(hoverStep)}
-                  y1={pad.top}
-                  x2={xOf(hoverStep)}
-                  y2={pad.top + ch}
-                  stroke="#94a3b8"
-                  strokeWidth={1}
-                />
-              )}
-            </svg>
-
-            {hoverStep !== null && (
-              <div className="mt-2 flex flex-wrap items-center gap-3 rounded-xl bg-slate-50 dark:bg-white/5 px-3 py-2 text-xs">
-                <span className="font-semibold text-slate-900 dark:text-white">
-                  Dia {(hoverStep / mainSeries.stepsPerDay).toFixed(1)} · Total: {(mainSeries.total[hoverStep] ?? 0).toFixed(1)} mg/d
-                </span>
-                {mainSeries.seriesPerItem.map((s) => (
-                  <span key={s.item.uid} className="text-slate-600 dark:text-slate-300">
-                    <span className="inline-block w-2 h-2 rounded-full mr-1" style={{ background: s.comp.color }} />
-                    {s.comp.name.split(' ')[0]}: <strong>{(s.values[hoverStep] ?? 0).toFixed(1)} mg/d</strong>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Cruzamento com Exame + Variação Individual */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-100 dark:border-white/10">
-            <div className="rounded-xl bg-slate-50 dark:bg-white/5 p-3.5 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-700 dark:text-slate-200">
-                  Variação Metabólica Individual
-                </span>
-                <span className="font-bold text-teal-700 dark:text-teal-400 tabular-nums">
-                  {variationPct === 0 ? '0% (Padrão)' : variationPct > 0 ? `+${variationPct}% (Rápido)` : `${variationPct}% (Lento)`}
-                </span>
-              </div>
-              <input
-                type="range"
-                min={-30}
-                max={30}
-                step={5}
-                value={variationPct}
-                onChange={(e) => setVariationPct(Number(e.target.value))}
-                className="w-full accent-teal-600"
-              />
-              <p className="text-[11px] text-slate-500">Simula absorção e eliminação mais lenta (-30%) ou acelerada (+30%).</p>
+              {series.seriesPerItem.length > 1 ? (
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden="true" className="h-0.5 w-4 rounded-full bg-foreground" />Total</span>
+              ) : null}
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden="true" className="h-0 w-4 border-t border-dotted border-foreground/60" />Nível médio</span>
+              {canSplit ? (
+                <button
+                  type="button"
+                  aria-pressed={compare2x}
+                  onClick={() => setCompare2x((v) => !v)}
+                  className={cn('ms-auto flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-transparent px-2.5 text-xs text-foreground transition-colors hover:bg-muted', compare2x && 'border-warning/50 bg-warning/10')}
+                >
+                  <span aria-hidden="true" className="h-0 w-4 border-t-2 border-dashed border-warning" />
+                  E se dividir em 2x por semana?
+                </button>
+              ) : null}
             </div>
+            <RadarChart series={series} compare={compare} stats={stats} weeks={weeks} examDay={testoInProtocol && testoRow ? examDay : null} hidden={hidden} dayLabel={dayLabel} />
+            <p className="m-0 flex items-start gap-1.5 rounded-lg bg-muted/60 px-3 py-2 text-xs text-foreground">
+              <Info aria-hidden="true" className="mt-px size-3.5 shrink-0 text-muted-foreground" />
+              <span><strong className="font-semibold">Curva estimada, não medida.</strong> Vem de médias de estudos; o seu corpo pode variar bastante. Só o exame de sangue mostra o valor real.</span>
+            </p>
+            <p className="m-0 text-xs text-muted-foreground">
+              Cada risquinho embaixo é uma aplicação. A faixa cinza é o trecho em que medimos pico e vale.
+              {testoInProtocol && testoRow ? ' O ponto vermelho é o dia do seu exame de testosterona.' : ''}
+            </p>
+          </FramePanel>
+        </Frame>
 
-            <div className="rounded-xl bg-teal-50/70 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-800/40 p-3.5 space-y-2">
-              <div className="flex items-center justify-between text-xs gap-2">
-                <span className="font-semibold text-teal-900 dark:text-teal-200">
-                  🩸 Cruzamento com Exame de Sangue
-                </span>
-                <span className="font-bold text-teal-700 dark:text-teal-300 tabular-nums shrink-0">
-                  Dia {safeLabDay} (Sem {(safeLabDay / 7).toFixed(1)})
-                </span>
+        {/* ───────── Protocolo ───────── */}
+        <Frame>
+          <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
+              <IconTile variant="frame" size="sm" aria-hidden="true"><FlaskConical aria-hidden="true" /></IconTile>
+              <div className="flex min-w-0 flex-col gap-px">
+                <FrameTitle role="heading" aria-level={2}>O que você usa</FrameTitle>
+                <FrameDescription>Informe como está prescrito; fica salvo neste aparelho</FrameDescription>
               </div>
-              <div className="flex items-center gap-3">
-                <input
-                  type="range"
-                  min={1}
-                  max={totalDays}
-                  step={1}
-                  value={safeLabDay}
-                  onChange={(e) => setLabDay(Number(e.target.value))}
-                  className="w-full accent-teal-600"
-                />
-                <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-[11px] text-teal-900 dark:text-teal-200 font-medium">Testo:</span>
-                  <input
-                    type="number"
-                    min={50}
-                    max={5000}
-                    step={10}
-                    value={labTesto}
-                    onChange={(e) => setLabTesto(Number(e.target.value))}
-                    className="w-16 rounded-md border border-teal-200 bg-white dark:bg-slate-900 px-1.5 py-1 text-xs font-bold text-teal-900 dark:text-white tabular-nums"
-                  />
-                  <span className="text-[10px] text-teal-700 dark:text-teal-300">ng/dL</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <Button variant="outline" size="sm" onClick={() => preset('trt1')}>Reposição 1x/sem</Button>
+              <Button variant="outline" size="sm" onClick={() => preset('trt2')}>Reposição 2x/sem</Button>
+              <Button variant="outline" size="sm" onClick={() => preset('dura')}>Durateston + Masteron</Button>
+            </div>
+          </FrameHeader>
+
+          {protocol.map((item) => {
+            const comp = compoundById(item.compoundId);
+            const doseMg = getDoseMg(item);
+            return (
+              <FramePanel key={item.uid} className="flex flex-col gap-3">
+                <div className="flex items-end gap-2">
+                  <Field label="Composto" className="flex-1">
+                    <CompoundPicker value={item.compoundId} onChange={(id) => changeCompound(item.uid, id)} />
+                  </Field>
+                  <Button
+                    variant="outline" size="icon-lg" className="mb-1 size-10 shrink-0"
+                    aria-label={`O que é ${comp.short}? Abrir explicação`} title="O que é isso?"
+                    onClick={() => setExplainId(item.compoundId)}
+                  >
+                    <CircleHelp aria-hidden="true" />
+                  </Button>
+                  <Button
+                    variant="ghost" size="icon-lg" className="mb-1 size-10 shrink-0 bg-transparent text-muted-foreground"
+                    aria-label={`Remover ${comp.short}`} disabled={protocol.length <= 1}
+                    onClick={() => setProtocol((prev) => (prev.length <= 1 ? prev : prev.filter((p) => p.uid !== item.uid)))}
+                  >
+                    <Trash2 aria-hidden="true" />
+                  </Button>
                 </div>
-              </div>
-              <p className="text-[11px] text-teal-800 dark:text-teal-200 font-medium">
-                {relPos > 0.72
-                  ? `📈 Coleta no PICO (${labMgDay.toFixed(1)} mg/d) · Exame ${labTesto} ng/dL (~${calibrationFactor.toFixed(0)} ng/dL por mg/d). Vale estimado: ~${Math.round(stats.troughMg * calibrationFactor)} ng/dL.`
-                  : relPos < 0.28
-                  ? `📉 Coleta no VALE (${labMgDay.toFixed(1)} mg/d) · Exame ${labTesto} ng/dL (~${calibrationFactor.toFixed(0)} ng/dL por mg/d). Pico estimado: ~${Math.round(stats.peakMg * calibrationFactor)} ng/dL.`
-                  : `⚖️ Coleta INTERMEDIÁRIA (${labMgDay.toFixed(1)} mg/d) · Faixa estimada: ${Math.round(stats.troughMg * calibrationFactor)}–${Math.round(stats.peakMg * calibrationFactor)} ng/dL.`}
-              </p>
-              {realLab && (
-                <p className="text-[11px] text-teal-700 dark:text-teal-300">
-                  Último laudo real{realLab.examDate ? ` (${realLab.examDate})` : ''}:{' '}
-                  {realLab.testosterone != null && <strong>Testo {realLab.testosterone} ng/dL · </strong>}
-                  {realLab.estradiol != null && <span>Estradiol {realLab.estradiol} pg/mL · </span>}
-                  {realLab.hematocrit != null && <span>Hematócrito {realLab.hematocrit}%</span>}
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Construtor de Compostos & Conversor ml -> mg */}
-        <section className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-sm space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">Compostos & Ésteres em Uso</h2>
-              <p className="text-xs text-slate-500">Informe em ml (na seringa) ou em mg — o conversor calcula o peso do éster automaticamente.</p>
-            </div>
-            <button
-              type="button"
-              onClick={addCompound}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-teal-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-teal-700 transition shadow-sm cursor-pointer"
-            >
-              + Adicionar Composto
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {protocol.map((item) => {
-              const comp = RADAR_COMPOUNDS.find((c) => c.id === item.compoundId) ?? RADAR_COMPOUNDS[0];
-              const totalMg = getDoseMg(item);
-              return (
-                <div key={item.uid} className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-white/5 p-3.5 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                  <div className="md:col-span-3 space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-                      <span className="h-2.5 w-2.5 rounded-full inline-block" style={{ background: comp.color }} />
-                      Composto & Éster
-                    </label>
-                    <select
-                      value={item.compoundId}
-                      onChange={(e) => updateItem(item.uid, 'compoundId', e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 dark:border-white/15 bg-white dark:bg-slate-800 px-2.5 py-2 text-xs font-medium text-slate-800 dark:text-white"
-                    >
-                      {RADAR_COMPOUNDS.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="md:col-span-3 space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-                      Dose ({item.unit === 'ml' ? 'ml na seringa' : 'mg'})
-                    </label>
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        type="number"
-                        min={0.1}
-                        max={2000}
-                        step={item.unit === 'ml' ? 0.1 : 5}
-                        value={item.amount}
-                        onChange={(e) => updateItem(item.uid, 'amount', e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 dark:border-white/15 bg-white dark:bg-slate-800 px-2.5 py-2 text-xs font-semibold text-slate-800 dark:text-white tabular-nums"
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-[1.3fr_1fr_1.4fr_1fr]">
+                  <Field label={item.unit === 'ml' ? 'Dose por aplicação (ml)' : 'Dose por aplicação (mg)'}>
+                    <div className="flex gap-1.5">
+                      <Input
+                        type="number" inputMode="decimal" min={0} step={item.unit === 'ml' ? 0.05 : 5} className="h-10 tabular-nums"
+                        value={Number.isFinite(item.amount) ? item.amount : ''}
+                        onChange={(e) => update(item.uid, { amount: Math.max(0, Number(e.target.value) || 0) })}
                       />
-                      <div className="inline-flex rounded-lg border border-slate-200 dark:border-white/15 bg-white dark:bg-slate-800 p-0.5 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => updateItem(item.uid, 'unit', 'ml')}
-                          className={`px-2 py-1 text-[11px] font-semibold rounded-md cursor-pointer ${item.unit === 'ml' ? 'bg-teal-600 text-white' : 'text-slate-600 dark:text-slate-300'}`}
-                        >
-                          ml
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateItem(item.uid, 'unit', 'mg')}
-                          className={`px-2 py-1 text-[11px] font-semibold rounded-md cursor-pointer ${item.unit === 'mg' ? 'bg-teal-600 text-white' : 'text-slate-600 dark:text-slate-300'}`}
-                        >
-                          mg
-                        </button>
+                      {comp.isOral ? null : (
+                        <ToggleGroup value={[item.unit]} onValueChange={(next) => { if (next[0]) changeUnit(item, next[0] as 'ml' | 'mg'); }} variant="outline" spacing={0} aria-label="Unidade da dose" className="h-10">
+                          <ToggleGroupItem value="ml" className="h-10">ml</ToggleGroupItem>
+                          <ToggleGroupItem value="mg" className="h-10">mg</ToggleGroupItem>
+                        </ToggleGroup>
+                      )}
+                    </div>
+                  </Field>
+                  {comp.isOral ? <span className="hidden sm:block" /> : (
+                    <Field label="Concentração (mg/ml)">
+                      <Input type="number" inputMode="numeric" min={1} className="h-10 tabular-nums" value={item.conc} onChange={(e) => update(item.uid, { conc: Math.max(1, Number(e.target.value) || 1) })} />
+                    </Field>
+                  )}
+                  <Field label="Frequência">
+                    <Select value={String(item.freqDays)} onValueChange={(next) => { if (next) update(item.uid, { freqDays: Number(next) }); }}>
+                      <SelectTrigger className="h-10 w-full">
+                        <SelectValue>{() => RADAR_FREQUENCIES.find((f) => f.days === item.freqDays)?.label ?? `A cada ${item.freqDays} dias`}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {RADAR_FREQUENCIES.map((f) => <SelectItem key={f.days} value={String(f.days)}>{f.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field label="Semanas (de – até)">
+                    <div className="flex items-center gap-1.5">
+                      <Input type="number" inputMode="numeric" min={1} max={weeks} className="h-10 tabular-nums" aria-label="Semana de início" value={item.startWeek} onChange={(e) => update(item.uid, { startWeek: Math.min(item.endWeek, Math.max(1, Math.round(Number(e.target.value) || 1))) })} />
+                      <span aria-hidden="true" className="text-muted-foreground">–</span>
+                      <Input type="number" inputMode="numeric" min={1} max={weeks} className="h-10 tabular-nums" aria-label="Semana de fim" value={item.endWeek} onChange={(e) => update(item.uid, { endWeek: Math.min(weeks, Math.max(item.startWeek, Math.round(Number(e.target.value) || 1))) })} />
+                    </div>
+                  </Field>
+                </div>
+                <p className="m-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground tabular-nums">
+                  <CompoundIcon comp={comp} className="size-5 rounded-md [&>svg]:size-3" />
+                  {item.unit === 'ml' && !comp.isOral ? <span>{item.amount.toLocaleString('pt-BR')} ml × {item.conc} mg/ml = <strong className="font-medium text-foreground">{n0(doseMg)} mg</strong> no frasco</span> : <span><strong className="font-medium text-foreground">{n0(doseMg)} mg</strong> por {comp.isOral ? 'dose' : 'aplicação'}</span>}
+                  {comp.esterRatio < 0.999 ? <span>· desses, <strong className="font-medium text-foreground">{n0(doseMg * comp.esterRatio)} mg</strong> são hormônio ({n0(comp.esterRatio * 100)}%); o resto é o éster que faz durar</span> : <span>· oral: não tem éster, tudo é hormônio</span>}
+                </p>
+              </FramePanel>
+            );
+          })}
+
+          <FramePanel className="flex flex-col gap-4">
+            <Button variant="outline" size="lg" className="h-10 w-full sm:w-fit" onClick={add}>
+              <Plus aria-hidden="true" />
+              Adicionar outro composto
+            </Button>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Quando começou? (opcional)">
+                <Input type="date" className="h-10" value={startDate} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setStartDate(e.target.value)} />
+                <span className="text-xs text-muted-foreground">Com a data, o gráfico mostra dias de verdade e o seu exame cai no dia certo, sozinho.</span>
+              </Field>
+              <Field label={`Seu corpo elimina ${variationPct === 0 ? 'no ritmo médio' : variationPct > 0 ? `${variationPct}% mais rápido que a média` : `${-variationPct}% mais devagar que a média`}`}>
+                <input type="range" min={-30} max={30} step={5} value={variationPct} onChange={(e) => setVariationPct(Number(e.target.value))} className="h-10 w-full accent-[var(--primary)]" aria-label="Velocidade de eliminação em relação à média" />
+                <span className="text-xs text-muted-foreground">Cada pessoa elimina num ritmo. Deixe no meio se não souber.</span>
+              </Field>
+            </div>
+          </FramePanel>
+        </Frame>
+
+        {/* ───────── Seus exames × este protocolo ───────── */}
+        <Frame>
+          <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
+              <IconTile variant="frame" size="sm" aria-hidden="true"><Activity aria-hidden="true" /></IconTile>
+              <div className="flex min-w-0 flex-col gap-px">
+                <FrameTitle role="heading" aria-level={2}>Seus exames e este protocolo</FrameTitle>
+                <FrameDescription>
+                  {rows == null ? 'Buscando seus exames…' : `${markers.length} exames que estes compostos costumam mexer · ${withExam} já no app`}
+                </FrameDescription>
+              </div>
+            </div>
+          </FrameHeader>
+
+          {/* Em que momento da curva o exame de testosterona foi colhido */}
+          {testoInProtocol && testoStats ? (
+            <FramePanel className="flex flex-col gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="m-0 flex items-center gap-2 text-sm font-semibold"><CalendarDays aria-hidden="true" className="size-4 text-muted-foreground" />Em que momento você colheu a testosterona?</h3>
+                {testoRow ? <Badge variant="outline" className="tabular-nums">{testoRow.lastValue.toLocaleString('pt-BR')} {testoRow.unit ?? ''}{testoRow.lastDate ? ` · ${fullDate(testoRow.lastDate)}` : ''}</Badge> : null}
+              </div>
+              {!testoRow ? (
+                <p className="m-0 text-sm text-muted-foreground">Ainda não há exame de testosterona total no app. Quando você enviar um, mostramos aqui se ele foi colhido perto do pico ou do vale — isso muda muito a leitura do número.</p>
+              ) : (
+                <>
+                  {!autoInRange ? (
+                    <Field label={autoDay != null ? 'O exame é de fora deste período. Arraste para simular outro dia:' : `Informe a data de início acima, ou arraste até o dia da coleta: ${dayLabel(examDay)}`}>
+                      <input type="range" min={0} max={totalDays} step={1} value={examDay} onChange={(e) => setManualLabDay(Number(e.target.value))} className="h-10 w-full accent-[var(--primary)]" aria-label="Dia da coleta do exame" />
+                    </Field>
+                  ) : null}
+                  {/* Régua vale → pico com o marcador da coleta */}
+                  <div className="flex flex-col gap-1.5" role="img" aria-label={`Coleta ${swingPos > 0.72 ? 'perto do pico' : swingPos < 0.28 ? 'perto do vale' : 'no meio da oscilação'}.`}>
+                    <div className="relative h-2.5 rounded-full bg-muted">
+                      <span aria-hidden="true" className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-destructive ring-2 ring-card" style={{ left: `${swingPos * 100}%` }} />
+                    </div>
+                    <div aria-hidden="true" className="flex justify-between text-xs text-muted-foreground"><span>Vale (antes de aplicar)</span><span>Pico (depois de aplicar)</span></div>
+                  </div>
+                  <p className="m-0 text-sm text-foreground">
+                    {autoInRange ? <>Seu exame de {fullDate(testoRow.lastDate!)} caiu em <strong className="font-semibold">{dayLabel(examDay)}</strong>, </> : <>Nesse dia você estaria </>}
+                    <strong className="font-semibold">{swingPos > 0.72 ? 'perto do pico' : swingPos < 0.28 ? 'perto do vale' : 'no meio da oscilação'}</strong>
+                    {swingPos > 0.72 ? ': o número do laudo é dos mais altos do seu ciclo, não a sua média.' : swingPos < 0.28 ? ': o número do laudo é dos mais baixos do seu ciclo, não a sua média.' : ': o número do laudo fica próximo da sua média.'}
+                  </p>
+                  {daysAfterShot != null ? (
+                    <p className="m-0 rounded-lg bg-muted/60 px-3 py-2 text-xs text-foreground">
+                      <strong className="font-semibold">Para comparar exames, colha sempre no mesmo ponto da curva.</strong>{' '}
+                      Esta coleta foi {daysAfterShot === 0 ? 'no dia da aplicação' : `${daysAfterShot} ${daysAfterShot === 1 ? 'dia' : 'dias'} depois da aplicação`}; repetir nesse mesmo intervalo deixa o próximo resultado comparável com este.
+                    </p>
+                  ) : null}
+                  {factor && afterSettle && testoStats.peakMg > testoStats.troughMg ? (
+                    <p className="m-0 text-xs text-muted-foreground tabular-nums">
+                      Estimativa grosseira, só para dar ideia: ao longo do ciclo sua testosterona ficaria entre ~{n0(testoStats.troughMg * factor)} e ~{n0(testoStats.peakMg * factor)} {testoRow.unit ?? ''}. Só outro exame, colhido em outro momento, confirma.
+                    </p>
+                  ) : !afterSettle ? (
+                    <p className="m-0 text-xs text-muted-foreground">Nesse dia o nível ainda estava subindo (antes da semana {Math.ceil(testoStats.settleDay / 7)}); por isso não estimamos pico e vale a partir deste exame.</p>
+                  ) : null}
+                </>
+              )}
+            </FramePanel>
+          ) : (
+            <FramePanel>
+              <p className="m-0 text-sm text-muted-foreground">Este protocolo não tem testosterona. Nesse caso o exame de testosterona mede a sua produção natural, que costuma cair enquanto se usa outros andrógenos.</p>
+            </FramePanel>
+          )}
+
+          <FramePanel className="p-0!">
+            {rowsFailed ? (
+              <Alert variant="destructive" className="m-3">
+                <TriangleAlert aria-hidden="true" />
+                <AlertTitle>Não consegui buscar seus exames agora</AlertTitle>
+                <AlertDescription><p className="m-0">A lista abaixo mostra o que acompanhar; os seus valores aparecem quando a conexão voltar.</p></AlertDescription>
+              </Alert>
+            ) : null}
+            <ul className="m-0 flex list-none flex-col divide-y divide-border p-0">
+              {found.map(({ marker, row }) => {
+                const Dir = marker.direction === 'sobe' ? TrendingUp : marker.direction === 'cai' ? TrendingDown : Activity;
+                return (
+                  <li key={marker.key} className="flex flex-col gap-1.5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <IconTile variant="soft" size="sm" className="mt-0.5 text-muted-foreground" aria-hidden="true"><Dir aria-hidden="true" /></IconTile>
+                      <div className="flex min-w-0 flex-col gap-0.5">
+                        <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-medium">
+                          {marker.label}
+                          <span className="text-xs font-normal text-muted-foreground">costuma {marker.direction === 'sobe' ? 'subir' : marker.direction === 'cai' ? 'cair' : 'variar'}</span>
+                        </span>
+                        <span className="text-xs text-muted-foreground">{marker.why}</span>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="md:col-span-2 space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Concentração (mg/ml)</label>
-                    <input
-                      type="number"
-                      min={10}
-                      max={500}
-                      step={10}
-                      value={item.conc}
-                      disabled={item.unit === 'mg'}
-                      onChange={(e) => updateItem(item.uid, 'conc', e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 dark:border-white/15 bg-white dark:bg-slate-800 px-2.5 py-2 text-xs font-semibold text-slate-800 dark:text-white tabular-nums disabled:opacity-50"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2 space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Frequência</label>
-                    <select
-                      value={item.freqDays}
-                      onChange={(e) => updateItem(item.uid, 'freqDays', e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 dark:border-white/15 bg-white dark:bg-slate-800 px-2.5 py-2 text-xs font-medium text-slate-800 dark:text-white"
-                    >
-                      {RADAR_FREQUENCIES.map((f) => (
-                        <option key={f.days} value={f.days}>{f.label}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="md:col-span-1 flex items-center gap-1">
-                    <div className="w-1/2 space-y-1">
-                      <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">Início</label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={24}
-                        value={item.startWeek}
-                        onChange={(e) => updateItem(item.uid, 'startWeek', e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 dark:border-white/15 bg-white dark:bg-slate-800 px-1.5 py-2 text-xs tabular-nums"
-                      />
+                    <div className="flex shrink-0 flex-wrap items-center gap-2 ps-10 sm:ps-0">
+                      {rows == null ? (
+                        <span className="text-xs text-muted-foreground">…</span>
+                      ) : row ? (
+                        <>
+                          <span className="flex flex-col items-start sm:items-end">
+                            <span className="text-sm font-semibold tabular-nums">{row.lastValue.toLocaleString('pt-BR')} {row.unit ?? ''}</span>
+                            {row.lastDate ? <span className="text-xs text-muted-foreground tabular-nums">{fullDate(row.lastDate)}{monthsAgo(row.lastDate) >= 6 ? ` · há ${monthsAgo(row.lastDate)} meses` : ''}</span> : null}
+                          </span>
+                          {row.refLow == null && row.refHigh == null
+                            ? <Badge variant="outline">Sem faixa no laudo</Badge>
+                            : <Badge variant={row.inRange ? 'success-light' : 'warning-light'}>{row.inRange ? 'Na faixa do laudo' : row.refHigh != null && row.lastValue > row.refHigh ? 'Acima da faixa do laudo' : 'Abaixo da faixa do laudo'}</Badge>}
+                        </>
+                      ) : (
+                        <Badge variant="outline">Sem exame no app</Badge>
+                      )}
                     </div>
-                    <div className="w-1/2 space-y-1">
-                      <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">Fim</label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={24}
-                        value={item.endWeek}
-                        onChange={(e) => updateItem(item.uid, 'endWeek', e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 dark:border-white/15 bg-white dark:bg-slate-800 px-1.5 py-2 text-xs tabular-nums"
-                      />
-                    </div>
-                  </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </FramePanel>
 
-                  <div className="md:col-span-1 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => removeCompound(item.uid)}
-                      disabled={protocol.length <= 1}
-                      className="rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition disabled:opacity-30 cursor-pointer"
-                    >
-                      ✕
-                    </button>
-                  </div>
+          <FrameFooter className="flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="m-0 text-xs text-muted-foreground">
+              A faixa é a do seu laudo, que vale para quem não usa hormônio. Em reposição ou ciclo, o que conta é a avaliação do seu médico.
+            </p>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <Button variant="outline" size="lg" className="h-10" onClick={() => navigate('/exams/create')}>Enviar exame</Button>
+              <Button size="lg" className="h-10" onClick={askDrExame}>
+                <Sparkles aria-hidden="true" />
+                Perguntar ao Dr. Exame
+                <span className="text-xs font-normal opacity-80 tabular-nums">💎 {CREDIT_COSTS.chat}</span>
+              </Button>
+            </div>
+          </FrameFooter>
+        </Frame>
 
-                  <div className="md:col-span-12 flex flex-wrap gap-2 pt-1 text-[11px] text-slate-500">
-                    <span className="rounded bg-teal-50 dark:bg-teal-950/40 px-2 py-0.5 font-semibold text-teal-800 dark:text-teal-200 ring-1 ring-teal-200 dark:ring-teal-800">
-                      Conversão: {item.unit === 'ml' ? `${item.amount} ml × ${item.conc} mg/ml = ${totalMg.toFixed(0)} mg` : `${totalMg.toFixed(0)} mg`}
-                    </span>
-                    <span className="rounded bg-white dark:bg-slate-800 px-2 py-0.5 ring-1 ring-slate-200 dark:ring-white/10">
-                      Meia-vida: <strong>{comp.halfLife}d</strong>
-                    </span>
-                    <span className="rounded bg-white dark:bg-slate-800 px-2 py-0.5 ring-1 ring-slate-200 dark:ring-white/10">
-                      Pico: <strong>{comp.tmax}d</strong>
-                    </span>
-                    <span className="rounded bg-white dark:bg-slate-800 px-2 py-0.5 ring-1 ring-slate-200 dark:ring-white/10">
-                      Ativo real: <strong>{Math.round(comp.esterRatio * 100)}%</strong> ({(totalMg * comp.esterRatio).toFixed(1)} mg/dose)
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Aviso Médico / CFM */}
-        <footer className="rounded-xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 p-4 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-          <strong className="text-slate-700 dark:text-slate-200">Aviso Clínico e Educacional (Dr. Exame):</strong> O Radar Hormonal utiliza modelos teóricos de absorção e eliminação apenas para fins educacionais e apoio à interpretação de picos, vales e janela de coleta laboratorial com seu médico. O Dr. Exame <strong>não recomenda, prescreve ou sugere dosagens ou protocolos</strong>.
-        </footer>
+        {/* ───────── Como calculamos ───────── */}
+        <Frame>
+          <FramePanel className="p-0!">
+            <details className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+                Como o Radar chega nesses números
+                <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
+              </summary>
+              <ol className="m-0 grid list-none gap-4 border-t border-border p-4 sm:grid-cols-2">
+                <li className="flex flex-col gap-1"><strong className="text-sm font-medium">1. Tira o peso do éster</strong><span className="text-xs text-muted-foreground">O frasco traz o hormônio preso a um éster, que é o que faz durar. Ex.: 250 mg de enantato têm 180 mg de testosterona de verdade.</span></li>
+                <li className="flex flex-col gap-1"><strong className="text-sm font-medium">2. Desenha a curva de cada aplicação</strong><span className="text-xs text-muted-foreground">Sobe até o pico e depois cai pela metade a cada meia-vida. Durateston é calculado como os 4 ésteres que ele realmente tem.</span></li>
+                <li className="flex flex-col gap-1"><strong className="text-sm font-medium">3. Soma as aplicações</strong><span className="text-xs text-muted-foreground">Antes de uma dose acabar, vem a próxima; o que sobrou soma com a nova até estabilizar (cerca de 5 meias-vidas).</span></li>
+                <li className="flex flex-col gap-1"><strong className="text-sm font-medium">4. Mede o trecho estável</strong><span className="text-xs text-muted-foreground">Pico, vale e "sobe e desce" (pico − vale, dividido pela média) saem do último ciclo completo de aplicações, a faixa cinza do gráfico.</span></li>
+              </ol>
+            </details>
+          </FramePanel>
+          <FrameFooter>
+            <p className="m-0 text-xs text-muted-foreground">
+              O Radar é educativo. Usa médias de estudos (meia-vida, tempo até o pico) que variam de pessoa para pessoa, e mostra o que entra no corpo, não o nível no sangue — isso só o exame mede. Não substitui prescrição nem acompanhamento médico, e não sugere doses. {Object.values(RADAR_FAMILIES).length} hormônios cobertos.
+            </p>
+          </FrameFooter>
+        </Frame>
       </div>
+
+      <CompoundExplainDialog compoundId={explainId} onClose={() => setExplainId(null)} />
     </PageContainer>
   );
 }
-

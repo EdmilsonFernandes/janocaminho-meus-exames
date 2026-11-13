@@ -57,6 +57,8 @@ const server = app.listen(config.port, () => {
   startReconciliationJob(); // §15.2 spec gaps teleconsulta: conciliação pago×consulta/encerrada×resumo (10 min)
   startTeleconsultaQueueJob(); // fila imediata "Falar agora": presença/offer/match FIFO (15s)
   startKycReconcileJob(); // KYC médico: reconcilia tentativas sem webhook + expira > 7 dias (10 min)
+  // Radar Hormonal: gera em segundo plano as explicações de composto que faltam (1× por versão do prompt).
+  void import('./analysis/compound-explain').then((m) => m.startCompoundKnowledgeWarmup());
   void import('./pricing/worker').then((m) => m.startPriceWorkerJob()); // preços: worker assíncrono (cache 6h, kill-switch env)
   void import('./pricing/catalog').then((m) => m.startCatalogJob()); // catálogo: bootstrap 1× + refresh 2h
   void import('./pricing/providers/vtexDynamic').then((m) => m.seedPharmacies().catch(() => {})); // seed farmácias 1×

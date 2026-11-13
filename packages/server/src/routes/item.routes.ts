@@ -3,6 +3,7 @@ import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
 import { getOrCreateExplanation } from '../analysis/explain';
+import { getOrCreateCompoundExplanation, UnknownCompoundError, UnsafeCompoundTextError } from '../analysis/compound-explain';
 import { ageBandAt, applyPediatricRange } from '../analysis/pediatric-ranges';
 import { collapseAdjacentNearDupes } from '../analysis/dedup';
 import { medianRefRange } from '../utils/range';
@@ -43,6 +44,20 @@ router.post('/explain', async (req, res) => {
 });
 
 router.use(requireAuth);
+
+// EXPLICA um composto do Radar Hormonal em linguagem leiga (botão "?"). Mesmo conceito do
+// /explain: banco primeiro, IA só na 1ª vez. Só aceita ids do catálogo. Ver compound-explain.ts.
+router.post('/compound-explain', async (req, res) => {
+  try {
+    const id = String((req.body as any)?.id ?? '').trim();
+    const out = await getOrCreateCompoundExplanation(id);
+    res.json({ id, name: out.name, sections: out.sections });
+  } catch (e: any) {
+    if (e instanceof UnknownCompoundError) { res.status(404).json({ error: 'Composto não encontrado.' }); return; }
+    if (!(e instanceof UnsafeCompoundTextError)) console.error('[compound-explain] erro:', e?.message);
+    res.status(502).json({ error: 'Não consegui preparar esta explicação agora. Tente de novo mais tarde.' });
+  }
+});
 
 // ATUALIZAR item (corrigir valor extraído — usuário corrige erro de OCR; recalc flag)
 router.patch('/:id', async (req: AuthedRequest, res, next) => {

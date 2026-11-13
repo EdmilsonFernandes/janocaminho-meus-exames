@@ -187,7 +187,15 @@ export const ChatPage = () => {
   const navigate = useNavigate();
   const [convs, setConvs] = useState<Conv[]>([]);
   const [curId, setCurId] = useState<string | null>(null);
-  const [input, setInput] = useState('');
+  // Pergunta pré-montada por outra tela (ex.: Radar Hormonal): chega pelo sessionStorage,
+  // entra no campo e o usuário REVISA e envia — nada é enviado (nem cobrado) sozinho.
+  const [input, setInput] = useState(() => {
+    try {
+      const prefill = sessionStorage.getItem('dx-chat-prefill');
+      if (prefill) { sessionStorage.removeItem('dx-chat-prefill'); return prefill.slice(0, 4000); }
+    } catch { /* sem sessionStorage */ }
+    return '';
+  });
   const [busy, setBusy] = useState(false);
   const [histOpen, setHistOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);

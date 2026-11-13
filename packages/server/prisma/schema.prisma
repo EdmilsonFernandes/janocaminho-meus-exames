@@ -229,6 +229,23 @@ model ExamKnowledge {
   @@map("exam_knowledge")
 }
 
+// Radar Hormonal: explicação LEIGA de cada composto (botão "?"), mesmo padrão do
+// exam_knowledge — a 1ª consulta gera via IA e grava; as seguintes leem do banco.
+// Chave = id fixo do catálogo (não aceita nome livre). Nenhum dado de usuário.
+model CompoundKnowledge {
+  id            String   @id @default(cuid())
+  compoundKey   String   // id do catálogo (ex.: test_cyp)
+  locale        String   @default("pt-BR")
+  promptVersion String   // COMPOUND_PROMPT_VERSION na geração (invalidação)
+  source        String   @default("ai") // 'ai' | 'curated'
+  sections      Json     // { oQueE, noCorpo, porQueUsam, nosExames, riscos, levarAoMedico }
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([compoundKey, locale])
+  @@map("compound_knowledge")
+}
+
 // Farmacovigilância (feature D): cache dos sinais de evento adverso da openFDA
 // FAERS por remédio — mesmo padrão do exam_knowledge (chave única + Json).
 // TTL: 7d sucesso / 1h "não encontrado" (ver utils/faers.ts). Nenhum dado de

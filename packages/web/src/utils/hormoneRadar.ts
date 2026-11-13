@@ -1,13 +1,61 @@
+/**
+ * Radar Hormonal — motor de cálculo (puro, testável).
+ *
+ * Modelo: cada aplicação libera o hormônio seguindo a curva de Bateman (absorção de 1ª
+ * ordem do depósito + eliminação de 1ª ordem). A área sob a curva de UMA aplicação é
+ * exatamente a dose ativa (a parte do peso que é hormônio, sem o éster).
+ *
+ * É um modelo EDUCATIVO de tendência: meia-vida e pico são médias de literatura e variam
+ * de pessoa para pessoa (veículo, local da aplicação, metabolismo). Nunca é um nível no
+ * sangue — isso só o exame mostra.
+ *
+ * Correções em relação à 1ª versão (13/11/26):
+ *  1. O pico da curva agora cai no `tmax` declarado (antes saía ~50% atrasado: a constante
+ *     de absorção era chutada por uma fórmula que não resolve a equação).
+ *  2. Durateston/Sustanon é a soma dos 4 ésteres reais, não um éster "médio".
+ *  3. Pico/vale/oscilação são medidos no ÚLTIMO intervalo completo enquanto o protocolo
+ *     está ativo — antes usava os 60% finais da tela, e um ciclo que terminava antes
+ *     aparecia com "220% de oscilação".
+ *  4. Diz quando o nível ainda NÃO estabilizou (ex.: Nebido em 12 semanas).
+ *  5. Cada composto tem FAMÍLIA: o exame de testosterona só se compara com testosterona
+ *     (antes somava Masteron/Deca no mesmo total).
+ */
+
+export type RadarFamily = 'testosterona' | 'nandrolona' | 'drostanolona' | 'boldenona' | 'trembolona' | 'oxandrolona';
+
+export const RADAR_FAMILIES: Record<RadarFamily, { label: string; aromatizes: boolean; oral17aa?: boolean }> = {
+  testosterona: { label: 'Testosterona', aromatizes: true },
+  nandrolona: { label: 'Nandrolona', aromatizes: false },
+  drostanolona: { label: 'Drostanolona (Masteron)', aromatizes: false },
+  boldenona: { label: 'Boldenona', aromatizes: true },
+  trembolona: { label: 'Trembolona', aromatizes: false },
+  oxandrolona: { label: 'Oxandrolona', aromatizes: false, oral17aa: true },
+};
+
+/** Um éster dentro de um produto (misturas têm vários). `share` = fração do peso do frasco. */
+export interface RadarEster {
+  share: number;
+  halfLife: number;
+  tmax: number;
+  esterRatio: number;
+}
+
 export interface RadarCompoundDef {
   id: string;
   name: string;
+  /** Nome curto para legenda e chips. */
+  short: string;
+  family: RadarFamily;
+  /** Meia-vida e pico representativos (para exibir); a conta usa `esters`. */
   halfLife: number;
   tmax: number;
+  /** Fração do peso que é hormônio (média ponderada nas misturas). */
   esterRatio: number;
   defaultConc: number;
   color: string;
   isOral?: boolean;
   isBlend?: boolean;
+  esters: RadarEster[];
 }
 
 export interface RadarProtocolItem {
@@ -21,14 +69,19 @@ export interface RadarProtocolItem {
   endWeek: number;
 }
 
+export interface RadarItemSeries {
+  item: RadarProtocolItem;
+  comp: RadarCompoundDef;
+  values: number[];
+  /** Dias (a partir do dia 0) em que há aplicação. */
+  injectionDays: number[];
+}
+
 export interface RadarSeriesResult {
   stepsPerDay: number;
   totalSteps: number;
-  seriesPerItem: Array<{
-    item: RadarProtocolItem;
-    comp: RadarCompoundDef;
-    values: number[];
-  }>;
+  totalDays: number;
+  seriesPerItem: RadarItemSeries[];
   total: number[];
 }
 
@@ -38,31 +91,52 @@ export interface RadarStats {
   troughMg: number;
   swingPct: number;
   stability: 'estavel' | 'moderado' | 'alto';
+  /** Janela medida (em dias desde o início). */
+  windowStartDay: number;
+  windowEndDay: number;
+  /** false = a tela termina antes de o nível estabilizar; os números ainda vão subir. */
+  settled: boolean;
+  /** Dia aproximado em que o nível estabiliza (≈ 5 meias-vidas do éster mais lento). */
+  settleDay: number;
 }
 
+const single = (halfLife: number, tmax: number, esterRatio: number): RadarEster[] => [{ share: 1, halfLife, tmax, esterRatio }];
+
+// Durateston/Sustanon 250: propionato 30 + fenilpropionato 60 + isocaproato 60 + decanoato 100 mg.
+const SUSTANON_ESTERS: RadarEster[] = [
+  { share: 30 / 250, halfLife: 0.9, tmax: 0.5, esterRatio: 0.837 },
+  { share: 60 / 250, halfLife: 2.5, tmax: 1.2, esterRatio: 0.686 },
+  { share: 60 / 250, halfLife: 4.0, tmax: 1.6, esterRatio: 0.720 },
+  { share: 100 / 250, halfLife: 7.5, tmax: 3.0, esterRatio: 0.648 },
+];
+const blendRatio = (esters: RadarEster[]) => esters.reduce((sum, e) => sum + e.share * e.esterRatio, 0);
+
+// prettier-ignore
 export const RADAR_COMPOUNDS: RadarCompoundDef[] = [
-  { id: 'sustanon',  name: 'Durateston / Sustanon (Mistura 4 ésteres)', halfLife: 4.8,  tmax: 1.4, esterRatio: 0.710, defaultConc: 250, color: '#0d9488', isBlend: true },
-  { id: 'mast_prop', name: 'Masteron Propionato',                       halfLife: 2.0,  tmax: 0.9, esterRatio: 0.840, defaultConc: 100, color: '#ec4899' },
-  { id: 'mast_enan', name: 'Masteron Enantato',                         halfLife: 5.0,  tmax: 2.0, esterRatio: 0.730, defaultConc: 200, color: '#db2777' },
-  { id: 'test_cyp',  name: 'Testosterona Cipionato (Deposteron)',       halfLife: 5.0,  tmax: 2.0, esterRatio: 0.699, defaultConc: 200, color: '#0284c7' },
-  { id: 'test_enan', name: 'Testosterona Enantato',                     halfLife: 4.5,  tmax: 1.8, esterRatio: 0.720, defaultConc: 250, color: '#0369a1' },
-  { id: 'test_prop', name: 'Testosterona Propionato',                   halfLife: 0.9,  tmax: 0.5, esterRatio: 0.837, defaultConc: 100, color: '#059669' },
-  { id: 'test_und',  name: 'Testosterona Undecanoato (Nebido)',         halfLife: 21.0, tmax: 7.0, esterRatio: 0.632, defaultConc: 250, color: '#0f766e' },
-  { id: 'nand_dec',  name: 'Nandrolona Decanoato (Deca)',               halfLife: 7.5,  tmax: 3.0, esterRatio: 0.640, defaultConc: 200, color: '#6366f1' },
-  { id: 'nand_npp',  name: 'Nandrolona Fenilpropionato (NPP)',          halfLife: 2.5,  tmax: 1.2, esterRatio: 0.670, defaultConc: 100, color: '#8b5cf6' },
-  { id: 'bold_und',  name: 'Boldenona Undecilenato',                    halfLife: 14.0, tmax: 4.5, esterRatio: 0.630, defaultConc: 250, color: '#10b981' },
-  { id: 'tren_ace',  name: 'Trembolona Acetato',                        halfLife: 1.2,  tmax: 0.6, esterRatio: 0.870, defaultConc: 100, color: '#f59e0b' },
-  { id: 'tren_enan', name: 'Trembolona Enantato',                       halfLife: 5.5,  tmax: 2.2, esterRatio: 0.720, defaultConc: 200, color: '#d97706' },
-  { id: 'oxand',     name: 'Oxandrolona (Oral)',                        halfLife: 0.4,  tmax: 0.1, esterRatio: 1.000, defaultConc: 10,  color: '#ef4444', isOral: true },
+  { id: 'sustanon',  name: 'Durateston / Sustanon (mistura de 4 ésteres)', short: 'Durateston',    family: 'testosterona', halfLife: 7.5,  tmax: 1.4, esterRatio: blendRatio(SUSTANON_ESTERS), defaultConc: 250, color: '#0d9488', isBlend: true, esters: SUSTANON_ESTERS },
+  { id: 'test_cyp',  name: 'Testosterona Cipionato (Deposteron)',          short: 'Cipionato',     family: 'testosterona', halfLife: 5.0,  tmax: 2.0, esterRatio: 0.699, defaultConc: 200, color: '#0284c7', esters: single(5.0, 2.0, 0.699) },
+  { id: 'test_enan', name: 'Testosterona Enantato',                        short: 'Enantato',      family: 'testosterona', halfLife: 4.5,  tmax: 1.8, esterRatio: 0.720, defaultConc: 250, color: '#0369a1', esters: single(4.5, 1.8, 0.720) },
+  { id: 'test_prop', name: 'Testosterona Propionato',                      short: 'Propionato',    family: 'testosterona', halfLife: 0.9,  tmax: 0.5, esterRatio: 0.837, defaultConc: 100, color: '#059669', esters: single(0.9, 0.5, 0.837) },
+  { id: 'test_und',  name: 'Testosterona Undecanoato (Nebido)',            short: 'Nebido',        family: 'testosterona', halfLife: 21.0, tmax: 7.0, esterRatio: 0.632, defaultConc: 250, color: '#0f766e', esters: single(21.0, 7.0, 0.632) },
+  { id: 'nand_dec',  name: 'Nandrolona Decanoato (Deca)',                  short: 'Deca',          family: 'nandrolona',   halfLife: 7.5,  tmax: 3.0, esterRatio: 0.640, defaultConc: 200, color: '#6366f1', esters: single(7.5, 3.0, 0.640) },
+  { id: 'nand_npp',  name: 'Nandrolona Fenilpropionato (NPP)',             short: 'NPP',           family: 'nandrolona',   halfLife: 2.5,  tmax: 1.2, esterRatio: 0.670, defaultConc: 100, color: '#8b5cf6', esters: single(2.5, 1.2, 0.670) },
+  { id: 'mast_prop', name: 'Masteron Propionato',                          short: 'Masteron P',    family: 'drostanolona', halfLife: 2.0,  tmax: 0.9, esterRatio: 0.840, defaultConc: 100, color: '#ec4899', esters: single(2.0, 0.9, 0.840) },
+  { id: 'mast_enan', name: 'Masteron Enantato',                            short: 'Masteron E',    family: 'drostanolona', halfLife: 5.0,  tmax: 2.0, esterRatio: 0.730, defaultConc: 200, color: '#db2777', esters: single(5.0, 2.0, 0.730) },
+  { id: 'bold_und',  name: 'Boldenona Undecilenato',                       short: 'Boldenona',     family: 'boldenona',    halfLife: 14.0, tmax: 4.5, esterRatio: 0.630, defaultConc: 250, color: '#10b981', esters: single(14.0, 4.5, 0.630) },
+  { id: 'tren_ace',  name: 'Trembolona Acetato',                           short: 'Trembolona A',  family: 'trembolona',   halfLife: 1.2,  tmax: 0.6, esterRatio: 0.870, defaultConc: 100, color: '#f59e0b', esters: single(1.2, 0.6, 0.870) },
+  { id: 'tren_enan', name: 'Trembolona Enantato',                          short: 'Trembolona E',  family: 'trembolona',   halfLife: 5.5,  tmax: 2.2, esterRatio: 0.720, defaultConc: 200, color: '#d97706', esters: single(5.5, 2.2, 0.720) },
+  { id: 'oxand',     name: 'Oxandrolona (oral)',                           short: 'Oxandrolona',   family: 'oxandrolona',  halfLife: 0.4,  tmax: 0.1, esterRatio: 1.000, defaultConc: 10,  color: '#ef4444', isOral: true, esters: single(0.4, 0.1, 1.000) },
 ];
 
+export const compoundById = (id: string): RadarCompoundDef => RADAR_COMPOUNDS.find((c) => c.id === id) ?? RADAR_COMPOUNDS[0];
+
 export const RADAR_FREQUENCIES = [
-  { label: 'Todos os dias',            days: 1 },
-  { label: 'Dia sim, dia não',         days: 2 },
-  { label: 'A cada 3,5 dias (2x/sem)', days: 3.5 },
-  { label: '1x por semana',            days: 7 },
-  { label: 'A cada 10 dias',           days: 10 },
-  { label: 'A cada 14 dias',           days: 14 },
+  { label: 'Todos os dias',              days: 1 },
+  { label: 'Dia sim, dia não',           days: 2 },
+  { label: '2x por semana',              days: 3.5 },
+  { label: '1x por semana',              days: 7 },
+  { label: 'A cada 10 dias',             days: 10 },
+  { label: 'A cada 14 dias',             days: 14 },
   { label: 'A cada 10 semanas (Nebido)', days: 70 },
 ];
 
@@ -70,94 +144,214 @@ export function getDoseMg(item: Pick<RadarProtocolItem, 'unit' | 'amount' | 'con
   return item.unit === 'ml' ? item.amount * item.conc : item.amount;
 }
 
-/** Equação de Bateman normalizada pela integral = doseAtiva (mg/dia liberados). */
-export function batemanReleasePerDay(
-  tDays: number,
-  activeDoseMg: number,
-  halfLifeDays: number,
-  tmaxDays: number,
-): number {
-  if (tDays < 0 || activeDoseMg <= 0) return 0;
-  const ke = Math.LN2 / Math.max(0.15, halfLifeDays);
-  const ka = Math.max(ke * 1.4, Math.log(3.5) / Math.max(0.08, tmaxDays));
-  if (Math.abs(ka - ke) < 1e-4) {
-    return activeDoseMg * ke * ke * tDays * Math.exp(-ke * tDays);
+/**
+ * Constante de absorção (ka) que faz o pico da curva cair EXATAMENTE em `tmax`, dado ke.
+ * tmax = ln(ka/ke) / (ka − ke) → sem solução fechada; bisseção (a função é monótona em ka).
+ * Só existe solução com ka > ke quando tmax < 1/ke; no limite, usa ka ≈ ke.
+ */
+export function absorptionRate(ke: number, tmaxDays: number): number {
+  const tmax = Math.max(0.02, tmaxDays);
+  if (tmax >= 1 / ke) return ke * 1.0001;
+  let lo = ke * 1.0001;
+  let hi = ke * 1e4;
+  for (let i = 0; i < 80; i++) {
+    const mid = Math.sqrt(lo * hi);
+    const t = Math.log(mid / ke) / (mid - ke);
+    if (t > tmax) lo = mid; else hi = mid;
   }
-  const val = activeDoseMg * ((ka * ke) / (ka - ke)) * (Math.exp(-ke * tDays) - Math.exp(-ka * tDays));
-  return Math.max(0, val);
+  return Math.sqrt(lo * hi);
 }
 
-export function computeRadarSeries(
-  items: RadarProtocolItem[],
-  totalDays: number,
-  variationPct: number,
-  split2x = false,
-): RadarSeriesResult {
+/** Bateman: mg/dia liberados `tDays` após UMA aplicação; integral de 0 a ∞ = activeDoseMg. */
+export function batemanReleasePerDay(tDays: number, activeDoseMg: number, halfLifeDays: number, tmaxDays: number): number {
+  if (tDays < 0 || activeDoseMg <= 0) return 0;
+  const ke = Math.LN2 / Math.max(0.15, halfLifeDays);
+  const ka = absorptionRate(ke, tmaxDays);
+  if (Math.abs(ka - ke) < ke * 1e-3) return activeDoseMg * ke * ke * tDays * Math.exp(-ke * tDays);
+  return Math.max(0, activeDoseMg * ((ka * ke) / (ka - ke)) * (Math.exp(-ke * tDays) - Math.exp(-ka * tDays)));
+}
+
+export function computeRadarSeries(items: RadarProtocolItem[], totalDays: number, variationPct: number, split2x = false): RadarSeriesResult {
   const stepsPerDay = 4; // resolução de 6 horas
   const totalSteps = totalDays * stepsPerDay;
-  const scaleMeta = Math.max(0.5, 1 + variationPct / 100);
+  // Metabolismo mais rápido (+) encurta meia-vida e pico; mais lento (−) alonga.
+  const speed = Math.max(0.5, 1 + variationPct / 100);
 
   const seriesPerItem = items.map((item) => {
-    const comp = RADAR_COMPOUNDS.find((c) => c.id === item.compoundId) ?? RADAR_COMPOUNDS[0];
+    const comp = compoundById(item.compoundId);
     const rawDoseMg = getDoseMg(item);
-    const effDose = split2x && item.freqDays >= 7 ? rawDoseMg / 2 : rawDoseMg;
-    const effFreq = split2x && item.freqDays >= 7 ? item.freqDays / 2 : item.freqDays;
-    const activeDose = effDose * comp.esterRatio;
+    const halve = split2x && item.freqDays >= 7;
+    const doseMg = halve ? rawDoseMg / 2 : rawDoseMg;
+    const freq = Math.max(0.5, halve ? item.freqDays / 2 : item.freqDays);
 
     const startDay = Math.max(0, (item.startWeek - 1) * 7);
     const endDay = Math.min(totalDays, item.endWeek * 7);
     const injectionDays: number[] = [];
-    for (let d = startDay; d < endDay; d += Math.max(0.5, effFreq)) {
-      injectionDays.push(d);
-    }
+    for (let d = startDay; d < endDay - 1e-9; d += freq) injectionDays.push(d);
 
-    const values = new Array<number>(totalSteps + 1);
-    const hl = comp.halfLife / scaleMeta;
-    const tm = comp.tmax / scaleMeta;
+    // Pré-calcula as constantes por éster (a conta roda milhares de vezes).
+    const parts = comp.esters.map((e) => {
+      const ke = Math.LN2 / Math.max(0.15, e.halfLife / speed);
+      const ka = absorptionRate(ke, e.tmax / speed);
+      const active = doseMg * e.share * e.esterRatio;
+      const same = Math.abs(ka - ke) < ke * 1e-3;
+      return { ke, ka, same, scale: same ? active * ke * ke : active * ((ka * ke) / (ka - ke)) };
+    });
 
+    const values = new Array<number>(totalSteps + 1).fill(0);
     for (let s = 0; s <= totalSteps; s++) {
       const day = s / stepsPerDay;
       let sum = 0;
-      for (let j = 0; j < injectionDays.length; j++) {
-        const dt = day - injectionDays[j];
-        if (dt >= 0) sum += batemanReleasePerDay(dt, activeDose, hl, tm);
+      for (const inj of injectionDays) {
+        const dt = day - inj;
+        if (dt < 0) break; // aplicações em ordem crescente
+        for (const p of parts) {
+          sum += p.same ? p.scale * dt * Math.exp(-p.ke * dt) : p.scale * (Math.exp(-p.ke * dt) - Math.exp(-p.ka * dt));
+        }
       }
-      values[s] = sum;
+      values[s] = Math.max(0, sum);
     }
-    return { item, comp, values };
+    return { item, comp, values, injectionDays };
   });
 
-  const total = new Array<number>(totalSteps + 1);
-  for (let s = 0; s <= totalSteps; s++) {
-    let sum = 0;
-    for (const ser of seriesPerItem) sum += ser.values[s];
-    total[s] = sum;
-  }
+  const total = new Array<number>(totalSteps + 1).fill(0);
+  for (const ser of seriesPerItem) for (let s = 0; s <= totalSteps; s++) total[s] += ser.values[s];
 
-  return { stepsPerDay, totalSteps, seriesPerItem, total };
+  return { stepsPerDay, totalSteps, totalDays, seriesPerItem, total };
 }
 
-export function computeRadarStats(series: RadarSeriesResult): RadarStats {
-  const steadyStart = Math.floor(series.totalSteps * 0.4);
-  let sum = 0;
-  let count = 0;
-  let peak = 0;
-  let trough = Infinity;
+/** Soma só as séries de uma família (ex.: testosterona, para comparar com o exame). */
+export function familyTotal(series: RadarSeriesResult, family: RadarFamily): number[] | null {
+  const picked = series.seriesPerItem.filter((s) => s.comp.family === family);
+  if (!picked.length) return null;
+  const out = new Array<number>(series.totalSteps + 1).fill(0);
+  for (const ser of picked) for (let s = 0; s <= series.totalSteps; s++) out[s] += ser.values[s];
+  return out;
+}
 
-  for (let s = steadyStart; s <= Math.max(steadyStart, series.totalSteps - 4); s++) {
-    const v = series.total[s] ?? 0;
-    sum += v;
-    count++;
+const gcd2 = (a: number, b: number): number => (b < 1e-6 ? a : gcd2(b, a % b));
+
+/**
+ * Pico, vale e oscilação medidos no ÚLTIMO ciclo completo de aplicações enquanto todos os
+ * compostos ainda estão sendo aplicados. `values` permite medir uma família; padrão = total.
+ */
+export function computeRadarStats(series: RadarSeriesResult, values: number[] = series.total, only?: RadarItemSeries[]): RadarStats {
+  const active = (only ?? series.seriesPerItem).filter((s) => s.injectionDays.length > 0);
+  const empty: RadarStats = { avgDailyMg: 0, peakMg: 0, troughMg: 0, swingPct: 0, stability: 'estavel', windowStartDay: 0, windowEndDay: 0, settled: false, settleDay: 0 };
+  if (!active.length) return empty;
+
+  // Fim da janela: quando o primeiro composto para (ou o fim da tela). Tamanho: o menor
+  // período em que TODAS as frequências se repetem (mmc, em meias-doses de 0,5 dia).
+  const end = Math.min(series.totalDays, ...active.map((s) => Math.min(series.totalDays, s.item.endWeek * 7)));
+  const start0 = Math.max(...active.map((s) => (s.item.startWeek - 1) * 7));
+  const halves = active.map((s) => Math.max(1, Math.round(s.item.freqDays * 2)));
+  const lcmHalves = halves.reduce((acc, h) => (acc * h) / gcd2(Math.max(acc, h), Math.min(acc, h)), 1);
+  const period = Math.min(lcmHalves / 2, Math.max(1, end - start0));
+  const windowEndDay = end;
+  const windowStartDay = Math.max(start0, end - period);
+
+  const from = Math.round(windowStartDay * series.stepsPerDay);
+  const to = Math.min(series.totalSteps, Math.round(windowEndDay * series.stepsPerDay));
+  let sum = 0, count = 0, peak = 0, trough = Infinity;
+  // O último ponto pertence ao intervalo seguinte (é o instante da próxima aplicação).
+  for (let s = from; s < Math.max(from + 1, to); s++) {
+    const v = values[s] ?? 0;
+    sum += v; count++;
     if (v > peak) peak = v;
     if (v < trough) trough = v;
   }
+  const avgDailyMg = count ? sum / count : 0;
+  const troughMg = trough === Infinity ? 0 : trough;
+  const swingPct = avgDailyMg > 0 ? ((peak - troughMg) / avgDailyMg) * 100 : 0;
 
-  const avgDailyMg = count > 0 ? sum / count : 0;
-  const safeTrough = trough === Infinity ? 0 : trough;
-  const swingPct = avgDailyMg > 0 ? ((peak - safeTrough) / avgDailyMg) * 100 : 0;
-  const stability: RadarStats['stability'] =
-    swingPct < 35 ? 'estavel' : swingPct < 70 ? 'moderado' : 'alto';
-
-  return { avgDailyMg, peakMg: peak, troughMg: safeTrough, swingPct, stability };
+  // Estabiliza em ~5 meias-vidas do éster mais lento, contadas do início dele.
+  const settleDay = Math.max(...active.map((s) => (s.item.startWeek - 1) * 7 + 5 * Math.max(...s.comp.esters.map((e) => e.halfLife))));
+  return {
+    avgDailyMg, peakMg: peak, troughMg, swingPct,
+    stability: swingPct < 35 ? 'estavel' : swingPct < 70 ? 'moderado' : 'alto',
+    windowStartDay, windowEndDay,
+    settled: windowStartDay >= settleDay - 0.5,
+    settleDay,
+  };
 }
 
+// ───────────────────────── exames que estes compostos costumam mexer ─────────────────────────
+
+export interface RadarMarkerDef {
+  key: string;
+  label: string;
+  /** Casa com `nameCanonical` dos exames (MAIÚSCULAS, sem acento). */
+  match: RegExp;
+  /** Não casar com estes (ex.: "TESTOSTERONA LIVRE" quando se quer a total). */
+  exclude?: RegExp;
+  /** Para onde costuma ir com o uso. */
+  direction: 'sobe' | 'cai' | 'varia';
+  /** Por quê, em linguagem de paciente. */
+  why: string;
+  families: RadarFamily[] | 'todas';
+}
+
+const ALL: RadarMarkerDef['families'] = 'todas';
+
+/**
+ * Efeitos BEM estabelecidos de andrógenos em exames de rotina. Educativo: diz o que
+ * costuma acontecer e por quê — quem interpreta o SEU resultado é o médico.
+ */
+export const RADAR_MARKERS: RadarMarkerDef[] = [
+  { key: 'testosterona', label: 'Testosterona total', match: /TESTOSTERONA/, exclude: /LIVRE|BIODISPON/, direction: 'varia', families: ALL,
+    why: 'Com testosterona aplicada, sobe e oscila entre as aplicações. Com outros compostos sem testosterona, a sua produção natural cai.' },
+  { key: 'estradiol', label: 'Estradiol', match: /ESTRADIOL/, direction: 'sobe', families: ['testosterona', 'boldenona'],
+    why: 'Parte da testosterona vira estradiol no corpo. Quanto mais alto o pico, mais conversão.' },
+  { key: 'hematocrito', label: 'Hematócrito', match: /HEMATOCRITO/, direction: 'sobe', families: ALL,
+    why: 'Andrógenos estimulam a produção de glóbulos vermelhos; o sangue fica mais "grosso".' },
+  { key: 'hemoglobina', label: 'Hemoglobina', match: /^HEMOGLOBINA$|HEMOGLOBINA(?!.*GLIC)/, exclude: /GLIC|A1C|CORPUSCULAR|HCM|CHCM/, direction: 'sobe', families: ALL,
+    why: 'Acompanha o hematócrito: mais glóbulos vermelhos, mais hemoglobina.' },
+  { key: 'hdl', label: 'Colesterol HDL', match: /HDL/, exclude: /NAO.?HDL|NÃO.?HDL/, direction: 'cai', families: ALL,
+    why: 'O colesterol "bom" costuma cair com andrógenos — mais com os orais.' },
+  { key: 'ldl', label: 'Colesterol LDL', match: /LDL/, exclude: /VLDL/, direction: 'sobe', families: ALL,
+    why: 'O colesterol "ruim" tende a subir enquanto o HDL cai.' },
+  { key: 'lh', label: 'LH', match: /^LH\b|HORMONIO LUTEINIZANTE/, direction: 'cai', families: ALL,
+    why: 'O corpo percebe hormônio de fora e desliga o sinal que manda os testículos produzirem.' },
+  { key: 'fsh', label: 'FSH', match: /^FSH\b|FOLICULO.?ESTIMULANTE/, direction: 'cai', families: ALL,
+    why: 'Mesmo motivo do LH; é o sinal ligado à produção de espermatozoides.' },
+  { key: 'psa', label: 'PSA', match: /^PSA\b|ANTIGENO PROSTATICO/, exclude: /LIVRE|RELACAO/, direction: 'sobe', families: ['testosterona'],
+    why: 'A próstata responde à testosterona; por isso o PSA é acompanhado em quem repõe.' },
+  { key: 'tgo', label: 'TGO (AST)', match: /TGO|\bAST\b|ASPARTATO/, direction: 'sobe', families: ['oxandrolona'],
+    why: 'Orais passam pelo fígado e podem elevar as enzimas. Treino pesado também eleva o TGO.' },
+  { key: 'tgp', label: 'TGP (ALT)', match: /TGP|\bALT\b|ALANINA/, direction: 'sobe', families: ['oxandrolona'],
+    why: 'É a enzima mais específica do fígado; orais podem elevá-la.' },
+];
+
+/** Marcadores relevantes para os compostos do protocolo, na ordem acima. */
+export function markersForProtocol(items: RadarProtocolItem[]): RadarMarkerDef[] {
+  const families = new Set(items.map((i) => compoundById(i.compoundId).family));
+  return RADAR_MARKERS.filter((m) => m.families === 'todas' || m.families.some((f) => families.has(f)));
+}
+
+export interface EvolutionRow {
+  nameCanonical: string;
+  unit: string | null;
+  refLow: number | null;
+  refHigh: number | null;
+  lastValue: number;
+  lastDate: string | null;
+  inRange: boolean;
+  direction?: 'up' | 'down' | 'stable';
+}
+
+/** O resultado mais recente do paciente para um marcador (linhas de GET /items/evolution). */
+export function findMarker(rows: EvolutionRow[], marker: RadarMarkerDef): EvolutionRow | null {
+  const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+  const hits = rows.filter((r) => {
+    const name = norm(String(r.nameCanonical ?? ''));
+    return marker.match.test(name) && !(marker.exclude && marker.exclude.test(name)) && Number.isFinite(r.lastValue);
+  });
+  if (!hits.length) return null;
+  return hits.sort((a, b) => new Date(b.lastDate ?? 0).getTime() - new Date(a.lastDate ?? 0).getTime())[0];
+}
+
+/** Em que ponto da oscilação um dia cai: 0 = no vale, 1 = no pico. */
+export function positionInSwing(valueMg: number, stats: Pick<RadarStats, 'peakMg' | 'troughMg'>): number {
+  if (stats.peakMg - stats.troughMg < 1e-6) return 0.5;
+  return Math.min(1, Math.max(0, (valueMg - stats.troughMg) / (stats.peakMg - stats.troughMg)));
+}
