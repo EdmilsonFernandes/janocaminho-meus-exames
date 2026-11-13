@@ -20,6 +20,7 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import { API_URL, token } from '../../config';
 import { PageContainer } from '../layout/PageContainer';
+import { HormoneRadarIcon } from '../reui/icons';
 import { DashboardHeader } from '../dashboard/DashboardHeader';
 import { FailedExamsAlert } from '../dashboard/FailedExamsAlert';
 import { RejectedExamsAlert } from '../dashboard/RejectedExamsAlert';
@@ -767,6 +768,61 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
           )}
         </Box>
       )}
+
+      {/* ── RADAR HORMONAL: Picos, Vales & Cruzamento com Exames ── */}
+      <AppCard
+        onClick={() => navigate('/radar-hormonal')}
+        sx={{
+          mb: 2,
+          p: { xs: 1.75, sm: 2.25 },
+          cursor: 'pointer',
+          borderRadius: RADIUS.card,
+          border: (t) => `1px solid ${alpha('#0d9488', t.palette.mode === 'dark' ? 0.35 : 0.22)}`,
+          background: (t) => t.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, rgba(13,148,136,0.14), rgba(15,23,42,0.7))'
+            : 'linear-gradient(135deg, rgba(240,253,250,0.9), rgba(255,255,255,0.98))',
+          transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+          '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 10px 24px -14px rgba(13,148,136,0.4)' },
+        }}
+      >
+        <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={1.5}>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Box
+              sx={{
+                width: 42,
+                height: 42,
+                borderRadius: '13px',
+                display: 'grid',
+                placeItems: 'center',
+                flexShrink: 0,
+                bgcolor: alpha('#0d9488', 0.14),
+                color: '#0d9488',
+              }}
+            >
+              <HormoneRadarIcon size={24} />
+            </Box>
+            <Box>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>
+                  Radar Hormonal
+                </Typography>
+                <Chip label="Novo" size="small" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: alpha('#0d9488', 0.14), color: '#0f766e' }} />
+              </Stack>
+              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.25 }}>
+                Veja picos, vales e se seu exame de sangue caiu no dia mais alto ou mais baixo da semana (conversão em ml ou mg).
+              </Typography>
+            </Box>
+          </Stack>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={(e) => { e.stopPropagation(); navigate('/radar-hormonal'); }}
+            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, bgcolor: '#0d9488', '&:hover': { bgcolor: '#0f766e' }, flexShrink: 0 }}
+          >
+            Abrir Radar →
+          </Button>
+        </Stack>
+      </AppCard>
 
       {/* ── MOBILE SECTION SELECTOR (Pill Switcher para navegação rápida no celular) ── */}
       <Box sx={{ display: { xs: 'flex', md: 'none' }, bgcolor: 'action.hover', p: 0.5, borderRadius: '999px', mb: 2 }}>

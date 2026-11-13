@@ -105,6 +105,7 @@ const MedicationsPage = lazy(() => import('./pages/Medications').then(m => ({ de
 const MeasurementHistoryPage = lazy(() => import('./pages/MeasurementHistory').then(m => ({ default: m.MeasurementHistoryPage })));
 const SaudeMentalPage = lazy(() => import('./pages/SaudeMental').then(m => ({ default: m.SaudeMentalPage })));
 const SinaisPage = lazy(() => import('./pages/Sinais').then(m => ({ default: m.SinaisPage })));
+const RadarHormonalPage = lazy(() => import('./pages/RadarHormonal'));
 // Teleconsulta LiveKit (F2) — página imersiva (fora do AppLayout, sem bottom-nav).
 const TeleconsultaPage = lazy(() => import('./pages/Teleconsulta').then(m => ({ default: m.TeleconsultaPage })));
 import { VaccinesPage } from './pages/Vaccines';
@@ -126,6 +127,10 @@ import { DoctorInviteLandingPage } from './pages/DoctorInviteLanding';
 import { TermsPage } from './pages/Terms';
 import { PatientSwitcher } from './components/PatientSwitcher';
 import { CreditsChip } from './components/CreditsChip';
+import { ArrowLeft, Menu as MenuLucide } from 'lucide-react';
+import { HeaderIconButton, HeaderWordmark } from '@/components/reui/app-header';
+import { HormoneRadarIcon } from '@/components/reui/icons';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 import { BootSplash } from './components/BootSplash';
 import { AppCrashPage } from './components/AppCrashPage';
 import { MobileBottomNav } from './components/MobileBottomNav';
@@ -164,6 +169,7 @@ import { syncCreditCosts } from './components/CreditBadge';
 // ficava vazio); direita = 🔔 + avatar (menu ÚNICO: dependentes, tema, idioma, sair). Sem ⋮ separado
 // e sem refresh duplicado (atualizar = arrastar a tela / pull-to-refresh).
 const CustomAppBar = (props: AppBarProps) => {
+  useReuiThemeSync();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   const isDark = theme.palette.mode === 'dark';
@@ -201,37 +207,37 @@ const CustomAppBar = (props: AppBarProps) => {
         bgcolor: isDark ? 'rgba(15, 24, 24, 0.92)' : 'rgba(255, 255, 255, 0.96)',
         backdropFilter: 'blur(24px) saturate(180%)',
         WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+        // Header limpo (padrão ReUI navbar): só uma linha inferior ultra suave, sem sombra,
+        // e mais respiro vertical/horizontal.
         borderBottom: '1px solid',
-        borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.45)' : '0 2px 10px rgba(0,0,0,0.03)',
+        borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(15,23,42,0.06)',
+        boxShadow: 'none',
         color: 'text.primary',
-        px: { xs: 1, sm: 2.5 },
+        px: { xs: 1.5, sm: 3 },
+        '& .MuiToolbar-root': { minHeight: { xs: 60, sm: 64 }, gap: 0.5 },
       }}
     >
       {!isDesktop && (
         canBack ? (
-          <IconButton color="inherit" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))} title="Voltar" sx={{ p: 1.25, mr: 0.25 }}>
-            <ArrowBackIcon fontSize="small" />
-          </IconButton>
+          <HeaderIconButton label="Voltar" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}>
+            <ArrowLeft aria-hidden="true" />
+          </HeaderIconButton>
         ) : (
-          <IconButton color="inherit" onClick={openDrawer} title="Menu" sx={{ p: 1.25, mr: 0.25 }}>
-            <MenuIcon fontSize="small" />
-          </IconButton>
+          <HeaderIconButton label="Menu" onClick={openDrawer}>
+            <MenuLucide aria-hidden="true" />
+          </HeaderIconButton>
         )
       )}
       {!isDesktop && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0, ml: 0.25 }}>
           <Box sx={{
-            width: 32, height: 32, borderRadius: '8px', flexShrink: 0, display: 'grid', placeItems: 'center',
-            background: 'linear-gradient(135deg,#20b2aa 0%,#178f89 100%)',
-            boxShadow: '0 3px 10px rgba(32,178,170,.35)', overflow: 'hidden'
+            width: 32, height: 32, borderRadius: '10px', flexShrink: 0, display: 'grid', placeItems: 'center',
+            background: 'linear-gradient(135deg,#20b2aa 0%,#178f89 100%)', overflow: 'hidden'
           }}>
             <DrExame size={24} sx={{ borderRadius: '22%' }} />
           </Box>
           {showWordmark && (
-            <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: { xs: 14, sm: 16 }, letterSpacing: '-0.01em', whiteSpace: 'nowrap', color: 'text.primary' }}>
-              Dr. Exame
-            </Typography>
+            <HeaderWordmark>Dr. Exame</HeaderWordmark>
           )}
         </Box>
       )}
@@ -247,9 +253,12 @@ const CustomAppBar = (props: AppBarProps) => {
           </Box>
         </Box>
       )}
-      <Box sx={{ flex: 1, minWidth: 8 }} />
+      {/* Centro: selo de leituras (no desktop encosta à direita, junto das ações). */}
+      <Box sx={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: { xs: 'center', sm: 'flex-end' }, px: 0.5 }}>
+        <CreditsChip />
+      </Box>
       {/* Lado direito do header: SEMPRE fixo e estável — nunca empurra o avatar ou o sino pra fora */}
-      <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1.25 }} sx={{ ml: 0.5, flexShrink: 0 }}>
+      <Stack direction="row" alignItems="center" spacing={{ xs: 0.25, sm: 1 }} sx={{ flexShrink: 0 }}>
         {/* No desktop, pílula compacta de Teleconsulta Viva / Hoje */}
         {isDesktop && tele.isLive && tele.item && (
           <Button
@@ -300,7 +309,6 @@ const CustomAppBar = (props: AppBarProps) => {
             }}
           />
         )}
-        <CreditsChip />
         <NotificationBell />
         <PatientSwitcher />
       </Stack>
@@ -996,9 +1004,10 @@ const AppMenu = () => {
       <MenuSectionAccordion
         title="Rotina de saúde"
         icon={<MonitorHeartOutlinedIcon />}
-        routes={['/medicamentos', '/sinais', '/medicoes', '/composicao', '/saude-mental', '/vacinas', '/despesas', '/conquistas', '/emergencia']}
+        routes={['/medicamentos', '/radar-hormonal', '/sinais', '/medicoes', '/composicao', '/saude-mental', '/vacinas', '/despesas', '/conquistas', '/emergencia']}
       >
         <NavItem to="/medicamentos" primaryText="Medicamentos e receitas" icon={<MedicationOutlinedIcon />} highlight />
+        <NavItem to="/radar-hormonal" primaryText="Radar Hormonal" icon={<HormoneRadarIcon size={20} />} badge="Novo" />
         <NavItem to="/sinais" primaryText="Sinais Vitais" icon={<MonitorHeartOutlinedIcon />} />
         <NavItem to="/medicoes" primaryText={translate('menu.measurements', { _: 'Medições corporais' })} icon={<MonitorHeartOutlinedIcon />} />
         <NavItem to="/composicao" primaryText="Composição corporal" icon={<AccessibilityNewOutlinedIcon />} />
@@ -1695,6 +1704,7 @@ export const App = () => {
           <Route path="/sinais" element={<Suspense fallback={<PageSkeleton />}><SinaisPage /></Suspense>} />
           <Route path="/composicao" element={<Suspense fallback={<PageSkeleton />}><BodyCompositionPage /></Suspense>} />
           <Route path="/medicamentos" element={<MedicationsPage />} />
+          <Route path="/radar-hormonal" element={<Suspense fallback={<PageSkeleton />}><RadarHormonalPage /></Suspense>} />
           <Route path="/vacinas" element={<VaccinesPage />} />
           <Route path="/despesas" element={<ExpensesPage />} />
           <Route path="/emergencia" element={<EmergencyCardPage />} />

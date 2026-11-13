@@ -337,3 +337,43 @@ export function WalletReceiptIcon({ size = 24, className, ...props }: ReuiIconPr
     </svg>
   )
 }
+
+/**
+ * ReUI Ultimate Duotone: `health-hormone-radar`
+ * Usado em Radar Hormonal (Picos, Vales & Estabilidade)
+ */
+export function HormoneRadarIcon({ size = 24, className, ...props }: ReuiIconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      className={cn("shrink-0", className)}
+      {...props}
+    >
+      <circle
+        opacity="0.24"
+        cx="12"
+        cy="12"
+        r="9"
+        fill="currentColor"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
+      <path
+        d="M5.5 13.5C7 13.5 7.75 8.5 9.75 8.5C11.75 8.5 12.25 15.5 14.25 15.5C16.25 15.5 17 10.5 18.5 10.5"
+        stroke="currentColor"
+        strokeWidth="1.85"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}

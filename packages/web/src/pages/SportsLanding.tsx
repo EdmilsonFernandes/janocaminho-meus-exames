@@ -372,6 +372,72 @@ export const SportsLandingPage: React.FC = () => {
         </Container>
       </Box>
 
+      {/* DESTAQUE EXCLUSIVO: RADAR HORMONAL (PICOS, VALES & EXAMES) */}
+      <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: '#ffffff', borderTop: '1px solid #eef2f6' }}>
+        <Container maxWidth="lg">
+          <Box
+            sx={{
+              p: { xs: 3, md: 4.5 },
+              borderRadius: '24px',
+              background: 'linear-gradient(135deg, #072928 0%, #0f4c49 60%, #136863 100%)',
+              color: '#ffffff',
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1.35fr 1fr' },
+              gap: { xs: 3, md: 5 },
+              alignItems: 'center',
+              boxShadow: '0 24px 48px -20px rgba(7,41,40,0.45)',
+            }}
+          >
+            <Box>
+              <Chip
+                label="NOVO · RADAR HORMONAL"
+                size="small"
+                sx={{
+                  bgcolor: 'rgba(95,201,195,0.2)',
+                  color: '#8ff0e8',
+                  fontWeight: 800,
+                  fontSize: 11,
+                  letterSpacing: '0.06em',
+                  mb: 1.5,
+                }}
+              />
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.55rem', md: '2.1rem' }, fontWeight: 800, lineHeight: 1.2, mb: 1.5 }}>
+                Seu exame deu alto porque estava no Pico — ou baixo porque estava no Vale?
+              </Typography>
+              <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: 15, lineHeight: 1.6, mb: 2.5 }}>
+                Com o <strong>Radar Hormonal</strong>, você informa em <strong>ml</strong> ou <strong>mg</strong> e enxerga a curva real de liberação por éster (meia-vida, picos, vales e efeito montanha-russa) — cruzada diretamente com a data do seu exame de sangue.
+              </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/radar-hormonal')}
+                  sx={{ bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' }, fontWeight: 800, borderRadius: '12px', textTransform: 'none', px: 3, py: 1.2 }}
+                >
+                  Experimentar Radar Hormonal →
+                </Button>
+              </Stack>
+            </Box>
+
+            <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', borderRadius: '18px', p: 2.5 }}>
+              <Stack spacing={1.5}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#8ff0e8' }}>CONVERSÃO AUTOMÁTICA ML → MG</Typography>
+                  <Typography sx={{ fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>Sem conta de cabeça</Typography>
+                </Box>
+                <Box sx={{ bgcolor: 'rgba(0,0,0,0.22)', borderRadius: '12px', p: 1.5 }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 700 }}>1 ml Durateston (250 mg/ml) → 177,5 mg ativos</Typography>
+                  <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', mt: 0.25 }}>Comparação 1x/sem vs 2x/sem na mesma tela</Typography>
+                </Box>
+                <Box sx={{ bgcolor: 'rgba(0,0,0,0.22)', borderRadius: '12px', p: 1.5 }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 700 }}>🩸 Pino do Dia da Coleta no Gráfico</Typography>
+                  <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', mt: 0.25 }}>Saiba se sua Testosterona veio no pico ou no vale antes da próxima dose</Typography>
+                </Box>
+              </Stack>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
       {/* 4 GUIAS EDUCATIVOS DE ALTA INTENÇÃO DE BUSCA DO GOOGLE */}
       <Box sx={{ py: { xs: 8, md: 11 }, bgcolor: '#f8fafc', borderTop: '1px solid #eef2f6' }}>
         <Container maxWidth="lg">

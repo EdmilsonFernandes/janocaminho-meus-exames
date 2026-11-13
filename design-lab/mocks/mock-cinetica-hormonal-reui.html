@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dr. Exame · Simulador Farmacocinético & Estabilidade (ReUI)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .font-display { font-family: 'Poppins', 'Inter', sans-serif; }
+    .glass-bar {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+    }
+    input[type="range"] { accent-color: #0d9488; }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+
+  <!-- ReUI Clean Glass Navbar -->
+  <header class="glass-bar sticky top-0 z-40 border-b border-slate-200/70">
+    <div class="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-2 shrink-0">
+        <div class="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-sm shadow-teal-500/25">
+          <svg class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h4l3-9 4 18 3-9h4" />
+          </svg>
+        </div>
+        <span class="font-display whitespace-nowrap text-[14px] sm:text-[15px] font-semibold tracking-tight text-gray-900">
+          Dr. Exame
+        </span>
+        <span class="hidden sm:inline-flex items-center rounded-full bg-teal-50 px-2.5 py-0.5 text-[11px] font-semibold text-teal-700">
+          Saúde Esportiva · Cinética
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-teal-50 px-2.5 py-1 text-[11px] sm:text-xs font-semibold text-teal-700">
+          ⚡ <span class="tabular-nums">9649</span> leituras
+        </span>
+        <img
+          src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=96&q=80"
+          alt="Avatar"
+          class="h-8 w-8 rounded-full object-cover ring-1 ring-slate-200"
+        />
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="font-display text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            Radar de Picos, Vales e Estabilidade
+          </h1>
+          <span class="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 ring-1 ring-amber-200/70">
+            Cruzado com Exame de Sangue
+          </span>
+        </div>
+        <p class="mt-1 text-xs sm:text-sm text-slate-500">
+          Entenda quanto seu corpo absorve por dia (em ml ou mg) e descubra se o seu exame de sangue foi colhido no pico ou no vale.
+        </p>
+      </div>
+
+      <!-- Presets rápidos -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="loadPreset('dura_mast')" class="rounded-lg border border-teal-300 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-800 hover:bg-teal-100 transition shadow-sm">
+          💉 Durateston 1ml + Masteron 1ml
+        </button>
+        <button onclick="loadPreset('trt_1x')" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition shadow-sm">
+          Reposição 1x/sem (Cipionato)
+        </button>
+        <button onclick="loadPreset('trt_e35d')" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition shadow-sm">
+          Reposição Estável (2x/sem)
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Grid (ReUI Frame Style - Linguagem Direta) -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+        <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Quanto entra por dia</p>
+        <p class="mt-1.5 text-2xl font-bold text-slate-900 tabular-nums" id="kpiAvg">—</p>
+        <p class="mt-1 text-[11px] text-slate-500">Hormônio real (sem o óleo/éster)</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+        <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Ponto Mais Alto (Pico)</p>
+        <p class="mt-1.5 text-2xl font-bold text-teal-600 tabular-nums" id="kpiPeak">—</p>
+        <p class="mt-1 text-[11px] text-slate-500">Momento que bate mais forte</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+        <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Ponto Mais Baixo (Vale)</p>
+        <p class="mt-1.5 text-2xl font-bold text-indigo-600 tabular-nums" id="kpiTrough">—</p>
+        <p class="mt-1 text-[11px] text-slate-500">Antes da próxima aplicação</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+        <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Efeito Montanha-Russa</p>
+        <div class="mt-1.5 flex items-baseline gap-2">
+          <p class="text-2xl font-bold tabular-nums" id="kpiSwing">—</p>
+          <span id="kpiSwingBadge" class="rounded-full px-2 py-0.5 text-[10px] font-semibold">—</span>
+        </div>
+        <p class="mt-1 text-[11px] text-slate-500">Quanto menor, mais estável</p>
+      </div>
+    </div>
+
+    <!-- Explicação simples de como o cálculo funciona (sem jargão) -->
+    <details class="rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-xs text-slate-600 shadow-sm">
+      <summary class="cursor-pointer font-semibold text-slate-800 select-none">
+        💡 Como o Dr. Exame calcula esses 4 números? (Clique para entender)
+      </summary>
+      <div class="mt-2.5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2.5 border-t border-slate-100 text-[11px] leading-relaxed">
+        <div>
+          <strong class="text-slate-900">1. Desconto do éster:</strong><br/>
+          Cada ml traz o hormônio + um éster (óleo) preso nele. Ex.: 1 ml de Durateston (250 mg) entrega ~177,5 mg reais de testosterona.
+        </div>
+        <div>
+          <strong class="text-slate-900">2. Acúmulo das doses:</strong><br/>
+          Antes de uma dose sair 100% do corpo, você aplica a próxima — o que sobrou soma com a nova até estabilizar (por volta da 4ª semana).
+        </div>
+        <div>
+          <strong class="text-slate-900">3. Pico e Vale:</strong><br/>
+          <strong>Pico</strong> é o ponto mais alto após aplicar; <strong>Vale</strong> é o mais baixo minutos antes da próxima aplicação.
+        </div>
+        <div>
+          <strong class="text-slate-900">4. Montanha-Russa (%):</strong><br/>
+          É a diferença entre Pico e Vale dividida pela Média. Abaixo de 35% = estável (menos oscilação de humor, estradiol e hematócrito).
+        </div>
+      </div>
+    </details>
+
+    <!-- Main Chart Card -->
+    <section class="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-6 shadow-sm space-y-4">
+      <!-- Chart Toolbar -->
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        <div class="flex flex-wrap items-center gap-3 text-xs">
+          <span class="font-semibold text-slate-800">Curva de Liberação (mg/dia)</span>
+          <div id="legendContainer" class="flex flex-wrap items-center gap-3"></div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Toggle Comparação -->
+          <label class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 cursor-pointer hover:bg-slate-100 transition">
+            <input type="checkbox" id="compareToggle" onchange="renderAll()" class="rounded text-teal-600 focus:ring-teal-500" />
+            <span>Comparar dividindo em 2x/sem (Estabilidade)</span>
+          </label>
+
+          <!-- Duração -->
+          <select id="weeksSelect" onchange="renderAll()" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 focus:border-teal-500 focus:outline-none">
+            <option value="8">8 semanas</option>
+            <option value="12" selected>12 semanas</option>
+            <option value="16">16 semanas</option>
+            <option value="24">24 semanas</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Canvas Chart -->
+      <div class="relative w-full h-[300px] sm:h-[360px]" id="chartWrapper">
+        <canvas id="pkChart" class="w-full h-full block cursor-crosshair"></canvas>
+        <!-- Tooltip flutuante -->
+        <div id="chartTooltip" class="hidden pointer-events-none absolute top-2 left-2 rounded-xl border border-slate-200/90 bg-white/95 backdrop-blur px-3 py-2 text-xs shadow-lg z-20 min-w-[180px]"></div>
+      </div>
+
+      <!-- Sliders de Ajuste Fino (Variação Individual + Dia do Exame) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-100">
+        <!-- Slider Variação Individual -->
+        <div class="rounded-xl bg-slate-50 p-3.5 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold text-slate-700">Variação Metabólica Individual (Absorção e Eliminação)</span>
+            <span class="font-bold text-teal-700 tabular-nums" id="varLabel">0% (Padrão)</span>
+          </div>
+          <input type="range" id="varSlider" min="-30" max="30" step="5" value="0" oninput="renderAll()" class="w-full" />
+          <p class="text-[11px] text-slate-500">Simula metabolismo mais lento (-30%) ou mais acelerado (+30%) conforme idade e perfil individual.</p>
+        </div>
+
+        <!-- Slider Exclusivo Dr. Exame: Cruzamento com Exame de Sangue Real -->
+        <div class="rounded-xl bg-teal-50/60 border border-teal-100 p-3.5 space-y-2">
+          <div class="flex items-center justify-between text-xs gap-2">
+            <span class="font-semibold text-teal-900">🩸 Cruzamento com Exame Real (Coleta)</span>
+            <span class="font-bold text-teal-700 tabular-nums shrink-0" id="labDayLabel">Dia 28</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <input type="range" id="labDaySlider" min="1" max="84" step="1" value="28" oninput="renderAll()" class="w-full" />
+            <div class="flex items-center gap-1 shrink-0">
+              <span class="text-[11px] text-teal-800 font-medium">Testo:</span>
+              <input type="number" id="labTestoInput" value="1180" min="50" max="5000" step="10" onchange="renderAll()" class="w-16 rounded-md border border-teal-200 bg-white px-1.5 py-1 text-xs font-bold text-teal-900 tabular-nums" />
+              <span class="text-[10px] text-teal-700">ng/dL</span>
+            </div>
+          </div>
+          <p class="text-[11px] text-teal-800 font-medium" id="labContextMsg">Calculando janela da coleta...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Protocol Builder (Combos & Stack) -->
+    <section class="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-6 shadow-sm space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="font-display text-base font-bold text-slate-900">Compostos & Ésteres do Protocolo</h2>
+          <p class="text-xs text-slate-500">Adicione um ou mais compostos para visualizar a soma das curvas no sangue.</p>
+        </div>
+        <button onclick="addCompound()" class="inline-flex items-center gap-1.5 rounded-xl bg-teal-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-teal-700 transition shadow-sm">
+          + Adicionar Composto
+        </button>
+      </div>
+
+      <div id="compoundList" class="space-y-3"></div>
+    </section>
+
+    <!-- Aviso Médico / CFM -->
+    <footer class="rounded-xl border border-slate-200 bg-white/70 p-4 text-[11px] text-slate-500 leading-relaxed">
+      <strong class="text-slate-700">Aviso Clínico e Educacional (Dr. Exame):</strong> Este simulador utiliza modelos farmacocinéticos teóricos (curva de absorção e eliminação com meia-vida, tempo de pico e fração molecular do éster) apenas para fins educacionais e apoio à interpretação de picos, vales e momento de coleta laboratorial com o seu médico. O Dr. Exame <strong>não recomenda, prescreve ou sugere dosagens ou protocolos</strong>.
+    </footer>
+
+  </main>
+
+  <script>
+    // Banco farmacocinético de compostos e ésteres (com concentração padrão de mercado em mg/ml)
+    const COMPOUNDS = [
+      { id: 'sustanon',  name: 'Durateston / Sustanon (Mistura 4 ésteres)', halfLife: 4.8, tmax: 1.4, esterRatio: 0.710, defaultConc: 250, color: '#0d9488' },
+      { id: 'mast_prop', name: 'Masteron Propionato',                       halfLife: 2.0, tmax: 0.9, esterRatio: 0.840, defaultConc: 100, color: '#ec4899' },
+      { id: 'mast_enan', name: 'Masteron Enantato',                         halfLife: 5.0, tmax: 2.0, esterRatio: 0.730, defaultConc: 200, color: '#db2777' },
+      { id: 'test_cyp',  name: 'Testosterona Cipionato (Deposteron/Lander)', halfLife: 5.0, tmax: 2.0, esterRatio: 0.699, defaultConc: 200, color: '#0284c7' },
+      { id: 'test_enan', name: 'Testosterona Enantato',                     halfLife: 4.5, tmax: 1.8, esterRatio: 0.720, defaultConc: 250, color: '#0369a1' },
+      { id: 'test_prop', name: 'Testosterona Propionato',                   halfLife: 0.9, tmax: 0.5, esterRatio: 0.837, defaultConc: 100, color: '#059669' },
+      { id: 'test_und',  name: 'Testosterona Undecanoato (Nebido)',         halfLife: 21.0, tmax: 7.0, esterRatio: 0.632, defaultConc: 250, color: '#0f766e' },
+      { id: 'nand_dec',  name: 'Nandrolona Decanoato (Deca)',               halfLife: 7.5, tmax: 3.0, esterRatio: 0.640, defaultConc: 200, color: '#6366f1' },
+      { id: 'nand_npp',  name: 'Nandrolona Fenilpropionato (NPP)',          halfLife: 2.5, tmax: 1.2, esterRatio: 0.670, defaultConc: 100, color: '#8b5cf6' },
+      { id: 'bold_und',  name: 'Boldenona Undecilenato',                    halfLife: 14.0, tmax: 4.5, esterRatio: 0.630, defaultConc: 250, color: '#10b981' },
+      { id: 'tren_ace',  name: 'Trembolona Acetato',                        halfLife: 1.2, tmax: 0.6, esterRatio: 0.870, color: '#f59e0b', defaultConc: 100 },
+      { id: 'tren_enan', name: 'Trembolona Enantato',                       halfLife: 5.5, tmax: 2.2, esterRatio: 0.720, color: '#d97706', defaultConc: 200 },
+      { id: 'oxand',     name: 'Oxandrolona (Oral)',                        halfLife: 0.4, tmax: 0.1, esterRatio: 1.000, color: '#ef4444', defaultConc: 10, isOral: true },
+    ];
+
+    const FREQUENCIES = [
+      { id: '1',    label: 'Todos os dias',            days: 1 },
+      { id: '2',    label: 'Dia sim, dia não',         days: 2 },
+      { id: '3.5',  label: 'A cada 3,5 dias (2x/sem)', days: 3.5 },
+      { id: '7',    label: '1x por semana',            days: 7 },
+      { id: '10',   label: 'A cada 10 dias',           days: 10 },
+      { id: '14',   label: 'A cada 14 dias',           days: 14 },
+      { id: '70',   label: 'A cada 10 semanas (Nebido)', days: 70 },
+    ];
+
+    let protocol = [
+      { uid: 1, compoundId: 'sustanon',  unit: 'ml', amount: 1.0, conc: 250, freqDays: 7,   startWeek: 1, endWeek: 12 },
+      { uid: 2, compoundId: 'mast_prop', unit: 'ml', amount: 1.0, conc: 100, freqDays: 3.5, startWeek: 1, endWeek: 12 },
+    ];
+    let nextUid = 3;
+    let lastChartData = null;
+
+    function getDoseMg(item) {
+      return item.unit === 'ml' ? item.amount * item.conc : item.amount;
+    }
+
+    function loadPreset(type) {
+      if (type === 'dura_mast') {
+        protocol = [
+          { uid: nextUid++, compoundId: 'sustanon',  unit: 'ml', amount: 1.0, conc: 250, freqDays: 7,   startWeek: 1, endWeek: 12 },
+          { uid: nextUid++, compoundId: 'mast_prop', unit: 'ml', amount: 1.0, conc: 100, freqDays: 3.5, startWeek: 1, endWeek: 12 },
+        ];
+        document.getElementById('compareToggle').checked = false;
+      } else if (type === 'trt_1x') {
+        protocol = [{ uid: nextUid++, compoundId: 'test_cyp', unit: 'ml', amount: 1.0, conc: 200, freqDays: 7, startWeek: 1, endWeek: 12 }];
+        document.getElementById('compareToggle').checked = true;
+      } else {
+        protocol = [{ uid: nextUid++, compoundId: 'test_cyp', unit: 'ml', amount: 0.5, conc: 200, freqDays: 3.5, startWeek: 1, endWeek: 12 }];
+        document.getElementById('compareToggle').checked = false;
+      }
+      renderCompoundList();
+      renderAll();
+    }
+
+    function addCompound() {
+      const weeks = Number(document.getElementById('weeksSelect').value);
+      protocol.push({
+        uid: nextUid++,
+        compoundId: 'nand_npp',
+        unit: 'ml',
+        amount: 1.0,
+        conc: 100,
+        freqDays: 3.5,
+        startWeek: 1,
+        endWeek: weeks,
+      });
+      renderCompoundList();
+      renderAll();
+    }
+
+    function removeCompound(uid) {
+      if (protocol.length <= 1) return;
+      protocol = protocol.filter(p => p.uid !== uid);
+      renderCompoundList();
+      renderAll();
+    }
+
+    function updateItem(uid, field, val) {
+      const item = protocol.find(p => p.uid === uid);
+      if (!item) return;
+      if (field === 'compoundId') {
+        item.compoundId = val;
+        const comp = COMPOUNDS.find(c => c.id === val);
+        if (comp) {
+          item.conc = comp.defaultConc;
+          if (comp.isOral) { item.unit = 'mg'; item.amount = 20; }
+        }
+      } else if (field === 'unit') {
+        if (item.unit !== val) {
+          if (val === 'mg') item.amount = Math.round(item.amount * item.conc);
+          else item.amount = Number((item.amount / Math.max(1, item.conc)).toFixed(2));
+          item.unit = val;
+        }
+      } else {
+        item[field] = Number(val);
+      }
+      renderCompoundList();
+      renderAll();
+    }
+
+    // Equação de Bateman: retorna taxa instantânea normalizada pela integral = doseAtiva
+    // C(t) = D_ativo * (ka * ke / (ka - ke)) * (exp(-ke*t) - exp(-ka*t)) -> integral de 0 a inf = D_ativo (mg/dia)
+    function batemanReleasePerDay(tDays, activeDoseMg, halfLifeDays, tmaxDays) {
+      if (tDays < 0) return 0;
+      const ke = Math.LN2 / Math.max(0.15, halfLifeDays);
+      // Aproximação numérica/analítica para ka a partir de tmax e ke: ka > ke
+      const ka = Math.max(ke * 1.4, (Math.log(3.5) / Math.max(0.08, tmaxDays)));
+      if (Math.abs(ka - ke) < 1e-4) {
+        return activeDoseMg * ke * ke * tDays * Math.exp(-ke * tDays);
+      }
+      const val = activeDoseMg * ((ka * ke) / (ka - ke)) * (Math.exp(-ke * tDays) - Math.exp(-ka * tDays));
+      return Math.max(0, val);
+    }
+
+    function computeSeries(items, totalDays, varPct, split2x = false) {
+      const stepsPerDay = 4; // resolução de 6h
+      const totalSteps = totalDays * stepsPerDay;
+      const scaleMeta = 1 + varPct / 100;
+
+      const seriesPerItem = items.map(item => {
+        const comp = COMPOUNDS.find(c => c.id === item.compoundId) || COMPOUNDS[0];
+        const rawDoseMg = getDoseMg(item);
+        const effDose = split2x && item.freqDays >= 7 ? rawDoseMg / 2 : rawDoseMg;
+        const effFreq = split2x && item.freqDays >= 7 ? item.freqDays / 2 : item.freqDays;
+        const activeDose = effDose * comp.esterRatio;
+
+        const startDay = (item.startWeek - 1) * 7;
+        const endDay = item.endWeek * 7;
+
+        const injectionDays = [];
+        for (let d = startDay; d < Math.min(endDay, totalDays); d += effFreq) {
+          injectionDays.push(d);
+        }
+
+        const values = new Float64Array(totalSteps + 1);
+        const hl = comp.halfLife / scaleMeta;
+        const tm = comp.tmax / scaleMeta;
+
+        for (let s = 0; s <= totalSteps; s++) {
+          const day = s / stepsPerDay;
+          let sum = 0;
+          for (let j = 0; j < injectionDays.length; j++) {
+            const dt = day - injectionDays[j];
+            if (dt >= 0) {
+              sum += batemanReleasePerDay(dt, activeDose, hl, tm);
+            }
+          }
+          values[s] = sum;
+        }
+        return { item, comp, values, injectionDays };
+      });
+
+      const total = new Float64Array(totalSteps + 1);
+      for (let s = 0; s <= totalSteps; s++) {
+        let sum = 0;
+        for (const ser of seriesPerItem) sum += ser.values[s];
+        total[s] = sum;
+      }
+
+      return { stepsPerDay, totalSteps, seriesPerItem, total };
+    }
+
+    function renderCompoundList() {
+      const container = document.getElementById('compoundList');
+      container.innerHTML = protocol.map(item => {
+        const comp = COMPOUNDS.find(c => c.id === item.compoundId) || COMPOUNDS[0];
+        const totalMg = getDoseMg(item);
+        return `
+          <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+            <div class="md:col-span-3 space-y-1">
+              <label class="text-[11px] font-semibold text-slate-600 flex items-center gap-1.5">
+                <span class="h-2.5 w-2.5 rounded-full inline-block" style="background:${comp.color}"></span>
+                Composto & Éster
+              </label>
+              <select onchange="updateItem(${item.uid}, 'compoundId', this.value)" class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-medium text-slate-800 focus:border-teal-500 focus:outline-none">
+                ${COMPOUNDS.map(c => `<option value="${c.id}" ${c.id === item.compoundId ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+            </div>
+
+            <div class="md:col-span-3 space-y-1">
+              <label class="text-[11px] font-semibold text-slate-600">Dose (${item.unit === 'ml' ? 'ml na seringa' : 'mg'})</label>
+              <div class="flex items-center gap-1.5">
+                <input type="number" min="0.1" max="2000" step="${item.unit === 'ml' ? '0.1' : '5'}" value="${item.amount}" onchange="updateItem(${item.uid}, 'amount', this.value)" class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-semibold text-slate-800 tabular-nums focus:border-teal-500 focus:outline-none" />
+                <div class="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 shrink-0">
+                  <button type="button" onclick="updateItem(${item.uid}, 'unit', 'ml')" class="px-2 py-1 text-[11px] font-semibold rounded-md ${item.unit === 'ml' ? 'bg-teal-600 text-white' : 'text-slate-600 hover:bg-slate-100'}">ml</button>
+                  <button type="button" onclick="updateItem(${item.uid}, 'unit', 'mg')" class="px-2 py-1 text-[11px] font-semibold rounded-md ${item.unit === 'mg' ? 'bg-teal-600 text-white' : 'text-slate-600 hover:bg-slate-100'}">mg</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="md:col-span-2 space-y-1">
+              <label class="text-[11px] font-semibold text-slate-600">Concentração (mg/ml)</label>
+              <input type="number" min="10" max="500" step="10" value="${item.conc}" onchange="updateItem(${item.uid}, 'conc', this.value)" ${item.unit === 'mg' ? 'disabled' : ''} class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-semibold text-slate-800 tabular-nums disabled:opacity-50 focus:border-teal-500 focus:outline-none" />
+            </div>
+
+            <div class="md:col-span-2 space-y-1">
+              <label class="text-[11px] font-semibold text-slate-600">Frequência</label>
+              <select onchange="updateItem(${item.uid}, 'freqDays', this.value)" class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-medium text-slate-800 focus:border-teal-500 focus:outline-none">
+                ${FREQUENCIES.map(f => `<option value="${f.days}" ${Number(f.days) === Number(item.freqDays) ? 'selected' : ''}>${f.label}</option>`).join('')}
+              </select>
+            </div>
+
+            <div class="md:col-span-1 flex items-center gap-1">
+              <div class="w-1/2 space-y-1">
+                <label class="text-[10px] font-semibold text-slate-600">Início</label>
+                <input type="number" min="1" max="24" value="${item.startWeek}" onchange="updateItem(${item.uid}, 'startWeek', this.value)" class="w-full rounded-lg border border-slate-200 bg-white px-1.5 py-2 text-xs tabular-nums" />
+              </div>
+              <div class="w-1/2 space-y-1">
+                <label class="text-[10px] font-semibold text-slate-600">Fim</label>
+                <input type="number" min="1" max="24" value="${item.endWeek}" onchange="updateItem(${item.uid}, 'endWeek', this.value)" class="w-full rounded-lg border border-slate-200 bg-white px-1.5 py-2 text-xs tabular-nums" />
+              </div>
+            </div>
+
+            <div class="md:col-span-1 flex justify-end">
+              <button onclick="removeCompound(${item.uid})" title="Remover" class="rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition ${protocol.length <= 1 ? 'opacity-30 pointer-events-none' : ''}">
+                ✕
+              </button>
+            </div>
+
+            <div class="md:col-span-12 flex flex-wrap gap-2 pt-1 text-[11px] text-slate-500">
+              <span class="rounded bg-teal-50 px-2 py-0.5 font-semibold text-teal-800 ring-1 ring-teal-200">
+                Conversão: <strong>${item.unit === 'ml' ? `${item.amount} ml × ${item.conc} mg/ml = ${totalMg.toFixed(0)} mg` : `${totalMg.toFixed(0)} mg`}</strong>
+              </span>
+              <span class="rounded bg-white px-2 py-0.5 ring-1 ring-slate-200">Meia-vida: <strong>${comp.halfLife}d</strong></span>
+              <span class="rounded bg-white px-2 py-0.5 ring-1 ring-slate-200">Tempo de Pico: <strong>${comp.tmax}d</strong></span>
+              <span class="rounded bg-white px-2 py-0.5 ring-1 ring-slate-200">Ativo (sem éster): <strong>${Math.round(comp.esterRatio * 100)}%</strong> (${(totalMg * comp.esterRatio).toFixed(1)} mg reais/aplicação)</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderAll() {
+      const weeks = Number(document.getElementById('weeksSelect').value);
+      const totalDays = weeks * 7;
+      const varPct = Number(document.getElementById('varSlider').value);
+      const compare = document.getElementById('compareToggle').checked;
+
+      const labSlider = document.getElementById('labDaySlider');
+      labSlider.max = totalDays;
+      if (Number(labSlider.value) > totalDays) labSlider.value = Math.floor(totalDays / 2);
+      const labDay = Number(labSlider.value);
+
+      document.getElementById('varLabel').textContent = varPct === 0 ? '0% (Padrão)' : (varPct > 0 ? `+${varPct}% (Rápido)` : `${varPct}% (Lento)`);
+      document.getElementById('labDayLabel').textContent = `Dia ${labDay} (Semana ${(labDay / 7).toFixed(1)})`;
+
+      const mainData = computeSeries(protocol, totalDays, varPct, false);
+      const compData = compare ? computeSeries(protocol, totalDays, varPct, true) : null;
+
+      lastChartData = { mainData, compData, totalDays, labDay };
+
+      // Calcular KPIs na segunda metade (steady state)
+      const steadyStart = Math.floor(mainData.totalSteps * 0.4);
+      let sum = 0, count = 0, peak = 0, trough = Infinity;
+      for (let s = steadyStart; s <= mainData.totalSteps - 4; s++) {
+        const v = mainData.total[s];
+        sum += v; count++;
+        if (v > peak) peak = v;
+        if (v < trough) trough = v;
+      }
+      const avg = count ? sum / count : 0;
+      const swing = avg > 0 ? ((peak - trough) / avg) * 100 : 0;
+
+      document.getElementById('kpiAvg').textContent = `${avg.toFixed(1)} mg/d`;
+      document.getElementById('kpiPeak').textContent = `${peak.toFixed(1)} mg/d`;
+      document.getElementById('kpiTrough').textContent = `${(trough === Infinity ? 0 : trough).toFixed(1)} mg/d`;
+
+      const swingEl = document.getElementById('kpiSwing');
+      const badgeEl = document.getElementById('kpiSwingBadge');
+      swingEl.textContent = `${Math.round(swing)}%`;
+      if (swing < 35) {
+        swingEl.className = 'text-2xl font-bold tabular-nums text-emerald-600';
+        badgeEl.className = 'rounded-full px-2 py-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-700';
+        badgeEl.textContent = 'Estável';
+      } else if (swing < 70) {
+        swingEl.className = 'text-2xl font-bold tabular-nums text-amber-600';
+        badgeEl.className = 'rounded-full px-2 py-0.5 text-[10px] font-semibold bg-amber-50 text-amber-700';
+        badgeEl.textContent = 'Moderado';
+      } else {
+        swingEl.className = 'text-2xl font-bold tabular-nums text-rose-600';
+        badgeEl.className = 'rounded-full px-2 py-0.5 text-[10px] font-semibold bg-rose-50 text-rose-700';
+        badgeEl.textContent = 'Pico/Vale Alto';
+      }
+
+      // Contexto da coleta de exame + Fator de resposta individual (cruzamento real)
+      const labStep = Math.min(mainData.totalSteps, labDay * mainData.stepsPerDay);
+      const labVal = mainData.total[labStep];
+      const labTesto = Number(document.getElementById('labTestoInput')?.value || 1180);
+      const factor = labVal > 0 ? labTesto / labVal : 0;
+      const relPos = peak > trough ? (labVal - trough) / (peak - trough) : 0.5;
+      const labMsg = document.getElementById('labContextMsg');
+      if (relPos > 0.72) {
+        labMsg.textContent = `📈 Coleta no PICO (${labVal.toFixed(1)} mg/dia) · Exame ${labTesto} ng/dL (~${factor.toFixed(0)} ng/dL por mg/d). Vale estimado: ~${Math.round(trough * factor)} ng/dL.`;
+      } else if (relPos < 0.28) {
+        labMsg.textContent = `📉 Coleta no VALE (${labVal.toFixed(1)} mg/dia) · Exame ${labTesto} ng/dL (~${factor.toFixed(0)} ng/dL por mg/d). Pico estimado: ~${Math.round(peak * factor)} ng/dL.`;
+      } else {
+        labMsg.textContent = `⚖️ Coleta INTERMEDIÁRIA (${labVal.toFixed(1)} mg/dia) · Exame ${labTesto} ng/dL (~${factor.toFixed(0)} ng/dL por mg/d). Faixa: ${Math.round(trough * factor)}–${Math.round(peak * factor)} ng/dL.`;
+      }
+
+      // Legenda
+      const legend = document.getElementById('legendContainer');
+      legend.innerHTML = mainData.seriesPerItem.map(s => `
+        <span class="inline-flex items-center gap-1.5 text-slate-600">
+          <span class="h-2.5 w-2.5 rounded-full" style="background:${s.comp.color}"></span>
+          ${s.comp.name}
+        </span>
+      `).join('') + (protocol.length > 1 ? `
+        <span class="inline-flex items-center gap-1.5 font-semibold text-slate-900">
+          <span class="h-0.5 w-4 bg-slate-900 inline-block"></span> Total Combinado
+        </span>` : '') + (compare ? `
+        <span class="inline-flex items-center gap-1.5 font-semibold text-amber-600">
+          <span class="h-0.5 w-4 border-b-2 border-dashed border-amber-500 inline-block"></span> Comparação 2x/sem
+        </span>` : '');
+
+      drawCanvas();
+    }
+
+    function drawCanvas(hoverStep = null) {
+      const canvas = document.getElementById('pkChart');
+      const wrapper = document.getElementById('chartWrapper');
+      const dpr = window.devicePixelRatio || 1;
+      const w = wrapper.clientWidth;
+      const h = wrapper.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      if (!lastChartData) return;
+      const { mainData, compData, totalDays, labDay } = lastChartData;
+
+      const pad = { top: 20, right: 20, bottom: 32, left: 46 };
+      const cw = w - pad.left - pad.right;
+      const ch = h - pad.top - pad.bottom;
+
+      let maxY = 10;
+      for (let s = 0; s <= mainData.totalSteps; s++) {
+        if (mainData.total[s] > maxY) maxY = mainData.total[s];
+        if (compData && compData.total[s] > maxY) maxY = compData.total[s];
+      }
+      maxY = Math.ceil(maxY * 1.15);
+
+      const xOf = (step) => pad.left + (step / mainData.totalSteps) * cw;
+      const yOf = (val) => pad.top + ch - (val / maxY) * ch;
+
+      // Grid horizontal
+      ctx.strokeStyle = '#f1f5f9';
+      ctx.lineWidth = 1;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillStyle = '#64748b';
+      ctx.textAlign = 'right';
+      for (let i = 0; i <= 4; i++) {
+        const val = (maxY / 4) * i;
+        const y = yOf(val);
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(w - pad.right, y);
+        ctx.stroke();
+        ctx.fillText(`${val.toFixed(0)}`, pad.left - 8, y + 4);
+      }
+
+      // Eixo X (semanas)
+      ctx.textAlign = 'center';
+      const weeks = totalDays / 7;
+      for (let wk = 0; wk <= weeks; wk += weeks > 16 ? 2 : 1) {
+        const step = wk * 7 * mainData.stepsPerDay;
+        const x = xOf(step);
+        ctx.fillText(`S${wk}`, x, h - 10);
+      }
+
+      // Séries individuais (com preenchimento suave)
+      for (const ser of mainData.seriesPerItem) {
+        ctx.beginPath();
+        for (let s = 0; s <= mainData.totalSteps; s++) {
+          const x = xOf(s), y = yOf(ser.values[s]);
+          if (s === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = ser.comp.color;
+        ctx.lineWidth = protocol.length === 1 ? 2.5 : 1.75;
+        ctx.stroke();
+
+        // Fill translúcido
+        ctx.lineTo(xOf(mainData.totalSteps), yOf(0));
+        ctx.lineTo(xOf(0), yOf(0));
+        ctx.closePath();
+        ctx.fillStyle = ser.comp.color + '18';
+        ctx.fill();
+      }
+
+      // Linha Total (se > 1 composto)
+      if (protocol.length > 1) {
+        ctx.beginPath();
+        for (let s = 0; s <= mainData.totalSteps; s++) {
+          const x = xOf(s), y = yOf(mainData.total[s]);
+          if (s === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+
+      // Linha de Comparação (tracejada âmbar)
+      if (compData) {
+        ctx.save();
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        for (let s = 0; s <= compData.totalSteps; s++) {
+          const x = xOf(s), y = yOf(compData.total[s]);
+          if (s === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 2.25;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Pino do Dia da Coleta (Dr. Exame Exclusive)
+      const labStep = Math.min(mainData.totalSteps, labDay * mainData.stepsPerDay);
+      const lx = xOf(labStep);
+      const ly = yOf(mainData.total[labStep]);
+      ctx.save();
+      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = '#e11d48';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(lx, pad.top);
+      ctx.lineTo(lx, pad.top + ch);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.fillStyle = '#e11d48';
+      ctx.beginPath();
+      ctx.arc(lx, ly, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Hover crosshair
+      if (hoverStep !== null && hoverStep >= 0 && hoverStep <= mainData.totalSteps) {
+        const hx = xOf(hoverStep);
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(hx, pad.top);
+        ctx.lineTo(hx, pad.top + ch);
+        ctx.stroke();
+      }
+    }
+
+    // Hover Tooltip
+    const canvas = document.getElementById('pkChart');
+    canvas.addEventListener('mousemove', (e) => {
+      if (!lastChartData) return;
+      const rect = canvas.getBoundingClientRect();
+      const padLeft = 46, padRight = 20;
+      const cw = rect.width - padLeft - padRight;
+      const relX = Math.max(0, Math.min(1, (e.clientX - rect.left - padLeft) / cw));
+      const step = Math.round(relX * lastChartData.mainData.totalSteps);
+      const day = (step / lastChartData.mainData.stepsPerDay).toFixed(1);
+
+      drawCanvas(step);
+
+      const tooltip = document.getElementById('chartTooltip');
+      tooltip.classList.remove('hidden');
+      const totalVal = lastChartData.mainData.total[step].toFixed(1);
+      const compVal = lastChartData.compData ? lastChartData.compData.total[step].toFixed(1) : null;
+
+      tooltip.innerHTML = `
+        <div class="font-semibold text-slate-900 mb-1">Dia ${day} · Total: <span class="text-teal-700">${totalVal} mg/d</span></div>
+        ${lastChartData.mainData.seriesPerItem.map(s => `
+          <div class="flex items-center justify-between gap-3 text-[11px] text-slate-600">
+            <span><span class="inline-block w-2 h-2 rounded-full mr-1" style="background:${s.comp.color}"></span>${s.comp.name.split(' ')[0]}</span>
+            <strong class="tabular-nums">${s.values[step].toFixed(1)} mg/d</strong>
+          </div>
+        `).join('')}
+        ${compVal ? `<div class="mt-1 pt-1 border-t border-slate-100 text-[11px] text-amber-700 font-semibold">Comparação 2x/sem: ${compVal} mg/d</div>` : ''}
+      `;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      document.getElementById('chartTooltip').classList.add('hidden');
+      drawCanvas(null);
+    });
+
+    window.addEventListener('resize', () => drawCanvas());
+
+    renderCompoundList();
+    renderAll();
+  </script>
+</body>
+</html>
