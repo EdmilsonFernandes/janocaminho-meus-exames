@@ -20,7 +20,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/reui/badge';
 import { NumberField, NumberFieldDecrement, NumberFieldGroup, NumberFieldIncrement, NumberFieldInput } from '@/components/reui/number-field';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { CompoundIcon, CompoundPicker } from '@/components/radar/compound-picker';
+import { CompoundIcon, CompoundPicker, hasCompoundPhoto } from '@/components/radar/compound-picker';
 import { RADAR_FREQUENCIES, compoundById, getDoseMg, type RadarProtocolItem } from '@/utils/hormoneRadar';
 
 const FREQ_SHORT: Record<number, string> = { 1: 'Todo dia', 2: 'Dia sim, dia não', 3.5: '2x por semana', 7: '1x por semana', 10: 'A cada 10 dias', 14: 'A cada 14 dias', 70: 'A cada 10 semanas' };
@@ -69,7 +69,7 @@ export function ProtocolItem({
     <div className="flex flex-col gap-4">
       {/* Leitura: o que foi cadastrado, em uma frase */}
       <div className="flex items-start gap-3">
-        <CompoundIcon comp={comp} className="size-10 rounded-xl [&>svg]:size-5" />
+        <CompoundIcon comp={comp} className={hasCompoundPhoto(comp.id) ? 'size-16 rounded-xl' : 'size-10 rounded-xl [&>svg]:size-5'} />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
             <svg aria-hidden="true" width="22" height="6" viewBox="0 0 22 6" className="shrink-0">
