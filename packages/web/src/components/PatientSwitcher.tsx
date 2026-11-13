@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { UserTrigger, useOnline } from '@/components/reui/app-header';
 import { useNavigate } from 'react-router-dom';
 import { useLogout, useLocale, useSetLocale, useStore, useNotify } from 'react-admin';
 import {
@@ -101,60 +102,19 @@ export const PatientSwitcher = () => {
   };
 
   const current = patients.find((p) => p.id === pid);
+  const online = useOnline();
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      <Button
+      <UserTrigger
+        name={current?.fullName}
+        detail={current?.relationship}
+        photo={photoFor(current)}
+        online={online}
+        aria-haspopup="menu"
+        aria-expanded={!!anchor}
         onClick={(e) => setAnchor(e.currentTarget)}
-        disableElevation
-        sx={{
-          borderRadius: '999px',
-          pl: 0.5, pr: { xs: 0.5, sm: 1 }, py: 0.25, minHeight: 44,
-          color: 'inherit',
-          textTransform: 'none',
-          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.10)' : 'rgba(32,178,170,0.06)',
-          border: '1px solid',
-          borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.25)' : 'rgba(32,178,170,0.18)',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-          transition: 'all .18s ease',
-          '&:hover': {
-            bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.18)' : 'rgba(32,178,170,0.14)',
-            transform: 'translateY(-0.5px)',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
-          },
-          maxWidth: { xs: 'none', sm: 280 },
-          '& .MuiButton-startIcon': { mr: 0.75, ml: 0 },
-        }}
-        startIcon={
-          <Avatar
-            src={photoFor(current)}
-            sx={{
-              width: 32,
-              height: 32,
-              bgcolor: 'primary.main',
-              fontSize: 14,
-              fontWeight: 800,
-              boxShadow: (t) => t.palette.mode === 'dark'
-                ? '0 0 0 1.5px #20b2aa, 0 2px 6px rgba(0,0,0,.4)'
-                : '0 0 0 1.5px #fff, 0 0 0 2.5px rgba(32,178,170,0.4), 0 2px 6px rgba(0,0,0,.12)',
-            }}
-          >
-            {current?.fullName?.charAt(0)?.toUpperCase() ?? <PersonIcon sx={{ fontSize: 18 }} />}
-          </Avatar>
-        }
-        endIcon={<KeyboardArrowDownIcon sx={{ opacity: 0.7, fontSize: 18 }} />}
-      >
-        <Box sx={{ display: { xs: 'none', sm: 'flex' }, flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15, overflow: 'hidden', textAlign: 'left', minWidth: 0 }}>
-          <Typography component="span" sx={{ fontSize: 12, fontWeight: 800, maxWidth: { xs: 75, sm: 130 }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {current?.fullName ?? 'Selecionar'}
-          </Typography>
-          {current?.relationship && (
-            <Typography component="span" sx={{ fontSize: 12, color: 'text.secondary', opacity: 0.85, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {current.relationship}
-            </Typography>
-          )}
-        </Box>
-      </Button>
+      />
 
       <Menu anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 260, borderRadius: '12px', boxShadow: '0 8px 28px rgba(0,0,0,0.14)' } } }}>
         {patients.map((p) => (

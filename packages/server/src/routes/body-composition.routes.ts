@@ -18,6 +18,7 @@ import { pdfToText } from '../extraction/pdfToText';
 import { ocrPdfPages } from '../extraction/ocrPdf';
 import { imageToText } from '../extraction/imageToText';
 import { getLlm, getModel } from '../llm';
+import { CREDIT_COSTS, chargeCredits, refundCredits } from '../utils/credits';
 import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
 
 const router = Router();
@@ -172,13 +173,27 @@ export async function readReport(buffer: Buffer, mimetype: string): Promise<Pick
 router.post('/report', reportLimiter, upload.single('file'), async (req: AuthedRequest, res, next) => {
   try {
     if (!req.file) { res.status(400).json({ error: 'Envie o PDF ou a foto do laudo.' }); return; }
+    // Cobra ANTES de gastar IA (custo editável no admin: creditCosts.bodyReport; 0 = grátis).
+    // Leitura que não termina em prévia (ilegível, não é bioimpedância, IA falhou) é estornada.
+    const cost = Math.max(0, Math.round(CREDIT_COSTS.bodyReport ?? 0));
+    if (cost > 0 && !(await chargeCredits(req.userId!, cost, 'body_report', 'Leitura de laudo de bioimpedância'))) {
+      res.status(402).json({ error: `Você precisa de ${cost} créditos para ler o laudo. Digitar os valores continua grátis.`, code: 'INSUFFICIENT_CREDITS', cost });
+      return;
+    }
     pruneJobs();
     const jobId = randomUUID();
     const job: ReportJob = { userId: req.userId!, status: 'pending', expiresAt: Date.now() + JOB_TTL_MS };
     reportJobs.set(jobId, job);
     const { buffer, mimetype } = req.file;
-    void readReport(buffer, mimetype).then((outcome) => { Object.assign(job, outcome, { expiresAt: Date.now() + JOB_TTL_MS }); });
-    res.status(202).json({ jobId });
+    const userId = req.userId!;
+    void readReport(buffer, mimetype).then(async (outcome) => {
+      if (outcome.status === 'error' && cost > 0) {
+        await refundCredits(userId, cost, 'body_report_refund', 'Estorno: laudo de bioimpedância não lido');
+        outcome = { ...outcome, error: `${outcome.error} Seus créditos foram devolvidos.` };
+      }
+      Object.assign(job, outcome, { expiresAt: Date.now() + JOB_TTL_MS });
+    });
+    res.status(202).json({ jobId, cost });
   } catch (e) { next(e); }
 });
 
@@ -188,6 +203,87 @@ router.get('/report/:jobId', (req: AuthedRequest, res) => {
   if (job.status === 'pending') { res.json({ status: 'pending' }); return; }
   if (job.status === 'error') { res.status(422).json({ status: 'error', error: job.error, code: job.code }); return; }
   res.json({ status: 'done', preview: job.preview, dropped: job.dropped });
+});
+
+/** Nome legível do app que gravou o dado no Health Connect (vira a "marca" da avaliação). */
+const HC_ORIGINS: Record<string, string> = {
+  'com.sec.android.app.shealth': 'Samsung Health',
+  'com.samsung.android.wear.shealth': 'Samsung Health',
+  'com.google.android.apps.fitness': 'Google Fit',
+  'com.fitbit.FitbitMobile': 'Fitbit',
+  'com.withings.wiscale2': 'Withings',
+  'com.xiaomi.wearable': 'Mi Fitness',
+  'com.mi.health': 'Mi Fitness',
+  'com.huami.watch.hmwatchmanager': 'Zepp',
+  'com.garmin.android.apps.connectmobile': 'Garmin Connect',
+  'com.renpho.health': 'Renpho',
+};
+const originLabel = (pkg: unknown) => {
+  const p = typeof pkg === 'string' ? pkg.trim().slice(0, 80) : '';
+  return HC_ORIGINS[p] ?? 'Health Connect';
+};
+
+/**
+ * Importa avaliações lidas do Health Connect pelo app (relógio/balança inteligente).
+ * Sem IA → grátis. Idempotente: a mesma medição (paciente + instante) não entra duas vezes,
+ * então o app pode reenviar o histórico inteiro a cada sincronização.
+ */
+router.post('/health-connect', async (req: AuthedRequest, res, next) => {
+  try {
+    const { readings, patientId } = req.body ?? {};
+    if (!Array.isArray(readings) || readings.length === 0 || readings.length > 200) {
+      res.status(400).json({ error: 'Envie de 1 a 200 medições.' });
+      return;
+    }
+    const pid = await resolvePatient(req, patientId);
+    if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
+    const patient = await prisma.patient.findUnique({ where: { id: pid }, select: { heightCm: true } });
+
+    const rows: Array<Record<string, unknown> & { measuredAt: Date }> = [];
+    let invalid = 0;
+    const seen = new Set<number>();
+    for (const r of readings) {
+      const at = new Date(typeof r?.time === 'string' ? r.time : NaN);
+      const errors: string[] = [];
+      const weightKg = optNum(r, 'weightKg', 20, 300, errors);
+      const bodyFatPct = optNum(r, 'bodyFatPct', 2, 75, errors);
+      const bmrKcal = optNum(r, 'bmrKcal', 600, 4500, errors);
+      const heightIn = optNum(r, 'heightCm', 100, 230, errors);
+      const leanKg = optNum(r, 'leanKg', 10, 150, errors);
+      const waterKg = optNum(r, 'waterKg', 10, 90, errors);
+      // Sem data válida, sem peso ou sem gordura não é uma avaliação; campo opcional fora da
+      // faixa derruba só ele mesmo (errors), não a medição.
+      if (Number.isNaN(at.getTime()) || at.getTime() > Date.now() + 48 * 3600 * 1000 || at.getFullYear() < 2010 || weightKg == null || bodyFatPct == null) { invalid++; continue; }
+      const key = Math.floor(at.getTime() / 1000);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const measuredAt = new Date(key * 1000);
+      const w = Math.round(weightKg * 10) / 10;
+      const pct = Math.round(bodyFatPct * 10) / 10;
+      const fatMassKg = Math.round(w * pct) / 100;
+      const h = heightIn ?? patient?.heightCm ?? null;
+      rows.push({
+        patientId: pid, measuredAt, source: 'HEALTH_CONNECT', deviceBrand: originLabel(r?.origin), deviceModel: null,
+        weightKg: w, heightCm: h != null ? Math.round(h * 10) / 10 : null, bodyFatPct: pct, fatMassKg,
+        // Massa magra: a que o aparelho gravou; senão, a conta direta peso − gordura.
+        fatFreeMassKg: leanKg != null ? Math.round(leanKg * 10) / 10 : Math.round((w - fatMassKg) * 10) / 10,
+        bodyWaterL: waterKg != null ? Math.round(waterKg * 10) / 10 : null, // 1 kg de água ≈ 1 L
+        bmrKcal: bmrKcal != null ? Math.round(bmrKcal) : null,
+        bmi: h ? Math.round((w / (h / 100) ** 2) * 10) / 10 : null,
+        parserVersion: 'health-connect@1',
+      });
+    }
+    if (rows.length === 0) { res.status(400).json({ error: 'Nenhuma medição válida (é preciso peso e % de gordura).' }); return; }
+
+    const existing = await prisma.bodyComposition.findMany({
+      where: { patientId: pid, source: 'HEALTH_CONNECT', measuredAt: { in: rows.map((row) => row.measuredAt) } },
+      select: { measuredAt: true },
+    });
+    const have = new Set(existing.map((e) => e.measuredAt.getTime()));
+    const fresh = rows.filter((row) => !have.has(row.measuredAt.getTime()));
+    if (fresh.length) await prisma.bodyComposition.createMany({ data: fresh as never });
+    res.json({ imported: fresh.length, skipped: rows.length - fresh.length, invalid });
+  } catch (e) { next(e); }
 });
 
 /** Número opcional dentro de [min, max]; fora da faixa ou inválido → erro de validação. */

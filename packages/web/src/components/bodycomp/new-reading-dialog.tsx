@@ -10,7 +10,10 @@
  */
 import { useId, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
 import { Camera, FileText, ImageIcon, Info, QrCode, TriangleAlert } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../../config';
+import { AnalysisScan, BODYCOMP_CHIPS } from '../AnalysisScan';
+import { CREDIT_COSTS } from '../CreditBadge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { Badge } from '@/components/reui/badge';
 import { Button } from '@/components/ui/button';
@@ -44,7 +47,13 @@ async function postReport(file: File) {
   body.append('file', file);
   const sent = await fetch(`${API_URL}/body-composition/report`, { method: 'POST', headers: auth, body });
   const started = await sent.json().catch(() => ({}));
-  if (!sent.ok || !started?.jobId) throw new Error(started?.error || 'Não consegui enviar este laudo. Tente de novo ou digite os valores.');
+  if (!sent.ok || !started?.jobId) {
+    const err = new Error(started?.error || 'Não consegui enviar este laudo. Tente de novo ou digite os valores.');
+    (err as Error & { code?: string }).code = started?.code;
+    throw err;
+  }
+  // Cobrança feita no envio: o selo de saldo do app se atualiza (estorno também dispara no fim).
+  window.dispatchEvent(new Event('creditsChanged'));
   const deadline = Date.now() + 3 * 60 * 1000;
   while (Date.now() < deadline) {
     await wait(2500);
@@ -52,7 +61,10 @@ async function postReport(file: File) {
     if (!polled) continue; // rede oscilou: tenta de novo na próxima volta
     const json = await polled.json().catch(() => ({}));
     if (polled.ok && json?.status === 'done') return json as { preview: Preview };
-    if (!polled.ok) throw new Error(json?.error || 'Não consegui ler este laudo. Tente de novo ou digite os valores.');
+    if (!polled.ok) {
+      window.dispatchEvent(new Event('creditsChanged')); // houve estorno
+      throw new Error(json?.error || 'Não consegui ler este laudo. Tente de novo ou digite os valores.');
+    }
   }
   throw new Error('A leitura está demorando mais que o normal. Tente de novo em instantes ou digite os valores.');
 }
@@ -140,6 +152,9 @@ export function NewReadingDialog({
   const [preview, setPreview] = useState<Preview | null>(null);
   const [previewKind, setPreviewKind] = useState<'qr' | 'report'>('qr');
   const [reportDate, setReportDate] = useState('');
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const reportCost = Math.max(0, Math.round(CREDIT_COSTS.bodyReport ?? 0));
   const reportInput = useRef<HTMLInputElement>(null);
   const reportCamera = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM, measuredAt: today() });
@@ -147,7 +162,7 @@ export function NewReadingDialog({
   const galleryInput = useRef<HTMLInputElement>(null);
 
   const reset = () => {
-    setBusy(null); setError(null); setPayload(''); setLink(''); setPreview(null); setReportDate('');
+    setBusy(null); setError(null); setErrorCode(null); setPayload(''); setLink(''); setPreview(null); setReportDate('');
     setForm({ ...EMPTY_FORM, measuredAt: today() });
   };
   const close = (next: boolean) => {
@@ -197,6 +212,7 @@ export function NewReadingDialog({
     if (!file) return;
     if (file.size > 35 * 1024 * 1024) { setError('Arquivo grande demais (máximo 35 MB).'); return; }
     setError(null);
+    setErrorCode(null);
     setBusy('reading');
     try {
       const json = await postReport(file);
@@ -205,6 +221,7 @@ export function NewReadingDialog({
       setPreview(json.preview);
     } catch (e) {
       setError((e as Error).message);
+      setErrorCode((e as Error & { code?: string }).code ?? null);
     } finally {
       setBusy(null);
     }
@@ -299,6 +316,13 @@ export function NewReadingDialog({
           <Alert variant="destructive" className="transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] starting:opacity-0">
             <TriangleAlert aria-hidden="true" />
             <AlertTitle>{error}</AlertTitle>
+            {errorCode === 'INSUFFICIENT_CREDITS' ? (
+              <AlertDescription>
+                <Button size="lg" variant="outline" className="mt-2" onClick={() => { close(false); navigate('/planos'); }}>
+                  Ver créditos
+                </Button>
+              </AlertDescription>
+            ) : null}
           </Alert>
         ) : null}
 
@@ -359,17 +383,37 @@ export function NewReadingDialog({
             </p>
             <input ref={reportInput} type="file" accept="application/pdf,image/jpeg,image/png" hidden onChange={onReport} />
             <input ref={reportCamera} type="file" accept="image/jpeg,image/png" capture="environment" hidden onChange={onReport} />
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <Button size="lg" className="h-11" disabled={!!busy} onClick={() => reportInput.current?.click()}>
-                {busy === 'reading' ? <Spinner aria-hidden="true" /> : <FileText aria-hidden="true" />}
-                {busy === 'reading' ? 'Lendo o laudo…' : 'Escolher PDF ou foto'}
-              </Button>
-              <Button variant="outline" size="lg" className="h-11" disabled={!!busy} onClick={() => reportCamera.current?.click()}>
-                <Camera aria-hidden="true" />
-                Fotografar a folha
-              </Button>
-            </div>
-            <p className="m-0 text-xs text-muted-foreground">Foto: folha inteira, de frente, com boa luz e sem sombra. A leitura costuma levar de 30 segundos a 2 minutos.</p>
+            {busy === 'reading' ? (
+              // Mesma cena das leituras de exame (Dr. Exame + scanner), com valores de bioimpedância.
+              <div className="flex flex-col gap-2">
+                <AnalysisScan label="Dr. Exame está lendo seu laudo" chips={BODYCOMP_CHIPS} />
+                <p className="m-0 text-center text-xs text-muted-foreground">Costuma levar de 30 segundos a 2 minutos. Não feche esta janela.</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <Button size="lg" className="h-11" disabled={!!busy} onClick={() => reportInput.current?.click()}>
+                    <FileText aria-hidden="true" />
+                    Escolher PDF ou foto
+                  </Button>
+                  <Button variant="outline" size="lg" className="h-11" disabled={!!busy} onClick={() => reportCamera.current?.click()}>
+                    <Camera aria-hidden="true" />
+                    Fotografar a folha
+                  </Button>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                  {reportCost > 0 ? (
+                    <>
+                      <Badge variant="outline" className="tabular-nums">💎 {reportCost} crédito{reportCost > 1 ? 's' : ''}</Badge>
+                      <span>por leitura · se não der para ler, devolvemos.</span>
+                    </>
+                  ) : (
+                    <Badge variant="success-light">Grátis</Badge>
+                  )}
+                </div>
+                <p className="m-0 text-xs text-muted-foreground">Foto: folha inteira, de frente, com boa luz e sem sombra. QR InBody e digitar continuam grátis.</p>
+              </>
+            )}
           </div>
         ) : mode === 'qr' ? (
           <div className="flex flex-col gap-4">

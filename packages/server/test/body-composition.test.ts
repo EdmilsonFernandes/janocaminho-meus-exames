@@ -198,3 +198,50 @@ describe('Massa de dados sintética — cenários de vida real', () => {
     expect(new Date(res.body.items[0].measuredAt).getTime()).toBe(NOW.getTime());
   });
 });
+
+describe('API /body-composition/health-connect (relógio/balança)', () => {
+  beforeEach(resetDb);
+  const reading = (time: string, extra: Record<string, unknown> = {}) => ({ time, origin: 'com.sec.android.app.shealth', weightKg: 80.42, bodyFatPct: 19.56, bmrKcal: 1768.4, heightCm: 180, ...extra });
+
+  it('importa, deriva gordura/massa magra/IMC e não duplica ao reenviar', async () => {
+    const u = await createUser();
+    const body = { readings: [reading('2026-11-01T10:00:00Z'), reading('2026-11-08T10:05:30Z', { weightKg: 79.9, leanKg: 64.6, waterKg: 47.1 })] };
+    const first = await api().post('/api/body-composition/health-connect').set(authHeader(u.token)).send(body);
+    expect(first.status).toBe(200);
+    expect(first.body).toMatchObject({ imported: 2, skipped: 0, invalid: 0 });
+    const again = await api().post('/api/body-composition/health-connect').set(authHeader(u.token)).send(body);
+    expect(again.body).toMatchObject({ imported: 0, skipped: 2 });
+    expect(await prisma.bodyComposition.count()).toBe(2);
+
+    const list = await api().get('/api/body-composition').set(authHeader(u.token));
+    const [newest, oldest] = list.body.items;
+    expect(oldest).toMatchObject({ source: 'HEALTH_CONNECT', deviceBrand: 'Samsung Health', weightKg: 80.4, bodyFatPct: 19.6, fatMassKg: 15.76, fatFreeMassKg: 64.6, bmrKcal: 1768, bmi: 24.8, bodyWaterL: null });
+    expect(newest).toMatchObject({ weightKg: 79.9, fatFreeMassKg: 64.6, bodyWaterL: 47.1 });
+  });
+
+  it('pesagem sem gordura, data inválida/futura e valores absurdos não viram avaliação', async () => {
+    const u = await createUser();
+    const res = await api().post('/api/body-composition/health-connect').set(authHeader(u.token)).send({ readings: [
+      { time: '2026-11-01T10:00:00Z', origin: 'x', weightKg: 80 },
+      reading('não é data'),
+      reading('2099-01-01T00:00:00Z'),
+      reading('2026-11-02T10:00:00Z', { bodyFatPct: 140 }),
+      reading('2026-11-03T10:00:00Z', { bmrKcal: 99999, origin: 'app.desconhecido' }),
+    ] });
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ imported: 1, invalid: 4 });
+    const row = await prisma.bodyComposition.findFirstOrThrow();
+    // Campo opcional absurdo cai sozinho; a medição fica. Origem desconhecida → rótulo genérico.
+    expect(row).toMatchObject({ bmrKcal: null, deviceBrand: 'Health Connect', weightKg: 80.4 });
+  });
+
+  it('lista vazia, só inválidas ou mais de 200 → 400; sem login → 401; grátis (não mexe em créditos)', async () => {
+    const u = await createUser({ credits: 7 });
+    expect((await api().post('/api/body-composition/health-connect').set(authHeader(u.token)).send({ readings: [] })).status).toBe(400);
+    expect((await api().post('/api/body-composition/health-connect').set(authHeader(u.token)).send({ readings: [{ time: 'x' }] })).status).toBe(400);
+    expect((await api().post('/api/body-composition/health-connect').set(authHeader(u.token)).send({ readings: Array.from({ length: 201 }, () => reading('2026-11-01T10:00:00Z')) })).status).toBe(400);
+    expect((await api().post('/api/body-composition/health-connect').send({ readings: [reading('2026-11-01T10:00:00Z')] })).status).toBe(401);
+    await api().post('/api/body-composition/health-connect').set(authHeader(u.token)).send({ readings: [reading('2026-11-01T10:00:00Z')] });
+    expect((await prisma.user.findUniqueOrThrow({ where: { id: u.user.id }, select: { credits: true } })).credits).toBe(7);
+  });
+});

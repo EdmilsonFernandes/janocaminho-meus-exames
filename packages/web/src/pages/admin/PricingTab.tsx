@@ -50,7 +50,7 @@ export const PricingTab = () => {
         setPacks(Array.isArray(c?.creditPacks) ? c.creditPacks : []);
         setPremium({ consolidatedFree: Number(c?.premium?.consolidatedFree ?? 0), familyLimit: Number(c?.premium?.familyLimit ?? 0) });
         setUploadRules({ freeCost: Number(c?.uploadRules?.freeCost ?? 0), premiumFreeQuota: Number(c?.uploadRules?.premiumFreeQuota ?? 0), premiumCost: Number(c?.uploadRules?.premiumCost ?? 0) });
-        setCreditCosts({ chat: 0, summary: 0, consolidated: 0, extraction: 0, ...(c?.creditCosts ?? {}) });
+        setCreditCosts({ chat: 0, summary: 0, consolidated: 0, extraction: 0, bodyReport: 0, ...(c?.creditCosts ?? {}) });
         setGrants({ freeSignup: Number(c?.grants?.freeSignup ?? 0) });
         setSports({ enabled: Number(c?.sportsMode?.enabled ?? 0) });
       } else setError(true);
@@ -148,7 +148,7 @@ export const PricingTab = () => {
   const dirtyPacks = JSON.stringify(packs) !== JSON.stringify(config?.creditPacks ?? []);
   const dirtyPremium = JSON.stringify(premium) !== JSON.stringify({ consolidatedFree: Number(config?.premium?.consolidatedFree ?? 0), familyLimit: Number(config?.premium?.familyLimit ?? 0) });
   const dirtyUpload = JSON.stringify(uploadRules) !== JSON.stringify({ freeCost: Number(config?.uploadRules?.freeCost ?? 0), premiumFreeQuota: Number(config?.uploadRules?.premiumFreeQuota ?? 0), premiumCost: Number(config?.uploadRules?.premiumCost ?? 0) });
-  const dirtyCosts = JSON.stringify(creditCosts) !== JSON.stringify({ chat: 0, summary: 0, consolidated: 0, extraction: 0, ...(config?.creditCosts ?? {}) });
+  const dirtyCosts = JSON.stringify(creditCosts) !== JSON.stringify({ chat: 0, summary: 0, consolidated: 0, extraction: 0, bodyReport: 0, ...(config?.creditCosts ?? {}) });
   const dirtySignup = grants.freeSignup !== Number(config?.grants?.freeSignup ?? 0);
 
   return (
@@ -252,7 +252,7 @@ export const PricingTab = () => {
       <Section title="🤖 Custos de IA (em créditos)" desc="Quanto cada ação de IA debita do saldo. 0 = grátis. O app sincroniza esses valores sozinho."
         saving={savingKey === 'creditCosts'} onSave={saveCosts} dirty={dirtyCosts}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flexWrap="wrap">
-          {[['chat', '💬 Chat (por pergunta)'], ['summary', '📄 Resumo do exame'], ['consolidated', '🧾 Relatório consolidado'], ['extraction', '📤 Upload (0 = grátis)']].map(([k, l]) => (
+          {[['chat', '💬 Chat (por pergunta)'], ['summary', '📄 Resumo do exame'], ['consolidated', '🧾 Relatório consolidado'], ['extraction', '📤 Upload (0 = grátis)'], ['bodyReport', '⚖️ Laudo de bioimpedância (IA)']].map(([k, l]) => (
             <TextField key={k} label={l} type="number" size="small" value={creditCosts[k] ?? 0} onChange={(e) => setCreditCosts({ ...creditCosts, [k]: Number(e.target.value) })} sx={{ width: { xs: '100%', sm: 210 } }} />
           ))}
         </Stack>

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { IconButton, Badge } from '@mui/material';
+import { BellButton } from '@/components/reui/app-header';
 import { useNavigate } from 'react-router-dom';
-import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import { API_URL, token } from '../config';
 import { snackbar } from './ConfirmDialog';
 
@@ -70,76 +69,6 @@ export const NotificationBell = () => {
     };
   }, []);
   return (
-    <IconButton
-      color="inherit"
-      onClick={() => navigate('/notificacoes')}
-      title={unread > 0 ? `${unread} nova(s) notificação(ões)` : 'Notificações'}
-      aria-label="Notificações"
-      sx={(t) => ({
-        flexShrink: 0,
-        p: '9px',
-        ml: 0.75,
-        borderRadius: '12px',
-        border: unread > 0
-          ? `1px solid ${t.palette.mode === 'dark' ? 'rgba(245,158,11,0.28)' : 'rgba(245,158,11,0.24)'}`
-          : '1px solid transparent',
-        bgcolor: unread > 0
-          ? (t.palette.mode === 'dark' ? 'rgba(245,158,11,0.12)' : 'rgba(245,158,11,0.08)')
-          : 'transparent',
-        boxShadow: unread > 0
-          ? (t.palette.mode === 'dark' ? '0 2px 8px rgba(245,158,11,0.2)' : '0 2px 8px rgba(245,158,11,0.14)')
-          : 'none',
-        transition: 'all .2s ease',
-        '&:hover': {
-          bgcolor: unread > 0
-            ? (t.palette.mode === 'dark' ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.16)')
-            : 'action.hover',
-          transform: 'translateY(-1px)',
-        },
-        // Pulso quando a notificação NOVA chega (toast + sino chama atenção)
-        ...(pulse && {
-          animation: 'dxBellRing 1.1s ease-in-out 3',
-          '@keyframes dxBellRing': {
-            '0%, 100%': { transform: 'rotate(0deg) scale(1)' },
-            '20%': { transform: 'rotate(-14deg) scale(1.08)' },
-            '40%': { transform: 'rotate(12deg) scale(1.06)' },
-            '60%': { transform: 'rotate(-8deg) scale(1.04)' },
-            '80%': { transform: 'rotate(6deg) scale(1.02)' },
-          },
-        }),
-      })}
-    >
-      <Badge
-        badgeContent={unread > 9 ? '9+' : unread}
-        color="error"
-        overlap="circular"
-        sx={(t) => ({
-          '& .MuiBadge-badge': {
-            fontSize: 12,
-            fontWeight: 800,
-            height: 17,
-            minWidth: 17,
-            padding: '0 4px',
-            top: 2,
-            right: 2,
-            bgcolor: '#dc2626',
-            color: '#fff',
-            border: `2px solid ${t.palette.mode === 'dark' ? '#162020' : '#ffffff'}`,
-            boxShadow: '0 2px 5px rgba(220,38,38,0.35)',
-          },
-        })}
-      >
-        <NotificationsNoneIcon
-          sx={(t) => ({
-            fontSize: 22,
-            color: unread > 0
-              ? (t.palette.mode === 'dark' ? '#fbbf24' : '#d97706')
-              : 'text.primary',
-            filter: unread > 0 ? 'drop-shadow(0 1px 2px rgba(217,119,6,0.25))' : 'none',
-            transition: 'color .2s ease, transform .2s ease',
-          })}
-        />
-      </Badge>
-    </IconButton>
+    <BellButton unread={unread} ringing={!!pulse} onClick={() => navigate('/notificacoes')} />
   );
 };

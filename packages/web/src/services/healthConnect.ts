@@ -19,11 +19,15 @@ declare global {
       hasAllPermissions(): boolean;
       requestPermissions(requestId: string): void;
       aggregates(requestId: string, daysBack: number, offsetDays: number): void;
+      // Composição corporal — só existe em APK a partir do versionCode 585.
+      hasBodyPermissions?(): boolean;
+      requestBodyPermissions?(requestId: string): void;
+      bodyComposition?(requestId: string, daysBack: number): void;
     };
   }
 }
 
-type HealthEvent = CustomEvent<{ type: string; requestId?: string; granted?: boolean; days?: unknown[]; code?: string }>;
+type HealthEvent = CustomEvent<{ type: string; requestId?: string; granted?: boolean; days?: unknown[]; readings?: unknown[]; code?: string }>;
 
 /** true somente no APK com Health Connect instalado e suportado. */
 export const healthConnectSupported = (): boolean => {
@@ -130,4 +134,65 @@ export const syncActivityToServer = async (days: ActivityDay[]): Promise<{ synce
     counted += j.days ?? 0;
   }
   return { synced, days: counted };
+};
+
+// ------------------------------------------------------------------ composição corporal
+
+/** Uma avaliação lida do Health Connect (relógio/balança): gordura + peso da mesma origem. */
+export interface HealthBodyReading {
+  time: string;
+  origin: string;
+  weightKg: number;
+  bodyFatPct: number;
+  bmrKcal?: number;
+  heightCm?: number;
+  leanKg?: number;
+  waterKg?: number;
+}
+
+/** true quando o APK instalado já traz a leitura de composição corporal (AAB 585+). */
+export const bodyCompositionSupported = (): boolean => {
+  try { return healthConnectSupported() && typeof window.DxHealth?.bodyComposition === 'function'; } catch { return false; }
+};
+
+export const hasBodyPermissions = (): boolean => {
+  try { return bodyCompositionSupported() && !!window.DxHealth?.hasBodyPermissions?.(); } catch { return false; }
+};
+
+/** Popup nativo SÓ das permissões de composição corporal. */
+export const requestBodyPermissions = (): Promise<PermissionOutcome> => {
+  if (!bodyCompositionSupported()) return Promise.resolve({ granted: false, code: 'unavailable' });
+  const requestId = `bperm-${Date.now()}`;
+  return waitFor<PermissionOutcome>('permissions', requestId, () => window.DxHealth!.requestBodyPermissions!(requestId), (e) => {
+    if (e.detail?.granted) return { granted: true };
+    const detail = e.detail as { code?: PermissionOutcome['code']; openedSettings?: boolean };
+    return { granted: false, code: detail?.code ?? (detail?.openedSettings ? 'settings_opened' : 'denied') };
+  });
+};
+
+/** Avaliações dos últimos `days` dias; null = indisponível, sem permissão ou erro. */
+export const fetchBodyReadings = (days = 730): Promise<HealthBodyReading[] | null> => {
+  if (!hasBodyPermissions()) return Promise.resolve(null);
+  const requestId = `body-${Date.now()}`;
+  return waitFor<HealthBodyReading[] | null>('bodycomp', requestId, () => window.DxHealth!.bodyComposition!(requestId, days), (e) =>
+    Array.isArray(e.detail?.readings) ? (e.detail.readings as HealthBodyReading[]) : null,
+  );
+};
+
+/** Grava no servidor (sem IA, grátis). O servidor valida e ignora o que já foi importado. */
+export const syncBodyReadings = async (readings: HealthBodyReading[], patientId?: string | null): Promise<{ imported: number; skipped: number }> => {
+  let imported = 0;
+  let skipped = 0;
+  for (let i = 0; i < readings.length; i += 100) {
+    const r = await fetch(`${API_URL}/body-composition/health-connect`, {
+      method: 'POST',
+      headers: apiHeaders(true),
+      body: JSON.stringify({ patientId, readings: readings.slice(i, i + 100) }),
+    });
+    const json = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(json?.error || 'Não foi possível importar as medições.');
+    imported += json.imported ?? 0;
+    skipped += json.skipped ?? 0;
+  }
+  return { imported, skipped };
 };

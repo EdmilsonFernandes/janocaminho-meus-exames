@@ -33,6 +33,12 @@
     <uses-permission android:name="android.permission.health.READ_DISTANCE" />
     <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
     <uses-permission android:name="android.permission.health.READ_EXERCISE" />
+    <!-- Composição corporal (relógio/balança via Health Connect — ex.: Galaxy Watch). Pedidas só
+         quando o usuário toca em "importar" na tela de Composição corporal. -->
+    <uses-permission android:name="android.permission.health.READ_WEIGHT" />
+    <uses-permission android:name="android.permission.health.READ_BODY_FAT" />
+    <uses-permission android:name="android.permission.health.READ_BASAL_METABOLIC_RATE" />
+    <uses-permission android:name="android.permission.health.READ_HEIGHT" />
 
     <!-- ANDROID 11+ (API 30): VISIBILIDADE DE PACOTE — sem este bloco o intent da sheet de
          permissão do Health Connect resolve VAZIO em muitos aparelhos: a sheet simplesmente

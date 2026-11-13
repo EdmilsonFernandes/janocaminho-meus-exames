@@ -1,5 +1,4 @@
-import { Box, Typography } from '@mui/material';
-import BoltIcon from '@mui/icons-material/Bolt';
+import { ReadsPill } from '@/components/reui/app-header';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useCredits } from '../hooks/useCredits';
@@ -40,48 +39,14 @@ export const CreditsChip = () => {
   const shown = promiseBonus ? `🎁 +${bonus} 💎` : reads > 0 ? `${reads} ${reads === 1 ? 'leitura' : 'leituras'}` : `${credits} 💎`;
   const open = () => navigate(promiseBonus ? '/exams/create' : '/carteira');
   return (
-    <Box
+    <ReadsPill
       onClick={open}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }}
-      role="button"
-      tabIndex={0}
+      icon={!promiseBonus}
+      alert={shaking}
       aria-label={promiseBonus ? `Envie seu 1º exame e ganhe ${bonus} créditos de IA. Toque para enviar.` : `Você tem ${shown} (${full} créditos). Toque para ver a carteira.`}
       title={promiseBonus ? `Seu 1º exame libera +${bonus} créditos de IA — toque para enviar` : `${full} créditos = ${shown} — toque para ver a carteira`}
-      sx={(theme) => ({
-        display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', userSelect: 'none', flexShrink: 0,
-        px: 1.25, minHeight: 40, mr: 0.5, borderRadius: '999px',
-        // Cap de largura (P0 header): chip nunca cresce além disso nem empurra os irmãos.
-        maxWidth: { xs: 128, sm: 170 }, overflow: 'hidden',
-        // TONAL (fundo teal translúcido + texto teal): o gradiente/sombra ficam reservados à MARCA.
-        // Texto #0f766e (light ~5,5:1) / #5fc9c3 (dark ~5,4:1) — AA nos dois temas.
-        background: theme.palette.mode === 'dark' ? 'rgba(32,178,170,0.14)' : 'rgba(32,178,170,0.10)',
-        border: theme.palette.mode === 'dark' ? '1px solid rgba(32,178,170,0.32)' : '1px solid rgba(32,178,170,0.25)',
-        boxShadow: theme.palette.mode === 'dark' ? '0 1px 4px rgba(0,0,0,0.25)' : '0 1px 3px rgba(32,178,170,0.08)',
-        color: theme.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e',
-        transition: 'all .15s ease',
-        '&:hover': {
-          background: theme.palette.mode === 'dark' ? 'rgba(32,178,170,0.22)' : 'rgba(32,178,170,0.18)',
-          boxShadow: '0 2px 8px rgba(32,178,170,0.18)',
-          transform: 'translateY(-0.5px)',
-        },
-        '&:active': { transform: 'scale(.96)' },
-        '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
-        ...(shaking ? {
-          animation: 'chipShake .45s ease-in-out 3',
-          '@keyframes chipShake': { '0%,100%': { transform: 'translateX(0)' }, '25%': { transform: 'translateX(-4px)' }, '75%': { transform: 'translateX(4px)' } },
-          background: 'rgba(239,68,68,.14)',
-          border: '1px solid rgba(239,68,68,.45)',
-          color: '#dc2626',
-        } : {}),
-      })}
     >
-      {!promiseBonus && <BoltIcon sx={{ fontSize: 16, color: '#f59e0b', filter: 'drop-shadow(0 1px 2px rgba(245,158,11,0.35))' }} />}
-      <Typography
-        component="span"
-        sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 12.5, lineHeight: 1, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-      >
-        {shown}
-      </Typography>
-    </Box>
+      {shown}
+    </ReadsPill>
   );
 };

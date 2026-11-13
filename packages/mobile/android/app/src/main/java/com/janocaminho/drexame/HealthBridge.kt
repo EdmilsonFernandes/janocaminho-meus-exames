@@ -8,7 +8,12 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
+import androidx.health.connect.client.records.BasalMetabolicRateRecord
+import androidx.health.connect.client.records.BodyFatRecord
 import androidx.health.connect.client.records.DistanceRecord
+import androidx.health.connect.client.records.HeightRecord
+import androidx.health.connect.client.records.Record
+import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.SleepSessionRecord
@@ -79,6 +84,24 @@ class HealthBridge(private val activity: MainActivity) {
                 HealthPermission.getReadPermission(SleepSessionRecord::class),
             )
         }
+        /**
+         * COMPOSIÇÃO CORPORAL (relógio/balança — ex.: Galaxy Watch via Samsung Health):
+         * conjunto SEPARADO, pedido só quando o usuário toca em "importar" na tela de
+         * Composição corporal — não entra no popup do widget de atividade.
+         * Gate = peso + % de gordura (sem os dois não existe avaliação); o resto é opcional.
+         */
+        val BODY_CORE_PERMISSIONS: Set<String> by lazy {
+            if (!hcSdkOk()) emptySet() else setOf(
+                HealthPermission.getReadPermission(WeightRecord::class),
+                HealthPermission.getReadPermission(BodyFatRecord::class),
+            )
+        }
+        val BODY_EXTRA_PERMISSIONS: Set<String> by lazy {
+            if (!hcSdkOk()) emptySet() else setOf(
+                HealthPermission.getReadPermission(BasalMetabolicRateRecord::class),
+                HealthPermission.getReadPermission(HeightRecord::class),
+            )
+        }
         /** Pedimos todas de uma vez, mas o gate de "conectado" só exige as CORE. */
         val READ_PERMISSIONS: Set<String> get() = CORE_PERMISSIONS + EXTENDED_PERMISSIONS
     }
@@ -88,6 +111,8 @@ class HealthBridge(private val activity: MainActivity) {
     private val requestSeq = AtomicInteger(0)
 
     @Volatile private var pendingRequestId: String = ""
+    /** true = o pedido de permissão em curso é o de composição corporal (gate diferente). */
+    @Volatile private var pendingBody: Boolean = false
     private var launcher: ActivityResultLauncher<Set<String>>? = null // contrato 1.1.0: Set<String>
 
     /**
@@ -105,7 +130,7 @@ class HealthBridge(private val activity: MainActivity) {
                     // GATE = SÓ O CORE (reporte 18/10: exigir TODAS fazia "concedeu e não
                     // conectou" quando o usuário desligava qualquer toggle do EXTENDED —
                     // FR/exercício/sono são opcionais; o widget vive sem eles).
-                    val ok = granted != null && granted.containsAll(CORE_PERMISSIONS)
+                    val ok = granted != null && granted.containsAll(if (pendingBody) BODY_CORE_PERMISSIONS else CORE_PERMISSIONS)
                     onPermissionsResult(pendingRequestId, ok)
                     // Libera a flag do gate com folga (o resume dispara antes deste callback às vezes).
                     activity.evalJs("try{setTimeout(()=>{window.__dxNativeIntent=false},2500)}catch(e){}")
@@ -119,7 +144,13 @@ class HealthBridge(private val activity: MainActivity) {
     }
 
     @JavascriptInterface
-    fun requestPermissions(requestId: String) {
+    fun requestPermissions(requestId: String) = launchPermissions(requestId, body = false)
+
+    /** Pede SÓ as permissões de composição corporal (peso, gordura, basal, altura). */
+    @JavascriptInterface
+    fun requestBodyPermissions(requestId: String) = launchPermissions(requestId, body = true)
+
+    private fun launchPermissions(requestId: String, body: Boolean) {
         val id = requestId.ifEmpty { "perm-${requestSeq.incrementAndGet()}" }
         if (!hcSdkOk()) { dispatch(errorPayload(id, "unavailable")); return; }
         val status = try { HealthConnectClient.getSdkStatus(activity) } catch (e: Throwable) { HealthConnectClient.SDK_UNAVAILABLE }
@@ -128,10 +159,11 @@ class HealthBridge(private val activity: MainActivity) {
             return
         }
         pendingRequestId = id
+        pendingBody = body
         ui.post {
             try {
                 activity.evalJs("try{window.__dxNativeIntent=true}catch(e){}")
-                val launched = ensureLauncher()?.launch(READ_PERMISSIONS)
+                val launched = ensureLauncher()?.launch(if (body) BODY_CORE_PERMISSIONS + BODY_EXTRA_PERMISSIONS else READ_PERMISSIONS)
                 // FALLBACK (Samsung Android 16): o contrato resolve VAZIO em alguns aparelhos
                 // (intent invisível mesmo com <queries>). Se não lançou nada em 1,5s, abre o
                 // Health Connect DIRETO nas settings de permissão do nosso app.
@@ -476,6 +508,95 @@ class HealthBridge(private val activity: MainActivity) {
                     )
                 }
                 dispatch(JSONObject().put("type", "aggregates").put("requestId", id).put("days", arr))
+            } catch (e: SecurityException) {
+                dispatch(errorPayload(id, "permission"))
+            } catch (e: Throwable) {
+                dispatch(errorPayload(id, e.message ?: "unknown"))
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ composição corporal
+
+    @JavascriptInterface
+    fun hasBodyPermissions(): Boolean {
+        return try {
+            val client = clientOrNull() ?: return false
+            val granted = kotlinx.coroutines.runBlocking { client.permissionController.getGrantedPermissions() }
+            granted.containsAll(BODY_CORE_PERMISSIONS)
+        } catch (e: Throwable) {
+            android.util.Log.e("DxHealth", "hasBodyPermissions FAILED: ${e.message}", e)
+            false
+        }
+    }
+
+    /** Lê TODOS os registros do tipo na janela (paginado: 1000 por página, mais antigos primeiro). */
+    private suspend fun <T : Record> readAllOf(client: HealthConnectClient, type: kotlin.reflect.KClass<T>, start: Instant, end: Instant): List<T> {
+        val out = ArrayList<T>(); var token: String? = null
+        do {
+            val resp = client.readRecords(
+                androidx.health.connect.client.request.ReadRecordsRequest(
+                    recordType = type,
+                    timeRangeFilter = TimeRangeFilter.between(start, end),
+                    pageSize = 1000,
+                    pageToken = token,
+                )
+            )
+            out += resp.records; token = resp.pageToken
+        } while (token != null)
+        return out
+    }
+
+    /**
+     * Avaliações de composição corporal dos últimos `daysBack` dias.
+     * Uma avaliação = um registro de % DE GORDURA (é o que só a bioimpedância gera) + o peso
+     * da MESMA origem medido a até 15 min dele. Basal entra se a mesma
+     * origem tiver gravado na mesma janela; altura = a mais recente até a medição. Massa magra e água ficaram
+     * de fora de propósito: o Galaxy Watch não as publica e cada permissão a mais é um item
+     * a declarar no Play Console.
+     * Pesagem solta (sem gordura) NÃO vira avaliação — não é bioimpedância.
+     * event {type:"bodycomp", readings:[{time, origin, weightKg, bodyFatPct, bmrKcal?, heightCm?}]}
+     */
+    @JavascriptInterface
+    fun bodyComposition(requestId: String, daysBack: Int) {
+        val id = requestId.ifEmpty { "body-${requestSeq.incrementAndGet()}" }
+        val client = clientOrNull()
+        if (client == null) { dispatch(errorPayload(id, "unavailable")); return }
+        scope.launch {
+            try {
+                val end: Instant = Instant.now()
+                val start: Instant = end.minusSeconds(daysBack.coerceIn(1, 1095).toLong() * 86_400L)
+                val granted = client.permissionController.getGrantedPermissions()
+                if (!granted.containsAll(BODY_CORE_PERMISSIONS)) { dispatch(errorPayload(id, "permission")); return@launch }
+                fun has(type: kotlin.reflect.KClass<out Record>) = granted.contains(HealthPermission.getReadPermission(type))
+
+                val fats = readAllOf(client, BodyFatRecord::class, start, end)
+                val weights = readAllOf(client, WeightRecord::class, start, end)
+                val bmrs = if (has(BasalMetabolicRateRecord::class)) readAllOf(client, BasalMetabolicRateRecord::class, start, end) else emptyList()
+                // Altura quase nunca muda: lê desde sempre (não só a janela).
+                val heights = if (has(HeightRecord::class)) readAllOf(client, HeightRecord::class, Instant.EPOCH, end) else emptyList()
+
+                val windowSec = 15 * 60L
+                fun <T : Record> nearest(list: List<T>, origin: String, at: Instant, timeOf: (T) -> Instant): T? =
+                    list.filter { it.metadata.dataOrigin.packageName == origin && kotlin.math.abs(timeOf(it).epochSecond - at.epochSecond) <= windowSec }
+                        .minByOrNull { kotlin.math.abs(timeOf(it).epochSecond - at.epochSecond) }
+
+                val arr = JSONArray()
+                for (fat in fats) {
+                    val origin = fat.metadata.dataOrigin.packageName
+                    val weight = nearest(weights, origin, fat.time) { it.time } ?: continue
+                    val o = JSONObject()
+                        .put("time", fat.time.toString())
+                        .put("origin", origin)
+                        .put("weightKg", weight.weight.inKilograms)
+                        .put("bodyFatPct", fat.percentage.value)
+                    nearest(bmrs, origin, fat.time) { it.time }?.let { o.put("bmrKcal", it.basalMetabolicRate.inKilocaloriesPerDay) }
+                    heights.filter { !it.time.isAfter(fat.time.plusSeconds(windowSec)) }.maxByOrNull { it.time }
+                        ?.let { o.put("heightCm", it.height.inMeters * 100.0) }
+                    arr.put(o)
+                }
+                android.util.Log.d("DxHealth", "bodyComposition: fats=${fats.size} weights=${weights.size} -> ${arr.length()} avaliações")
+                dispatch(JSONObject().put("type", "bodycomp").put("requestId", id).put("readings", arr))
             } catch (e: SecurityException) {
                 dispatch(errorPayload(id, "permission"))
             } catch (e: Throwable) {

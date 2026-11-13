@@ -6,7 +6,7 @@ import { BADGES as DEFAULT_BADGES } from './achievements';
 // creditCosts/uploadRules ESPELHAM os objetos vivos de credits.ts — loadSettings/saveSettings
 // os sincronizam, então quem já lê `CREDIT_COSTS.chat` continua funcionando (sem mudar imports).
 export const DEFAULT_SETTINGS = {
-  creditCosts: { extraction: 0, summary: 10, consolidated: 20, chat: 2 },
+  creditCosts: { extraction: 0, summary: 10, consolidated: 20, chat: 2, bodyReport: 5 },
   uploadRules: { freeCost: 1, premiumFreeQuota: 6, premiumCost: 5 },
   grants: { freeSignup: 60, monthly: 250, freeExamLimit: 2, quiz: 5, mentalScreening: 3, monthlyClaimCap: 150, trialCredits: 100 },
   // Preço da IA em R$ por 1M tokens (GLM-4.6 via Z.ai ≈ US$0,60 in / US$2,20 out × câmbio) —

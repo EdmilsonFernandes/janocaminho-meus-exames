@@ -9,12 +9,15 @@
  * Blocos de origem: chart-6 (blocos + gráfico), stats-18 (medidor segmentado),
  * chart-8 (célula de indicador: título + selo, valor, fatos).
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNotify } from 'react-admin';
 import { ArrowDownRight, ArrowUpRight, ChartLine, History, Minus, Plus, RotateCw, Scale, Trash2, TriangleAlert } from 'lucide-react';
 import { cn } from 'cn';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
+import {
+  bodyCompositionSupported, fetchBodyReadings, hasBodyPermissions, permissionOutcomeMessage, requestBodyPermissions, syncBodyReadings,
+} from '../services/healthConnect';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Frame, FrameDescription, FrameFooter, FrameHeader, FramePanel, FrameTitle } from '@/components/reui/frame';
@@ -22,9 +25,12 @@ import { Badge } from '@/components/reui/badge';
 import { IconTile } from '@/components/reui/icon-tile';
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { ListEmpty } from '@/components/reui/list-empty';
+import { SettingRow } from '@/components/reui/setting-row';
+import { SourceIcon } from '@/components/bodycomp/source-icon';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Spinner } from '@/components/ui/spinner';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
@@ -144,6 +150,9 @@ export const BodyCompositionPage = () => {
   const [metric, setMetric] = useState<MetricKey>('weightKg');
   const [toDelete, setToDelete] = useState<BodyReading | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  // Só no app Android com Health Connect e ponte nova (AAB 585+); no navegador o botão não existe.
+  const canImport = useMemo(() => bodyCompositionSupported(), []);
 
   const load = useCallback(async () => {
     setFailed(false);
@@ -161,6 +170,26 @@ export const BodyCompositionPage = () => {
     setData(null);
     void load();
   }, [load]);
+
+  // Já conectado ao relógio? Sincroniza sozinho ao abrir a tela (1x por visita, em silêncio:
+  // só avisa quando entra medição nova). Falha aqui nunca incomoda — o botão continua lá.
+  const autoSynced = useRef(false);
+  useEffect(() => {
+    if (autoSynced.current || !canImport || !pid) return;
+    autoSynced.current = true;
+    void (async () => {
+      try {
+        if (!hasBodyPermissions()) return;
+        const readings = await fetchBodyReadings(730);
+        if (!readings?.length) return;
+        const result = await syncBodyReadings(readings, pid);
+        if (result.imported > 0) {
+          notify(`${result.imported} ${result.imported === 1 ? 'medição nova' : 'medições novas'} do relógio.`, { type: 'success' });
+          await load();
+        }
+      } catch { /* silencioso de propósito */ }
+    })();
+  }, [canImport, pid, load, notify]);
 
   const items = data?.items ?? [];
   const latest = items[0];
@@ -185,6 +214,98 @@ export const BodyCompositionPage = () => {
       setDeleting(false);
     }
   };
+
+  /** Relógio/balança via Health Connect: pede permissão (1ª vez), lê 2 anos e grava só o que é novo. */
+  const importFromWatch = async () => {
+    setImporting(true);
+    try {
+      if (!hasBodyPermissions()) {
+        const outcome = await requestBodyPermissions();
+        if (!outcome.granted) { notify(permissionOutcomeMessage(outcome.code), { type: 'info', autoHideDuration: 9000 }); return; }
+      }
+      const readings = await fetchBodyReadings(730);
+      if (!readings) { notify('Não consegui ler o Health Connect agora. Tente de novo.', { type: 'error' }); return; }
+      if (readings.length === 0) {
+        notify('Nenhuma medição de composição corporal no Health Connect. No Samsung Health, ative a sincronização com o Health Connect e faça uma medição no relógio.', { type: 'info', autoHideDuration: 12000 });
+        return;
+      }
+      const result = await syncBodyReadings(readings, pid);
+      notify(
+        result.imported > 0
+          ? `${result.imported} ${result.imported === 1 ? 'avaliação importada' : 'avaliações importadas'} do relógio.`
+          : 'Tudo em dia: nenhuma medição nova no relógio.',
+        { type: result.imported > 0 ? 'success' : 'info' },
+      );
+      await load();
+    } catch (e) {
+      notify((e as Error).message || 'Não foi possível importar as medições.', { type: 'error' });
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  // Bloco "Relógio e balança": a fonte (com o ícone dela), o que já veio e a ação.
+  const watchItems = items.filter((item) => item.source === 'HEALTH_CONNECT');
+  const watchBrand = watchItems[0]?.deviceBrand ?? 'Samsung Health';
+  // Ainda não conectou (e pode conectar)? O convite vai para o topo; depois, linha discreta no fim.
+  const watchOnTop = canImport && watchItems.length === 0 && !!latest;
+  const watchFrame = (
+    <Frame>
+      {/* Convite ilustrado só enquanto nada veio do relógio; depois fica a linha compacta. */}
+      {watchItems.length === 0 ? (
+        <FramePanel className="grid items-center gap-4 sm:grid-cols-[minmax(0,15rem)_1fr]">
+          {/* Limite de largura no WRAPPER: o CSS global do app (img { max-width:100% }, fora de layer) vence a utility no próprio <img>. */}
+          <div className="mx-auto w-full max-w-60">
+            <img
+              src={`${import.meta.env.BASE_URL}bodycomp-connect.webp`}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              width={352}
+              height={254}
+              className="block h-auto w-full rounded-lg"
+            />
+          </div>
+          <div className="flex min-w-0 flex-col gap-2">
+            <h2 className="m-0 text-base font-semibold tracking-tight">Bioimpedância direto do relógio</h2>
+            <p className="m-0 text-sm text-muted-foreground">
+              Mediu no Galaxy Watch ou numa balança inteligente? As medições chegam sozinhas, com a data certa, sem digitar nada.
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              <Badge variant="outline">Peso</Badge>
+              <Badge variant="outline">Gordura corporal</Badge>
+              <Badge variant="outline">Metabolismo basal</Badge>
+            </div>
+          </div>
+        </FramePanel>
+      ) : null}
+      <FramePanel className="p-0!">
+        <SettingRow
+          icon={<SourceIcon brand={watchBrand} className="size-6" />}
+          iconVariant="outline"
+          title="Relógio e balança"
+          badge={!canImport ? 'No app Android' : watchItems.length > 0 ? `${watchItems.length} ${watchItems.length === 1 ? 'importada' : 'importadas'}` : 'Não importado'}
+          badgeVariant={!canImport ? 'outline' : watchItems.length > 0 ? 'success-light' : 'outline'}
+          stackOnMobile
+          description={
+            canImport
+              ? watchItems.length > 0
+                ? `${watchBrand} · última medição em ${formatDate(watchItems[0].measuredAt)}. Sincroniza sozinho ao abrir esta tela.`
+                : 'Galaxy Watch e balanças inteligentes: traga peso, gordura e metabolismo basal do Samsung Health pelo Health Connect. Grátis.'
+              : 'No app Android, importe as medições do Galaxy Watch e de balanças inteligentes (Samsung Health, via Health Connect).'
+          }
+          action={
+            canImport ? (
+              <Button variant={watchItems.length > 0 ? 'outline' : 'default'} size="lg" className="h-10 w-full sm:w-auto" disabled={importing} onClick={() => void importFromWatch()}>
+                {importing ? <Spinner aria-hidden="true" /> : null}
+                {watchItems.length > 0 ? 'Sincronizar' : 'Importar'}
+              </Button>
+            ) : undefined
+          }
+        />
+      </FramePanel>
+    </Frame>
+  );
 
   const newButton = (
     <Button size="lg" className="h-10" onClick={() => setDialogOpen(true)}>
@@ -229,6 +350,7 @@ export const BodyCompositionPage = () => {
           </Frame>
         ) : (
           <>
+            {watchOnTop ? watchFrame : null}
             {isStale(latest.measuredAt) ? (
               <Alert variant="warning">
                 <TriangleAlert aria-hidden="true" />
@@ -254,7 +376,10 @@ export const BodyCompositionPage = () => {
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <Badge variant="outline">{deviceLabel(latest)}</Badge>
+                  <Badge variant="outline">
+                    {latest.source === 'HEALTH_CONNECT' ? <SourceIcon brand={latest.deviceBrand} className="size-3 rounded-[3px]" /> : null}
+                    {deviceLabel(latest)}
+                  </Badge>
                   {latest.needsReview ? <Badge variant="warning-light">Conferir com a folha</Badge> : null}
                 </div>
               </FrameHeader>
@@ -360,7 +485,10 @@ export const BodyCompositionPage = () => {
                       <div className="flex min-w-0 flex-col gap-1">
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                           <span className="text-sm font-medium tabular-nums">{formatDate(item.measuredAt)}</span>
-                          <Badge variant="outline" size="sm">{deviceLabel(item)}</Badge>
+                          <Badge variant="outline" size="sm">
+                            {item.source === 'HEALTH_CONNECT' ? <SourceIcon brand={item.deviceBrand} className="size-3 rounded-[3px]" /> : null}
+                            {deviceLabel(item)}
+                          </Badge>
                         </div>
                         <span className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground tabular-nums">
                           {(['weightKg', 'bodyFatPct', 'skeletalMuscleKg'] as MetricKey[])
@@ -386,6 +514,7 @@ export const BodyCompositionPage = () => {
             </Frame>
           </>
         )}
+        {data && !failed && !watchOnTop ? watchFrame : null}
       </div>
 
       <NewReadingDialog

@@ -321,6 +321,7 @@ export const PrivacyPage = () => {
               {[
                 'Exames e resultados (PDFs, valores, análises IA): mantidos enquanto sua conta estiver ativa. Você pode excluir qualquer exame a qualquer momento.',
                 'Dados de saúde do Health Connect (passos, calorias, distância): sincronizados sob sua permissão e armazenados como Medições. Excluídos junto com a conta ou individualmente em Medições.',
+                'Composição corporal do Health Connect (peso, percentual de gordura, metabolismo basal e altura, medidos por relógio ou balança): lidos somente quando você toca em importar na tela de Composição corporal, usados apenas para mostrar a sua evolução e nunca para publicidade. Excluídos junto com a conta ou individualmente no histórico de Composição corporal.',
                 'Remédios e interações: mantidos enquanto sua conta estiver ativa. Você pode excluir qualquer remédio a qualquer momento.',
                 'Fotos de perfil: mantidas enquanto sua conta estiver ativa. Você pode substituir ou remover a qualquer momento.',
                 'Logs de auditoria (acessos, ações de segurança): mantidos por até 90 dias para segurança e conformidade LGPD, depois excluídos automaticamente.',

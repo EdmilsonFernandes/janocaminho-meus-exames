@@ -47,7 +47,16 @@ const chipKeyframes = CHIPS.map((_, i) => {
 }`;
 }).join('\n        ');
 
-export const AnalysisScan = ({ label }: { label?: string }) => {
+/** Chips da cena de bioimpedância (mesmo papel dos de exame: exemplos, não dados do usuário). */
+export const BODYCOMP_CHIPS = [
+  { label: 'Peso', value: '72,5' },
+  { label: 'Gordura', value: '21 %' },
+  { label: 'Músculo', value: '33,8' },
+  { label: 'Água', value: '41,2' },
+  { label: 'IMC', value: '23,4' },
+];
+
+export const AnalysisScan = ({ label, chips = CHIPS }: { label?: string; /** 5 itens (os keyframes são por posição). */ chips?: { label: string; value: string }[] }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const ink = isDark ? '#2c3b39' : '#d9e6e4'; // linhas do "texto"
@@ -153,7 +162,7 @@ export const AnalysisScan = ({ label }: { label?: string }) => {
             minWidth: 104,
           }}
         >
-          {CHIPS.map((c, i) => (
+          {chips.slice(0, CHIPS.length).map((c, i) => (
             <Box
               key={c.label}
               className="as-chip"

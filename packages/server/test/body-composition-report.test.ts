@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { api, authHeader, createUser, resetDb } from './helpers';
 import { prisma } from '../src/prisma';
 import { checkReportReading, looksLikeBodyComposition, numberInText, normalizeText } from '../src/bodycomp/report-reader';
+import { CREDIT_COSTS } from '../src/utils/credits';
 
 // Laudo 100% SINTÉTICO (pessoa, clínica e valores fictícios), no jeito de uma folha Tanita.
 const LAUDO = `CLÍNICA EXEMPLO — AVALIAÇÃO DE COMPOSIÇÃO CORPORAL (BIOIMPEDÂNCIA)
@@ -151,6 +152,55 @@ describe('API /body-composition/report', () => {
     const espiando = await api().get(`/api/body-composition/report/${jobId}`).set(authHeader(outro.token));
     expect(espiando.status).toBe(404);
     expect(espiando.body).not.toHaveProperty('preview');
+  });
+
+  it('CRÉDITOS: debita o custo configurado na leitura que dá certo', async () => {
+    const u = await createUser({ credits: 30 });
+    pdf.text = LAUDO;
+    llm.reply = JSON.stringify(GOOD);
+    const res = await sendReport(u.token);
+    expect(res.body.status).toBe('done');
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: u.user.id }, select: { credits: true } });
+    expect(user.credits).toBe(30 - CREDIT_COSTS.bodyReport);
+    const tx = await prisma.creditTransaction.findMany({ where: { userId: u.user.id }, select: { kind: true, delta: true } });
+    expect(tx).toEqual([{ kind: 'body_report', delta: -CREDIT_COSTS.bodyReport }]);
+  });
+
+  it('CRÉDITOS: leitura que falha é estornada (o usuário não paga por erro)', async () => {
+    const u = await createUser({ credits: 30 });
+    pdf.text = LAUDO;
+    llm.reply = 'sem json';
+    const res = await sendReport(u.token);
+    expect(res.status).toBe(422);
+    expect(res.body.error).toContain('créditos foram devolvidos');
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: u.user.id }, select: { credits: true } });
+    expect(user.credits).toBe(30);
+    const kinds = (await prisma.creditTransaction.findMany({ where: { userId: u.user.id }, select: { kind: true } })).map((t) => t.kind).sort();
+    expect(kinds).toEqual(['body_report', 'body_report_refund']);
+  });
+
+  it('CRÉDITOS: sem saldo → 402 e a IA não é chamada', async () => {
+    const u = await createUser({ credits: CREDIT_COSTS.bodyReport - 1 });
+    pdf.text = LAUDO;
+    const res = await api().post('/api/body-composition/report').set(authHeader(u.token)).attach('file', PDF_BYTES, { filename: 'laudo.pdf', contentType: 'application/pdf' });
+    expect(res.status).toBe(402);
+    expect(res.body.code).toBe('INSUFFICIENT_CREDITS');
+    expect(llm.calls).toBe(0);
+  });
+
+  it('CRÉDITOS: custo vem da configuração do admin (0 = grátis)', async () => {
+    const before = CREDIT_COSTS.bodyReport;
+    CREDIT_COSTS.bodyReport = 0;
+    try {
+      const u = await createUser({ credits: 0 });
+      pdf.text = LAUDO;
+      llm.reply = JSON.stringify(GOOD);
+      const res = await sendReport(u.token);
+      expect(res.body.status).toBe('done');
+      expect(await prisma.creditTransaction.count({ where: { userId: u.user.id } })).toBe(0);
+    } finally {
+      CREDIT_COSTS.bodyReport = before;
+    }
   });
 
   it('sem arquivo → 400; sem login → 401', async () => {
