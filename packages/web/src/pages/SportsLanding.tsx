@@ -15,6 +15,17 @@ import { SportsLandingHero, useSportsLandingVariant } from '../components/landin
 const TEAL_DARK = '#178f89';
 const INK = '#0f5f5a';
 
+// O que o app faz por quem usa hormônio (seção "Para quem usa hormônio"). Só promessas que
+// existem no produto; nada de dose, ciclo ou resultado.
+const HORMONE_FEATURES: Array<{ icon: React.ReactNode; title: string; text: string }> = [
+  { icon: <HelpOutlineIcon fontSize="small" />, title: 'Entenda o que você usa', text: 'Um "?" em cada composto explica, sem termo difícil, o que ele é, o que faz no corpo, o que costuma mudar nos exames e os riscos que mais passam despercebidos.' },
+  { icon: <ScienceIcon fontSize="small" />, title: 'Seus exames lado a lado com o protocolo', text: 'Hematócrito, estradiol, HDL, LDL, LH, FSH, PSA e fígado: o seu último resultado, a data e a faixa do seu laudo, com a evolução desde o início.' },
+  { icon: <SpeedIcon fontSize="small" />, title: 'Pico ou vale: leia o número certo', text: 'A testosterona muda muito entre uma aplicação e outra. Veja em que ponto da curva você colheu e as datas para repetir no mesmo ponto, com lembrete.' },
+  { icon: <AutoAwesomeIcon fontSize="small" />, title: 'Chegue na consulta preparado', text: 'Um resumo de uma página com o que você usa, seus exames e perguntas montadas a partir dos seus próprios dados, pronto para imprimir ou mandar.' },
+  { icon: <CheckCircleIcon fontSize="small" />, title: 'Gordura, músculo e água no mesmo lugar', text: 'Envie o laudo da bioimpedância em PDF ou foto, leia o QR da folha InBody ou traga as medições do relógio, e acompanhe a composição corporal ao longo do tempo.' },
+  { icon: <VerifiedUserIcon fontSize="small" />, title: 'Privado e sem julgamento', text: 'O que você registra fica na sua conta. Nada é mostrado ao médico sem você compartilhar, e contar tudo a ele ajuda a interpretar os exames.' },
+];
+
 // 4 Cenários Clínicos Demonstrativos Reais
 const sportsScenarios = {
   ck: {
@@ -405,7 +416,7 @@ export const SportsLandingPage: React.FC = () => {
                 Seu exame deu alto porque estava no Pico — ou baixo porque estava no Vale?
               </Typography>
               <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: 15, lineHeight: 1.6, mb: 2.5 }}>
-                Com o <strong>Radar Hormonal</strong>, você informa em <strong>ml</strong> ou <strong>mg</strong> e enxerga a curva real de liberação por éster (meia-vida, picos, vales e efeito montanha-russa) — cruzada diretamente com a data do seu exame de sangue.
+                No <strong>Radar Hormonal</strong> você informa o que usa, em <strong>ml</strong> ou <strong>mg</strong>, e vê a curva estimada de cada composto: quanto entra por dia, o pico, o vale e o quanto oscila. O dia da sua coleta aparece na curva, e os seus exames ficam ao lado, com a faixa do próprio laudo.
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
                 <Button
@@ -421,20 +432,61 @@ export const SportsLandingPage: React.FC = () => {
             <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', borderRadius: '18px', p: 2.5 }}>
               <Stack spacing={1.5}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#8ff0e8' }}>CONVERSÃO AUTOMÁTICA ML → MG</Typography>
-                  <Typography sx={{ fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>Sem conta de cabeça</Typography>
+                  <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#8ff0e8' }}>O QUE VOCÊ VÊ NA TELA</Typography>
+                  <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Sem conta de cabeça</Typography>
                 </Box>
                 <Box sx={{ bgcolor: 'rgba(0,0,0,0.22)', borderRadius: '12px', p: 1.5 }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 700 }}>1 ml Durateston (250 mg/ml) → 177,5 mg ativos</Typography>
-                  <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', mt: 0.25 }}>Comparação 1x/sem vs 2x/sem na mesma tela</Typography>
+                  <Typography sx={{ fontSize: 13, fontWeight: 700 }}>1 ml de Durateston (250 mg) tem ~174 mg de testosterona</Typography>
+                  <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', mt: 0.25 }}>O resto é o éster, que faz durar. E dá para comparar 1x com 2x por semana.</Typography>
                 </Box>
                 <Box sx={{ bgcolor: 'rgba(0,0,0,0.22)', borderRadius: '12px', p: 1.5 }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 700 }}>🩸 Pino do Dia da Coleta no Gráfico</Typography>
-                  <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', mt: 0.25 }}>Saiba se sua Testosterona veio no pico ou no vale antes da próxima dose</Typography>
+                  <Typography sx={{ fontSize: 13, fontWeight: 700 }}>O dia da coleta marcado na curva</Typography>
+                  <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', mt: 0.25 }}>Veja se a testosterona foi colhida perto do pico ou do vale, e quando repetir para comparar.</Typography>
+                </Box>
+                <Box sx={{ bgcolor: 'rgba(0,0,0,0.22)', borderRadius: '12px', p: 1.5 }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 700 }}>Hematócrito, estradiol, colesterol, LH/FSH, PSA</Typography>
+                  <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', mt: 0.25 }}>Os exames que o seu protocolo costuma mexer, com o seu último valor e a data.</Typography>
                 </Box>
               </Stack>
             </Box>
           </Box>
+        </Container>
+      </Box>
+
+      {/* PARA QUEM USA HORMÔNIO: acompanhar em vez de adivinhar (redução de danos, sem ensinar a usar) */}
+      <Box component="section" aria-labelledby="hormonios-titulo" sx={{ py: { xs: 8, md: 11 }, bgcolor: '#ffffff', borderTop: '1px solid #eef2f6' }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: { xs: 4, md: 6 }, maxWidth: 760, mx: 'auto' }}>
+            <Chip icon={<HealthAndSafetyIcon sx={{ fontSize: 16 }} />} label="Para quem usa hormônio" sx={{ bgcolor: 'rgba(32,178,170,0.12)', color: INK, fontWeight: 700, mb: 1.5, fontSize: 12 }} />
+            <Typography id="hormonios-titulo" variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, mb: 1.5, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+              Você já decidiu usar. Agora acompanhe de verdade.
+            </Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: { xs: 15, md: 16.5 }, lineHeight: 1.6 }}>
+              Reposição prescrita ou ciclo por conta própria: em qualquer caso, o que protege é saber o que está entrando no corpo e o que os exames mostram. O Dr. Exame não julga, não vende e não ensina a usar. Ele organiza os seus dados para você e o seu médico decidirem melhor.
+            </Typography>
+          </Box>
+
+          <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: { xs: 2, md: 2.5 } }}>
+            {HORMONE_FEATURES.map((f) => (
+              <Box component="li" key={f.title} sx={{ p: { xs: 2.5, md: 3 }, borderRadius: '18px', border: '1px solid #e2ecec', bgcolor: '#fbfdfd', display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box aria-hidden="true" sx={{ width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,0.12)', color: INK, mb: 0.5 }}>{f.icon}</Box>
+                <Typography component="h3" sx={{ fontWeight: 800, fontSize: 16.5, lineHeight: 1.3 }}>{f.title}</Typography>
+                <Typography sx={{ color: 'text.secondary', fontSize: 14, lineHeight: 1.6 }}>{f.text}</Typography>
+              </Box>
+            ))}
+          </Box>
+
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent="center" alignItems="center" sx={{ mt: { xs: 4, md: 5 } }}>
+            <Button variant="contained" onClick={() => navigate('/registrar')} sx={{ borderRadius: '999px', px: 3.5, py: 1.3, textTransform: 'none', fontWeight: 800, fontSize: 15, width: { xs: '100%', sm: 'auto' } }}>
+              Criar conta grátis e enviar meu exame
+            </Button>
+            <Button onClick={() => navigate('/radar-hormonal')} sx={{ color: INK, fontWeight: 700, textTransform: 'none', fontSize: 15, width: { xs: '100%', sm: 'auto' }, '&:focus-visible': { outline: '2px solid', outlineColor: INK, outlineOffset: 2 } }}>
+              Ver o Radar Hormonal
+            </Button>
+          </Stack>
+          <Typography sx={{ textAlign: 'center', color: 'text.secondary', fontSize: 12.5, mt: 2, maxWidth: 640, mx: 'auto', lineHeight: 1.5 }}>
+            Conteúdo educativo. Não indicamos doses nem substituímos consulta. Seus dados são seus: você escolhe o que compartilhar com o médico.
+          </Typography>
         </Container>
       </Box>
 
