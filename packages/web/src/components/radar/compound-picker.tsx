@@ -10,10 +10,15 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { RADAR_COMPOUNDS, RADAR_FAMILIES, compoundById, type RadarCompoundDef, type RadarFamily } from '@/utils/hormoneRadar';
 
 /**
- * Compostos que têm FOTO do frasco (arquivos em public/compounds/<id>.webp, 256x256, fornecidos
- * pelo dono em 13/11/26). Quem não está aqui usa o ícone de seringa/comprimido.
+ * Compostos com imagem do frasco (public/compounds/<id>.webp, 256x256). Um id fora desta lista,
+ * ou uma imagem que falhe ao carregar, cai no ícone de seringa/comprimido.
  */
-const COMPOUND_PHOTOS = new Set(['test_cyp', 'sustanon', 'test_und', 'nand_dec', 'test_enan', 'test_prop']);
+const COMPOUND_PHOTOS = new Set([
+  // fotos fornecidas pelo dono
+  'test_cyp', 'sustanon', 'test_und', 'nand_dec', 'test_enan', 'test_prop',
+  // frascos genéricos, sem marca, gerados por scripts/gen-compound-vials.cjs
+  'nand_npp', 'mast_prop', 'mast_enan', 'bold_und', 'tren_ace', 'tren_enan', 'oxand',
+]);
 export const hasCompoundPhoto = (id: string) => COMPOUND_PHOTOS.has(id);
 
 /**
