@@ -88,7 +88,7 @@ export function RadarChart({
               width={x(stats.windowEndDay * series.stepsPerDay) - x(stats.windowStartDay * series.stepsPerDay)} height={CH}
               className="fill-muted-foreground/10"
             />
-            <text x={(x(stats.windowStartDay * series.stepsPerDay) + x(stats.windowEndDay * series.stepsPerDay)) / 2} y={PAD.top - 8} textAnchor="middle" className="fill-muted-foreground">
+            <text x={x(stats.windowEndDay * series.stepsPerDay)} y={PAD.top - 8} textAnchor="end" className="fill-muted-foreground">
               trecho medido
             </text>
           </g>

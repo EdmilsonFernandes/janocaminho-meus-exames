@@ -176,6 +176,98 @@ const AiProviderCard = () => {
   );
 };
 
+const COMPOUND_FIELDS: Array<[string, string]> = [
+  ['oQueE', 'O que é'], ['noCorpo', 'O que faz no corpo'], ['porQueUsam', 'Por que alguém usa'],
+  ['nosExames', 'O que muda nos exames'], ['riscos', 'Riscos subestimados'], ['levarAoMedico', 'Perguntas para o médico (separe com |)'],
+];
+
+/** Card "Radar Hormonal — explicações dos compostos": revisão humana dos 13 textos do botão "?".
+ *  Editar grava como 'curado' (não é sobrescrito pela IA); regenerar chama a IA em 2º plano. */
+const CompoundKnowledgeCard = () => {
+  const notify = useNotify();
+  const [rows, setRows] = useState<any[]>([]);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
+
+  const load = async () => {
+    try {
+      const r = await fetch(`${API_URL}/admin/compound-knowledge`, { headers: H() });
+      setRows(r.ok ? await r.json() : []);
+    } catch { setRows([]); }
+  };
+  useEffect(() => { void load(); }, []);
+
+  const save = async () => {
+    if (!editing) return;
+    setSaving(true);
+    try {
+      const r = await fetch(`${API_URL}/admin/compound-knowledge/${editing.key}`, { method: 'PATCH', headers: { ...H(), 'Content-Type': 'application/json' }, body: JSON.stringify({ sections: draft }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j?.error || 'Falha ao salvar');
+      notify(j.problems?.length ? `Salvo, mas as travas apontam: ${j.problems.join('; ')}` : 'Texto salvo como curado ✅', { type: j.problems?.length ? 'warning' : 'success' });
+      setEditing(null);
+      await load();
+    } catch (e: any) { notify(e.message, { type: 'error' }); } finally { setSaving(false); }
+  };
+
+  const regenerate = async (key: string) => {
+    setBusyKey(key);
+    try {
+      const r = await fetch(`${API_URL}/admin/compound-knowledge/${key}/regenerate`, { method: 'POST', headers: H() });
+      if (!r.ok) throw new Error('Falha ao pedir a regeneração');
+      notify('Gerando de novo pela IA — leva 1 a 2 minutos. Atualize a lista depois.', { type: 'info' });
+    } catch (e: any) { notify(e.message, { type: 'error' }); } finally { setBusyKey(null); }
+  };
+
+  return (
+    <Card sx={{ mt: 3 }}>
+      <CardContent>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1} sx={{ mb: 0.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800 }}>💉 Radar Hormonal — explicações dos compostos</Typography>
+          <Button size="small" startIcon={<RefreshOutlinedIcon />} onClick={() => void load()}>Atualizar</Button>
+        </Stack>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Texto do botão "?" de cada composto, igual para todos os pacientes. A IA gera uma vez; ao editar, vira <b>curado</b> e a IA não sobrescreve mais. Vale revisão clínica.
+        </Typography>
+        <Stack spacing={1}>
+          {rows.map((row) => (
+            <Stack key={row.key} direction="row" alignItems="center" spacing={1} sx={{ p: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography sx={{ fontWeight: 700, fontSize: 14 }} noWrap>{row.name}</Typography>
+                <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+                  {row.sections ? String(row.sections.oQueE ?? '').slice(0, 110) : 'Ainda não gerado — o servidor gera sozinho após subir.'}
+                </Typography>
+                {row.problems?.length > 0 && <Typography variant="caption" color="warning.main" sx={{ display: 'block' }}>⚠️ {row.problems.join('; ')}</Typography>}
+              </Box>
+              <Chip size="small" label={row.source === 'curated' ? 'Curado' : row.source === 'ai' ? 'IA' : 'Pendente'} color={row.source === 'curated' ? 'success' : row.source === 'ai' ? 'default' : 'warning'} variant={row.source ? 'filled' : 'outlined'} />
+              <IconButton size="small" aria-label={`Editar ${row.name}`} disabled={!row.sections} onClick={() => { setEditing(row); setDraft({ ...(row.sections ?? {}) }); }}><EditOutlinedIcon fontSize="small" /></IconButton>
+              <IconButton size="small" aria-label={`Gerar de novo ${row.name}`} disabled={busyKey === row.key} onClick={() => void regenerate(row.key)}><BoltOutlinedIcon fontSize="small" /></IconButton>
+            </Stack>
+          ))}
+          {rows.length === 0 && <Typography variant="body2" color="text.secondary">Não foi possível carregar a lista.</Typography>}
+        </Stack>
+        <Dialog open={!!editing} onClose={() => !saving && setEditing(null)} fullWidth maxWidth="md">
+          <DialogTitle>{editing?.name}</DialogTitle>
+          <DialogContent>
+            <Alert severity="info" sx={{ mb: 2, fontSize: 13 }}>Sem dose, esquema de uso, ciclo/TPC, onde comprar, nem "é seguro/leve". A seção "Quando procurar atendimento" é fixa no app e não aparece aqui.</Alert>
+            <Stack spacing={2}>
+              {COMPOUND_FIELDS.map(([k, label]) => (
+                <TextField key={k} label={label} multiline minRows={2} fullWidth value={draft[k] ?? ''} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} />
+              ))}
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEditing(null)} disabled={saving}>Cancelar</Button>
+            <Button variant="contained" onClick={() => void save()} disabled={saving}>Salvar como curado</Button>
+          </DialogActions>
+        </Dialog>
+      </CardContent>
+    </Card>
+  );
+};
+
 /** Card "Cache de explicações" — gerencia o exam_knowledge (explicações leigas reaproveitadas
  *  no /items/explain). Buscar, editar (vira 'curated'), regenerar via IA, deletar. */
 const ExamKnowledgeCard = () => {
@@ -308,6 +400,7 @@ export const IaTab = () => {
     <Box>
       <AiProviderCard />
       <ExamKnowledgeCard />
+      <CompoundKnowledgeCard />
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr 1fr' }, gap: 1.5, mb: 2 }}>
         {[
           { l: 'Análises IA', v: String(d.analysesCount ?? 0) },

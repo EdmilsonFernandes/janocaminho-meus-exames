@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   RADAR_COMPOUNDS, batemanReleasePerDay, compoundById, computeRadarSeries, computeRadarStats, familyTotal, findMarker,
-  markersForProtocol, positionInSwing, RADAR_MARKERS, type EvolutionRow, type RadarProtocolItem,
+  doctorQuestions, markersForProtocol, nextComparableDraws, positionInSwing, RADAR_MARKERS, staleMarkers, type EvolutionRow, type RadarProtocolItem,
 } from './hormoneRadar';
 
 const item = (compoundId: string, over: Partial<RadarProtocolItem> = {}): RadarProtocolItem => ({
@@ -129,5 +129,54 @@ describe('cruzamento com exames', () => {
     expect(positionInSwing(30, { peakMg: 30, troughMg: 18 })).toBe(1);
     expect(positionInSwing(24, { peakMg: 30, troughMg: 18 })).toBeCloseTo(0.5);
     expect(positionInSwing(5, { peakMg: 10, troughMg: 10 })).toBe(0.5);
+  });
+});
+
+describe('próxima coleta, exames antigos e perguntas para o médico', () => {
+  const NOW = new Date('2026-11-13T12:00:00Z').getTime();
+  const m = (key: string) => RADAR_MARKERS.find((x) => x.key === key)!;
+  const row = (lastValue: number, lastDate: string, over: Partial<EvolutionRow> = {}): EvolutionRow =>
+    ({ nameCanonical: 'X', unit: '%', refLow: 40, refHigh: 50, lastValue, lastDate, inRange: lastValue >= 40 && lastValue <= 50, ...over });
+
+  it('próximas coletas no mesmo ponto da curva: só datas futuras, sem repetir', () => {
+    const shots = [0, 7, 14, 21, 28, 35];
+    expect(nextComparableDraws(shots, 2, 15)).toEqual([16, 23]);
+    expect(nextComparableDraws(shots, 2, 16)).toEqual([23, 30]); // hoje não conta
+    expect(nextComparableDraws(shots, 2, 100)).toEqual([]); // protocolo já acabou
+    expect(nextComparableDraws([0, 3.5, 7], 1, 0, 3)).toEqual([1, 5, 8]);
+  });
+
+  it('marcadores sem resultado recente: nunca enviados e os com mais de 6 meses', () => {
+    const found = [
+      { marker: m('hematocrito'), row: row(49, '2026-10-01') },
+      { marker: m('psa'), row: row(1, '2025-09-01') },
+      { marker: m('estradiol'), row: null },
+    ];
+    expect(staleMarkers(found, NOW)).toEqual([{ label: 'PSA', monthsAgo: 14 }, { label: 'Estradiol', monthsAgo: null }]);
+  });
+
+  it('perguntas saem dos dados: fora da faixa, coleta no pico, oscilação alta e lacunas', () => {
+    const found = [
+      { marker: m('hematocrito'), row: row(53, '2026-10-01') },
+      { marker: m('hdl'), row: row(45, '2026-10-01') },
+      { marker: m('estradiol'), row: null },
+    ];
+    const qs = doctorQuestions({ found, swingPct: 82, drawPosition: 0.9, settled: true, now: NOW });
+    expect(qs[0]).toContain('Meu exame de Hematócrito veio 53 %, acima da faixa do laudo (40 a 50)');
+    // Faixa com um lado só não vira "40 a —".
+    const oneSided = doctorQuestions({ found: [{ marker: m('hdl'), row: row(38, '2026-10-01', { refLow: 40, refHigh: null, inRange: false }) }], swingPct: 10, drawPosition: null, settled: true, now: NOW });
+    expect(oneSided[0]).toContain('Colesterol HDL veio 38 %, abaixo da faixa do laudo (a partir de 40)');
+    expect(qs.join('\n')).toContain('perto do pico');
+    expect(qs.join('\n')).toContain('sobe e desce bastante');
+    expect(qs.join('\n')).toContain('Não tenho resultado recente de Estradiol');
+    expect(qs.join('\n')).not.toContain('HDL'); // dentro da faixa não vira pergunta
+    expect(qs.length).toBeLessThanOrEqual(6);
+    // Nenhuma pergunta sugere dose ou conduta.
+    expect(qs.join('\n')).not.toMatch(/\bmg\b|\bml\b|aumentar|reduzir|parar/i);
+  });
+
+  it('sem nada fora do comum ainda sobra a pergunta geral', () => {
+    const qs = doctorQuestions({ found: [{ marker: m('hematocrito'), row: row(45, '2026-11-01') }], swingPct: 20, drawPosition: 0.5, settled: true, now: NOW });
+    expect(qs).toEqual(['O que isso muda para a minha fertilidade e para o meu coração a longo prazo?']);
   });
 });

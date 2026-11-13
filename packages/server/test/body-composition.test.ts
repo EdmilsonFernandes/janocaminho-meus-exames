@@ -245,3 +245,38 @@ describe('API /body-composition/health-connect (relógio/balança)', () => {
     expect((await prisma.user.findUniqueOrThrow({ where: { id: u.user.id }, select: { credits: true } })).credits).toBe(7);
   });
 });
+
+describe('médico vê a composição corporal no brief (scope exams)', () => {
+  beforeEach(resetDb);
+
+  it('com share de exames: última avaliação + anterior; sem share → 403', async () => {
+    const { createDoctor } = await import('./helpers');
+    const u = await createUser();
+    const { doctor, token: docToken } = await createDoctor({ crm: '55555-SP' });
+    const base = { patientId: u.patient.id, source: 'MANUAL', weightKg: 80, bodyFatPct: 20, fatMassKg: 16, fatFreeMassKg: 64 };
+    await prisma.bodyComposition.createMany({ data: [
+      { ...base, measuredAt: new Date('2026-09-01T12:00:00Z') },
+      { ...base, measuredAt: new Date('2026-11-01T12:00:00Z'), weightKg: 78.5, bodyFatPct: 18.5, deviceBrand: 'InBody', deviceModel: '270' },
+    ] });
+
+    const denied = await api().get(`/api/doctor/patients/${u.patient.id}/vitals`).set(authHeader(docToken));
+    expect(denied.status).toBe(403);
+
+    await prisma.doctorShare.create({ data: { doctorId: doctor.id, patientId: u.patient.id, scopes: ['exams'], active: true } as never });
+    const ok = await api().get(`/api/doctor/patients/${u.patient.id}/vitals`).set(authHeader(docToken));
+    expect(ok.status).toBe(200);
+    expect(ok.body.bodyComposition.latest).toMatchObject({ weightKg: 78.5, bodyFatPct: 18.5, deviceBrand: 'InBody' });
+    expect(ok.body.bodyComposition.previous).toMatchObject({ weightKg: 80 });
+    expect(ok.body.bodyComposition.latest).not.toHaveProperty('rawPayload');
+  });
+
+  it('paciente sem avaliação: campo vem null e o brief não quebra', async () => {
+    const { createDoctor } = await import('./helpers');
+    const u = await createUser();
+    const { doctor, token: docToken } = await createDoctor({ crm: '66666-SP' });
+    await prisma.doctorShare.create({ data: { doctorId: doctor.id, patientId: u.patient.id, scopes: ['exams'], active: true } as never });
+    const ok = await api().get(`/api/doctor/patients/${u.patient.id}/vitals`).set(authHeader(docToken));
+    expect(ok.status).toBe(200);
+    expect(ok.body.bodyComposition).toBeNull();
+  });
+});

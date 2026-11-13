@@ -337,6 +337,8 @@ export interface EvolutionRow {
   lastDate: string | null;
   inRange: boolean;
   direction?: 'up' | 'down' | 'stable';
+  /** Histórico do analito (mais antigo primeiro), quando a API envia. */
+  points?: Array<{ value: number | null; date: string | null }>;
 }
 
 /** O resultado mais recente do paciente para um marcador (linhas de GET /items/evolution). */
@@ -354,4 +356,68 @@ export function findMarker(rows: EvolutionRow[], marker: RadarMarkerDef): Evolut
 export function positionInSwing(valueMg: number, stats: Pick<RadarStats, 'peakMg' | 'troughMg'>): number {
   if (stats.peakMg - stats.troughMg < 1e-6) return 0.5;
   return Math.min(1, Math.max(0, (valueMg - stats.troughMg) / (stats.peakMg - stats.troughMg)));
+}
+
+// ───────────────────────── próxima coleta comparável e perguntas para o médico ─────────────────────────
+
+/**
+ * Próximos dias em que a coleta cai no MESMO ponto da curva da coleta anterior: cada
+ * aplicação futura + o mesmo intervalo (dias depois da aplicação). Serve para COMPARAR
+ * exames entre si — não é "melhor dia para um resultado".
+ */
+export function nextComparableDraws(injectionDays: number[], daysAfterShot: number, todayDay: number, count = 2): number[] {
+  const out: number[] = [];
+  for (const d of [...injectionDays].sort((a, b) => a - b)) {
+    const draw = Math.round(d + daysAfterShot);
+    if (draw > todayDay && !out.includes(draw)) out.push(draw);
+    if (out.length >= count) break;
+  }
+  return out;
+}
+
+export interface MarkerFinding {
+  marker: RadarMarkerDef;
+  row: EvolutionRow | null;
+}
+
+const MONTH_MS = 30.44 * 86_400_000;
+
+/** Marcadores sem resultado nos últimos `months` meses (ou nunca enviados). */
+export function staleMarkers(found: MarkerFinding[], now = Date.now(), months = 6): Array<{ label: string; monthsAgo: number | null }> {
+  const out: Array<{ label: string; monthsAgo: number | null }> = [];
+  for (const { marker, row } of found) {
+    if (!row || !row.lastDate) { out.push({ label: marker.label, monthsAgo: null }); continue; }
+    const ago = Math.floor((now - new Date(row.lastDate).getTime()) / MONTH_MS);
+    if (ago >= months) out.push({ label: marker.label, monthsAgo: ago });
+  }
+  return out;
+}
+
+const br = (v: number) => v.toLocaleString('pt-BR');
+
+/**
+ * Perguntas prontas para a consulta, geradas por REGRA a partir dos dados do paciente
+ * (sem IA): transformam número em conversa, não em autodecisão. No máximo `max`.
+ */
+export function doctorQuestions(
+  input: { found: MarkerFinding[]; swingPct: number; drawPosition: number | null; settled: boolean; now?: number },
+  max = 6,
+): string[] {
+  const out: string[] = [];
+  for (const { marker, row } of input.found) {
+    if (!row || row.inRange || (row.refLow == null && row.refHigh == null)) continue;
+    const side = row.refHigh != null && row.lastValue > row.refHigh ? 'acima' : 'abaixo';
+    // Faixa com um lado só é comum (HDL "acima de 40", LDL "até 130"): escreve como gente fala.
+    const range = row.refLow != null && row.refHigh != null ? `${br(row.refLow)} a ${br(row.refHigh)}` : row.refLow != null ? `a partir de ${br(row.refLow)}` : `até ${br(row.refHigh!)}`;
+    out.push(`Meu exame de ${marker.label} veio ${br(row.lastValue)}${row.unit ? ` ${row.unit}` : ''}, ${side} da faixa do laudo (${range}). Isso precisa de acompanhamento no meu caso?`);
+  }
+  if (input.drawPosition != null && (input.drawPosition > 0.72 || input.drawPosition < 0.28)) {
+    out.push(`Meu exame de testosterona foi colhido perto do ${input.drawPosition > 0.72 ? 'pico' : 'vale'} entre as aplicações. Como devo interpretar esse número, e em que momento devo colher o próximo?`);
+  }
+  if (input.swingPct >= 70) out.push('Pelo que entendi, meu nível sobe e desce bastante entre uma aplicação e outra. Isso faz diferença para mim?');
+  if (!input.settled) out.push('Faz pouco tempo que comecei. Quando faz sentido repetir os exames para ver o nível já estabilizado?');
+  const missing = staleMarkers(input.found, input.now).map((m) => m.label);
+  if (missing.length) out.push(`Não tenho resultado recente de ${missing.slice(0, 4).join(', ')}${missing.length > 4 ? ' e outros' : ''}. Quais desses eu devo acompanhar?`);
+  out.push('O que isso muda para a minha fertilidade e para o meu coração a longo prazo?');
+  return out.slice(0, max);
 }

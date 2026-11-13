@@ -83,3 +83,32 @@ describe('API /items/compound-explain', () => {
     expect((await api().post('/api/items/compound-explain').send({ id: 'test_cyp' })).status).toBe(401);
   });
 });
+
+describe('curadoria (admin) das explicações de composto', () => {
+  beforeEach(async () => { await resetDb(); llm.calls = 0; llm.replies = [JSON.stringify(GOOD)]; });
+
+  it('texto curado é servido ao paciente e não é sobrescrito pela IA', async () => {
+    const { saveCuratedCompound, getOrCreateCompoundExplanation } = await import('../src/analysis/compound-explain');
+    const curated = { ...GOOD, oQueE: 'Texto revisado por uma pessoa: é uma forma de testosterona aplicada por injeção.' };
+    expect((await saveCuratedCompound('test_cyp', curated)).problems).toEqual([]);
+    // Simula um bump de versão do prompt: a linha curada continua valendo.
+    await prisma.compoundKnowledge.updateMany({ where: { compoundKey: 'test_cyp' }, data: { promptVersion: 'v0-antiga' } });
+    const out = await getOrCreateCompoundExplanation('test_cyp');
+    expect(out.cached).toBe(true);
+    expect(out.sections.oQueE).toContain('revisado por uma pessoa');
+    expect(llm.calls).toBe(0);
+  });
+
+  it('salvar curado com problema grava, mas devolve o aviso das travas', async () => {
+    const { saveCuratedCompound } = await import('../src/analysis/compound-explain');
+    const out = await saveCuratedCompound('oxand', { ...GOOD, noCorpo: `${GOOD.noCorpo} Tome 20 mg.` });
+    expect(out.problems).toContain('cita dose');
+    expect(await prisma.compoundKnowledge.count({ where: { compoundKey: 'oxand', source: 'curated' } })).toBe(1);
+  });
+
+  it('rotas do admin exigem admin', async () => {
+    const u = await createUser();
+    expect((await api().get('/api/admin/compound-knowledge').set(authHeader(u.token))).status).toBe(403);
+    expect((await api().patch('/api/admin/compound-knowledge/test_cyp').set(authHeader(u.token)).send({ sections: GOOD })).status).toBe(403);
+  });
+});

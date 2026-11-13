@@ -12,8 +12,9 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useNotify } from 'react-admin';
 import {
-  Activity, CalendarDays, ChevronDown, CircleHelp, FlaskConical, Info, Plus, Sparkles, TrendingDown, TrendingUp, TriangleAlert, Trash2, Waves,
+  Activity, BellPlus, CalendarDays, ChevronDown, CircleHelp, ClipboardList, Copy, FlaskConical, Info, Plus, Printer, Sparkles, TrendingDown, TrendingUp, TriangleAlert, Trash2, Waves,
 } from 'lucide-react';
 import { cn } from 'cn';
 import { API_URL, token } from '../config';
@@ -21,6 +22,7 @@ import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { CREDIT_COSTS } from '../components/CreditBadge';
+import { printDocument } from '../utils/nativeDoc';
 import { HormoneRadarIcon } from '@/components/reui/icons';
 import { Frame, FrameDescription, FrameFooter, FrameHeader, FramePanel, FrameTitle } from '@/components/reui/frame';
 import { Badge } from '@/components/reui/badge';
@@ -33,10 +35,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { CompoundExplainDialog } from '@/components/radar/compound-explain';
 import { CompoundIcon, CompoundPicker } from '@/components/radar/compound-picker';
+import { MarkerSpark } from '@/components/radar/marker-spark';
 import { RadarChart } from '@/components/radar/radar-chart';
 import {
-  RADAR_FAMILIES, RADAR_FREQUENCIES, compoundById, computeRadarSeries, computeRadarStats, familyTotal, findMarker, getDoseMg,
-  markersForProtocol, positionInSwing, type EvolutionRow, type RadarProtocolItem,
+  RADAR_FAMILIES, RADAR_FREQUENCIES, compoundById, computeRadarSeries, computeRadarStats, doctorQuestions, familyTotal, findMarker, getDoseMg,
+  markersForProtocol, nextComparableDraws, positionInSwing, staleMarkers, type EvolutionRow, type RadarProtocolItem,
 } from '@/utils/hormoneRadar';
 
 const WEEK_OPTIONS = [8, 12, 16, 24];
@@ -45,6 +48,7 @@ const n1 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 1, 
 const n0 = (v: number) => Math.round(v).toLocaleString('pt-BR');
 const shortDate = (d: Date) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '').replace(' de ', ' ');
 const monthsAgo = (iso: string) => Math.floor((Date.now() - new Date(iso).getTime()) / (30.44 * DAY_MS));
+const weekdayDate = (d: Date) => d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).replace(/\./g, '').replace(' de ', ' ');
 const fullDate = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/\./g, '').replace(/ de /g, ' ');
 
 interface Saved {
@@ -88,6 +92,7 @@ const STABILITY = {
 export default function RadarHormonal() {
   useReuiThemeSync();
   const navigate = useNavigate();
+  const notify = useNotify();
   const [pid] = useSelectedPatient();
 
   const [protocol, setProtocol] = useState<RadarProtocolItem[]>(DEFAULT_PROTOCOL);
@@ -101,6 +106,7 @@ export default function RadarHormonal() {
   const [rowsFailed, setRowsFailed] = useState(false);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [explainId, setExplainId] = useState<string | null>(null);
+  const [reminding, setReminding] = useState(false);
 
   // Protocolo fica salvo no aparelho, por paciente (a 1ª versão perdia tudo ao sair da tela).
   useEffect(() => {
@@ -151,6 +157,7 @@ export default function RadarHormonal() {
   const markers = useMemo(() => markersForProtocol(protocol), [protocol]);
   const found = useMemo(() => markers.map((marker) => ({ marker, row: rows ? findMarker(rows, marker) : null })), [markers, rows]);
   const testoRow = found.find((f) => f.marker.key === 'testosterona')?.row ?? null;
+  const testoInProtocolEarly = !!testoValues;
 
   // Dia do exame: automático quando há data de início e o exame cai dentro do período.
   const start = startDate ? new Date(`${startDate}T12:00:00`) : null;
@@ -219,6 +226,67 @@ export default function RadarHormonal() {
     ].join('\n');
     try { sessionStorage.setItem('dx-chat-prefill', text); } catch { /* sem sessionStorage: abre o chat vazio */ }
     navigate('/chat');
+  };
+
+  // Próximas coletas no MESMO ponto da curva (só com a data de início: precisa saber que dia é hoje).
+  const testoShots = series.seriesPerItem.filter((s) => s.comp.family === 'testosterona').flatMap((s) => s.injectionDays);
+  const todayDay = start ? Math.floor((Date.now() - start.getTime()) / DAY_MS) : null;
+  const nextDraws = start && todayDay != null && daysAfterShot != null && testoRow
+    ? nextComparableDraws(testoShots, daysAfterShot, todayDay, 2).map((d) => new Date(start.getTime() + d * DAY_MS))
+    : [];
+  const stale = rows ? staleMarkers(found) : [];
+  const questions = rows ? doctorQuestions({ found, swingPct: stats.swingPct, drawPosition: testoInProtocolEarly && testoRow ? swingPos : null, settled: stats.settled }) : [];
+
+  const remindNextDraw = async () => {
+    if (!nextDraws.length) return;
+    setReminding(true);
+    try {
+      const due = new Date(nextDraws[0]); due.setHours(8, 0, 0, 0);
+      const r = await fetch(`${API_URL}/reminders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({ patientId: pid, title: 'Colher testosterona (mesmo ponto da curva)', dueDate: due.toISOString(), type: 'exame', note: `Para comparar com o exame anterior: colher ${daysAfterShot === 0 ? 'no dia da aplicação' : `${daysAfterShot} dia(s) depois da aplicação`}.` }),
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      notify(`Lembrete criado para ${weekdayDate(nextDraws[0])}.`, { type: 'success' });
+    } catch {
+      notify('Não foi possível criar o lembrete. Tente de novo.', { type: 'error' });
+    } finally {
+      setReminding(false);
+    }
+  };
+
+  const copyQuestions = async () => {
+    try { await navigator.clipboard.writeText(questions.map((q, i) => `${i + 1}. ${q}`).join('\n')); notify('Perguntas copiadas.', { type: 'success' }); }
+    catch { notify('Não foi possível copiar. Selecione o texto e copie manualmente.', { type: 'info' }); }
+  };
+
+  /** Resumo de 1 página para a consulta: o que uso, o que os exames mostram e minhas dúvidas. */
+  const printSummary = () => {
+    const esc = (v: unknown) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
+    const protoRows = protocol.map((p) => {
+      const comp = compoundById(p.compoundId);
+      const freq = RADAR_FREQUENCIES.find((f) => f.days === p.freqDays)?.label ?? `A cada ${p.freqDays} dias`;
+      return `<tr><td>${esc(comp.name)}</td><td>${n0(getDoseMg(p))} mg</td><td>${esc(freq)}</td><td>semana ${p.startWeek} a ${p.endWeek}</td></tr>`;
+    }).join('');
+    const examRows = found.map(({ marker, row }) => row
+      ? `<tr><td>${esc(marker.label)}</td><td>${esc(row.lastValue.toLocaleString('pt-BR'))} ${esc(row.unit ?? '')}</td><td>${row.lastDate ? esc(fullDate(row.lastDate)) : '—'}</td><td>${row.refLow == null && row.refHigh == null ? 'sem faixa no laudo' : `${row.refLow ?? '—'} a ${row.refHigh ?? '—'}`}</td><td>${row.refLow == null && row.refHigh == null ? '' : row.inRange ? 'na faixa' : '<strong>fora da faixa</strong>'}</td></tr>`
+      : `<tr><td>${esc(marker.label)}</td><td colspan="4" style="color:#667">sem resultado no app</td></tr>`).join('');
+    const draw = testoInProtocolEarly && testoRow && testoRow.lastDate
+      ? `<p>Testosterona colhida em ${esc(fullDate(testoRow.lastDate))}${autoInRange && daysAfterShot != null ? `, ${daysAfterShot} dia(s) depois da aplicação, ${swingPos > 0.72 ? 'perto do pico' : swingPos < 0.28 ? 'perto do vale' : 'no meio da oscilação'}` : ''}.</p>`
+      : '';
+    const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Resumo para a consulta</title><style>
+      body{font-family:'Segoe UI',Arial,sans-serif;padding:28px;line-height:1.5;color:#15233b;max-width:760px;margin:auto}
+      h1{font-size:20px;margin:0 0 2px}h2{font-size:14px;margin:22px 0 6px;text-transform:uppercase;letter-spacing:.04em;color:#0f766e}
+      table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid #d5dde0;padding:6px 8px;text-align:left}th{background:#f1f5f5}
+      p{margin:6px 0;font-size:13px}ol{font-size:13px;padding-left:18px}li{margin:6px 0}.muted{color:#5b6b7a;font-size:11.5px}</style></head><body>
+      <h1>Resumo para a consulta</h1><p class="muted">Gerado no Dr. Exame em ${esc(new Date().toLocaleDateString('pt-BR'))}${start ? ` · protocolo iniciado em ${esc(start.toLocaleDateString('pt-BR'))}` : ''}. Informado pelo próprio paciente.</p>
+      <h2>O que estou usando</h2><table><tr><th>Composto</th><th>Dose por aplicação</th><th>Frequência</th><th>Período</th></tr>${protoRows}</table>
+      <h2>Meus exames ligados a isso</h2>${draw}<table><tr><th>Exame</th><th>Resultado</th><th>Data</th><th>Faixa do laudo</th><th></th></tr>${examRows}</table>
+      <h2>Minhas dúvidas</h2><ol>${questions.map((q) => `<li>${esc(q)}</li>`).join('')}</ol>
+      <p class="muted">Documento educativo, montado a partir do que o paciente informou e dos exames enviados ao app. Não é laudo, não sugere dose e não substitui a avaliação médica.</p>
+      </body></html>`;
+    void printDocument('Resumo para a consulta', html);
   };
 
   const stab = STABILITY[stats.stability];
@@ -503,6 +571,20 @@ export default function RadarHormonal() {
                       Esta coleta foi {daysAfterShot === 0 ? 'no dia da aplicação' : `${daysAfterShot} ${daysAfterShot === 1 ? 'dia' : 'dias'} depois da aplicação`}; repetir nesse mesmo intervalo deixa o próximo resultado comparável com este.
                     </p>
                   ) : null}
+                  {nextDraws.length ? (
+                    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
+                      <p className="m-0 text-sm text-foreground">
+                        Próximas datas equivalentes: <strong className="font-semibold">{nextDraws.map(weekdayDate).join(' ou ')}</strong>
+                        <span className="block text-xs text-muted-foreground">Servem para comparar com o exame anterior; quem define quando repetir é o seu médico.</span>
+                      </p>
+                      <Button variant="outline" size="lg" className="h-10" disabled={reminding} onClick={() => void remindNextDraw()}>
+                        <BellPlus aria-hidden="true" />
+                        Lembrar-me
+                      </Button>
+                    </div>
+                  ) : daysAfterShot != null && !start ? (
+                    <p className="m-0 text-xs text-muted-foreground">Informe a data de início do protocolo para ver as próximas datas equivalentes e criar um lembrete.</p>
+                  ) : null}
                   {factor && afterSettle && testoStats.peakMg > testoStats.troughMg ? (
                     <p className="m-0 text-xs text-muted-foreground tabular-nums">
                       Estimativa grosseira, só para dar ideia: ao longo do ciclo sua testosterona ficaria entre ~{n0(testoStats.troughMg * factor)} e ~{n0(testoStats.peakMg * factor)} {testoRow.unit ?? ''}. Só outro exame, colhido em outro momento, confirma.
@@ -527,6 +609,12 @@ export default function RadarHormonal() {
                 <AlertDescription><p className="m-0">A lista abaixo mostra o que acompanhar; os seus valores aparecem quando a conexão voltar.</p></AlertDescription>
               </Alert>
             ) : null}
+            {stale.length ? (
+              <p className="m-0 border-b border-border px-4 py-3 text-xs text-muted-foreground">
+                <strong className="font-semibold text-foreground">Sem resultado recente:</strong>{' '}
+                {stale.map((m) => `${m.label} (${m.monthsAgo == null ? 'nunca enviado' : `há ${m.monthsAgo} meses`})`).join(', ')}. Converse com o seu médico sobre quais acompanhar.
+              </p>
+            ) : null}
             <ul className="m-0 flex list-none flex-col divide-y divide-border p-0">
               {found.map(({ marker, row }) => {
                 const Dir = marker.direction === 'sobe' ? TrendingUp : marker.direction === 'cai' ? TrendingDown : Activity;
@@ -547,8 +635,14 @@ export default function RadarHormonal() {
                         <span className="text-xs text-muted-foreground">…</span>
                       ) : row ? (
                         <>
+                          {row.points && row.points.length >= 2 ? (
+                            <MarkerSpark points={row.points} protocolStart={start ? start.getTime() : null} protocolEnd={start ? start.getTime() + totalDays * DAY_MS : null} />
+                          ) : null}
                           <span className="flex flex-col items-start sm:items-end">
-                            <span className="text-sm font-semibold tabular-nums">{row.lastValue.toLocaleString('pt-BR')} {row.unit ?? ''}</span>
+                            <span className="text-sm font-semibold tabular-nums">
+                              {row.points && row.points.length >= 2 && row.points[0].value != null && row.points[0].value !== row.lastValue ? <span className="font-normal text-muted-foreground">{row.points[0].value.toLocaleString('pt-BR')} → </span> : null}
+                              {row.lastValue.toLocaleString('pt-BR')} {row.unit ?? ''}
+                            </span>
                             {row.lastDate ? <span className="text-xs text-muted-foreground tabular-nums">{fullDate(row.lastDate)}{monthsAgo(row.lastDate) >= 6 ? ` · há ${monthsAgo(row.lastDate)} meses` : ''}</span> : null}
                           </span>
                           {row.refLow == null && row.refHigh == null
@@ -579,6 +673,38 @@ export default function RadarHormonal() {
             </div>
           </FrameFooter>
         </Frame>
+
+        {/* ───────── Para levar à consulta ───────── */}
+        {questions.length ? (
+          <Frame>
+            <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
+              <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
+                <IconTile variant="frame" size="sm" aria-hidden="true"><ClipboardList aria-hidden="true" /></IconTile>
+                <div className="flex min-w-0 flex-col gap-px">
+                  <FrameTitle role="heading" aria-level={2}>Para levar à consulta</FrameTitle>
+                  <FrameDescription>Perguntas montadas a partir dos seus dados</FrameDescription>
+                </div>
+              </div>
+            </FrameHeader>
+            <FramePanel className="p-0!">
+              <ol className="m-0 flex list-none flex-col divide-y divide-border p-0">
+                {questions.map((q, i) => (
+                  <li key={q} className="flex gap-3 px-4 py-3 text-sm leading-relaxed">
+                    <span aria-hidden="true" className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold tabular-nums">{i + 1}</span>
+                    {q}
+                  </li>
+                ))}
+              </ol>
+            </FramePanel>
+            <FrameFooter className="flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="m-0 text-xs text-muted-foreground">O resumo junta o que você usa, seus exames e estas perguntas numa página. Quem decide é o médico.</p>
+              <div className="flex shrink-0 flex-wrap gap-2">
+                <Button variant="outline" size="lg" className="h-10" onClick={() => void copyQuestions()}><Copy aria-hidden="true" />Copiar perguntas</Button>
+                <Button size="lg" className="h-10" onClick={printSummary}><Printer aria-hidden="true" />Resumo para a consulta</Button>
+              </div>
+            </FrameFooter>
+          </Frame>
+        ) : null}
 
         {/* ───────── Como calculamos ───────── */}
         <Frame>

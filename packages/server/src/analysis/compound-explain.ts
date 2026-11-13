@@ -103,7 +103,8 @@ export function compoundTextProblems(sections: Partial<CompoundSections>): strin
 
 async function readCached(key: string): Promise<CompoundSections | null> {
   const row = await prisma.compoundKnowledge.findFirst({
-    where: { compoundKey: key, locale: LOCALE, promptVersion: COMPOUND_PROMPT_VERSION },
+    // Texto CURADO pelo admin vale em qualquer versão do prompt (bump não apaga revisão humana).
+    where: { compoundKey: key, locale: LOCALE, OR: [{ promptVersion: COMPOUND_PROMPT_VERSION }, { source: 'curated' }] },
     select: { sections: true },
   });
   return row ? (row.sections as unknown as CompoundSections) : null;
@@ -136,6 +137,22 @@ export async function getOrCreateCompoundExplanation(compoundId: string): Promis
   }
   console.warn(`[compound-explain] ${compoundId} reprovado pelas travas: ${lastProblems.join('; ')}`);
   throw new UnsafeCompoundTextError(lastProblems.join('; '));
+}
+
+/** Admin: apaga o texto atual e gera de novo (o curado também — é pedido explícito). */
+export async function regenerateCompoundExplanation(compoundId: string) {
+  if (!Object.prototype.hasOwnProperty.call(COMPOUND_CATALOG, compoundId)) throw new UnknownCompoundError(compoundId);
+  await prisma.compoundKnowledge.deleteMany({ where: { compoundKey: compoundId, locale: LOCALE } });
+  return getOrCreateCompoundExplanation(compoundId);
+}
+
+/** Admin: grava o texto revisado por uma pessoa (source='curated'). Devolve os avisos das travas. */
+export async function saveCuratedCompound(compoundId: string, input: Partial<CompoundSections>): Promise<{ problems: string[] }> {
+  if (!Object.prototype.hasOwnProperty.call(COMPOUND_CATALOG, compoundId)) throw new UnknownCompoundError(compoundId);
+  const sections = Object.fromEntries(COMPOUND_SECTION_KEYS.map((k) => [k, String(input[k] ?? '').trim().slice(0, 2000)])) as CompoundSections;
+  const data = { compoundKey: compoundId, locale: LOCALE, promptVersion: COMPOUND_PROMPT_VERSION, source: 'curated', sections };
+  await prisma.compoundKnowledge.upsert({ where: { compoundKey_locale: { compoundKey: compoundId, locale: LOCALE } }, create: data, update: data });
+  return { problems: compoundTextProblems(sections) };
 }
 
 /**

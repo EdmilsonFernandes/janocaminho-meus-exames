@@ -1156,6 +1156,12 @@ router.get('/patients/:patientId/vitals', requireDoctor, async (req: any, res, n
     }
     const days = [...byDay.values()].sort((a, b) => (a.date < b.date ? 1 : -1)); // DESC — mais recente primeiro
 
+    // Composição corporal (bioimpedância): última avaliação + a anterior, p/ o médico ver a
+    // direção. Mesma família de dado das medições acima → mesmo scope 'exams'. `select`
+    // explícito e best-effort: tabela nova, não pode derrubar o brief se faltar em algum banco.
+    const BC_SELECT = { measuredAt: true, source: true, deviceBrand: true, deviceModel: true, weightKg: true, bodyFatPct: true, fatMassKg: true, skeletalMuscleKg: true, fatFreeMassKg: true, needsReview: true } as const;
+    const bodyRows = await prisma.bodyComposition.findMany({ where: { patientId: pid }, orderBy: { measuredAt: 'desc' }, take: 2, select: BC_SELECT }).catch(() => []);
+
     // Summary: médias 30d sobre os dias COM dado da métrica (zero = sem registro, não conta).
     const cutoff = Date.now() - 30 * 86400000;
     const last30 = days.filter((d) => new Date(`${d.date}T12:00:00Z`).getTime() >= cutoff);
@@ -1175,6 +1181,7 @@ router.get('/patients/:patientId/vitals', requireDoctor, async (req: any, res, n
         lastDay: days[0]?.date ?? null,
       },
       lastSyncAt,
+      bodyComposition: bodyRows[0] ? { latest: bodyRows[0], previous: bodyRows[1] ?? null } : null,
     });
   } catch (e) { next(e); }
 });

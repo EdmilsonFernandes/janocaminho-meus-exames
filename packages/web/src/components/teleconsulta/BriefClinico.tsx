@@ -69,6 +69,11 @@ interface VitalsBrief {
     activeKcalAvg30d: number | null; lastWeightKg: number | null; lastWeightAt: string | null; lastDay: string | null;
   };
   lastSyncAt: string | null;
+  bodyComposition?: { latest: BodyCompBrief; previous: BodyCompBrief | null } | null;
+}
+interface BodyCompBrief {
+  measuredAt: string; source: string; deviceBrand: string | null; deviceModel: string | null;
+  weightKg: number | null; bodyFatPct: number | null; fatMassKg: number | null; skeletalMuscleKg: number | null; fatFreeMassKg: number | null; needsReview: boolean;
 }
 
 /** Contexto clínico (brief v2): alergias + medicações em uso registradas no app. */
@@ -429,6 +434,40 @@ export const BriefClinico = ({ patientId, authToken, patientName, reason }: { pa
           })}
         </Stack>
       )}
+
+      {/* Composição corporal (bioimpedância) — última avaliação do paciente, com o aparelho e a
+          data (aparelhos diferentes não se comparam; dado velho não pode parecer atual). */}
+      {vitals?.bodyComposition && (() => {
+        const bc = vitals.bodyComposition.latest;
+        const prev = vitals.bodyComposition.previous;
+        const n1 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+        const delta = (a: number | null, b: number | null | undefined, unit: string) => {
+          if (a == null || b == null) return undefined;
+          const d = Math.round((a - b) * 10) / 10;
+          return d === 0 ? 'igual à anterior' : `${d > 0 ? '+' : '−'}${n1(Math.abs(d))} ${unit} vs. anterior`;
+        };
+        const device = [bc.deviceBrand, bc.deviceModel].filter(Boolean).join(' ') || (bc.source === 'MANUAL' ? 'digitado pelo paciente' : 'aparelho não identificado');
+        return (
+          <Card sx={{ borderRadius: '16px', mt: 2 }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.25 }}>
+                <MonitorWeightIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
+                <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', flex: 1 }}>Composição corporal</Typography>
+                {bc.needsReview && <Chip size="small" label="leitura não conferida" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#b45309', borderRadius: '6px' }} />}
+              </Stack>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1.25 }}>
+                {bc.weightKg != null && <VitalMetric icon={<MonitorWeightIcon sx={{ fontSize: 15 }} />} value={n1(bc.weightKg)} unit="kg" label="Peso" context={delta(bc.weightKg, prev?.weightKg, 'kg')} />}
+                {bc.bodyFatPct != null && <VitalMetric icon={<MonitorWeightIcon sx={{ fontSize: 15 }} />} value={n1(bc.bodyFatPct)} unit="%" label="Gordura corporal" context={delta(bc.bodyFatPct, prev?.bodyFatPct, 'p.p.')} />}
+                {bc.skeletalMuscleKg != null && <VitalMetric icon={<MonitorWeightIcon sx={{ fontSize: 15 }} />} value={n1(bc.skeletalMuscleKg)} unit="kg" label="Músculo esquelético" context={delta(bc.skeletalMuscleKg, prev?.skeletalMuscleKg, 'kg')} />}
+                {bc.fatFreeMassKg != null && <VitalMetric icon={<MonitorWeightIcon sx={{ fontSize: 15 }} />} value={n1(bc.fatFreeMassKg)} unit="kg" label="Massa livre de gordura" context={delta(bc.fatFreeMassKg, prev?.fatFreeMassKg, 'kg')} />}
+              </Box>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 1.25 }}>
+                Avaliação de {new Date(bc.measuredAt).toLocaleDateString('pt-BR')} · {device} · registrada pelo paciente
+              </Typography>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* Sinais vitais contínuos (Health Connect) — só se o paciente sincronizou. Proveniência
           explícita (padrão koruux 6-D1): o médico precisa saber de ONDE o dado veio. */}

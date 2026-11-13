@@ -21,6 +21,7 @@ import { logCredit } from '../utils/credits';
 import { getConfigRows, getActiveProvider, AI_PROVIDERS, resolveProviderConfig, type AiProviderName } from '../llm/ai-config';
 import { refreshLlm, testLlmConnection } from '../llm';
 import { generateExplanation } from '../analysis/explain';
+import { COMPOUND_CATALOG, UnknownCompoundError, compoundTextProblems, regenerateCompoundExplanation, saveCuratedCompound } from '../analysis/compound-explain';
 import { encryptPII, decryptPII } from '../utils/crypto';
 import { cpfFingerprint, maskStoredCpf, revealStoredCpf } from '../utils/cpf';
 import { getSubscriptionColumnSupport } from '../utils/subscriptionCompat';
@@ -481,6 +482,43 @@ router.post('/exam-knowledge/:id/regenerate', async (req, res, next) => {
     const fresh = await prisma.examKnowledge.findUnique({ where: { nameKey_locale: { nameKey: row.nameKey, locale: row.locale } } });
     await audit('REGENERATE_EXAM_KNOWLEDGE', req, { targetType: 'EXAM_KNOWLEDGE', targetId: row.id, after: fresh });
     res.json(fresh);
+  } catch (e) { next(e); }
+});
+
+// ── Radar Hormonal: curadoria das explicações de composto (compound_knowledge) ──
+// GET: os 13 do catálogo, com o texto atual (ou pendente). PATCH: salva revisão humana
+// (source='curated', sobrevive a bump de prompt). POST regenerate: IA de novo, em 2º plano
+// (leva 1–2 min; o proxy corta em 60s).
+router.get('/compound-knowledge', async (_req, res, next) => {
+  try {
+    const rows = await prisma.compoundKnowledge.findMany({ select: { compoundKey: true, source: true, promptVersion: true, sections: true, updatedAt: true } });
+    const byKey = new Map(rows.map((r) => [r.compoundKey, r]));
+    res.json(Object.entries(COMPOUND_CATALOG).map(([key, fact]) => {
+      const row = byKey.get(key);
+      return { key, name: fact.name, source: row?.source ?? null, updatedAt: row?.updatedAt ?? null, sections: row?.sections ?? null, problems: row ? compoundTextProblems(row.sections as any) : [] };
+    }));
+  } catch (e) { next(e); }
+});
+
+router.patch('/compound-knowledge/:key', async (req, res, next) => {
+  try {
+    const key = String(req.params.key);
+    const out = await saveCuratedCompound(key, (req.body as any)?.sections ?? {});
+    await audit('UPDATE_COMPOUND_KNOWLEDGE', req, { targetType: 'COMPOUND_KNOWLEDGE', targetId: key, after: { problems: out.problems } });
+    res.json({ ok: true, problems: out.problems });
+  } catch (e) {
+    if (e instanceof UnknownCompoundError) { res.status(404).json({ error: 'Composto não encontrado.' }); return; }
+    next(e);
+  }
+});
+
+router.post('/compound-knowledge/:key/regenerate', async (req, res, next) => {
+  try {
+    const key = String(req.params.key);
+    if (!Object.prototype.hasOwnProperty.call(COMPOUND_CATALOG, key)) { res.status(404).json({ error: 'Composto não encontrado.' }); return; }
+    await audit('REGENERATE_COMPOUND_KNOWLEDGE', req, { targetType: 'COMPOUND_KNOWLEDGE', targetId: key });
+    void regenerateCompoundExplanation(key).catch((err) => console.warn('[compound-knowledge] regenerar falhou:', key, err?.message));
+    res.status(202).json({ ok: true });
   } catch (e) { next(e); }
 });
 
