@@ -581,22 +581,45 @@ class HealthBridge(private val activity: MainActivity) {
                     list.filter { it.metadata.dataOrigin.packageName == origin && kotlin.math.abs(timeOf(it).epochSecond - at.epochSecond) <= windowSec }
                         .minByOrNull { kotlin.math.abs(timeOf(it).epochSecond - at.epochSecond) }
 
+                // Peso da avaliação, do mais confiável para o menos:
+                //  1) mesma origem, a até 15 min (o caso normal: o aparelho grava os dois juntos);
+                //  2) qualquer origem, a até 6 h (peso digitado em outro app no mesmo dia);
+                //  3) o último peso conhecido até 60 dias antes (o relógio reaproveita o peso e o
+                //     Samsung Health nem sempre regrava o registro a cada medição).
+                // ANTES só valia o caso 1 e a medição era descartada EM SILÊNCIO (dono, 14/11:
+                // "importou certo, mas não atualiza").
+                fun weightFor(origin: String, at: Instant): Pair<WeightRecord, String>? {
+                    nearest(weights, origin, at) { it.time }?.let { return it to "same" }
+                    weights.filter { kotlin.math.abs(it.time.epochSecond - at.epochSecond) <= 6 * 3600L }
+                        .minByOrNull { kotlin.math.abs(it.time.epochSecond - at.epochSecond) }?.let { return it to "near" }
+                    weights.filter { !it.time.isAfter(at.plusSeconds(windowSec)) && it.time.isAfter(at.minusSeconds(60 * 86_400L)) }
+                        .maxByOrNull { it.time }?.let { return it to "carried" }
+                    return null
+                }
+
                 val arr = JSONArray()
+                var unpaired = 0
                 for (fat in fats) {
                     val origin = fat.metadata.dataOrigin.packageName
-                    val weight = nearest(weights, origin, fat.time) { it.time } ?: continue
+                    val picked = weightFor(origin, fat.time)
+                    if (picked == null) { unpaired++; continue }
+                    val weight = picked.first
                     val o = JSONObject()
                         .put("time", fat.time.toString())
                         .put("origin", origin)
                         .put("weightKg", weight.weight.inKilograms)
+                        .put("weightFrom", picked.second)
                         .put("bodyFatPct", fat.percentage.value)
                     nearest(bmrs, origin, fat.time) { it.time }?.let { o.put("bmrKcal", it.basalMetabolicRate.inKilocaloriesPerDay) }
                     heights.filter { !it.time.isAfter(fat.time.plusSeconds(windowSec)) }.maxByOrNull { it.time }
                         ?.let { o.put("heightCm", it.height.inMeters * 100.0) }
                     arr.put(o)
                 }
-                android.util.Log.d("DxHealth", "bodyComposition: fats=${fats.size} weights=${weights.size} -> ${arr.length()} avaliações")
-                dispatch(JSONObject().put("type", "bodycomp").put("requestId", id).put("readings", arr))
+                android.util.Log.d("DxHealth", "bodyComposition: fats=${fats.size} weights=${weights.size} semPeso=$unpaired -> ${arr.length()} avaliações")
+                // `stats` deixa a tela dizer o que o Health Connect tinha (diagnóstico sem cabo).
+                val stats = JSONObject().put("fats", fats.size).put("weights", weights.size).put("unpaired", unpaired)
+                fats.maxByOrNull { it.time }?.let { stats.put("latestFat", it.time.toString()) }
+                dispatch(JSONObject().put("type", "bodycomp").put("requestId", id).put("readings", arr).put("stats", stats))
             } catch (e: SecurityException) {
                 dispatch(errorPayload(id, "permission"))
             } catch (e: Throwable) {

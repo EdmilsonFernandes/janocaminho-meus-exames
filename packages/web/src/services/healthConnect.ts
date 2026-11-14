@@ -27,7 +27,7 @@ declare global {
   }
 }
 
-type HealthEvent = CustomEvent<{ type: string; requestId?: string; granted?: boolean; days?: unknown[]; readings?: unknown[]; code?: string }>;
+type HealthEvent = CustomEvent<{ type: string; requestId?: string; granted?: boolean; days?: unknown[]; readings?: unknown[]; stats?: unknown; code?: string }>;
 
 /** true somente no APK com Health Connect instalado e suportado. */
 export const healthConnectSupported = (): boolean => {
@@ -143,6 +143,8 @@ export interface HealthBodyReading {
   time: string;
   origin: string;
   weightKg: number;
+  /** De onde veio o peso: junto da medição, do mesmo dia, ou o último conhecido. */
+  weightFrom?: 'same' | 'near' | 'carried';
   bodyFatPct: number;
   bmrKcal?: number;
   heightCm?: number;
@@ -176,6 +178,28 @@ export const fetchBodyReadings = (days = 730): Promise<HealthBodyReading[] | nul
   const requestId = `body-${Date.now()}`;
   return waitFor<HealthBodyReading[] | null>('bodycomp', requestId, () => window.DxHealth!.bodyComposition!(requestId, days), (e) =>
     Array.isArray(e.detail?.readings) ? (e.detail.readings as HealthBodyReading[]) : null,
+  );
+};
+
+/** O que o Health Connect tinha quando lemos (vem do app a partir da versão 594). */
+export interface HealthBodyStats {
+  /** Registros de % de gordura encontrados. */
+  fats: number;
+  weights: number;
+  /** Medições de gordura sem nenhum peso aproveitável (não viram avaliação). */
+  unpaired: number;
+  /** Horário da medição de gordura mais recente no Health Connect. */
+  latestFat?: string;
+}
+
+/** Igual a fetchBodyReadings, mas com as contagens, para a tela explicar o que aconteceu. */
+export const fetchBodyReadingsDetailed = (days = 730): Promise<{ readings: HealthBodyReading[]; stats: HealthBodyStats | null } | null> => {
+  if (!hasBodyPermissions()) return Promise.resolve(null);
+  const requestId = `body-${Date.now()}`;
+  return waitFor<{ readings: HealthBodyReading[]; stats: HealthBodyStats | null } | null>('bodycomp', requestId, () => window.DxHealth!.bodyComposition!(requestId, days), (e) =>
+    Array.isArray(e.detail?.readings)
+      ? { readings: e.detail.readings as HealthBodyReading[], stats: e.detail.stats && typeof e.detail.stats === 'object' ? (e.detail.stats as HealthBodyStats) : null }
+      : null,
   );
 };
 

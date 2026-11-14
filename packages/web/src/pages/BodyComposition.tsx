@@ -16,7 +16,7 @@ import { cn } from 'cn';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import {
-  bodyCompositionSupported, fetchBodyReadings, hasBodyPermissions, permissionOutcomeMessage, requestBodyPermissions, syncBodyReadings,
+  bodyCompositionSupported, fetchBodyReadingsDetailed, hasBodyPermissions, permissionOutcomeMessage, requestBodyPermissions, syncBodyReadings,
 } from '../services/healthConnect';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -173,22 +173,32 @@ export const BodyCompositionPage = () => {
 
   // Já conectado ao relógio? Sincroniza sozinho ao abrir a tela (1x por visita, em silêncio:
   // só avisa quando entra medição nova). Falha aqui nunca incomoda — o botão continua lá.
-  const autoSynced = useRef(false);
+  // TAMBÉM ao voltar para o app (14/11: antes era 1x por abertura da tela; quem media no relógio e
+  // voltava para o app já aberto não via a medição nova). No máximo 1 leitura por minuto.
+  const lastAutoSync = useRef(0);
+  const autoSyncing = useRef(false);
   useEffect(() => {
-    if (autoSynced.current || !canImport || !pid) return;
-    autoSynced.current = true;
-    void (async () => {
+    if (!canImport || !pid) return;
+    const silentSync = async () => {
+      if (autoSyncing.current || document.visibilityState !== 'visible' || Date.now() - lastAutoSync.current < 60_000) return;
+      autoSyncing.current = true;
+      lastAutoSync.current = Date.now();
       try {
         if (!hasBodyPermissions()) return;
-        const readings = await fetchBodyReadings(730);
-        if (!readings?.length) return;
-        const result = await syncBodyReadings(readings, pid);
+        const read = await fetchBodyReadingsDetailed(730);
+        if (!read?.readings.length) return;
+        const result = await syncBodyReadings(read.readings, pid);
         if (result.imported > 0) {
           notify(`${result.imported} ${result.imported === 1 ? 'medição nova' : 'medições novas'} do relógio.`, { type: 'success' });
           await load();
         }
-      } catch { /* silencioso de propósito */ }
-    })();
+      } catch { /* silencioso de propósito */ } finally { autoSyncing.current = false; }
+    };
+    void silentSync();
+    const onVisible = () => { void silentSync(); };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => { document.removeEventListener('visibilitychange', onVisible); window.removeEventListener('focus', onVisible); };
   }, [canImport, pid, load, notify]);
 
   const items = data?.items ?? [];
@@ -223,8 +233,16 @@ export const BodyCompositionPage = () => {
         const outcome = await requestBodyPermissions();
         if (!outcome.granted) { notify(permissionOutcomeMessage(outcome.code), { type: 'info', autoHideDuration: 9000 }); return; }
       }
-      const readings = await fetchBodyReadings(730);
-      if (!readings) { notify('Não consegui ler o Health Connect agora. Tente de novo.', { type: 'error' }); return; }
+      const read = await fetchBodyReadingsDetailed(730);
+      if (!read) { notify('Não consegui ler o Health Connect agora. Tente de novo.', { type: 'error' }); return; }
+      const { readings, stats } = read;
+      // Quando o Health Connect recebeu a medição mais recente (para saber de quem é o atraso).
+      const latestIso = stats?.latestFat ?? readings.map((r) => r.time).sort().pop();
+      const latestLabel = latestIso ? new Date(latestIso).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).replace('.', '') : null;
+      if (readings.length === 0 && stats && stats.fats > 0) {
+        notify(`O Health Connect tem ${stats.fats} ${stats.fats === 1 ? 'medição' : 'medições'} de gordura, mas nenhum registro de peso para completar. No Samsung Health, registre o seu peso e sincronize de novo.`, { type: 'info', autoHideDuration: 12000 });
+        return;
+      }
       if (readings.length === 0) {
         notify('Nenhuma medição de composição corporal no Health Connect. No Samsung Health, ative a sincronização com o Health Connect e faça uma medição no relógio.', { type: 'info', autoHideDuration: 12000 });
         return;
@@ -233,8 +251,10 @@ export const BodyCompositionPage = () => {
       notify(
         result.imported > 0
           ? `${result.imported} ${result.imported === 1 ? 'avaliação importada' : 'avaliações importadas'} do relógio.`
-          : 'Tudo em dia: nenhuma medição nova no relógio.',
-        { type: result.imported > 0 ? 'success' : 'info' },
+          : latestLabel
+            ? `Nada novo. A medição mais recente que o Health Connect tem é de ${latestLabel}. Se você mediu depois disso, abra o Samsung Health para ele enviar e toque aqui de novo.`
+            : 'Tudo em dia: nenhuma medição nova no relógio.',
+        { type: result.imported > 0 ? 'success' : 'info', autoHideDuration: result.imported > 0 ? 5000 : 12000 },
       );
       await load();
     } catch (e) {
