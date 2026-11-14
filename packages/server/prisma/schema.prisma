@@ -301,6 +301,7 @@ model Patient {
   measurements Measurement[]
   bodyCompositions BodyComposition[]
   hormoneDoses HormoneDose[]
+  foodSummary  FoodSummary?
   vaccines     Vaccine[]
   expenses     Expense[]
   // "Meus médicos" (28/10/26): vínculos privados + consultas registradas pelo paciente.
@@ -2035,4 +2036,18 @@ model HormoneDose {
 
   @@index([patientId, takenAt])
   @@map("hormone_doses")
+}
+
+// Alimentação e exames — resumo personalizado gerado por IA (14/11/26). 1 por paciente; vale
+// enquanto `signature` (conjunto de exames alterados + valores) não mudar. Gerar de novo cobra.
+model FoodSummary {
+  id        String   @id @default(cuid())
+  patientId String   @unique
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  signature String
+  content   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("food_summaries")
 }

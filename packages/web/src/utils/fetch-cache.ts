@@ -66,6 +66,28 @@ function cacheKeyFor(urlStr: string): string {
   return urlStr;
 }
 
+/**
+ * Resposta "vazio limpo" para quando não há rede nem cache.
+ *
+ * O corpo serve aos DOIS formatos que as telas esperam: lista (`d.filter`, `d.map`) e objeto
+ * (`d.items`, `d.data`, `d.total`). ANTES era só o objeto, e toda tela que esperava LISTA
+ * estourava "x.filter is not a function" como promise rejeitada (Sentry, 14/11/26).
+ * É uma lista vazia que também carrega os campos do objeto.
+ */
+export function offlineEmptyBody(): unknown[] & { items: unknown[]; data: unknown[]; total: number } {
+  return Object.assign([] as unknown[], { items: [] as unknown[], data: [] as unknown[], total: 0 });
+}
+
+function offlineEmptyResponse(): Response {
+  const res = new Response(JSON.stringify({ items: [], data: [], total: 0 }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json', 'X-Offline-Empty': 'true' },
+  });
+  Object.defineProperty(res, 'json', { value: async () => offlineEmptyBody() });
+  Object.defineProperty(res, 'clone', { value: () => offlineEmptyResponse() });
+  return res;
+}
+
 const originalFetch = window.fetch;
 
 window.fetch = (async function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
@@ -99,6 +121,9 @@ window.fetch = (async function (input: RequestInfo | URL, init?: RequestInit): P
     }
     return res;
   } catch (err) {
+    // Requisição CANCELADA pelo próprio app (AbortController ao sair da tela) não é "offline":
+    // propaga, senão quem cancelou recebia um 200 vazio e seguia processando lixo.
+    if ((err as { name?: string } | null)?.name === 'AbortError') throw err;
     // Fetch falhou (offline, timeout, server unreachable).
     if (isCacheable) {
       // Tem cache? → serve (dados de antes — offline-ready).
@@ -110,10 +135,7 @@ window.fetch = (async function (input: RequestInfo | URL, init?: RequestInit): P
         });
       }
       // Sem cache → devolve vazio limpo (não erro — sem "failed to fetch").
-      return new Response(JSON.stringify({ items: [], data: [], total: 0 }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json', 'X-Offline-Empty': 'true' },
-      });
+      return offlineEmptyResponse();
     }
     // Não-cacheável (POST/PUT/DELETE, chat, etc.) → deixa o erro propagar.
     throw err;

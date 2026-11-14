@@ -22,6 +22,7 @@ import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
 import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
 import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import AccessibilityNewOutlinedIcon from '@mui/icons-material/AccessibilityNewOutlined';
+import RestaurantOutlinedIcon from '@mui/icons-material/RestaurantOutlined';
 import MedicationOutlinedIcon from '@mui/icons-material/MedicationOutlined';
 import VaccinesOutlinedIcon from '@mui/icons-material/VaccinesOutlined';
 import PsychologyOutlinedIcon from '@mui/icons-material/PsychologyOutlined';
@@ -102,6 +103,7 @@ const FaqPage = lazy(() => import('./pages/Faq').then(m => ({ default: m.FaqPage
 const HowWeValidatePage = lazy(() => import('./pages/HowWeValidate').then(m => ({ default: m.HowWeValidatePage })));
 import { MeasurementsPage } from './pages/Measurements';
 const BodyCompositionPage = lazy(() => import('./pages/BodyComposition').then(m => ({ default: m.BodyCompositionPage })));
+const FoodGuidePage = lazy(() => import('./pages/FoodGuide').then(m => ({ default: m.FoodGuidePage })));
 const MedicationsPage = lazy(() => import('./pages/Medications').then(m => ({ default: m.MedicationsPage })));
 const MeasurementHistoryPage = lazy(() => import('./pages/MeasurementHistory').then(m => ({ default: m.MeasurementHistoryPage })));
 const SaudeMentalPage = lazy(() => import('./pages/SaudeMental').then(m => ({ default: m.SaudeMentalPage })));
@@ -1005,13 +1007,14 @@ const AppMenu = () => {
       <MenuSectionAccordion
         title="Rotina de saúde"
         icon={<MonitorHeartOutlinedIcon />}
-        routes={['/medicamentos', '/radar-hormonal', '/sinais', '/medicoes', '/composicao', '/saude-mental', '/vacinas', '/despesas', '/conquistas', '/emergencia']}
+        routes={['/medicamentos', '/radar-hormonal', '/sinais', '/medicoes', '/composicao', '/alimentacao', '/saude-mental', '/vacinas', '/despesas', '/conquistas', '/emergencia']}
       >
         <NavItem to="/medicamentos" primaryText="Medicamentos e receitas" icon={<MedicationOutlinedIcon />} highlight />
         <NavItem to="/radar-hormonal" primaryText="Radar Hormonal" icon={<HormoneRadarIcon size={20} />} badge="Novo" />
         <NavItem to="/sinais" primaryText="Sinais Vitais" icon={<MonitorHeartOutlinedIcon />} />
         <NavItem to="/medicoes" primaryText={translate('menu.measurements', { _: 'Medições corporais' })} icon={<MonitorHeartOutlinedIcon />} />
         <NavItem to="/composicao" primaryText="Composição corporal" icon={<AccessibilityNewOutlinedIcon />} />
+        <NavItem to="/alimentacao" primaryText="Alimentação e exames" icon={<RestaurantOutlinedIcon />} badge="Novo" />
         <NavItem to="/saude-mental" primaryText="Saúde Mental & Humor" icon={<PsychologyOutlinedIcon />} />
         <NavItem to="/vacinas" primaryText={translate('menu.vaccines', { _: 'Vacinas' })} icon={<VaccinesOutlinedIcon />} />
         <NavItem to="/despesas" primaryText={translate('menu.expenses', { _: 'Despesas médicas' })} icon={<AccountBalanceWalletOutlinedIcon />} />
@@ -1707,6 +1710,7 @@ export const App = () => {
           de menu de propósito (exclusiva de quem conecta o celular; sem dado → convite). */}
           <Route path="/sinais" element={<Suspense fallback={<PageSkeleton />}><SinaisPage /></Suspense>} />
           <Route path="/composicao" element={<Suspense fallback={<PageSkeleton />}><BodyCompositionPage /></Suspense>} />
+          <Route path="/alimentacao" element={<Suspense fallback={<PageSkeleton />}><FoodGuidePage /></Suspense>} />
           <Route path="/medicamentos" element={<MedicationsPage />} />
           <Route path="/radar-hormonal" element={<Suspense fallback={<PageSkeleton />}><RadarHormonalPage /></Suspense>} />
           <Route path="/vacinas" element={<VaccinesPage />} />

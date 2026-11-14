@@ -11,6 +11,8 @@
  *    continua específica (template com nome, valor e tendência do marcador).
  */
 
+import { foodHintFor } from '../analysis/food-guide';
+
 export type TipTheme = 'hormonal' | 'melhora' | 'atencao' | 'cardio' | 'movimento' | 'mente' | 'crianca' | 'exame-velho' | 'rotina';
 export type Segment = 'colesterol' | 'glicemia' | 'pressao' | 'anemia' | 'tireoide' | 'renal' | 'rotina';
 
@@ -166,7 +168,15 @@ export function buildTipPrompt(c: TipContext, theme: TipTheme, recentBodies: str
   switch (theme) {
     case 'hormonal': lines.push('Tarefa: 1 dica EDUCATIVA de monitoramento ligando o uso declarado ao(s) marcador(es) com valor real dele. REGRA INEGOCIÁVEL: NUNCA mencione dose, ciclo, ajuste, pausa ou "parar de tomar" como orientação do app — a conduta é do médico dele; frases sempre no molde "vale levar pro médico / converse com quem prescreveu". Sem julgamento do uso. Máx 2 frases.'); break;
     case 'melhora': lines.push('Tarefa: comemore de forma específica a melhora e dê 1 micro-dica para manter o ritmo.'); break;
-    case 'atencao': lines.push('Tarefa: chame atenção para o marcador que piorou (sem alarmismo) e dê 1 ação concreta.'); break;
+    case 'atencao': {
+      lines.push('Tarefa: chame atenção para o marcador que piorou (sem alarmismo) e dê 1 ação concreta.');
+      // Fato de alimentação vindo do dicionário curado: a IA usa ESTE, não inventa outro.
+      const w = c.worsening[0];
+      const food = w ? foodHintFor(w.name, w.deltaPct != null && w.deltaPct < 0 ? 'baixo' : 'alto') : null;
+      if (food) lines.push(`Fato de alimentação (use este e nenhum outro; não cite quantidade nem prometa resultado): ${food}.`);
+      else lines.push('Não sugira alimento para este marcador: não há evidência suficiente.');
+      break;
+    }
     case 'cardio': lines.push('Tarefa: dica prática que ataque diretamente o risco cardiometabólico dele.'); break;
     case 'movimento': lines.push('Tarefa: incentive movimento hoje citando os números de atividade dele.'); break;
     case 'mente': lines.push('Tarefa: convide para o rastreamento de saúde mental SEM estigma (é o check-up da mente, como medir a pressão) — cite que leva 2 min e é validado e gratuito. NÃO mencione score baixo/alto nem soe como diagnóstico.'); break;
@@ -222,6 +232,10 @@ export function curatedFallback(c: TipContext, theme: TipTheme): string {
     case 'atencao': {
       const m = c.worsening[0];
       if (!m) break;
+      // Dicionário curado de alimentação (analysis/food-guide.ts): só entra quando há evidência
+      // forte/moderada para ESTE exame; senão a dica fica só no "acompanhe com o médico".
+      const food = foodHintFor(m.name, m.deltaPct != null && m.deltaPct < 0 ? 'baixo' : 'alto');
+      if (food) return `Seu ${m.name} foi de ${fmt(m.prev)} pra ${fmt(m.value)}${unit(m)}. Pelos estudos, ${food}. Vale mostrar essa tendência ao seu médico.`;
       return `Seu ${m.name} foi de ${fmt(m.prev)} pra ${fmt(m.value)}${unit(m)} — vale acompanhar essa tendência com seu médico. Rever a rotina agora pega cedo qualquer desvio.`;
     }
     case 'cardio':

@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
+import { FOOD_GUIDES, matchFoodGuides, toPublicGuide, type FoodMatch } from '../analysis/food-guide';
+import { UnsafeFoodSummaryError, foodSignature, generateFoodSummary } from '../analysis/food-summary';
+import { CREDIT_COSTS, chargeCredits, refundCredits } from '../utils/credits';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
 import { getOrCreateExplanation } from '../analysis/explain';
@@ -217,6 +220,105 @@ router.get('/distinct-names', async (req: AuthedRequest, res, next) => {
 
 // EVOLUÇÃO por analito (timeline narrativa): analitos com >=2 pontos numéricos,
 // com variação %, direção e previsão de sair da faixa — alimenta a página "Evolução".
+/**
+ * Alimentação e exames: cruza o resultado MAIS RECENTE de cada exame com o dicionário curado
+ * (analysis/food-guide.ts). O dicionário e o cruzamento são grátis e sem IA. O resumo
+ * personalizado (POST /food-guide/summary) usa IA e cobra créditos (creditCosts.foodSummary).
+ */
+/**
+ * Gerações do resumo em andamento ou que falharam, em memória. Limite conhecido: se o servidor
+ * reiniciar NO MEIO de uma geração, o crédito já cobrado não é estornado sozinho (mesma limitação
+ * do laudo de bioimpedância).
+ */
+const foodJobs = new Map<string, { status: 'pending' | 'error'; at: number; error?: string }>();
+const FOOD_JOB_TTL_MS = 10 * 60 * 1000;
+function foodJobFor(pid: string) {
+  const job = foodJobs.get(pid);
+  if (job && Date.now() - job.at > FOOD_JOB_TTL_MS) { foodJobs.delete(pid); return null; }
+  return job ?? null;
+}
+
+async function loadFoodMatches(userId: string, requested: unknown) {
+  const pids = await userPatientIds(userId);
+  const pid = typeof requested === 'string' && pids.includes(requested) ? requested : pids[0] ?? null;
+  if (!pid) return { pid: null, matches: [] as Array<FoodMatch & { points: Array<{ value: number; date: string }> }>, examsRead: 0 };
+  const rows = (await prisma.examItem.findMany({
+    where: { valueNumeric: { not: null }, exam: { patientId: pid, status: 'EXTRACTED' } },
+    select: { nameCanonical: true, valueNumeric: true, unit: true, refLow: true, refHigh: true, flag: true, exam: { select: { performedAt: true, createdAt: true, rawExtraction: true } } },
+  })).filter((r) => !isCpfMismatch((r.exam as any).rawExtraction));
+  const latest = new Map<string, { nameCanonical: string; value: number | null; unit: string | null; refLow: number | null; refHigh: number | null; flag: string; date: Date }>();
+  const history = new Map<string, Array<{ value: number; date: Date }>>();
+  for (const r of rows) {
+    const date = new Date(r.exam.performedAt ?? r.exam.createdAt);
+    const cur = latest.get(r.nameCanonical);
+    if (!cur || date.getTime() >= cur.date.getTime()) latest.set(r.nameCanonical, { nameCanonical: r.nameCanonical, value: r.valueNumeric, unit: r.unit, refLow: r.refLow, refHigh: r.refHigh, flag: String(r.flag), date });
+    if (r.valueNumeric != null) { const h = history.get(r.nameCanonical) ?? []; h.push({ value: r.valueNumeric, date }); history.set(r.nameCanonical, h); }
+  }
+  // Histórico do exame (até 12 pontos) para o mini gráfico de cada linha.
+  const matches = matchFoodGuides([...latest.values()]).map((m) => ({
+    ...m,
+    points: (history.get(m.nameCanonical) ?? []).sort((x, y) => x.date.getTime() - y.date.getTime()).slice(-12).map((p) => ({ value: p.value, date: p.date.toISOString() })),
+  }));
+  return { pid, matches, examsRead: latest.size };
+}
+
+router.get('/food-guide', async (req: AuthedRequest, res, next) => {
+  try {
+    const { pid, matches, examsRead } = await loadFoodMatches(req.userId!, req.query.patientId);
+    // Resumo já gerado para ESTE conjunto de exames (se os exames mudaram, não vale mais).
+    let summary: unknown = null;
+    if (pid && matches.length) {
+      const saved = await prisma.foodSummary.findUnique({ where: { patientId: pid }, select: { signature: true, content: true, updatedAt: true } }).catch(() => null);
+      if (saved && saved.signature === foodSignature(matches)) summary = { content: saved.content, generatedAt: saved.updatedAt };
+    }
+    const job = pid ? foodJobFor(pid) : null;
+    res.json({
+      matches, dictionary: FOOD_GUIDES.map(toPublicGuide), examsRead, summary,
+      summaryCost: Math.max(0, Math.round(CREDIT_COSTS.foodSummary ?? 0)),
+      summaryStatus: summary ? null : job?.status ?? null,
+      summaryError: summary ? null : job?.error ?? null,
+    });
+  } catch (e) { next(e); }
+});
+
+router.post('/food-guide/summary', async (req: AuthedRequest, res, next) => {
+  try {
+    const { pid, matches } = await loadFoodMatches(req.userId!, req.body?.patientId);
+    if (!pid || !matches.length) { res.status(400).json({ error: 'Não há exame fora da faixa com orientação de alimentação.' }); return; }
+    const signature = foodSignature(matches);
+    const saved = await prisma.foodSummary.findUnique({ where: { patientId: pid }, select: { signature: true, content: true, updatedAt: true } });
+    // Mesmo conjunto de exames: devolve o que já foi pago, sem cobrar de novo.
+    if (saved && saved.signature === signature) { res.json({ content: saved.content, generatedAt: saved.updatedAt, charged: 0, cached: true }); return; }
+
+    // Já está gerando para este paciente: não cobra de novo.
+    if (foodJobFor(pid)?.status === 'pending') { res.status(202).json({ status: 'pending', charged: 0 }); return; }
+
+    const cost = Math.max(0, Math.round(CREDIT_COSTS.foodSummary ?? 0));
+    if (cost > 0 && !(await chargeCredits(req.userId!, cost, 'food_summary', 'Resumo de alimentação (IA)'))) {
+      res.status(402).json({ error: `Você precisa de ${cost} créditos para gerar o resumo. O dicionário abaixo continua grátis.`, code: 'INSUFFICIENT_CREDITS', cost });
+      return;
+    }
+    // A IA leva cerca de 1 minuto e o proxy de produção corta aos 60 s: responde JÁ (202) e a
+    // tela acompanha por GET /food-guide (summaryStatus). Mesmo esquema do laudo de bioimpedância.
+    foodJobs.set(pid, { status: 'pending', at: Date.now() });
+    const userId = req.userId!;
+    void generateFoodSummary(matches)
+      .then(async (content) => {
+        await prisma.foodSummary.upsert({ where: { patientId: pid }, create: { patientId: pid, signature, content: content as never }, update: { signature, content: content as never } });
+        foodJobs.delete(pid);
+      })
+      .catch(async (e) => {
+        // IA fora do ar ou texto reprovado pelas travas: nada é salvo e o crédito volta.
+        if (cost > 0) await refundCredits(userId, cost, 'food_summary_refund', 'Estorno: resumo de alimentação não gerado');
+        foodJobs.set(pid, {
+          status: 'error', at: Date.now(),
+          error: e instanceof UnsafeFoodSummaryError ? 'Não consegui gerar um resumo seguro agora. Seus créditos foram devolvidos.' : 'A IA não respondeu agora. Seus créditos foram devolvidos; tente de novo em instantes.',
+        });
+      });
+    res.status(202).json({ status: 'pending', charged: cost });
+  } catch (e) { next(e); }
+});
+
 router.get('/evolution', async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
