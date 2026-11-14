@@ -87,6 +87,7 @@ const ParaMedicosPage = lazy(() => import('./pages/ParaMedicos').then(m => ({ de
 const LandingPage = lazy(() => import('./pages/Landing').then(m => ({ default: m.LandingPage })));
 const FeaturesPage = lazy(() => import('./pages/Features').then(m => ({ default: m.FeaturesPage })));
 const SportsLandingPage = lazy(() => import('./pages/SportsLanding').then(m => ({ default: m.SportsLandingPage })));
+const RadarPublicoPage = lazy(() => import('./pages/RadarPublico').then(m => ({ default: m.RadarPublicoPage })));
 const PlansPage = lazy(() => import('./pages/Plans').then(m => ({ default: m.PlansPage })));
 const WalletPage = lazy(() => import('./pages/Wallet').then(m => ({ default: m.WalletPage })));
 const InvitePage = lazy(() => import('./pages/Invite').then(m => ({ default: m.InvitePage })));
@@ -1643,6 +1644,9 @@ export const App = () => {
           <Route path="/landing" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
           {/* Rotas Públicas de SEO e Aquisição (Saúde Esportiva, Atletas, Como Funciona) */}
           <Route path="/saude-esportiva" element={<Suspense fallback={<PageSkeleton />}><SportsLandingPage /></Suspense>} />
+          {/* Simulador hormonal público (sem login): isca para o Radar do app, que cruza com exames. */}
+          <Route path="/simulador-hormonal" element={<Suspense fallback={<PageSkeleton />}><RadarPublicoPage /></Suspense>} />
+          <Route path="/calculadora-de-esteres" element={<Suspense fallback={<PageSkeleton />}><RadarPublicoPage /></Suspense>} />
           <Route path="/features" element={<Suspense fallback={<PageSkeleton />}><FeaturesPage /></Suspense>} />
           <Route path="/exames-para-atletas" element={<Suspense fallback={<PageSkeleton />}><SportsLandingPage /></Suspense>} />
           <Route path="/como-funciona" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />

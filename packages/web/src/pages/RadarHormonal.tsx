@@ -75,7 +75,8 @@ const storageKey = (pid: string | null | undefined) => `dx-radar-v2:${pid || 'an
 
 function loadSaved(pid: string | null | undefined): Saved | null {
   try {
-    const raw = localStorage.getItem(storageKey(pid));
+    // Sem nada salvo para este paciente, aproveita o que a pessoa montou no simulador público.
+    const raw = localStorage.getItem(storageKey(pid)) ?? localStorage.getItem(storageKey(null));
     const parsed = raw ? (JSON.parse(raw) as Saved) : null;
     return parsed && Array.isArray(parsed.protocol) && parsed.protocol.length ? parsed : null;
   } catch {

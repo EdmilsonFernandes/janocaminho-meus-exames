@@ -421,7 +421,7 @@ export const SportsLandingPage: React.FC = () => {
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
                 <Button
                   variant="contained"
-                  onClick={() => navigate('/radar-hormonal')}
+                  onClick={() => navigate('/simulador-hormonal')}
                   sx={{ bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' }, fontWeight: 800, borderRadius: '12px', textTransform: 'none', px: 3, py: 1.2 }}
                 >
                   Experimentar Radar Hormonal →
@@ -480,8 +480,8 @@ export const SportsLandingPage: React.FC = () => {
             <Button variant="contained" onClick={() => navigate('/registrar')} sx={{ borderRadius: '999px', px: 3.5, py: 1.3, textTransform: 'none', fontWeight: 800, fontSize: 15, width: { xs: '100%', sm: 'auto' } }}>
               Criar conta grátis e enviar meu exame
             </Button>
-            <Button onClick={() => navigate('/radar-hormonal')} sx={{ color: INK, fontWeight: 700, textTransform: 'none', fontSize: 15, width: { xs: '100%', sm: 'auto' }, '&:focus-visible': { outline: '2px solid', outlineColor: INK, outlineOffset: 2 } }}>
-              Ver o Radar Hormonal
+            <Button onClick={() => navigate('/simulador-hormonal')} sx={{ color: INK, fontWeight: 700, textTransform: 'none', fontSize: 15, width: { xs: '100%', sm: 'auto' }, '&:focus-visible': { outline: '2px solid', outlineColor: INK, outlineOffset: 2 } }}>
+              Simular agora, sem cadastro
             </Button>
           </Stack>
           <Typography sx={{ textAlign: 'center', color: 'text.secondary', fontSize: 12.5, mt: 2, maxWidth: 640, mx: 'auto', lineHeight: 1.5 }}>

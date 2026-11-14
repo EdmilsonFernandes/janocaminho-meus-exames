@@ -358,6 +358,14 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                   Ver a página completa pra quem treina →
                 </Box>
               )}
+              {/* Entrada rápida para o simulador público (sem login), na home e na página esportiva */}
+              <Box
+                component="a"
+                href="#/simulador-hormonal"
+                sx={{ fontSize: 14.5, fontWeight: 700, color: TEAL_DARK, textDecoration: 'underline', textDecorationColor: 'rgba(23,143,137,.35)', textUnderlineOffset: 3, '&:hover': { color: TEAL_DARK, textDecorationColor: TEAL_DARK } }}
+              >
+                Simulador hormonal grátis: veja pico e vale →
+              </Box>
               {full && onGoDemo && (
                 <Button variant="outlined" color="primary" size="large" onClick={onGoDemo} sx={{ borderRadius: '999px', px: 3, py: 1.4, fontWeight: 700, fontSize: 15, textTransform: 'none' }}>
                   Testar agora com meu exame

@@ -110,6 +110,35 @@ async function readCached(key: string): Promise<CompoundSections | null> {
   return row ? (row.sections as unknown as CompoundSections) : null;
 }
 
+/** Seções que a página pública do simulador mostra inteiras; as outras só pelo começo. */
+export const PUBLIC_COMPOUND_SECTIONS = ['oQueE', 'noCorpo', 'porQueUsam'] as const;
+const LOCKED_COMPOUND_SECTIONS = ['nosExames', 'riscos', 'levarAoMedico'] as const;
+
+/** Começo de um texto, cortado em palavra inteira, para a "amostra" das seções guardadas. */
+function teaserOf(text: string, max = 80): string {
+  const clean = String(text ?? '').replace(/\s+/g, ' ').trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max);
+  return `${cut.slice(0, Math.max(40, cut.lastIndexOf(' ')))}…`;
+}
+
+/**
+ * Explicação para a página PÚBLICA: lê só o que já está no cache (ou curado). NUNCA chama a IA:
+ * rota sem login não pode gerar custo nem publicar texto que ninguém revisou. Sem cache → null.
+ */
+export async function getPublicCompoundExplanation(compoundId: string): Promise<{ id: string; name: string; sections: Record<string, string>; locked: Array<{ key: string; teaser: string }> } | null> {
+  const fact = Object.prototype.hasOwnProperty.call(COMPOUND_CATALOG, compoundId) ? COMPOUND_CATALOG[compoundId] : null;
+  if (!fact) return null;
+  const cached = await readCached(compoundId);
+  if (!cached || compoundTextProblems(cached).length) return null;
+  return {
+    id: compoundId,
+    name: fact.name,
+    sections: Object.fromEntries(PUBLIC_COMPOUND_SECTIONS.map((k) => [k, cached[k]])),
+    locked: LOCKED_COMPOUND_SECTIONS.map((k) => ({ key: k, teaser: teaserOf(cached[k]) })),
+  };
+}
+
 export class UnknownCompoundError extends Error {}
 export class UnsafeCompoundTextError extends Error {}
 

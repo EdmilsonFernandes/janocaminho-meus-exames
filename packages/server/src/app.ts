@@ -34,6 +34,8 @@ import labsRoutes from './routes/labs.routes';
 import measurementRoutes from './routes/measurement.routes';
 import bodyCompositionRoutes from './routes/body-composition.routes';
 import hormoneDoseRoutes from './routes/hormone-dose.routes';
+import { getPublicCompoundExplanation } from './analysis/compound-explain';
+import { applyPublicSeo, publicSeoFor } from './utils/publicSeo';
 import medicationRoutes from './routes/medication.routes';
 import publicApiRoutes from './routes/public-api.routes';
 import decifreRoutes from './routes/decifre.routes';
@@ -213,6 +215,7 @@ User-agent: *
 Allow: /
 Allow: /landing
 Allow: /saude-esportiva
+Allow: /simulador-hormonal
 Allow: /exames-para-atletas
 Allow: /como-funciona
 Allow: /para-medicos
@@ -251,6 +254,12 @@ app.get('/sitemap.xml', (_req, res) => {
   <url>
     <loc>https://drexame.janocaminho.com.br/saude-esportiva</loc>
     <lastmod>2026-10-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://drexame.janocaminho.com.br/simulador-hormonal</loc>
+    <lastmod>2026-11-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -315,6 +324,16 @@ app.use('/api/public/lead', leadRoutes);
 
 // Config PÚBLICA (sem auth) — créditos de cadastro (freeSignup, do banco) + bônus de indicação.
 // A landing/card/link compartilhado leem daqui → valor sempre coerente c/ o que o server entrega.
+// Simulador hormonal público (/simulador-hormonal): explicação do composto SÓ a partir do cache.
+app.get('/api/public/compounds/:id', async (req, res, next) => {
+  try {
+    const out = await getPublicCompoundExplanation(String(req.params.id));
+    if (!out) { res.status(404).json({ error: 'Explicação indisponível.' }); return; }
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.json(out);
+  } catch (e) { next(e); }
+});
+
 app.get('/api/public/config', (_req, res) => {
   const { grants, payments, referral, motd, sportsMode } = getSettings();
   // DOIS LADOS (05/10): valores de COPY do referral por lado (AppSetting referral.
@@ -859,6 +878,11 @@ if (config.isProd) {
     app.use((req, res, next) => {
       if (req.path.startsWith('/api')) return next();
       res.setHeader('Cache-Control', 'no-store'); // index.html nunca cacheado
+      // Páginas públicas com título/descrição/og próprios (prévia de link no WhatsApp e Google).
+      const seo = publicSeoFor(req.path);
+      if (seo) {
+        try { res.type('html').send(applyPublicSeo(fs.readFileSync(path.join(webDist, 'index.html'), 'utf8'), seo)); return; } catch { /* cai no index padrão */ }
+      }
       res.sendFile(path.join(webDist, 'index.html'));
     });
   } else {

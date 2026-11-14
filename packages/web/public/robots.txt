@@ -3,6 +3,7 @@ User-agent: *
 Allow: /
 Allow: /landing
 Allow: /saude-esportiva
+Allow: /simulador-hormonal
 Allow: /exames-para-atletas
 Allow: /como-funciona
 Allow: /para-medicos
