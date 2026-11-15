@@ -176,7 +176,10 @@ const CustomAppBar = (props: AppBarProps) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   const isDark = theme.palette.mode === 'dark';
-  const showWordmark = useMediaQuery(theme.breakpoints.up(360));
+  // Abaixo de 480px o nome some e fica só o ícone. Medido: com o nome, sobravam 85px para o saldo
+  // em telas de 412px e ele precisa de 102px, então aparecia cortado ("4…", caso real num Motorola).
+  // O saldo é informação; o nome ao lado do ícone é enfeite.
+  const showWordmark = useMediaQuery(theme.breakpoints.up(480));
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const canBack = !isDesktop && pathname !== '/';
@@ -216,7 +219,7 @@ const CustomAppBar = (props: AppBarProps) => {
         borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(15,23,42,0.06)',
         boxShadow: 'none',
         color: 'text.primary',
-        px: { xs: 1.5, sm: 3 },
+        px: { xs: 1, sm: 3 },
         '& .MuiToolbar-root': { minHeight: { xs: 60, sm: 64 }, gap: 0.5 },
       }}
     >
@@ -257,7 +260,13 @@ const CustomAppBar = (props: AppBarProps) => {
         </Box>
       )}
       {/* Centro: selo de leituras (no desktop encosta à direita, junto das ações). */}
-      <Box sx={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: { xs: 'center', sm: 'flex-end' }, px: 0.5 }}>
+      <Box sx={{
+        flex: 1, minWidth: 0, display: 'flex', justifyContent: { xs: 'center', sm: 'flex-end' }, px: 0.5,
+        // O selo mede o espaço que SOBROU no cabeçalho: se não couber "4 leituras", mostra só "4".
+        containerType: 'inline-size',
+        '& .dx-reads-short': { display: 'none' },
+        '@container (max-width: 113.95px)': { '& .dx-reads-long': { display: 'none' }, '& .dx-reads-short': { display: 'inline' } },
+      }}>
         <CreditsChip />
       </Box>
       {/* Lado direito do header: SEMPRE fixo e estável — nunca empurra o avatar ou o sino pra fora */}

@@ -96,7 +96,13 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title || 'Novo exame enviado'}</Typography>
           <Typography variant="caption" color="text.secondary">
-            Dr. Exame está extraindo… {start ? <Box component="span" sx={{ fontWeight: 700, fontFamily: 'monospace' }}>há {mm}:{ss}</Box> : null} · toque para acompanhar
+            {r.status === 'EXTRACTING' ? 'Lendo os resultados…' : 'Exame recebido, preparando a leitura…'} {start ? <Box component="span" sx={{ fontWeight: 700, fontFamily: 'monospace' }}>há {mm}:{ss}</Box> : null}
+          </Typography>
+          {/* Orienta a espera: quanto costuma levar, se pode sair e como vai saber que terminou. */}
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4, mt: 0.25 }}>
+            {elapsed > 240
+              ? 'Está demorando mais que o normal. Não precisa reenviar: se não der para ler, avisamos e devolvemos o crédito.'
+              : 'Costuma levar de 1 a 3 minutos. Pode sair desta tela ou enviar outro exame: avisamos quando ficar pronto.'}
           </Typography>
         </Box>
         {onCancel && <IconButton size="small" onClick={(e) => { e.stopPropagation(); onCancel(e); }} title="Cancelar e excluir" aria-label="Cancelar e excluir exame" sx={{ flexShrink: 0, color: 'text.secondary', p: 1.25 }}><CloseIcon fontSize="small" /></IconButton>}

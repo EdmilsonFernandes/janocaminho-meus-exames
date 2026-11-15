@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { prepareSpeech, SPEECH_BASE_RATE } from './speechText';
 
 /**
  * Imprimir / salvar documento.
@@ -44,41 +45,84 @@ export async function printPage(title = 'Documento'): Promise<void> {
 }
 
 
-/** Fala um texto. No APK usa TTS nativo (voz pt-BR do Android); no web usa speechSynthesis. */
+// Cada chamada de fala recebe um número; parar (ou começar outra) invalida a anterior, e o laço
+// de trechos percebe e sai. Sem isso, "parar" só interrompia o trecho atual e o próximo começava.
+let speechRun = 0;
+const sleep = (ms: number) => new Promise<void>((res) => setTimeout(res, ms));
+
+/** Escolhe a voz pt-BR do navegador, preferindo feminina quando o sistema informa o nome. */
+function pickWebVoice(synth: SpeechSynthesis, lang: string): SpeechSynthesisVoice | undefined {
+  const voices = synth.getVoices().filter((v) => v.lang?.toLowerCase().startsWith(lang.split('-')[0].toLowerCase()));
+  const exact = voices.filter((v) => v.lang?.toLowerCase() === lang.toLowerCase());
+  const pool = exact.length ? exact : voices;
+  return pool.find((v) => /francisca|maria|luciana|let[ií]cia|fernanda|female|feminin/i.test(v.name)) ?? pool[0];
+}
+
+/**
+ * Fala um texto. No APK usa TTS nativo (voz pt-BR do Android); no web usa speechSynthesis.
+ * O texto é dito em TRECHOS (frase a frase), com pausa entre eles e unidades por extenso
+ * (utils/speechText). `rate` é o que a tela mostra (1x, 1,25x…): o "1x" real é um pouco mais
+ * lento que o padrão do motor de voz, que soava corrido.
+ */
 export async function speakText(
   text: string,
   opts: { rate?: number; lang?: string; onDone?: () => void; onFail?: () => void } = {},
 ): Promise<void> {
   if (!text) return;
   const lang = opts.lang ?? 'pt-BR';
-  const rate = opts.rate ?? 1.0;
+  const rate = Math.max(0.5, Math.min(2, (opts.rate ?? 1.0) * SPEECH_BASE_RATE));
+  const chunks = prepareSpeech(text);
+  if (!chunks.length) { opts.onDone?.(); return; }
+  const run = ++speechRun;
+  const alive = () => run === speechRun;
+
   if (Capacitor.isNativePlatform()) {
     try {
       const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
-      // resolve qdo termina de falar (ou é cancelado por stop)
-      await TextToSpeech.speak({ text, lang, rate, pitch: 1.0, volume: 1.0 });
-      opts.onDone?.();
+      for (const chunk of chunks) {
+        if (!alive()) return; // parado ou substituído por outra fala
+        // resolve quando termina de falar o trecho (ou é cancelado por stop)
+        await TextToSpeech.speak({ text: chunk.text, lang, rate, pitch: 1.0, volume: 1.0 });
+        if (!alive()) return;
+        if (chunk.pauseMs) await sleep(chunk.pauseMs);
+      }
+      if (alive()) opts.onDone?.();
     } catch (e) {
       console.warn('[tts] speak falhou:', e);
-      opts.onFail?.();
+      if (alive()) opts.onFail?.();
     }
-  } else {
-    const synth = window.speechSynthesis;
-    if (!synth) { opts.onFail?.(); return; }
-    synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
+    return;
+  }
+
+  const synth = window.speechSynthesis;
+  if (!synth) { opts.onFail?.(); return; }
+  synth.cancel();
+  const voice = pickWebVoice(synth, lang);
+  const speakOne = (chunkText: string) => new Promise<void>((resolve, reject) => {
+    const u = new SpeechSynthesisUtterance(chunkText);
     u.lang = lang;
     u.rate = rate;
-    const v = synth.getVoices().find((vv) => vv.lang?.toLowerCase().startsWith(lang.split('-')[0]));
-    if (v) u.voice = v;
-    u.onend = () => opts.onDone?.();
-    u.onerror = () => opts.onFail?.();
+    if (voice) u.voice = voice;
+    u.onend = () => resolve();
+    u.onerror = (ev) => (ev.error === 'canceled' || ev.error === 'interrupted' ? resolve() : reject(new Error(ev.error)));
     synth.speak(u);
+  });
+  try {
+    for (const chunk of chunks) {
+      if (!alive()) return;
+      await speakOne(chunk.text);
+      if (!alive()) return;
+      if (chunk.pauseMs) await sleep(chunk.pauseMs);
+    }
+    if (alive()) opts.onDone?.();
+  } catch {
+    if (alive()) opts.onFail?.();
   }
 }
 
 /** Para a fala (qualquer plataforma). */
 export async function stopSpeakText(): Promise<void> {
+  speechRun += 1; // invalida o laço de trechos em andamento
   try {
     if (Capacitor.isNativePlatform()) {
       try {

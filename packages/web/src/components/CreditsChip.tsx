@@ -37,6 +37,7 @@ export const CreditsChip = () => {
   const promiseBonus = credits === 0 && bonusPending === true && bonus > 0;
   // < 1 leitura: mostra a sobra em 💎 (a sobra soma com os próximos ganhos — nunca some).
   const shown = promiseBonus ? `🎁 +${bonus} 💎` : reads > 0 ? `${reads} ${reads === 1 ? 'leitura' : 'leituras'}` : `${credits} 💎`;
+  const compact = promiseBonus ? `🎁 +${bonus}` : reads > 0 ? String(reads) : `${credits} 💎`;
   const open = () => navigate(promiseBonus ? '/exams/create' : '/carteira');
   return (
     <ReadsPill
@@ -46,7 +47,10 @@ export const CreditsChip = () => {
       aria-label={promiseBonus ? `Envie seu 1º exame e ganhe ${bonus} créditos de IA. Toque para enviar.` : `Você tem ${shown} (${full} créditos). Toque para ver a carteira.`}
       title={promiseBonus ? `Seu 1º exame libera +${bonus} créditos de IA — toque para enviar` : `${full} créditos = ${shown} — toque para ver a carteira`}
     >
-      {shown}
+      {/* Pouco espaço (tela de 320px ou fonte do sistema ampliada): o cabeçalho troca para a versão
+          curta por container query (ver App.tsx). Nunca corta com reticências. */}
+      <span className="dx-reads-long">{shown}</span>
+      <span className="dx-reads-short" aria-hidden="true">{compact}</span>
     </ReadsPill>
   );
 };

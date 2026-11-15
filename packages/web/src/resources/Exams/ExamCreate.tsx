@@ -25,7 +25,7 @@ import { useSelectedPatient } from '../../patient-context';
 import { CREDIT_COSTS } from '../../components/CreditBadge';
 import { takeExamFiles } from '../../utils/examHandoff';
 import { usePlanInfo } from '../../utils/planInfo';
-import { notifyInsufficientCredits } from '../../utils/credits-events';
+import { notifyInsufficientCredits, bumpCredits } from '../../utils/credits-events';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { RADIUS } from '../../theme';
@@ -71,13 +71,55 @@ async function uploadOne(file: File | Blob, filename: string, pid: string | null
       return r.json();
     } catch (e: any) {
       lastErr = e;
-      if (e?.tooBig || e?.code === 'free_limit' || e?.authExpired) throw e;
+      if (e?.tooBig || e?.code === 'free_limit' || e?.code === 'no_credits_upload' || e?.code === 'first_exam_processing' || e?.authExpired) throw e;
       if (attempt < 3) {
         await new Promise((res) => setTimeout(res, 1500 * attempt));
       }
     }
   }
   throw lastErr ?? new Error('Falha no envio após 3 tentativas. Verifique sua conexão.');
+}
+
+const WELCOME_POLL_MS = 5000;
+const WELCOME_MAX_MS = 5 * 60 * 1000;
+
+/** Espera o 1º exame terminar de ser lido (é quando os créditos de boas-vindas entram).
+ *  'ready' = já dá para enviar o próximo; 'timeout' = ainda analisando depois de 5 minutos. */
+async function waitForWelcomeCredits(): Promise<'ready' | 'timeout'> {
+  const started = Date.now();
+  while (Date.now() - started < WELCOME_MAX_MS) {
+    await new Promise((res) => setTimeout(res, WELCOME_POLL_MS));
+    try {
+      const r = await fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } });
+      if (r.ok) {
+        const d = await r.json();
+        if (d?.firstExamBonusGranted === true || d?.firstExamInProgress === false) return 'ready';
+      }
+    } catch { /* oscilação de rede: tenta de novo na próxima volta */ }
+  }
+  return 'timeout';
+}
+
+/** Envia um exame. Se o servidor responder que o 1º exame ainda está em análise (os créditos de
+ *  boas-vindas ainda não entraram), ESPERA e envia sozinho quando liberar — a pessoa não vê
+ *  oferta de compra nem precisa sair e voltar. */
+async function uploadWaitingWelcome(file: File | Blob, filename: string, pid: string | null, title: string | undefined, onWait: (waiting: boolean) => void) {
+  try {
+    return await uploadOne(file, filename, pid, title);
+  } catch (e: any) {
+    if (e?.code !== 'first_exam_processing') throw e;
+    onWait(true);
+    try {
+      const outcome = await waitForWelcomeCredits();
+      if (outcome === 'timeout') {
+        throw Object.assign(new Error('Seu primeiro exame ainda está sendo analisado. Pode sair desta tela: avisamos quando terminar, e aí é só enviar os próximos.'), { code: 'welcome_timeout' });
+      }
+      bumpCredits(); // saldo do topo já mostra os créditos de boas-vindas
+      return await uploadOne(file, filename, pid, title);
+    } finally {
+      onWait(false);
+    }
+  }
 }
 
 // O scanner (ML Kit) devolve scannedImages como URI de arquivo (file:/// ou content://).
@@ -187,6 +229,8 @@ export const ExamCreate = () => {
   // Erro "de verdade" (todos os envios falharam): card amigável c/ tentar de novo,
   // não toast que some antes de ser lido.
   const [hardError, setHardError] = useState<string | null>(null);
+  // 1º exame ainda em análise: o envio seguinte espera os créditos de boas-vindas (sem oferta de compra).
+  const [welcomeWait, setWelcomeWait] = useState(false);
   const notify = useNotify();
   const redirect = useRedirect();
   const refresh = useRefresh();
@@ -312,7 +356,7 @@ export const ExamCreate = () => {
     try {
       const photo = await Camera.getPhoto({ quality: 92, resultType: CameraResultType.DataUrl, source: CameraSource.Camera, correctOrientation: true, saveToGallery: false });
       const blob = await (await fetch(photo.dataUrl!)).blob();
-      const res: any = await uploadOne(blob, `foto-${Date.now()}.jpg`, pid, title || 'Foto do exame');
+      const res: any = await uploadWaitingWelcome(blob, `foto-${Date.now()}.jpg`, pid, title || 'Foto do exame', setWelcomeWait);
       if (res?.duplicate) { refresh(); setDupInfo({ dups: ['Foto capturada'], elsewhere: [], sent: 0 }); return; }
       notify('Foto enviada! Extraindo…', { type: 'success' });
       redirect('list', 'exams');
@@ -343,12 +387,13 @@ export const ExamCreate = () => {
         try {
           const blob = await fetchScannedBlob(imgs[i]);
           const name = imgs.length > 1 ? (title || 'Exame escaneado') + ` (${i + 1}/${imgs.length})` : (title || 'Exame escaneado');
-          const res: any = await uploadOne(blob, `scan-${Date.now()}-${i + 1}.jpg`, pid, name);
+          const res: any = await uploadWaitingWelcome(blob, `scan-${Date.now()}-${i + 1}.jpg`, pid, name, setWelcomeWait);
           if (res?.duplicate) dups.push(name);
           setProgress({ done: i + 1, total: imgs.length, errors });
         } catch (err: any) {
           if (err?.authExpired) { notify(err.message || 'Sua sessão expirou. Faça login novamente.', { type: 'warning' }); logout(); setBusy(false); return; }
           if (err?.code === 'free_limit' || err?.code === 'no_credits_upload') { notifyInsufficientCredits({ message: err.message, feature: 'UPLOAD' }); setBusy(false); return; }
+          if (err?.code === 'welcome_timeout') { setHardError(err.message); setBusy(false); refresh(); return; }
           errors.push(`Página ${i + 1}: ${err.message}`);
           setProgress({ done: i + 1, total: imgs.length, errors });
         }
@@ -393,7 +438,7 @@ export const ExamCreate = () => {
     const elsewhere: string[] = [];
     for (let i = 0; i < files.length; i++) {
       try {
-        const res: any = await uploadOne(files[i], files[i].name, pid, title || files[i].name.replace(/\.pdf$/i, ''));
+        const res: any = await uploadWaitingWelcome(files[i], files[i].name, pid, title || files[i].name.replace(/\.pdf$/i, ''), setWelcomeWait);
         if (res?.duplicate) dups.push(files[i].name);
         else if (res?.duplicateElsewhere) elsewhere.push(files[i].name);
         setProgress({ done: i + 1, total: files.length, errors });
@@ -409,6 +454,7 @@ export const ExamCreate = () => {
           setBusy(false);
           return;
         }
+        if (err?.code === 'welcome_timeout') { setHardError(err.message); setBusy(false); refresh(); return; }
         errors.push(`${files[i].name}: ${err.message}`);
         setProgress({ done: i + 1, total: files.length, errors });
       }
@@ -796,6 +842,20 @@ export const ExamCreate = () => {
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: RADIUS.button } }}
               />
 
+              {/* 1º exame em análise: espera pelos créditos de boas-vindas */}
+              {welcomeWait && (
+                <Box role="status" aria-live="polite" sx={{ p: 2, borderRadius: RADIUS.card, bgcolor: 'rgba(32,178,170,.08)', border: '1px solid rgba(32,178,170,.35)', display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+                  <Box sx={{ width: 44, height: 44, borderRadius: RADIUS.button, bgcolor: 'rgba(32,178,170,.16)', display: 'grid', placeItems: 'center', flexShrink: 0 }} aria-hidden="true"><RedeemIcon sx={{ color: '#178f89' }} /></Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>Estamos analisando seu primeiro exame</Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.5, mt: 0.25 }}>
+                      Assim que a análise terminar, seus {firstBonus} créditos de boas-vindas entram e os próximos exames são enviados sozinhos. Costuma levar de 1 a 3 minutos. Não precisa comprar nada.
+                    </Typography>
+                    <LinearProgress sx={{ mt: 1.25, height: 6, borderRadius: RADIUS.pill, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: '#20b2aa' } }} />
+                  </Box>
+                </Box>
+              )}
+
               {/* Barra de Progresso */}
               {progress && (
                 <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: RADIUS.card }}>
@@ -822,7 +882,7 @@ export const ExamCreate = () => {
                   <Box sx={{ width: 44, height: 44, borderRadius: RADIUS.button, bgcolor: 'rgba(234,88,12,.14)', display: 'grid', placeItems: 'center', flexShrink: 0 }} aria-hidden="true"><WarningAmberIcon sx={{ fontSize: 24, color: '#c2410c' }} /></Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
-                      Não deu pra enviar
+                      {hardError.startsWith('Seu primeiro exame') ? 'Primeiro exame ainda em análise' : 'Não deu pra enviar'}
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.5, mt: 0.25 }}>
                       {hardError}

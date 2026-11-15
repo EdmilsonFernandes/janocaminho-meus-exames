@@ -50,7 +50,7 @@ export function ReadsPill({
   children, icon = true, alert = false, className, ...props
 }: { icon?: boolean; alert?: boolean } & Omit<React.ComponentProps<'button'>, 'type'>) {
   return (
-    <span className={cn(ISLAND, 'min-w-0')}>
+    <span className={cn(ISLAND, 'shrink-0')}>
       <button
         type="button"
         className={cn(
@@ -67,7 +67,7 @@ export function ReadsPill({
           className="h-8 max-w-full gap-1.5 border-0 px-3 text-[13px] font-medium tabular-nums transition-colors duration-200 group-hover:bg-primary/15 group-focus-visible:ring-[3px] group-focus-visible:ring-ring/50"
         >
           {icon ? <Zap aria-hidden="true" className="size-3.5 shrink-0 fill-amber-400 text-amber-500" /> : null}
-          <span className="min-w-0 truncate">{children}</span>
+          <span className="whitespace-nowrap">{children}</span>
         </Badge>
       </button>
     </span>

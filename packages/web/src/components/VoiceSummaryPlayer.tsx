@@ -263,7 +263,7 @@ export const VoiceSummaryPlayer = ({
             flexShrink: 0,
           }}
         >
-          {[1.0, 1.25, 1.5].map((r) => {
+          {[0.85, 1.0, 1.25].map((r) => {
             const active = rate === r;
             return (
               <Box

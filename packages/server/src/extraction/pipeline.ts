@@ -7,7 +7,7 @@ import { classifyDoc } from './docPatterns';
 import { extractLabPanel, extractLabPanels, extractImaging } from './claude';
 import { ocrPdfPages } from './ocrPdf';
 import { explainNonExamDoc } from './nonExamExplain';
-import { imageToText } from './imageToText';
+import { imageToText, ocrWordCount, OCR_UNREADABLE_WORDS, OCR_WEAK_WORDS } from './imageToText';
 import { canonicalName, reconcileScaleFlag, parseNumeric, normalizeUnit, sanitizeUnitInText } from '../utils/normalize';
 import { invalidateHealthSummary } from '../analysis/hs-cache';
 import { toCanonicalUnit } from '../utils/units';
@@ -125,7 +125,20 @@ async function runExtractionOnce(examId: string): Promise<void> {
         } catch (e) { console.warn('[extraction] OCR de PDF-foto falhou:', (e as Error).message); }
       }
     } else {
+      const ocrStart = Date.now();
       try { text = await imageToText(buffer); } catch (e) { console.warn('[extraction] OCR no pre-check falhou:', (e as Error).message); }
+      console.log(`[extraction] ${examId}: foto lida em ${Math.round((Date.now() - ocrStart) / 1000)}s — ${text.trim().length} chars, ${ocrWordCount(text)} palavras`);
+      // FOTO ILEGÍVEL: quase nenhuma palavra saiu da imagem. Antes ela seguia para a IA (até 3
+      // chamadas, minutos de espera) para terminar em "não é um exame". Agora para aqui, na hora,
+      // dizendo a verdade: a foto não deu para ler — e como tirar outra.
+      if (ocrWordCount(text) < OCR_UNREADABLE_WORDS) {
+        const reason = 'Não consegui ler esta foto 😕 — o texto saiu apagado, tremido ou cortado. Tire outra com o exame inteiro na tela, em lugar claro e sem sombra, ou use o botão Escanear, que ajusta a imagem sozinho. Seu crédito de envio foi devolvido.';
+        await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: 'low_quality', extractionError: reason } });
+        await refundUploadOnFailure(examId);
+        console.log(`[extraction] ${examId} rejeitado (foto ilegível): ${ocrWordCount(text)} palavras`);
+        void NotificationService.examFailed({ userId: patient?.ownerId ?? undefined, patientName: patient?.fullName ?? undefined, examTitle: exam.title ?? '—', reason });
+        return;
+      }
     }
     const kind: ExamKind = exam.kind !== 'OTHER' ? exam.kind : classifyKind(text);
 
@@ -200,9 +213,12 @@ async function runExtractionOnce(examId: string): Promise<void> {
     // personalizado (2 frases citando detalhe do papel); falha → texto fixo.
     if (kind !== 'IMAGING' && items.length === 0 && !dryRun) {
       const generic = 'Não encontramos resultados de exame neste documento 😕 — se for o PEDIDO/agendamento (comprovante de coleta), ele ainda não tem valores: espere o resultado sair no portal do laboratório e envie ele. Se for um resultado de verdade, uma foto mais nítida (ou o PDF do laboratório) resolve.';
-      const conversational = await explainNonExamDoc(text);
-      const reason = conversational ?? generic;
-      await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: 'not_a_document', extractionError: reason } });
+      const weakPhoto = media !== 'application/pdf' && ocrWordCount(text) < OCR_WEAK_WORDS;
+      const conversational = weakPhoto ? null : await explainNonExamDoc(text);
+      const reason = weakPhoto
+        ? 'Não encontrei resultados nesta foto 😕 — consegui ler pouco texto. Se for o resultado do exame, tire outra foto com a folha inteira na tela, em lugar claro e sem sombra, ou use o botão Escanear. Se for o pedido do médico ou o comprovante de coleta, ele ainda não tem valores: envie o resultado quando sair. Seu crédito de envio foi devolvido.'
+        : conversational ?? generic;
+      await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: weakPhoto ? 'low_quality' : 'not_a_document', extractionError: reason } });
       await refundUploadOnFailure(examId);
       console.log(`[extraction] ${examId} rejeitado (0 itens)${conversational ? ' (explicação conversacional da IA)' : ''}: documento sem resultados`);
       void NotificationService.examFailed({ userId: patient?.ownerId ?? undefined, patientName: patient?.fullName ?? undefined, examTitle: exam.title ?? '—', reason });

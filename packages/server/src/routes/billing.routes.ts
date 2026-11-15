@@ -98,6 +98,10 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
     }
     const pids = await userPatientIds(req.userId!);
     const examsCount = await prisma.exam.count({ where: { patientId: { in: pids } } });
+    // 1º exame ainda sendo lido e bônus de boas-vindas não concedido: a tela de envio espera em vez de oferecer compra.
+    const firstExamInProgress = user?.firstExamBonusGranted === false
+      ? (await prisma.exam.count({ where: { patient: { ownerId: req.userId! }, status: { in: ['UPLOADED', 'EXTRACTING'] } } })) > 0
+      : false;
     const analyses = await prisma.aiAnalysis.findMany({
       where: { patientId: { in: pids } },
       select: { tokenUsage: true },
@@ -106,7 +110,7 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
       const u: any = a.tokenUsage;
       return s + (Number(u?.input_tokens ?? 0) + Number(u?.output_tokens ?? 0));
     }, 0);
-    res.json({ active, planExpiresAt: user?.planExpiresAt ?? null, examsCount, freeExamLimit: config.freeExamLimit, credits: user?.credits ?? 0, tokensUsed, trialAvailable, reportVouchers: user?.reportVouchers ?? 0, firstExamBonusGranted: user?.firstExamBonusGranted ?? true });
+    res.json({ active, planExpiresAt: user?.planExpiresAt ?? null, examsCount, freeExamLimit: config.freeExamLimit, credits: user?.credits ?? 0, tokensUsed, trialAvailable, reportVouchers: user?.reportVouchers ?? 0, firstExamBonusGranted: user?.firstExamBonusGranted ?? true, firstExamInProgress, welcomeCredits: getSettings().grants.freeSignup });
   } catch (e) { next(e); }
 });
 

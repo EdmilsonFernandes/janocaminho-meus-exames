@@ -16,6 +16,7 @@ import { serializeExam } from '../utils/serialize';
 import { runExtraction } from '../extraction/pipeline';
 import { config } from '../config';
 import { chargeCredits, computeUploadCost, UPLOAD_RULES, CREDIT_COSTS } from '../utils/credits';
+import { getSettings } from '../utils/settings';
 import { invalidateHealthSummary } from '../analysis/hs-cache';
 import { buildCurrentHealthSummary } from '../analysis/health-state';
 import { buildExamNarration } from '../utils/examNarration';
@@ -177,7 +178,7 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
     //   Premium ativo: primeiros premiumFreeQuota envios do mês = grátis; depois premiumCost cada.
     //   Free: freeCost créditos por envio (sempre).
     //   EXCEÇÃO: 1º exame do usuário é GRÁTIS (sem créditos) — bônus de boas-vindas pós-extração.
-    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true, credits: true } });
+    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true, credits: true, firstExamBonusGranted: true } });
     const active = !!me?.planExpiresAt && me.planExpiresAt > new Date();
     // FAILED/REJECTED não consomem o "1º exame grátis": upload que a extração rejeitou
     // não pode queimar o grátis (senão o 2º envio cobra com saldo 0 → 402 na cara do novato).
@@ -188,6 +189,20 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
     const countSoFar = pCounter?.uploadMonth === monthKey ? (pCounter?.monthlyUploadCount ?? 0) : 0;
     const uploadCost = isFirstExamEver ? 0 : computeUploadCost(active, countSoFar); // 1º exame = grátis
     if (uploadCost > 0 && (!me || me.credits < uploadCost)) {
+      // BOAS-VINDAS EM ANDAMENTO: os créditos de boas-vindas só entram quando o 1º exame termina
+      // de ser lido. Enquanto ele processa, o saldo é zero e o 2º envio caía na oferta de compra
+      // ("compre créditos" para quem acabou de se cadastrar). Aqui não é falta de crédito: é espera.
+      if (!me?.firstExamBonusGranted) {
+        const inProgress = await prisma.exam.count({ where: { patient: { ownerId: req.userId! }, status: { in: ['UPLOADED', 'EXTRACTING'] } } });
+        if (inProgress > 0) {
+          res.status(409).json({
+            error: 'first_exam_processing',
+            message: 'Estamos analisando seu primeiro exame. Assim que a análise terminar, seus créditos de boas-vindas ficam disponíveis para enviar os próximos.',
+            welcomeCredits: getSettings().grants?.freeSignup ?? 0,
+          });
+          return;
+        }
+      }
       const msg = active
         ? `Você já usou seus ${UPLOAD_RULES.premiumFreeQuota} envios grátis deste mês neste perfil. Para enviar mais, recarregue créditos (${uploadCost} por envio).`
         : `Para enviar um exame é preciso ${UPLOAD_RULES.freeCost} crédito. Recarregue créditos (PIX) ou assine o mensal (${UPLOAD_RULES.premiumFreeQuota} envios grátis/mês em cada perfil).`;

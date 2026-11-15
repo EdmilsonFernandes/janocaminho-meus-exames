@@ -57,6 +57,8 @@ import {
 } from '@/components/reui/frame';
 import { SettingRow } from '@/components/reui/setting-row';
 import { FieldLabelWithHint } from '@/components/reui/field-label';
+import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
+import { pendingItems, profileFieldId } from '../utils/profilePending';
 import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
 import { useFeedback } from '../components/feedback/FeedbackProvider';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
@@ -285,10 +287,35 @@ export const ProfilePage = () => {
     return { val: imc.toFixed(1), status, color, bg };
   }, [heightCm, patient?.weightKg]);
 
+  // Veio da home tocando numa pendência (?falta=cpf): rola até o campo assim que o perfil carrega.
+  const faltaKey = searchParams.get('falta');
+  const patientLoaded = !!patient;
+  useEffect(() => {
+    if (!faltaKey || !patientLoaded) return;
+    setActiveTab('dados');
+    const t = window.setTimeout(() => {
+      const el = document.getElementById(profileFieldId(faltaKey));
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      (el?.querySelector('input, [role="combobox"], button') as HTMLElement | null)?.focus({ preventScroll: true });
+    }, 350);
+    return () => window.clearTimeout(t);
+  }, [faltaKey, patientLoaded]);
+
   if (!pid) return <PageSkeleton cards={4} />;
 
   const planActive = user?.planExpiresAt && new Date(user.planExpiresAt) > new Date();
   const profilePct: number | null = patient?.profileCompleteness?.pct ?? null;
+  const pending = pendingItems(patient?.profileCompleteness?.missing);
+  const goToPending = (it: { key: string; to: string }) => {
+    if (!it.to.startsWith('/perfil')) { navigate(it.to); return; }
+    setActiveTab('dados');
+    // espera a aba renderizar antes de rolar até o campo
+    window.setTimeout(() => {
+      const el = document.getElementById(profileFieldId(it.key));
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      (el?.querySelector('input, [role="combobox"], button') as HTMLElement | null)?.focus({ preventScroll: true });
+    }, 120);
+  };
 
   return (
     <PageContainer width={780}>
@@ -496,6 +523,26 @@ export const ProfilePage = () => {
          ───────────────────────────────────────────────────────────── */}
       {activeTab === 'dados' && (
         <div className="flex flex-col gap-5">
+          {pending.length > 0 && profilePct != null && (
+            <Alert variant="info">
+              <AlertTitle>Seu perfil está {profilePct}% completo</AlertTitle>
+              <AlertDescription>
+                <p className="mb-2">{pending.length === 1 ? 'Falta só este dado para chegar a 100%:' : `Faltam estes ${pending.length} dados para chegar a 100%:`}</p>
+                <div className="flex flex-wrap gap-2">
+                  {pending.map((it) => (
+                    <button
+                      key={it.key}
+                      type="button"
+                      onClick={() => goToPending(it)}
+                      className="min-h-11 cursor-pointer rounded-full border border-border bg-background px-3.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-primary focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                    >
+                      {it.label}{it.key === 'weight' ? ' (em Medições)' : ''}
+                    </button>
+                  ))}
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
           {/* Identificação Segura */}
           <Frame>
             <FrameHeader>
@@ -548,7 +595,7 @@ export const ProfilePage = () => {
                 </Grid>
 
                 {/* CPF */}
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid id={profileFieldId('cpf')} size={{ xs: 12, sm: 6 }}>
                   <FieldLabelWithHint
                     label="CPF"
                     hint="Usado exclusivamente para validação de identidade médica e emissão de receitas digitais."
@@ -596,7 +643,7 @@ export const ProfilePage = () => {
                 </Grid>
 
                 {/* Data de Nascimento */}
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid id={profileFieldId('dateOfBirth')} size={{ xs: 12, sm: 6 }}>
                   <FieldLabelWithHint
                     label="Data de Nascimento"
                     hint="Essencial para calcular faixas de referência por idade e idade biológica (KDM)."
@@ -642,7 +689,7 @@ export const ProfilePage = () => {
             <FramePanel>
               <Grid container spacing={2.25}>
                 {/* Altura */}
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid id={profileFieldId('heightCm')} size={{ xs: 12, sm: 6 }}>
                   <FieldLabelWithHint
                     label="Altura"
                     hint="Combinada ao peso atual para cálculo automático do IMC e superfície corporal."
@@ -732,7 +779,7 @@ export const ProfilePage = () => {
                 )}
 
                 {/* Sexo */}
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid id={profileFieldId('gender')} size={{ xs: 12, sm: 6 }}>
                   <FieldLabelWithHint
                     label="Sexo Biológico"
                     hint="Determina os valores de referência laboratoriais (ex.: hemoglobina, ferritina, creatinina, hormônios)."

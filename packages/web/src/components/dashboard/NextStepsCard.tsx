@@ -9,6 +9,7 @@ import { useSelectedPatient } from '../../patient-context';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
 import { tealText } from '../../theme';
+import { pendingItems } from '../../utils/profilePending';
 
 /**
  * "Próximos passos" — onboarding progressivo do Dashboard p/ usuário novo (ou antigo com perfil
@@ -52,6 +53,7 @@ export const NextStepsCard = ({ exams }: { exams: number }) => {
     { key: 'exam', label: 'Enviar seu primeiro exame', done: examsDone },
   ];
   const next = steps.find((s) => !s.done)!;
+  const pending = pendingItems(completeness.missing);
   const doneCount = steps.filter((s) => s.done).length;
 
   return (
@@ -81,6 +83,35 @@ export const NextStepsCard = ({ exams }: { exams: number }) => {
           </Stack>
         ))}
       </Stack>
+      {/* O QUE falta para 100%: cada item leva direto ao lugar de preencher. */}
+      {!profileDone && pending.length > 0 && (
+        <Box sx={{ mb: 1.75 }}>
+          <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.secondary', mb: 0.75 }}>
+            {pending.length === 1 ? 'Falta só 1 dado para 100%:' : `Faltam ${pending.length} dados para 100%:`}
+          </Typography>
+          <Stack spacing={0.75}>
+            {pending.map((it) => (
+              <Box
+                key={it.key}
+                component="button"
+                type="button"
+                onClick={() => navigate(it.to)}
+                sx={{
+                  display: 'flex', alignItems: 'center', gap: 1, width: '100%', minHeight: 48, px: 1.5, py: 0.75, textAlign: 'left',
+                  border: '1px solid', borderColor: 'divider', borderRadius: '12px', bgcolor: 'background.paper', cursor: 'pointer', font: 'inherit', color: 'text.primary',
+                  transition: 'border-color .2s', '&:hover': { borderColor: '#20b2aa' }, '&:focus-visible': { outline: '2px solid #20b2aa', outlineOffset: 2 },
+                }}
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontSize: 14, fontWeight: 700, lineHeight: 1.3 }}>{it.label}</Typography>
+                  <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.35 }}>{it.why}</Typography>
+                </Box>
+                <ArrowForwardIcon sx={{ fontSize: 18, color: 'text.secondary', flexShrink: 0 }} aria-hidden="true" />
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+      )}
       <GradientButton
         onClick={() => navigate(next.key === 'profile' ? (onlyWeight ? '/medicoes' : '/perfil') : '/exams/create')}
         endIcon={<ArrowForwardIcon />}
