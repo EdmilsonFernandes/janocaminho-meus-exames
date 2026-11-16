@@ -14,6 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKeys;
 
@@ -41,6 +43,35 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     private boolean pendingEmergencyOpen = false;
     private final android.os.Handler uiHandler = new android.os.Handler(android.os.Looper.getMainLooper());
 
+    /**
+     * TECLADO x CAMPO DE TEXTO. No Android 15+ (tela de ponta a ponta) o teclado abre POR CIMA do
+     * WebView em vez de encolher a janela: o campo do chat ficava escondido atrás dele. Aqui o app
+     * avisa a página quanto do WebView o teclado está cobrindo (em px de CSS) pelo evento
+     * "dx:ime"; a página abre espaço e rola até o campo (utils/keyboardGuard.ts). Em aparelhos
+     * onde a janela JÁ encolhe, a página desconta esse encolhimento, então não conta em dobro.
+     */
+    private int lastImeCss = -1;
+    private void watchKeyboard() {
+        final android.view.View root = findViewById(android.R.id.content);
+        if (root == null) return;
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+            try {
+                int ime = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
+                int bars = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+                float density = getResources().getDisplayMetrics().density;
+                int css = Math.round(Math.max(0, ime - bars) / (density > 0 ? density : 1f));
+                if (css != lastImeCss && getBridge() != null && getBridge().getWebView() != null) {
+                    lastImeCss = css;
+                    getBridge().getWebView().evaluateJavascript(
+                        "window.dispatchEvent(new CustomEvent('dx:ime',{detail:{height:" + css + "}}));", null);
+                }
+            } catch (Throwable t) {
+                Log.w("DX_IME", "inset do teclado", t);
+            }
+            return ViewCompat.onApplyWindowInsets(v, insets);
+        });
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +84,11 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
             paintWebViewBrandBg();
         } catch (Throwable t) {
             Log.e("DX_BOOT", "Falha ao pintar fundo", t);
+        }
+        try {
+            watchKeyboard();
+        } catch (Throwable t) {
+            Log.e("DX_BOOT", "Falha ao observar o teclado", t);
         }
         try {
             healthBridge = new HealthBridge(this);

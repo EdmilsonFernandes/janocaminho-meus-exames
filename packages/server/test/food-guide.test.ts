@@ -127,3 +127,24 @@ describe('GET /api/items/food-guide', () => {
     expect(r.body.matches).toEqual([]);
   });
 });
+
+describe('valores do paciente nos exames do dicionário', () => {
+  it('traz o exame mesmo DENTRO da faixa, marcado como normal', async () => {
+    const { foodValuesFor } = await import('../src/analysis/food-guide');
+    const v = foodValuesFor([
+      { nameCanonical: 'COLESTEROL LDL', value: 98, unit: 'mg/dL', refLow: null, refHigh: 130, date: '2026-11-01' },
+      { nameCanonical: 'TRIGLICERIDEOS', value: 241, unit: 'mg/dL', refLow: null, refHigh: 150, date: '2026-11-01' },
+      { nameCanonical: 'SODIO', value: 140, unit: 'mEq/L', refLow: 136, refHigh: 145, date: '2026-11-01' },
+    ]);
+    expect(v.map((x) => x.nameCanonical)).toEqual(['TRIGLICERIDEOS', 'COLESTEROL LDL']); // fora da faixa primeiro; sódio não está no dicionário
+    expect(v[0].status).toBe('alto');
+    expect(v[1].status).toBe('normal');
+    expect(v[1].value).toBe(98);
+    expect(v[1].label).toBe('Colesterol LDL');
+  });
+
+  it('ignora resultado sem número e não inventa valor', async () => {
+    const { foodValuesFor } = await import('../src/analysis/food-guide');
+    expect(foodValuesFor([{ nameCanonical: 'GLICOSE', value: null, unit: null, refLow: 70, refHigh: 99, date: '2026-11-01' }])).toEqual([]);
+  });
+});

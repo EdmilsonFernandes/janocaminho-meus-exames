@@ -249,6 +249,44 @@ export function matchFoodGuides(latest: Array<{ nameCanonical: string; value: nu
 }
 
 /** Frase de alimentação para a dica (push). Só quando a evidência é forte ou moderada. */
+export interface FoodValue {
+  /** Exame do dicionário a que este resultado pertence. */
+  guideKey: string;
+  label: string;
+  nameCanonical: string;
+  value: number;
+  unit: string | null;
+  refLow: number | null;
+  refHigh: number | null;
+  date: string;
+  /** Onde o resultado mais recente está em relação à faixa do laudo. */
+  status: 'alto' | 'baixo' | 'normal';
+}
+
+/**
+ * OS VALORES DO PACIENTE para os exames que o dicionário cobre, dentro OU fora da faixa.
+ * A tela mostra isto primeiro ("seus números") e só depois a análise dos que saíram da faixa.
+ * Um resultado por exame do laudo; o guia escolhido é o da direção em que ele saiu, quando saiu.
+ */
+export function foodValuesFor(latest: Array<{ nameCanonical: string; value: number | null; unit: string | null; refLow: number | null; refHigh: number | null; flag?: string | null; date: Date | string }>): FoodValue[] {
+  const out: FoodValue[] = [];
+  for (const r of latest) {
+    if (r.value == null || !Number.isFinite(r.value)) continue;
+    const n = normalizeExamName(r.nameCanonical);
+    const candidates = FOOD_GUIDES.filter((g) => g.match.test(n) && !(g.exclude && g.exclude.test(n)));
+    if (!candidates.length) continue;
+    const dir = directionOf(r);
+    const guide = (dir && candidates.find((g) => g.when === dir || g.when === 'qualquer')) || candidates[0];
+    out.push({
+      guideKey: guide.key, label: guide.label, nameCanonical: r.nameCanonical, value: r.value, unit: r.unit,
+      refLow: r.refLow, refHigh: r.refHigh, date: new Date(r.date).toISOString(), status: dir ?? 'normal',
+    });
+  }
+  // fora da faixa primeiro; depois por nome
+  const rank = (v: FoodValue) => (v.status === 'normal' ? 1 : 0);
+  return out.sort((a, b) => rank(a) - rank(b) || a.label.localeCompare(b.label, 'pt-BR'));
+}
+
 export function foodHintFor(name: string, direction: 'alto' | 'baixo' | null): string | null {
   if (!direction) return null;
   const g = findFoodGuide(name, direction);

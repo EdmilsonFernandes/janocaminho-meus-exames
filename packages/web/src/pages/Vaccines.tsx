@@ -157,24 +157,24 @@ export const VaccinesPage = () => {
         {/* Resumo KPI em ReUI Frame */}
         <Frame>
           <FramePanel className="grid grid-cols-3 divide-x divide-border p-0">
-            <div className="p-3.5 text-center sm:p-4">
-              <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="min-w-0 px-1.5 py-3.5 text-center sm:p-4">
+              <div className="flex min-h-8 items-center justify-center text-xs leading-4 font-semibold text-muted-foreground">
                 Registradas
               </div>
               <div className="mt-0.5 font-heading text-xl font-extrabold text-primary tabular-nums sm:text-2xl">
                 {items.length}
               </div>
             </div>
-            <div className="p-3.5 text-center sm:p-4">
-              <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="min-w-0 px-1.5 py-3.5 text-center sm:p-4">
+              <div className="flex min-h-8 items-center justify-center text-xs leading-4 font-semibold text-muted-foreground">
                 Próximas doses
               </div>
               <div className="mt-0.5 font-heading text-xl font-extrabold text-foreground tabular-nums sm:text-2xl">
                 {upcomingCount}
               </div>
             </div>
-            <div className="p-3.5 text-center sm:p-4">
-              <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="min-w-0 px-1.5 py-3.5 text-center sm:p-4">
+              <div className="flex min-h-8 items-center justify-center text-xs leading-4 font-semibold text-muted-foreground">
                 Atrasadas
               </div>
               <div
@@ -191,11 +191,11 @@ export const VaccinesPage = () => {
         {/* Formulário de registro (ReUI Frame colapsável + sugestões rápidas) */}
         <Frame>
           <FrameHeader className="flex flex-row items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5">
+            <div className="flex min-w-0 items-center gap-2.5">
               <IconTile tone="primary" size="sm">
                 <AddCircleOutlineIcon sx={{ fontSize: 18 }} />
               </IconTile>
-              <div>
+              <div className="min-w-0">
                 <FrameTitle>Registrar vacina</FrameTitle>
                 <FrameDescription>
                   Escolha um imunizante comum ou digite o nome, lote e data do reforço
@@ -205,7 +205,8 @@ export const VaccinesPage = () => {
             <button
               type="button"
               onClick={() => setFormOpen((o) => !o)}
-              className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-xs font-bold text-foreground transition hover:bg-muted cursor-pointer"
+              aria-expanded={formOpen}
+              className="inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-1 rounded-full border border-border bg-card px-3.5 text-xs font-bold whitespace-nowrap text-foreground transition-colors duration-200 hover:bg-muted"
             >
               {formOpen ? 'Recolher' : 'Abrir'}
               <ExpandMoreIcon

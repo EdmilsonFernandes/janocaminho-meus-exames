@@ -70,11 +70,25 @@ interface Match {
   points?: Array<{ value: number; date: string }>;
 }
 
+/** Resultado mais recente do paciente num exame que o dicionário cobre (dentro ou fora da faixa). */
+interface PatientValue {
+  guideKey: string;
+  label: string;
+  nameCanonical: string;
+  value: number;
+  unit: string | null;
+  refLow: number | null;
+  refHigh: number | null;
+  date: string | null;
+  status: 'alto' | 'baixo' | 'normal';
+  points?: Array<{ value: number; date: string }>;
+}
+
 interface SummaryContent { resumo: string; comecarPor: string[]; levarAoMedico: string }
-interface Payload { matches: Match[]; dictionary: Guide[]; examsRead: number; summary: { content: SummaryContent; generatedAt: string } | null; summaryCost: number; summaryStatus?: 'pending' | 'error' | null; summaryError?: string | null }
+interface Payload { matches: Match[]; values: PatientValue[]; dictionary: Guide[]; examsRead: number; summary: { content: SummaryContent; generatedAt: string } | null; summaryCost: number; summaryStatus?: 'pending' | 'error' | null; summaryError?: string | null }
 
 const parsePayload = (json: Payload): Payload => ({
-  matches: Array.isArray(json?.matches) ? json.matches : [], dictionary: Array.isArray(json?.dictionary) ? json.dictionary : [],
+  matches: Array.isArray(json?.matches) ? json.matches : [], values: Array.isArray(json?.values) ? json.values : [], dictionary: Array.isArray(json?.dictionary) ? json.dictionary : [],
   examsRead: Number(json?.examsRead) || 0, summary: json?.summary?.content ? json.summary : null, summaryCost: Math.max(0, Number(json?.summaryCost) || 0),
   summaryStatus: json?.summaryStatus ?? null, summaryError: json?.summaryError ?? null,
 });
@@ -107,13 +121,13 @@ function rangeText(low: number | null, high: number | null): string {
 // ───────────────────────── peças ─────────────────────────
 
 /** Mini gráfico da evolução do exame (composição do bloco chart-25). */
-function Sparkline({ match }: { match: Match }) {
-  const data = (match.points ?? []).map((p) => ({ period: p.date, value: p.value }));
+function Sparkline({ label, points, tone = 'warning' }: { label: string; points?: Array<{ value: number; date: string }>; tone?: 'warning' | 'success' }) {
+  const data = (points ?? []).map((p) => ({ period: p.date, value: p.value }));
   if (data.length < 2) return <span className="shrink-0 text-xs text-muted-foreground">primeiro resultado</span>;
-  const config = { value: { label: match.guide.label, color: 'var(--warning)' } } satisfies ChartConfig;
+  const config = { value: { label, color: tone === 'success' ? 'var(--success)' : 'var(--warning)' } } satisfies ChartConfig;
   const first = data[0].value; const last = data[data.length - 1].value;
   return (
-    <div className="relative h-11 w-28 shrink-0 sm:w-40" role="img" aria-label={`${match.guide.label}: de ${fmt(first)} para ${fmt(last)} em ${data.length} resultados`}>
+    <div className="relative h-11 w-28 shrink-0 sm:w-40" role="img" aria-label={`${label}: de ${fmt(first)} para ${fmt(last)} em ${data.length} resultados`}>
       <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-md opacity-60 [background-image:linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] [background-size:16px_11px]" />
       <ChartContainer config={config} className="relative z-10 aspect-auto! h-11 w-full" initialDimension={{ width: 160, height: 44 }}>
         <LineChart accessibilityLayer data={data} margin={{ top: 5, right: 4, bottom: 5, left: 4 }}>
@@ -245,6 +259,7 @@ export function FoodGuidePage() {
   const [tick, setTick] = useState(0);
   const [generating, setGenerating] = useState(false);
   const [askFor, setAskFor] = useState<Match | null>(null);
+  const outOfRange = (data?.values ?? []).filter((v) => v.status !== 'normal').length;
 
   useEffect(() => {
     let ignore = false;
@@ -336,45 +351,54 @@ export function FoodGuidePage() {
           </Frame>
         ) : (
           <>
+            {/* ───────── SEUS NÚMEROS: os valores do paciente vêm primeiro (bloco chart-25) ───────── */}
+            {data.values.length ? (
+              <Frame>
+                <FrameHeader className="flex-row items-center gap-3">
+                  <IconTile variant="frame" size="sm" aria-hidden="true"><Salad aria-hidden="true" /></IconTile>
+                  <div className="flex min-w-0 flex-col gap-px">
+                    <FrameTitle role="heading" aria-level={2}>Seus números</FrameTitle>
+                    <FrameDescription>
+                      O resultado mais recente de cada exame que a alimentação costuma influenciar.{' '}
+                      {outOfRange === 0 ? 'Todos estão dentro da faixa do laudo.' : outOfRange === 1 ? '1 está fora da faixa.' : `${outOfRange} estão fora da faixa.`}
+                      {data.matches.length ? (withFood > 0 ? ` Em ${withFood}, a alimentação ajuda.` : ' Em nenhum deles a alimentação resolve sozinha.') : null}
+                    </FrameDescription>
+                  </div>
+                </FrameHeader>
+                <FramePanel className="p-0!">
+                  <ul className="m-0 flex list-none flex-col p-0">
+                    {data.values.map((v, i) => (
+                      <li key={v.nameCanonical}>
+                        <div className="flex min-h-20 items-center justify-between gap-3 px-4 py-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="m-0 text-sm font-medium text-foreground">{v.label}</p>
+                            <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                              <span className="text-base font-semibold whitespace-nowrap text-foreground tabular-nums">{fmt(v.value)}{v.unit ? <span className="ms-1 text-sm font-normal text-muted-foreground">{v.unit}</span> : null}</span>
+                              {v.status === 'normal' ? (
+                                <Badge className="shrink-0 border-0 whitespace-nowrap" variant="success-light"><Check aria-hidden="true" />Na faixa</Badge>
+                              ) : (
+                                <Badge className="shrink-0 border-0 whitespace-nowrap" variant="warning-light">
+                                  {v.status === 'alto' ? <TrendingUp aria-hidden="true" /> : <TrendingDown aria-hidden="true" />}
+                                  {v.status === 'alto' ? 'Acima da faixa' : 'Abaixo da faixa'}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="m-0 mt-1 text-xs text-muted-foreground">
+                              {rangeText(v.refLow, v.refHigh) ? `Faixa do laudo: ${rangeText(v.refLow, v.refHigh)}` : 'Laudo sem faixa de referência'}{v.date ? ` · ${new Date(v.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}` : ''}
+                            </p>
+                          </div>
+                          <Sparkline label={v.label} points={v.points} tone={v.status === 'normal' ? 'success' : 'warning'} />
+                        </div>
+                        {i < data.values.length - 1 ? <Separator /> : null}
+                      </li>
+                    ))}
+                  </ul>
+                </FramePanel>
+              </Frame>
+            ) : null}
+
             {data.matches.length ? (
               <>
-                {/* ───────── Seus exames fora da faixa (bloco chart-25) ───────── */}
-                <Frame>
-                  <FrameHeader className="flex-row items-center gap-3">
-                    <IconTile variant="frame" size="sm" aria-hidden="true"><Salad aria-hidden="true" /></IconTile>
-                    <div className="flex min-w-0 flex-col gap-px">
-                      <FrameTitle role="heading" aria-level={2}>Seus exames fora da faixa</FrameTitle>
-                      <FrameDescription>
-                        {data.matches.length === 1 ? '1 exame' : `${data.matches.length} exames`}, pelo resultado mais recente. {withFood > 0 ? `Em ${withFood}, a alimentação ajuda.` : 'Em nenhum deles a alimentação resolve.'}
-                      </FrameDescription>
-                    </div>
-                  </FrameHeader>
-                  <FramePanel className="p-0!">
-                    <ul className="m-0 flex list-none flex-col p-0">
-                      {data.matches.map((m, i) => (
-                        <li key={m.guide.key}>
-                          <div className="flex min-h-20 items-center justify-between gap-3 px-4 py-3">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                                <span className="text-base font-semibold text-foreground tabular-nums">{fmt(m.value)}{m.unit ? <span className="ms-1 text-sm font-normal text-muted-foreground">{m.unit}</span> : null}</span>
-                                <Badge className="border-0" variant="warning-light">
-                                  {m.direction === 'alto' ? <TrendingUp aria-hidden="true" /> : <TrendingDown aria-hidden="true" />}
-                                  {m.direction === 'alto' ? 'Acima da faixa' : 'Abaixo da faixa'}
-                                </Badge>
-                              </div>
-                              <p className="m-0 mt-1 text-xs text-muted-foreground">
-                                <strong className="font-medium text-foreground">{m.guide.label}</strong>{rangeText(m.refLow, m.refHigh) ? ` · faixa ${rangeText(m.refLow, m.refHigh)}` : ''}{m.date ? ` · ${dateBr(m.date)}` : ''}
-                              </p>
-                            </div>
-                            <Sparkline match={m} />
-                          </div>
-                          {i < data.matches.length - 1 ? <Separator /> : null}
-                        </li>
-                      ))}
-                    </ul>
-                  </FramePanel>
-                </Frame>
-
                 {/* ───────── Resumo personalizado (IA) ───────── */}
                 <Frame>
                   <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">

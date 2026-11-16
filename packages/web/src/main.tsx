@@ -1,6 +1,9 @@
 import './utils/fetch-cache'; // OFFLINE-FIRST: instala o cache de fetch ANTES de qualquer request
 import { Capacitor } from '@capacitor/core';
 import { installDiag } from './utils/diag';
+import { installKeyboardGuard } from './utils/keyboardGuard';
+
+installKeyboardGuard(); // APK: teclado abre por cima da página no Android 15+ (ver utils/keyboardGuard)
 
 // DEPLOY RODANDO COM ABA ABERTA (dono 24/10: "Failed to fetch dynamically
 // imported module …/Chat-*.js"): o app antigo em memória pede chunk que o

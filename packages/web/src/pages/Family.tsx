@@ -554,8 +554,10 @@ export const FamilyPage = () => {
                 >
                   <CardContent sx={{ p: { xs: 2.25, sm: 2.75 } }}>
                     {/* Linha Superior: Avatar, Identificação e Score */}
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.5, mb: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+                    {/* Tela estreita: o selo da direita desce para a linha de baixo em vez de espremer o nome
+                        (que virava "Jo…" com o parentesco quebrado letra a letra por cima dele). */}
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: 1.5, rowGap: 1, mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0, flex: '1 1 160px' }}>
                         <Box sx={{ position: 'relative' }}>
                           <Avatar
                             src={p.photoUrl ? photoUrlFor(p.id) : undefined}
@@ -595,7 +597,7 @@ export const FamilyPage = () => {
                           )}
                         </Box>
 
-                        <Box sx={{ minWidth: 0 }}>
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
                           <Typography
                             sx={{
                               fontWeight: 800,
@@ -617,6 +619,7 @@ export const FamilyPage = () => {
                               label={isTit ? 'Titular · Responsável' : p.relationship || 'Dependente'}
                               sx={{
                                 height: 21,
+                                maxWidth: '100%',
                                 fontSize: 12,
                                 fontWeight: 800,
                                 bgcolor: isTit ? 'rgba(32, 178, 170, 0.14)' : 'rgba(212, 165, 116, 0.18)',
@@ -939,7 +942,7 @@ export const FamilyPage = () => {
               </Box>
 
               {/* Seletor de Modo de Visão ReUI (Cards vs Matriz) */}
-              <Stack direction="row" spacing={0.5} sx={{ p: 0.5, bgcolor: dark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', borderRadius: '12px' }}>
+              <Stack direction="row" spacing={0.5} sx={{ p: 0.5, bgcolor: dark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', borderRadius: '12px', maxWidth: '100%', overflowX: 'auto', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' }, '& > *': { flexShrink: 0, whiteSpace: 'nowrap', minHeight: 40 } }}>
                 <Button
                   size="small"
                   onClick={() => setViewMode('cards')}
@@ -995,6 +998,9 @@ export const FamilyPage = () => {
                 borderColor: 'divider',
                 '&::-webkit-scrollbar': { height: 4 },
                 '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 4 },
+                // Faixa rolável: cada aba mantém a largura do próprio texto. Sem isto as abas ENCOLHIAM
+                // para caber na tela e os rótulos (que não quebram linha) vazavam uns sobre os outros.
+                '& > *': { flexShrink: 0, minHeight: 40 },
               }}
             >
               {/* Botão de Divergência Prioritário */}

@@ -376,6 +376,26 @@ router.post('/:id/feedback', requireJoinIdentity, async (req: JoinRequest, res, 
   }
 });
 
+/** MINHA AVALIAÇÃO — GET /api/teleconsulta/:id/feedback → { rating: 1-5 | null }.
+ *  A estrela era gravada mas a tela nunca lia de volta: ao reabrir o histórico o card voltava a
+ *  "Como foi o atendimento?" e parecia que não tinha salvado. Devolve só a nota de QUEM pergunta. */
+router.get('/:id/feedback', requireJoinIdentity, async (req: JoinRequest, res, next) => {
+  try {
+    const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
+    const actorType = req.joinRole === 'doctor' ? 'DOCTOR' : 'USER';
+    const actorId = (req.joinRole === 'doctor' ? req.doctorId : req.userId) ?? null;
+    const existing = await prisma.auditLog.findFirst({
+      where: { action: 'TELECONSULTA_FEEDBACK', actorType, actorId, targetId: r.id },
+      orderBy: { createdAt: 'desc' },
+      select: { after: true },
+    });
+    const rating = Number((existing?.after as Record<string, unknown> | null)?.rating);
+    res.json({ rating: Number.isInteger(rating) && rating >= 1 && rating <= 5 ? rating : null });
+  } catch (e) {
+    next(e);
+  }
+});
+
 /** END — POST /api/teleconsulta/:id/end {outcome?: 'completed'|'no_show'|'technical'}
  *  (22/10/26 + lifecycle 24/10). ENCERRA a consulta: qualquer das partes (paciente
  *  owner OU médico com share); a partir daqui o /join responde 403 TELECONSULTA_ENDED

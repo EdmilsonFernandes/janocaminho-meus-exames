@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
-import { FOOD_GUIDES, matchFoodGuides, toPublicGuide, type FoodMatch } from '../analysis/food-guide';
+import { FOOD_GUIDES, matchFoodGuides, foodValuesFor, toPublicGuide, type FoodMatch, type FoodValue } from '../analysis/food-guide';
 import { UnsafeFoodSummaryError, foodSignature, generateFoodSummary } from '../analysis/food-summary';
 import { CREDIT_COSTS, chargeCredits, refundCredits } from '../utils/credits';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
@@ -241,7 +241,7 @@ function foodJobFor(pid: string) {
 async function loadFoodMatches(userId: string, requested: unknown) {
   const pids = await userPatientIds(userId);
   const pid = typeof requested === 'string' && pids.includes(requested) ? requested : pids[0] ?? null;
-  if (!pid) return { pid: null, matches: [] as Array<FoodMatch & { points: Array<{ value: number; date: string }> }>, examsRead: 0 };
+  if (!pid) return { pid: null, matches: [] as Array<FoodMatch & { points: Array<{ value: number; date: string }> }>, values: [] as Array<FoodValue & { points: Array<{ value: number; date: string }> }>, examsRead: 0 };
   const rows = (await prisma.examItem.findMany({
     where: { valueNumeric: { not: null }, exam: { patientId: pid, status: 'EXTRACTED' } },
     select: { nameCanonical: true, valueNumeric: true, unit: true, refLow: true, refHigh: true, flag: true, exam: { select: { performedAt: true, createdAt: true, rawExtraction: true } } },
@@ -259,12 +259,15 @@ async function loadFoodMatches(userId: string, requested: unknown) {
     ...m,
     points: (history.get(m.nameCanonical) ?? []).sort((x, y) => x.date.getTime() - y.date.getTime()).slice(-12).map((p) => ({ value: p.value, date: p.date.toISOString() })),
   }));
-  return { pid, matches, examsRead: latest.size };
+  const pointsOf = (name: string) => (history.get(name) ?? []).sort((x, y) => x.date.getTime() - y.date.getTime()).slice(-12).map((p) => ({ value: p.value, date: p.date.toISOString() }));
+  // Os números do paciente nos exames que o dicionário cobre (dentro ou fora da faixa).
+  const values = foodValuesFor([...latest.values()]).map((v) => ({ ...v, points: pointsOf(v.nameCanonical) }));
+  return { pid, matches, values, examsRead: latest.size };
 }
 
 router.get('/food-guide', async (req: AuthedRequest, res, next) => {
   try {
-    const { pid, matches, examsRead } = await loadFoodMatches(req.userId!, req.query.patientId);
+    const { pid, matches, values, examsRead } = await loadFoodMatches(req.userId!, req.query.patientId);
     // Resumo já gerado para ESTE conjunto de exames (se os exames mudaram, não vale mais).
     let summary: unknown = null;
     if (pid && matches.length) {
@@ -273,7 +276,7 @@ router.get('/food-guide', async (req: AuthedRequest, res, next) => {
     }
     const job = pid ? foodJobFor(pid) : null;
     res.json({
-      matches, dictionary: FOOD_GUIDES.map(toPublicGuide), examsRead, summary,
+      matches, values, dictionary: FOOD_GUIDES.map(toPublicGuide), examsRead, summary,
       summaryCost: Math.max(0, Math.round(CREDIT_COSTS.foodSummary ?? 0)),
       summaryStatus: summary ? null : job?.status ?? null,
       summaryError: summary ? null : job?.error ?? null,
