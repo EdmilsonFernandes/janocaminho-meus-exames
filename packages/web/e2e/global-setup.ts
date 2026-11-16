@@ -3,7 +3,9 @@ import { test, expect } from '@playwright/test';
 // 127.0.0.1 explícito: neste host (Docker Desktop), "localhost" resolve primeiro para
 // ::1 e a conexão morre (curl/fetch HTTP 000) — baseURL do config já usa 127.0.0.1.
 const BASE = process.env.E2E_BASE_URL || 'http://127.0.0.1:4011';
-const API = `${BASE}/api`;
+// E2E_API_URL: API separada do BASE — permite iterar no vite dev (5173) com o server
+// tsx (4001) sem rebuild do docker 4011. Sem a env, mantém o comportamento antigo.
+const API = process.env.E2E_API_URL || `${BASE}/api`;
 const DEV_USER = 'edmilson@exemplo.com';
 const DEV_PASS = 'troque123';
 

@@ -81,7 +81,15 @@ export const PixModal = ({ packId, plan, product, couponCode, onClose, onApprove
           setSecs(Math.max(0, Math.floor((new Date(d.pendingPix.expiresAt).getTime() - Date.now()) / 1000)));
           return;
         }
-        if (!r.ok) { setErrMsg(d?.error || ''); setPhase('error'); return; }
+        if (!r.ok) {
+          // A mensagem crua do provedor/gateway não vai pro paciente (technobabble em
+          // PT-técnico ou JSON); o diagnóstico fica no console p/ suporte. (Auditoria
+          // E2E 16/11: 503 estampava o body da API direto no modal.)
+          console.error('[pix] falha ao gerar cobrança:', r.status, d?.error);
+          setErrMsg('Não conseguimos gerar o código de pagamento agora. Tente de novo em instantes — se continuar, avise o suporte.');
+          setPhase('error');
+          return;
+        }
         setPix(d); setPhase('waiting');
         setSecs(Math.max(0, Math.floor((new Date(d.expiresAt).getTime() - Date.now()) / 1000)));
       } catch { if (!cancelled) { setErrMsg(''); setPhase('error'); } }
