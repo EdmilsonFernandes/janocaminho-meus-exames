@@ -23,6 +23,9 @@
  */
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { RangeBar } from '../components/motion/RangeBar';
+import { RingGauge } from '../components/motion/RingGauge';
+import { CountUp } from '../components/motion/CountUp';
 import { useNotify, useRefresh } from 'react-admin';
 import { Line, LineChart, XAxis, YAxis } from 'recharts';
 import { ArrowUp, BookOpen, Check, ChevronDown, CircleHelp, Info, MessageCircleQuestion, Salad, Sparkles, Stethoscope, TrendingDown, TrendingUp, TriangleAlert, Upload, X } from 'lucide-react';
@@ -227,7 +230,8 @@ function ValueRow({ v, guide, open, onToggle, onAsk }: { v: PatientValue; guide:
             </Badge>
           )}
         </span>
-        <span className="mt-1 text-xs text-muted-foreground">{meta}</span>
+        <RangeBar value={v.value} low={v.refLow} high={v.refHigh} tone={v.status === 'normal' ? 'ok' : 'warn'} className="mt-2 max-w-56" />
+        <span className="mt-1.5 text-xs text-muted-foreground">{meta}</span>
         {cta ? (
           <span className="mt-2 inline-flex items-center gap-1.5 self-start text-sm font-medium text-primary">
             <Salad aria-hidden="true" className="size-4 shrink-0" />
@@ -439,16 +443,27 @@ export function FoodGuidePage() {
             {/* ───────── SEUS NÚMEROS: os valores do paciente vêm primeiro (bloco chart-25) ───────── */}
             {data.values.length ? (
               <Frame>
-                <FrameHeader className="flex-row items-center gap-3">
-                  <IconTile variant="frame" size="sm" aria-hidden="true"><Salad aria-hidden="true" /></IconTile>
-                  <div className="flex min-w-0 flex-col gap-px">
+                <FrameHeader className="flex-row items-center gap-4">
+                  <RingGauge
+                    size={84}
+                    thickness={9}
+                    segments={[
+                      { fraction: (data.values.length - outOfRange) / data.values.length, className: 'stroke-success' },
+                      { fraction: outOfRange / data.values.length, className: 'stroke-warning' },
+                    ]}
+                    label={`${data.values.length - outOfRange} de ${data.values.length} exames na faixa`}
+                  >
+                    <CountUp value={data.values.length - outOfRange} format={(n) => String(Math.round(n))} className="text-xl leading-none font-semibold text-foreground tabular-nums" />
+                    <span className="mt-0.5 text-xs text-muted-foreground">de {data.values.length}</span>
+                  </RingGauge>
+                  <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                     <FrameTitle role="heading" aria-level={2}>Seus números</FrameTitle>
-                    <FrameDescription>
-                      O resultado mais recente de cada exame que a alimentação costuma influenciar.{' '}
-                      {outOfRange === 0 ? 'Todos estão dentro da faixa do laudo.' : outOfRange === 1 ? '1 está fora da faixa.' : `${outOfRange} estão fora da faixa.`}
-                      {data.matches.length ? (withFood > 0 ? ` Em ${withFood}, a alimentação ajuda.` : ' Em nenhum deles a alimentação resolve sozinha.') : null}
-                      {' '}Toque em um exame para ver.
-                    </FrameDescription>
+                    <div className="flex flex-wrap gap-1.5">
+                      <Badge className="border-0" variant="success-light"><Check aria-hidden="true" />{data.values.length - outOfRange} na faixa</Badge>
+                      {outOfRange > 0 ? <Badge className="border-0" variant="warning-light"><TriangleAlert aria-hidden="true" />{outOfRange} fora da faixa</Badge> : null}
+                      {withFood > 0 ? <Badge className="border-0" variant="primary-light"><Salad aria-hidden="true" />a comida ajuda em {withFood}</Badge> : null}
+                    </div>
+                    <FrameDescription>Toque em um exame para ver o que pôr no prato.</FrameDescription>
                   </div>
                 </FrameHeader>
                 <FramePanel className="p-0!">

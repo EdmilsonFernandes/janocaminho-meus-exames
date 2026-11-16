@@ -18,10 +18,14 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 import { API_URL, token, photoUrlFor } from '../config';
 import { PageContainer } from '../components/layout/PageContainer';
-import { setSelectedPatient } from '../patient-context';
+import { getSelectedPatient, setSelectedPatient } from '../patient-context';
 import { formatCpf, isValidCpf } from '../utils/cpf';
 import { familyMemberStatus } from '../utils/familyMemberStatus';
-import { BellRing, Check, ChevronRight, Stethoscope, TrendingDown, TrendingUp, TriangleAlert, Upload, UserPlus, Users } from 'lucide-react';
+import { BellRing, Check, ChevronRight, EllipsisVertical, Pencil, Stethoscope, Trash2, TrendingDown, TrendingUp, TriangleAlert, Upload, UserPlus, Users } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { RangeBar } from '../components/motion/RangeBar';
+import { CountUp } from '../components/motion/CountUp';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Frame, FrameDescription, FrameHeader, FramePanel, FrameTitle } from '@/components/reui/frame';
 import { Badge } from '@/components/reui/badge';
@@ -132,7 +136,7 @@ function StatusBadge({ status }: { status: CompareStatus }) {
 }
 
 /** Uma pessoa da família: quem é, como está e o atalho para o painel dela. */
-function MemberRow({ p, isTitular, onOpen, onUpload }: { p: FamPatient; isTitular: boolean; onOpen: () => void; onUpload: () => void }) {
+function MemberRow({ p, isTitular, onOpen, onUpload, onEdit, onRemove }: { p: FamPatient; isTitular: boolean; onOpen: () => void; onUpload: () => void; onEdit: () => void; onRemove: () => void }) {
   const status = familyMemberStatus(p);
   const age = ageFrom(p.dateOfBirth);
   const first = firstNameOf(p.fullName);
@@ -172,42 +176,70 @@ function MemberRow({ p, isTitular, onOpen, onUpload }: { p: FamPatient; isTitula
         </span>
         {p.score != null ? (
           <span className="flex shrink-0 flex-col items-end max-[359px]:hidden" aria-label={`Score de saúde ${p.score} de 100`}>
-            <span className="text-xl leading-none font-semibold text-foreground tabular-nums">{p.score}</span>
+            <CountUp value={p.score} format={(v) => String(Math.round(v))} className="text-xl leading-none font-semibold text-foreground tabular-nums" />
             <span className="mt-0.5 text-xs text-muted-foreground">de 100</span>
           </span>
         ) : null}
         <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
       </button>
-      <div className="flex shrink-0 items-center pe-3">
+      <div className="flex shrink-0 items-center gap-1 pe-2">
         {status === 'sem-exame' ? (
           <Button variant="outline" size="lg" className="h-10 whitespace-nowrap" onClick={onUpload}><Upload aria-hidden="true" /><span className="max-[359px]:sr-only">Enviar</span></Button>
-        ) : (
-          <Button variant="ghost" size="icon" className="size-10" aria-label={`Enviar exame de ${first}`} onClick={onUpload}><Upload aria-hidden="true" /></Button>
-        )}
+        ) : null}
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="size-10" aria-label={`Mais opções para ${first}`} />}>
+            <EllipsisVertical aria-hidden="true" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="dx-island w-56 [&_[data-slot=dropdown-menu-item]]:min-h-10 [&_[data-slot=dropdown-menu-item]]:px-2.5">
+            <DropdownMenuItem onClick={onUpload}><Upload aria-hidden="true" />Enviar exame</DropdownMenuItem>
+            <DropdownMenuItem onClick={onEdit}><Pencil aria-hidden="true" />Editar perfil</DropdownMenuItem>
+            {!isTitular ? (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onClick={onRemove}><Trash2 aria-hidden="true" />Remover da família</DropdownMenuItem>
+              </>
+            ) : null}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
 }
 
 /** Um exame comparado: cada pessoa com o próprio valor, a própria faixa e a situação escrita. */
-function CompareRow({ row }: { row: CompareRowData }) {
+function CompareRow({ row, people }: { row: CompareRowData; people: Map<string, FamPatient> }) {
   return (
-    <div className="flex flex-col gap-2 px-4 py-3">
+    <div className="flex flex-col gap-3 px-4 py-3.5">
       <p className="m-0 text-sm font-semibold text-foreground">
         {prettyName(row.analyte)}
         {row.unit ? <span className="ms-1.5 text-xs font-normal text-muted-foreground">{row.unit}</span> : null}
       </p>
-      <ul className="m-0 flex list-none flex-col gap-2 p-0">
-        {row.members.map((m, i) => (
-          <li key={m.patientId ?? i} className="flex items-center justify-between gap-3">
-            <span className="flex min-w-0 flex-1 flex-col">
-              <span className="truncate text-sm text-foreground">{firstNameOf(m.name)}</span>
-              <span className="truncate text-xs text-muted-foreground">{refRange(m)}</span>
-            </span>
-            <span className="shrink-0 text-sm font-semibold whitespace-nowrap text-foreground tabular-nums">{m.valueNumeric != null && Number.isFinite(Number(m.valueNumeric)) ? Number(m.valueNumeric).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) : m.value || '—'}</span>
-            <StatusBadge status={compareStatus(m)} />
-          </li>
-        ))}
+      <ul className="m-0 flex list-none flex-col gap-3 p-0">
+        {row.members.map((m, i) => {
+          const person = m.patientId ? people.get(String(m.patientId)) : undefined;
+          const status = compareStatus(m);
+          const first = firstNameOf(m.name);
+          const num = m.valueNumeric != null && Number.isFinite(Number(m.valueNumeric)) ? Number(m.valueNumeric) : null;
+          return (
+            <li key={m.patientId ?? i} className="flex items-center gap-3">
+              <Avatar className={`size-10 ring-2 ring-offset-2 ring-offset-background ${status === 'normal' ? 'ring-success/50' : 'ring-warning/70'}`}>
+                {person?.photoUrl ? <AvatarImage src={photoUrlFor(person.id)} alt="" /> : null}
+                <AvatarFallback className="text-sm font-semibold">{first.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <span className="flex items-baseline justify-between gap-2">
+                  <span className="truncate text-sm font-medium text-foreground">{first}</span>
+                  <span className="shrink-0 text-base leading-none font-semibold whitespace-nowrap text-foreground tabular-nums">{num != null ? num.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) : m.value || '—'}</span>
+                </span>
+                <RangeBar value={num} low={m.refLow} high={m.refHigh} tone={status === 'normal' ? 'ok' : 'warn'} />
+                <span className="flex items-center justify-between gap-2">
+                  <span className="truncate text-xs text-muted-foreground">{refRange(m)}</span>
+                  <StatusBadge status={status} />
+                </span>
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -225,6 +257,10 @@ export const FamilyPage = () => {
   // Lado a lado: por padrão só os exames com alguém fora da faixa; "ver todos" abre o resto.
   const [showAllCompare, setShowAllCompare] = useState(false);
   const [compareLimit, setCompareLimit] = useState(10);
+  // Remover dependente: pede confirmação escrita (apaga os exames da pessoa, sem volta).
+  const [removing, setRemoving] = useState<FamPatient | null>(null);
+  const [removeBusy, setRemoveBusy] = useState(false);
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
   // Filtro clínico rigoroso: hábitos compartilhados da casa (alimentação, sedentarismo, ambiente)
   // Exclui hormônios sexuais e desvios agudos que possuem eixos biológicos individuais por sexo/idade.
@@ -292,6 +328,31 @@ export const FamilyPage = () => {
   const handleSelectMemberAndGo = (patientId: string, path = '/') => {
     setSelectedPatient(patientId);
     navigate(path);
+  };
+
+  const handleRemoveDependent = async () => {
+    if (!removing) return;
+    setRemoveBusy(true);
+    setRemoveError(null);
+    try {
+      const res = await fetch(`${API_URL}/patients/${removing.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || 'Não foi possível remover agora. Tente de novo.');
+      }
+      // Se a pessoa removida era a selecionada no app, volta para o titular.
+      const rest = (data?.patients ?? []).filter((x) => x.id !== removing.id);
+      const owner = rest.find((x) => /titular/i.test(x.relationship || '')) ?? rest[0];
+      if (owner && getSelectedPatient() === removing.id) setSelectedPatient(owner.id);
+      window.dispatchEvent(new Event('patients-changed'));
+      window.dispatchEvent(new Event('selPatientChanged'));
+      setRemoving(null);
+      setReloadKey((k) => k + 1);
+    } catch (e: any) {
+      setRemoveError(e?.message || 'Não foi possível remover agora. Tente de novo.');
+    } finally {
+      setRemoveBusy(false);
+    }
   };
 
   const handleCreateDependent = async (e: React.FormEvent) => {
@@ -395,6 +456,7 @@ export const FamilyPage = () => {
         noExam > 0 ? `${noExam} sem exame ainda` : '',
       ].filter(Boolean).join(' · ');
 
+  const peopleById = new Map(patients.map((p) => [String(p.id), p]));
   const compareRows = cmp as CompareRowData[];
   const divergentRows = compareRows.filter((row) => row.members.some((m) => compareStatus(m) !== 'normal'));
   const compareSource = showAllCompare || divergentRows.length === 0 ? compareRows : divergentRows;
@@ -429,6 +491,8 @@ export const FamilyPage = () => {
                     isTitular={p === titular}
                     onOpen={() => handleSelectMemberAndGo(p.id, '/')}
                     onUpload={() => handleSelectMemberAndGo(p.id, '/exams/create')}
+                    onEdit={() => navigate(`/patients/${p.id}`)}
+                    onRemove={() => { setRemoveError(null); setRemoving(p); }}
                   />
                   {i < orderedPatients.length - 1 ? <Separator /> : null}
                 </li>
@@ -475,7 +539,7 @@ export const FamilyPage = () => {
               <ul className="m-0 flex list-none flex-col p-0">
                 {visibleCompare.map((row, i) => (
                   <li key={row.analyte}>
-                    <CompareRow row={row} />
+                    <CompareRow row={row} people={peopleById} />
                     {i < visibleCompare.length - 1 ? <Separator /> : null}
                   </li>
                 ))}
@@ -499,6 +563,24 @@ export const FamilyPage = () => {
           <Button variant="outline" size="lg" className="h-10" onClick={() => navigate('/medicos')}><Stethoscope aria-hidden="true" />Compartilhar com médico</Button>
         </div>
       </div>
+
+      <AlertDialog open={!!removing} onOpenChange={(open) => { if (!open && !removeBusy) setRemoving(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover {firstNameOf(removing?.fullName)} da família?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Os exames, lembretes e o histórico de {firstNameOf(removing?.fullName)} serão apagados do app. Não dá para desfazer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {removeError ? <p role="alert" className="m-0 text-sm text-destructive">{removeError}</p> : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel size="lg" className="h-10" disabled={removeBusy}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" size="lg" className="h-10" disabled={removeBusy} onClick={handleRemoveDependent}>
+              {removeBusy ? 'Removendo…' : 'Remover'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* DIÁLOGO / MODAL DE ADICIONAR DEPENDENTE */}
       <Dialog

@@ -11,7 +11,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNotify } from 'react-admin';
-import { ArrowDownRight, ArrowUpRight, ChartLine, History, Minus, Plus, RotateCw, Scale, Trash2, TriangleAlert } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, ChartLine, ChevronDown, History, Minus, Plus, RotateCw, Scale, Trash2, TriangleAlert } from 'lucide-react';
 import { cn } from 'cn';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -34,7 +34,9 @@ import { Spinner } from '@/components/ui/spinner';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { CompositionBar, RangeMeter, type CompositionPart } from '@/components/bodycomp/meters';
+import { RangeMeter, type CompositionPart } from '@/components/bodycomp/meters';
+import { RingGauge } from '../components/motion/RingGauge';
+import { CountUp } from '../components/motion/CountUp';
 import { TrendPlot, TrendTiles } from '@/components/bodycomp/trend';
 import { NewReadingDialog } from '@/components/bodycomp/new-reading-dialog';
 import {
@@ -106,6 +108,17 @@ function IndicatorCell({
   );
 }
 
+/** Cor do traço do anel para cada parte do corpo (mesmas cores da legenda). */
+const RING_STROKE: Record<string, string> = {
+  fat: 'stroke-copper-500',
+  muscle: 'stroke-sky-600 dark:stroke-sky-400',
+  lean: 'stroke-sky-600 dark:stroke-sky-400',
+  rest: 'stroke-muted-foreground/35',
+};
+
+/** Quantos indicadores aparecem antes do "ver todos" (os fora da faixa sempre aparecem). */
+const INDICATORS_SHORT = 4;
+
 /** Do que o peso é feito. Sem músculo medido, reparte só em gordura e massa livre de gordura. */
 function partsOf(reading: BodyReading): CompositionPart[] | null {
   const { weightKg, fatMassKg, skeletalMuscleKg } = reading;
@@ -151,6 +164,7 @@ export const BodyCompositionPage = () => {
   const [toDelete, setToDelete] = useState<BodyReading | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [allIndicators, setAllIndicators] = useState(false);
   // Só no app Android com Health Connect e ponte nova (AAB 585+); no navegador o botão não existe.
   const canImport = useMemo(() => bodyCompositionSupported(), []);
 
@@ -208,6 +222,17 @@ export const BodyCompositionPage = () => {
   const parts = latest ? partsOf(latest) : null;
   const trendBand = latest ? (metric === 'bodyFatPct' ? rangeFor(metric, latest, data?.reference ?? null) : null) : null;
   const devices = useMemo(() => new Set((data?.items ?? []).map((item) => deviceLabel(item))), [data]);
+  // Resumo primeiro: o que está fora da faixa sobe; o resto fica atrás de "ver todos".
+  const measured = latest ? INDICATORS.filter((key) => latest[key] != null) : [];
+  const isOut = (key: MetricKey) => {
+    if (!latest) return false;
+    const range = rangeFor(key, latest, data?.reference ?? null);
+    return !!range && zoneOf(latest[key] as number, range.low, range.high) !== 'in';
+  };
+  const orderedIndicators = [...measured].sort((a, b) => Number(isOut(b)) - Number(isOut(a)));
+  const shortCount = Math.max(INDICATORS_SHORT, measured.filter(isOut).length);
+  const shownIndicators = allIndicators ? orderedIndicators : orderedIndicators.slice(0, shortCount);
+  const hiddenIndicators = orderedIndicators.length - shownIndicators.length;
 
   const remove = async () => {
     if (!toDelete) return;
@@ -405,45 +430,55 @@ export const BodyCompositionPage = () => {
               </FrameHeader>
 
               {latest.weightKg != null ? (
-                <FramePanel className="flex flex-col gap-4">
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                    <p className="m-0 flex items-baseline gap-1.5">
-                      <span className="text-3xl leading-none font-semibold tracking-tight tabular-nums">{formatMetric('weightKg', latest.weightKg)}</span>
-                      <span className="text-sm text-muted-foreground">kg de peso</span>
-                    </p>
+                <FramePanel className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
+                  <RingGauge
+                    size={148}
+                    thickness={13}
+                    segments={(parts ?? []).map((part) => ({ fraction: part.kg / latest.weightKg!, className: RING_STROKE[part.key] ?? 'stroke-primary' }))}
+                    label={parts ? `Do peso de ${formatMetric('weightKg', latest.weightKg)} kg: ${parts.map((part) => `${part.label} ${formatNumber((part.kg / latest.weightKg!) * 100, 0)} por cento`).join(', ')}` : `Peso ${formatMetric('weightKg', latest.weightKg)} kg`}
+                  >
+                    <CountUp value={latest.weightKg} format={(v) => formatMetric('weightKg', v)} className="text-3xl leading-none font-semibold tracking-tight tabular-nums" />
+                    <span className="mt-1 text-xs text-muted-foreground">kg de peso</span>
+                  </RingGauge>
+                  <div className="flex min-w-0 flex-1 basis-44 flex-col gap-3">
                     {deltaOf('weightKg', latest, previous) != null ? (
-                      <span className="text-xs text-muted-foreground tabular-nums">
-                        {formatDelta('weightKg', deltaOf('weightKg', latest, previous)!)} desde {formatDate(previous!.measuredAt)}
-                      </span>
+                      <p className="m-0 text-xs text-muted-foreground tabular-nums">
+                        <span className="font-medium text-foreground">{formatDelta('weightKg', deltaOf('weightKg', latest, previous)!)}</span> desde {formatDate(previous!.measuredAt)}
+                      </p>
                     ) : null}
-                  </div>
-                  {parts ? (
-                    <>
-                      <CompositionBar parts={parts} totalKg={latest.weightKg} />
-                      <dl className="m-0 flex flex-col gap-2">
+                    {parts ? (
+                      <dl className="m-0 flex flex-col gap-2.5">
                         {parts.map((part) => (
                           <div key={part.key} className="flex items-center justify-between gap-3 text-sm">
                             <dt className="flex min-w-0 items-center gap-2">
-                              <span aria-hidden="true" className={cn('size-2 shrink-0 rounded-full', part.swatch)} />
+                              <span aria-hidden="true" className={cn('size-2.5 shrink-0 rounded-full', part.swatch)} />
                               <span className="min-w-0 truncate">{part.label}</span>
                             </dt>
                             <dd className="m-0 flex shrink-0 items-baseline gap-2 tabular-nums">
                               <span className="font-medium">{formatNumber(part.kg, 1)} kg</span>
-                              <span className="w-12 text-end text-xs text-muted-foreground">{formatNumber((part.kg / latest.weightKg!) * 100, 0)} %</span>
+                              <span className="w-10 text-end text-xs text-muted-foreground">{formatNumber((part.kg / latest.weightKg!) * 100, 0)} %</span>
                             </dd>
                           </div>
                         ))}
                       </dl>
-                    </>
-                  ) : null}
+                    ) : null}
+                  </div>
                 </FramePanel>
               ) : null}
 
               <FramePanel className="grid gap-px bg-border p-0! sm:grid-cols-2">
-                {INDICATORS.map((key) => (
+                {shownIndicators.map((key) => (
                   <IndicatorCell key={key} metric={key} reading={latest} previous={previous} reference={data.reference} />
                 ))}
               </FramePanel>
+              {orderedIndicators.length > shortCount ? (
+                <FramePanel className="p-1.5!">
+                  <Button variant="ghost" size="lg" className="h-10 w-full" aria-expanded={allIndicators} onClick={() => setAllIndicators((v) => !v)}>
+                    {allIndicators ? 'Mostrar só o resumo' : `Ver mais ${hiddenIndicators} ${hiddenIndicators === 1 ? 'indicador' : 'indicadores'}`}
+                    <ChevronDown aria-hidden="true" className={cn('transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none', allIndicators && 'rotate-180')} />
+                  </Button>
+                </FramePanel>
+              ) : null}
 
               <FrameFooter>
                 <p className="m-0 text-xs text-muted-foreground">

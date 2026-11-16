@@ -30,6 +30,8 @@ import { Badge as ReuiBadge } from '@/components/reui/badge';
 import { Frame, FramePanel } from '@/components/reui/frame';
 import { PulseIcon } from '@/components/reui/icons';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
+import { RingGauge } from '../components/motion/RingGauge';
+import { CountUp } from '../components/motion/CountUp';
 
 /** Ícones (sem emoji — leitor de tela lia "coração vermelho" e a linguagem do app é ícone). */
 export const TYPES = [
@@ -144,9 +146,38 @@ export const MeasurementsPage = () => {
     return d.avg7 != null ? `média 7d ${fmtAvg(d.avg7, t.u)}` : '';
   };
 
+  // Minutos viram horas quando passam de 1 h (372 min de sono não diz nada; 6 h 12 min diz).
+  const fmtTile = (t: (typeof TYPES)[number], m: any): { value: string; unit: string } => {
+    const n = Number(m.value);
+    if ((t.v === 'SLEEP_MINUTES' || t.v === 'EXERCISE_MINUTES') && Number.isFinite(n) && n >= 60) {
+      const h = Math.floor(n / 60); const min = Math.round(n % 60);
+      return { value: min ? `${h} h ${min}` : `${h}`, unit: min ? 'min' : 'h' };
+    }
+    if (t.v === 'STEPS' || t.v === 'CALORIES') return { value: Math.round(n).toLocaleString('pt-BR'), unit: t.u };
+    if (t.v === 'DISTANCE') return { value: n.toLocaleString('pt-BR', { maximumFractionDigits: 2 }), unit: t.u };
+    return { value: fmtVal(m), unit: t.u };
+  };
+  // De quando é o número: nada de "ao vivo" em dado de ontem.
+  const todayKey = new Date().toLocaleDateString('sv-SE');
+  const dayLabel = (m: any): string => {
+    const d = new Date(m.measuredAt);
+    const key = d.toLocaleDateString('sv-SE');
+    if (key === todayKey) return 'hoje';
+    const y = new Date(); y.setDate(y.getDate() - 1);
+    if (key === y.toLocaleDateString('sv-SE')) return 'ontem';
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
+  };
+
+  // Resumo do dia (anel de passos + calorias, distância e exercício): os quatro saem da grade.
+  const stepsData = byType.get('STEPS');
+  const stepsRow = stepsData?.latest ?? null;
+  const HERO_TYPES = ['STEPS', 'CALORIES', 'DISTANCE', 'EXERCISE_MINUTES'];
+  const heroSide = TYPES.filter((t) => ['CALORIES', 'DISTANCE', 'EXERCISE_MINUTES'].includes(t.v) && !!byType.get(t.v)?.latest);
+  const stepsPct = stepsRow ? Math.min(100, Math.round((Number(stepsRow.value) / STEPS_GOAL) * 100)) : 0;
+
   // Classificação Inteligente de UX: Métricas com dados vivos ficam no topo;
   // Métricas sem nenhum registro vão para a grade compacta de adição rápida.
-  const activeTypes = TILE_TYPES.filter((t) => !!byType.get(t.v)?.latest);
+  const activeTypes = TILE_TYPES.filter((t) => !!byType.get(t.v)?.latest && !(stepsRow && HERO_TYPES.includes(t.v)));
   const emptyTypes = TILE_TYPES.filter((t) => !byType.get(t.v)?.latest);
   const hasWeight = weights.length > 0;
 
@@ -201,6 +232,62 @@ export const MeasurementsPage = () => {
         </div>
       )}
 
+      {/* RESUMO DO DIA: anel de passos até a meta + o que mais o relógio mandou */}
+      {stepsRow && (
+        <div className="dx-island mb-5 [&_button]:font-[inherit]">
+          <Frame>
+            <FramePanel className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4 p-4 sm:p-5">
+              <button
+                type="button"
+                onClick={() => navigate('/medicoes/historico/STEPS')}
+                aria-label={`Passos de ${dayLabel(stepsRow)}: ${Math.round(Number(stepsRow.value)).toLocaleString('pt-BR')} de ${STEPS_GOAL.toLocaleString('pt-BR')}. Abrir histórico.`}
+                className="cursor-pointer appearance-none rounded-full border-0 bg-transparent p-0 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+              >
+                <RingGauge size={156} thickness={14} segments={[{ fraction: stepsPct / 100, className: 'stroke-primary' }]}>
+                  <DirectionsWalkIcon aria-hidden="true" sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode), mb: 0.25 }} />
+                  <CountUp value={Number(stepsRow.value)} format={(v) => Math.round(v).toLocaleString('pt-BR')} className="text-3xl leading-none font-semibold tracking-tight text-foreground tabular-nums" />
+                  <span className="mt-1 text-xs text-muted-foreground">de {STEPS_GOAL.toLocaleString('pt-BR')} passos</span>
+                </RingGauge>
+              </button>
+              <div className="flex min-w-0 flex-1 basis-44 flex-col gap-3">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs text-muted-foreground">Passos de {dayLabel(stepsRow)}</span>
+                  <span className="text-lg leading-snug font-semibold text-foreground">
+                    {stepsPct >= 100 ? 'Meta do dia batida' : `${stepsPct}% da meta do dia`}
+                  </span>
+                  {stepsData?.avg7 != null ? <span className="text-xs text-muted-foreground tabular-nums">média de 7 dias: {fmtAvg(stepsData.avg7, 'passos')}</span> : null}
+                </div>
+                {heroSide.length > 0 ? (
+                  <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0">
+                    {heroSide.map((t) => {
+                      const row = byType.get(t.v)!.latest;
+                      const f = fmtTile(t, row);
+                      return (
+                        <li key={t.v} className="min-w-0">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/medicoes/historico/${t.v}`)}
+                            aria-label={`${t.l} de ${dayLabel(row)}: ${f.value} ${f.unit}. Abrir histórico.`}
+                            className="flex min-h-16 w-full min-w-0 cursor-pointer appearance-none flex-col items-start gap-1 rounded-lg border border-border bg-muted/40 px-2.5 py-2 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                          >
+                            <span aria-hidden="true" className="inline-flex" style={{ color: t.color }}>{t.icon}</span>
+                            <span className="flex min-w-0 max-w-full flex-wrap items-baseline gap-x-1 gap-y-0.5">
+                              <span className="text-sm leading-none font-semibold whitespace-nowrap text-foreground tabular-nums">{f.value}</span>
+                              <span className="shrink-0 text-xs text-muted-foreground">{f.unit}</span>
+                            </span>
+                            <span className="max-w-full truncate text-xs text-muted-foreground">{t.l}</span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : null}
+              </div>
+            </FramePanel>
+          </Frame>
+        </div>
+      )}
+
       {/* SEÇÃO 2: MÉTRICAS ATIVAS COM DADOS (HEALTH CONNECT & SENSORES — ReUI card-29 + chart-15) */}
       {activeTypes.length > 0 && (
         <Box sx={{ mb: 3 }}>
@@ -218,7 +305,7 @@ export const MeasurementsPage = () => {
             }}
           >
             <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10b981' }} />
-            Métricas Sincronizadas Hoje (Health Connect & Dispositivos)
+            Seus sinais
           </Typography>
 
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1.5 }}>
@@ -248,16 +335,13 @@ export const MeasurementsPage = () => {
                       <Box aria-hidden="true" sx={{ display: 'inline-flex', color: t.color, flexShrink: 0 }}>{t.icon}</Box>
                       <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary', lineHeight: 1.25 }}>{t.l}</Typography>
                     </Stack>
-                    <div className="dx-island shrink-0">
-                      <ReuiBadge variant="success-light" size="xs">Ao Vivo</ReuiBadge>
-                    </div>
                   </Stack>
 
                   <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 22, sm: 26 }, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums', my: 0.5 }}>
-                    {fmtVal(d!.latest)}<Typography component="span" sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 600 }}> {t.u}</Typography>
+                    {fmtTile(t, d!.latest).value}<Typography component="span" sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 600 }}> {fmtTile(t, d!.latest).unit}</Typography>
                   </Typography>
 
-                  <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', minHeight: 14 }}>{tileSub(t, d)}</Typography>
+                  <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', minHeight: 14 }}>{[dayLabel(d!.latest), tileSub(t, d)].filter(Boolean).join(' · ')}</Typography>
 
                   <Box sx={{ mt: 'auto', minHeight: 32, display: 'flex', alignItems: 'flex-end', pt: 0.5 }}>
                     {d && d.series7.length >= 2 && <Sparkline points={d.series7} width={118} height={30} color={t.color} />}

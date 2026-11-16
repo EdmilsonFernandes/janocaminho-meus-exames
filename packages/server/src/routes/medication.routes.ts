@@ -15,6 +15,8 @@ import {
   type FaersCacheData, type FaersEvent, type FaersMode,
 } from '../utils/faers';
 import { logPaywallHit } from '../utils/paywall';
+import { medExamSnapshot, medExamPromptLines } from '../analysis/medications-context';
+import { isCpfMismatch } from '../utils/examIdentity';
 
 /**
  * Remédios do paciente + checagem de interações A–X.
@@ -356,26 +358,27 @@ router.post('/check/full', async (req: AuthedRequest, res, next) => {
     if (!charged) { res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos para a análise completa. Compre um pacote de créditos.' }); return; }
 
     let contextual: string | null = null;
+    let examsUsed: { lastExamDate: string | null; altered: number } | null = null; // o que a IA enxergou (a tela mostra)
     let sportsUsed = false; // addendum esportivo entrou no prompt? (metadado, sem conteúdo sensível)
     try {
       // Contexto RICO: marcadores alterados + perfil clínico + datas dos exames —
       // a IA usa TUDO pra dar conselho personalizado (ex.: "toma levoid, tira a tireoide,
       // TSH último há 3 meses → sugira novo exame p/ ajustar dose").
-      const [abn, patient] = await Promise.all([
+      // Todos os resultados (não só os alterados): o retrato usa o MAIS RECENTE de cada exame.
+      const [rows, patient] = await Promise.all([
         prisma.examItem.findMany({
-          where: { exam: { patientId: c.patient!.id, status: 'EXTRACTED' }, isAbnormal: true },
-          orderBy: { exam: { performedAt: 'desc' } },
-          select: { name: true, valueText: true, unit: true, flag: true, exam: { select: { performedAt: true, title: true } } },
-          take: 60,
+          where: { exam: { patientId: c.patient!.id, status: 'EXTRACTED' } },
+          select: { name: true, nameCanonical: true, valueText: true, unit: true, isAbnormal: true, exam: { select: { performedAt: true, createdAt: true, rawExtraction: true } } },
         }),
         prisma.patient.findUnique({ where: { id: c.patient!.id }, select: { dateOfBirth: true, clinicalProfile: true, gender: true } }),
       ]);
-      const seen = new Set<string>(); const markers = abn.filter((i) => {
-        const k = i.name.toUpperCase(); if (seen.has(k)) return false; seen.add(k); return true;
-      }).slice(0, 12).map((i) => {
-        const dt = i.exam.performedAt ? new Date(i.exam.performedAt).toLocaleDateString('pt-BR') : 's/d';
-        return `${i.name}=${i.valueText}${i.unit} (${dt})`;
-      });
+      const snapshot = medExamSnapshot(
+        rows
+          .filter((r) => !isCpfMismatch((r.exam as any).rawExtraction)) // laudo de outra pessoa não entra
+          .map((r) => ({ name: r.name, nameCanonical: r.nameCanonical, valueText: r.valueText, unit: r.unit, isAbnormal: r.isAbnormal, date: r.exam.performedAt ?? r.exam.createdAt })),
+      );
+      const markers = snapshot.altered;
+      examsUsed = { lastExamDate: snapshot.lastExamDate ? snapshot.lastExamDate.toISOString() : null, altered: snapshot.altered.length };
       const age = patient?.dateOfBirth ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 86400000)) : null;
 
       // Contexto esportivo (blueprint AAS P0.3): substâncias declaradas + contexto de coleta
@@ -392,7 +395,7 @@ router.post('/check/full', async (req: AuthedRequest, res, next) => {
         '',
         'FORMATO OBRIGATÓRIO (máximo 6 linhas no total):',
         'Linha 1: ✅ tudo certo / ⚠️ atenção com [remédio]',
-        'Linha 2-3: UMA frase cruzando remédio + exame (ex.: "Toma levoid e TSH veio alto em 07/25 — pode precisar de ajuste de dose.")',
+        'Linha 2-3: UMA frase cruzando remédio + o resultado MAIS RECENTE do exame, com a data (ex.: "Toma levoid e o TSH veio alto em 07/25: vale conversar sobre a dose."). Se o exame mais recente já está na faixa, diga isso.',
         'Linha 4: "Perguntas pro médico:"',
         'Linha 5-6: 2-3 perguntas CURTAS (1 linha cada, sem explicação)',
         '',
@@ -407,7 +410,7 @@ router.post('/check/full', async (req: AuthedRequest, res, next) => {
         '',
         `REMÉDIOS ATIVOS: ${c.meds.map((m) => `${m.name}${m.dosage ? ` ${m.dosage}` : ''}`).join('; ') || 'nenhum'}.`,
         `INTERAÇÕES: ${c.hits.map((h) => `${h.drugA}+${h.drugB} (${h.severity})`).join('; ') || 'nenhuma'}.`,
-        `EXAMES ALTERADOS (valor + data): ${markers.join('; ') || 'nenhum'}.`,
+        ...medExamPromptLines(snapshot),
         '',
         'Escreva a análise personalizada seguindo o FORMATO acima.',
       ].join('\n');
@@ -425,6 +428,7 @@ router.post('/check/full', async (req: AuthedRequest, res, next) => {
       unmatched: c.unmatched,
       contextual,
       contextualAvailable: contextual != null,
+      examsUsed: contextual != null ? examsUsed : null,
       sportsContextUsed: sportsUsed,
     });
   } catch (e) { next(e); }

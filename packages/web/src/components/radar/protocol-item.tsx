@@ -69,16 +69,16 @@ export function ProtocolItem({
     <div className="flex flex-col gap-4">
       {/* Leitura: o que foi cadastrado. Some na edição, para o composto não aparecer duas vezes. */}
       {editing ? null : (
-      <div className="flex items-start gap-3">
+      <div className="flex flex-wrap items-start gap-3">
         <CompoundIcon comp={comp} className={hasCompoundPhoto(comp.id) ? 'size-16 rounded-xl' : 'size-10 rounded-xl [&>svg]:size-5'} />
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex min-w-0 flex-1 basis-44 flex-col gap-0.5">
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
             <svg aria-hidden="true" width="22" height="6" viewBox="0 0 22 6" className="shrink-0">
               <line x1="1" x2="21" y1="3" y2="3" stroke={comp.color} strokeWidth="2.5" strokeLinecap="round" strokeDasharray={dash ? dash.split(' ').map((n) => Number(n) / 2.2).join(' ') : undefined} />
             </svg>
             Composto {index + 1}
           </span>
-          <strong className="text-base leading-snug font-semibold text-foreground [overflow-wrap:anywhere]">{comp.name}</strong>
+          <strong className="text-base leading-snug font-semibold break-words text-foreground">{comp.name}</strong>
           <span className="sr-only">{summary}</span>
           <span aria-hidden="true" className="mt-1.5 flex flex-wrap gap-1.5">
             <Badge variant="outline" size="lg" className="tabular-nums"><DoseIcon aria-hidden="true" />{doseText}</Badge>
@@ -86,7 +86,7 @@ export function ProtocolItem({
             <Badge variant="outline" size="lg" className="tabular-nums"><CalendarRange aria-hidden="true" />{from === to ? `Só a semana ${from}` : `Semanas ${from} a ${to}`}</Badge>
           </span>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
+        <div className="ms-auto flex shrink-0 items-center gap-1.5">
           <Button variant="outline" size="icon-lg" className="size-10" aria-label={`O que é ${comp.short}? Abrir explicação`} title="O que é isso?" onClick={onExplain}>
             <CircleHelp aria-hidden="true" />
           </Button>

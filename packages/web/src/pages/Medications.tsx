@@ -292,7 +292,7 @@ export const MedicationsPage = () => {
   const [pid] = useSelectedPatient();
   const [meds, setMeds] = useState<Med[] | null>(null);
   const [check, setCheck] = useState<CheckResp | null>(null);
-  const [full, setFull] = useState<{ all: Hit[]; contextual?: string | null; contextualAvailable?: boolean } | null>(null);
+  const [full, setFull] = useState<{ all: Hit[]; contextual?: string | null; contextualAvailable?: boolean; examsUsed?: { lastExamDate: string | null; altered: number } | null } | null>(null);
   const [fullLoading, setFullLoading] = useState(false);
   // Análise completa pode levar 30s+ (LLM pelo relay). Sem fases visíveis, o botão
   // parece morto e o usuário acha que não aconteceu nada (feedback do dono 27/08).
@@ -701,6 +701,13 @@ export const MedicationsPage = () => {
                 {(full.all ?? []).length === 0 && <Typography sx={{ color: 'success.main', fontWeight: 700 }}>✅ Tudo certo entre seus remédios.</Typography>}
                 {(full.all ?? []).map((h, i) => <HitCard key={i} h={h} />)}
                 {full.contextual && <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover', whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.6 }}>{full.contextual}</Box>}
+                {full.contextual && full.examsUsed && (
+                  <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.secondary' }}>
+                    {full.examsUsed.lastExamDate
+                      ? `Leitura feita com o resultado mais recente de cada exame. Seu último exame no app é de ${new Date(full.examsUsed.lastExamDate).toLocaleDateString('pt-BR')}.`
+                      : 'Você ainda não tem exame no app; a leitura considerou só os remédios.'}
+                  </Typography>
+                )}
                 {/* IA falhou → antes: silêncio total ("pensa e não mostra"). O server já
                     reembolsa os créditos; agora avisamos com honestidade + libera retry. */}
                 {full.contextualAvailable === false && (

@@ -29,6 +29,7 @@ import { Badge } from '@/components/reui/badge';
 import { IconTile } from '@/components/reui/icon-tile';
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
+import { CountUp } from '../components/motion/CountUp';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
@@ -382,34 +383,32 @@ export default function RadarHormonal() {
               <Badge variant={stab.variant} size="lg">{stab.label}</Badge>
             </div>
 
-            <div className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3">
-              <div className="flex flex-col gap-1 bg-card p-4">
-                <span className="text-xs text-muted-foreground">Entra por dia, em média</span>
-                <span className="flex items-baseline gap-1">
-                  <span className="text-2xl leading-none font-semibold tracking-tight tabular-nums">{n1(stats.avgDailyMg)}</span>
-                  <span className="text-sm text-muted-foreground">mg</span>
-                </span>
-                <span className="text-xs text-muted-foreground">Hormônio de verdade, já sem o peso do éster.</span>
+            <dl className="m-0 grid grid-cols-3 gap-2">
+              <div className="flex min-w-0 flex-col gap-1.5 rounded-lg bg-primary/8 p-3">
+                <dt className="text-xs leading-tight text-muted-foreground">Média por dia</dt>
+                <dd className="m-0 flex flex-wrap items-baseline gap-x-1">
+                  <CountUp value={stats.avgDailyMg} format={n1} className="text-xl leading-none font-semibold tracking-tight text-foreground tabular-nums sm:text-2xl" />
+                  <span className="text-xs text-muted-foreground">mg</span>
+                </dd>
               </div>
-              <div className="flex flex-col gap-1 bg-card p-4">
-                <span className="text-xs text-muted-foreground">Do ponto mais baixo ao mais alto</span>
-                <span className="flex items-baseline gap-1.5">
-                  <span className="text-2xl leading-none font-semibold tracking-tight tabular-nums">{n1(stats.troughMg)}</span>
-                  <span className="text-sm text-muted-foreground">a</span>
-                  <span className="text-2xl leading-none font-semibold tracking-tight tabular-nums">{n1(stats.peakMg)}</span>
-                  <span className="text-sm text-muted-foreground">mg/dia</span>
-                </span>
-                <span className="text-xs text-muted-foreground">Vale (antes de aplicar) e pico (depois de aplicar).</span>
+              <div className="flex min-w-0 flex-col gap-1.5 rounded-lg bg-info/8 p-3">
+                <dt className="text-xs leading-tight text-muted-foreground">Vale a pico</dt>
+                <dd className="m-0 flex flex-wrap items-baseline gap-x-1">
+                  <span className="text-xl leading-none font-semibold tracking-tight whitespace-nowrap text-foreground tabular-nums sm:text-2xl">{n0(stats.troughMg)}–{n0(stats.peakMg)}</span>
+                  <span className="text-xs text-muted-foreground">mg/dia</span>
+                </dd>
               </div>
-              <div className="flex flex-col gap-1 bg-card p-4">
-                <span className="text-xs text-muted-foreground">Sobe e desce</span>
-                <span className="flex items-baseline gap-1">
-                  <span className="text-2xl leading-none font-semibold tracking-tight tabular-nums">{n0(stats.swingPct)}</span>
-                  <span className="text-sm text-muted-foreground">%</span>
-                </span>
-                <span className="text-xs text-muted-foreground">Quanto o nível varia em volta da média. Menor = mais uniforme.</span>
+              <div className={cn('flex min-w-0 flex-col gap-1.5 rounded-lg p-3', stats.stability === 'estavel' ? 'bg-success/10' : 'bg-warning/10')}>
+                <dt className="text-xs leading-tight text-muted-foreground">Sobe e desce</dt>
+                <dd className="m-0 flex flex-wrap items-baseline gap-x-1">
+                  <CountUp value={stats.swingPct} format={n0} className="text-xl leading-none font-semibold tracking-tight text-foreground tabular-nums sm:text-2xl" />
+                  <span className="text-xs text-muted-foreground">%</span>
+                </dd>
               </div>
-            </div>
+            </dl>
+            <p className="m-0 text-xs text-muted-foreground">
+              Hormônio já sem o peso do éster. Vale é o ponto mais baixo (antes de aplicar) e pico o mais alto (depois). Quanto menor o sobe e desce, mais uniforme.
+            </p>
 
             {!stats.settled ? (
               <Alert variant="info">
@@ -427,7 +426,7 @@ export default function RadarHormonal() {
         <Frame>
           <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
-              <IconTile variant="frame" size="sm" aria-hidden="true"><Waves aria-hidden="true" /></IconTile>
+              <IconTile variant="soft" size="sm" className="text-primary" aria-hidden="true"><Waves aria-hidden="true" /></IconTile>
               <div className="flex min-w-0 flex-col gap-px">
                 <FrameTitle role="heading" aria-level={2}>Como a liberação estimada varia entre as aplicações</FrameTitle>
                 <FrameDescription>Simulação de quanto hormônio o depósito da injeção libera por dia (mg/dia). Não é o nível no sangue.</FrameDescription>
@@ -494,7 +493,12 @@ export default function RadarHormonal() {
                 <span className="text-muted-foreground">A quantidade total não muda, só a divisão. É uma simulação: converse com o seu médico antes de mudar a forma de aplicar.</span>
               </div>
             ) : null}
-            <ul className="m-0 grid list-none gap-x-5 gap-y-1.5 p-0 text-xs text-muted-foreground sm:grid-cols-2">
+            <details className="group rounded-lg border border-border">
+              <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-2 px-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
+                Como ler este gráfico
+                <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-open:rotate-180 motion-reduce:transition-none" />
+              </summary>
+            <ul className="m-0 grid list-none gap-x-5 gap-y-1.5 px-3 pt-1 pb-3 text-xs text-muted-foreground sm:grid-cols-2">
               <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 h-3 w-0.5 shrink-0 rounded-full bg-foreground" /><span><strong className="font-medium text-foreground">Dia da aplicação:</strong> cada risquinho embaixo do gráfico, na cor do composto.{usingLog ? ' Os que têm bolinha são os que você registrou; os outros são previsão.' : ''}</span></li>
               <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 size-3 shrink-0 rounded-full border-2 border-foreground" /><span><strong className="font-medium text-foreground">Pico:</strong> ponto mais alto estimado depois da aplicação. <strong className="font-medium text-foreground">Vale:</strong> ponto mais baixo estimado antes da próxima.</span></li>
               <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 size-3 shrink-0 rounded-sm bg-muted-foreground/25" /><span><strong className="font-medium text-foreground">Período usado no cálculo:</strong> a faixa cinza, de onde saem o pico, o vale e a média mostrados acima.</span></li>
@@ -506,6 +510,7 @@ export default function RadarHormonal() {
               ) : null}
               <li className="flex items-start gap-2 sm:col-span-2"><span aria-hidden="true" className="mt-0.5 size-3 shrink-0" /><span><strong className="font-medium text-foreground">Primeiras semanas:</strong> a curva sobe porque cada aplicação se soma ao que sobrou da anterior. Quando o que entra e o que sai se equilibram, o desenho passa a se repetir.</span></li>
             </ul>
+            </details>
           </FramePanel>
         </Frame>
 
@@ -513,7 +518,7 @@ export default function RadarHormonal() {
         <Frame>
           <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
-              <IconTile variant="frame" size="sm" aria-hidden="true"><FlaskConical aria-hidden="true" /></IconTile>
+              <IconTile variant="soft" size="sm" className="text-info" aria-hidden="true"><FlaskConical aria-hidden="true" /></IconTile>
               <div className="flex min-w-0 flex-col gap-px">
                 <FrameTitle role="heading" aria-level={2}>O que você usa</FrameTitle>
                 <FrameDescription>O que você cadastrou. Toque em Editar para mudar; fica salvo só neste aparelho.</FrameDescription>
@@ -582,7 +587,7 @@ export default function RadarHormonal() {
         <Frame>
           <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
-              <IconTile variant="frame" size="sm" aria-hidden="true"><Activity aria-hidden="true" /></IconTile>
+              <IconTile variant="soft" size="sm" className="text-success" aria-hidden="true"><Activity aria-hidden="true" /></IconTile>
               <div className="flex min-w-0 flex-col gap-px">
                 <FrameTitle role="heading" aria-level={2}>Seus exames e este protocolo</FrameTitle>
                 <FrameDescription>
@@ -760,7 +765,7 @@ export default function RadarHormonal() {
           <Frame>
             <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
               <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
-                <IconTile variant="frame" size="sm" aria-hidden="true"><ClipboardList aria-hidden="true" /></IconTile>
+                <IconTile variant="soft" size="sm" className="text-copper-600" aria-hidden="true"><ClipboardList aria-hidden="true" /></IconTile>
                 <div className="flex min-w-0 flex-col gap-px">
                   <FrameTitle role="heading" aria-level={2}>Para levar à consulta</FrameTitle>
                   <FrameDescription>Perguntas montadas a partir dos seus dados</FrameDescription>
