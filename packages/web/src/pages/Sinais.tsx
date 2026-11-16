@@ -36,7 +36,6 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { AppCard } from '../components/AppCard';
 import { GradientButton } from '../components/GradientButton';
 import { PageContainer } from '../components/layout/PageContainer';
-import { MetricMini } from '../components/dashboard/ActivityCard';
 import { hapticLight } from '../utils/haptic';
 import { SEM } from '../theme';
 import {
@@ -134,9 +133,6 @@ export const SinaisPage = () => {
   const s = summarize(days ?? [], range);
   const goalPct = Math.round(s.goalRatio * 100);
   const primarySteps = range === 'today' ? s.steps : s.totalSteps;
-  const primaryKcal = range === 'today' ? s.kcal : s.totalKcal;
-  const primaryKm = range === 'today' ? s.km : s.totalKm;
-  const periodMetricLabel = range === 'today' ? undefined : `Total ${RANGES.find((r) => r.value === range)?.label.toLowerCase()}`;
 
   // Cálculo das metas alcançadas nos últimos 7 dias (inspirado no Google Fit do vídeo WhatsApp)
   const last7DaysList = useMemo(() => {
@@ -346,22 +342,6 @@ export const SinaisPage = () => {
                 </Box>
               </Stack>
 
-              {/* Grid 4 métricas perfeitamente alinhadas (Calorias, Distância, FC, Sono, Exercício) */}
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1.25 }}>
-                {primaryKcal > 0 && (
-                  <MetricMini icon={<LocalFireDepartmentIcon sx={{ fontSize: 16 }} />} tone={SEM.warn[theme.palette.mode]} label={s.kcalIsTotal ? 'Calorias totais' : 'Calorias'} value={fmtKcal(primaryKcal)} unit="kcal" contextLabel={periodMetricLabel} />
-                )}
-                <MetricMini icon={<RouteIcon sx={{ fontSize: 16 }} />} tone={SEM.info[theme.palette.mode]} label="Distância" value={fmtKm(primaryKm)} unit="km" contextLabel={periodMetricLabel} />
-                {(s.hrRest ?? 0) > 0 && (
-                  <MetricMini icon={<FavoriteIcon sx={{ fontSize: 16 }} />} tone={SEM.bad[theme.palette.mode]} label="FC média" value={`${Math.round(s.hrRest ?? 0)}`} unit="bpm" contextLabel={range === 'today' ? undefined : `média ${rangeLabel(range).toLowerCase()}`} />
-                )}
-                {(s.sleepMin ?? 0) > 0 && (
-                  <MetricMini icon={<BedtimeIcon sx={{ fontSize: 16 }} />} tone={SEM.info[theme.palette.mode]} label="Sono" value={fmtSleep(s.sleepMin ?? 0)} unit="" contextLabel={range === 'today' ? 'última noite' : `média/noite`} />
-                )}
-                {(s.exerciseMin ?? 0) >= 10 && (
-                  <MetricMini icon={<TimerIcon sx={{ fontSize: 16 }} />} tone={SEM.ok[theme.palette.mode]} label="Exercício" value={`${Math.round(s.exerciseMin ?? 0)} min`} unit="" contextLabel={range === 'today' ? undefined : 'no período'} />
-                )}
-              </Box>
             </Stack>
           </AppCard>
 
@@ -475,9 +455,9 @@ export const SinaisPage = () => {
           {/* 4. CARDS DE TENDÊNCIAS COM ESTÉTICA APPLE HEALTH */}
           <Box>
             <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 16, mb: 1.25 }}>
-              Tendências Detalhadas
+              Seus sinais no período
             </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 1.5 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 1.25 }}>
               {avgOf(days, 'sleepMin', range) > 0 && (
               <TrendCard
                 icon={<BedtimeIcon sx={{ fontSize: 16 }} />} tone={SEM.info[theme.palette.mode]} label="Sono"
@@ -498,13 +478,6 @@ export const SinaisPage = () => {
                   footer="A tendência de médio prazo importa mais do que uma variação isolada."
                 />
               )}
-              <TrendCard
-                icon={<DirectionsWalkIcon sx={{ fontSize: 16 }} />} tone={theme.palette.primary.main} label="Passos"
-                value={fmtSteps(range === 'today' ? s.steps : s.avgSteps)} valueSub={range === 'today' ? 'hoje' : 'média/dia'}
-                series={s.series.map((d) => ({ date: d.date, v: d.steps }))}
-                goal={STEPS_GOAL} fmtBar={(v) => `${fmtSteps(v)} passos`}
-                delta={deltaPct(days, 'steps', range)} deltaGoodWhenLower={false}
-              />
               <TrendCard
                 icon={<RouteIcon sx={{ fontSize: 16 }} />} tone={SEM.info[theme.palette.mode]} label="Distância"
                 value={fmtKm(range === 'today' ? s.km : s.avgKm)} valueSub={range === 'today' ? 'hoje' : 'média/dia'}

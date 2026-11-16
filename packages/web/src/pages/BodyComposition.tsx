@@ -29,6 +29,7 @@ import { SettingRow } from '@/components/reui/setting-row';
 import { SourceIcon } from '@/components/bodycomp/source-icon';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 import { Button } from '@/components/ui/button';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
 import {
@@ -60,16 +61,44 @@ const NO_RANGE_NOTE: Partial<Record<MetricKey, string>> = {
   bodyFatPct: 'Sem faixa de referência para a sua idade.',
 };
 
+/** Com o que a última avaliação é comparada (dono, 16/11: "não só entre uma e outra"). */
+type Baseline = 'anterior' | '30d' | 'inicio';
+
+/**
+ * Mini gráfico do histórico de UM indicador (da mais antiga para a mais recente).
+ * Decorativo: o número e a variação escrita ao lado já dizem o mesmo para leitor de tela.
+ */
+function MiniTrend({ values, tone }: { values: number[]; tone: 'in' | 'out' | 'none' }) {
+  if (values.length < 2) return null;
+  const W = 76, H = 26, pad = 3;
+  const min = Math.min(...values), max = Math.max(...values);
+  const span = max - min || 1;
+  const pts = values.map((v, i) => [pad + (i * (W - pad * 2)) / (values.length - 1), H - pad - ((v - min) / span) * (H - pad * 2)]);
+  const [lx, ly] = pts[pts.length - 1];
+  return (
+    <svg aria-hidden="true" width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="shrink-0 overflow-visible">
+      <polyline points={pts.map((p) => p.join(',')).join(' ')} fill="none" stroke="currentColor" strokeOpacity={0.35} strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={lx} cy={ly} r={3.25} className={tone === 'in' ? 'fill-success' : tone === 'out' ? 'fill-warning' : 'fill-foreground'} />
+    </svg>
+  );
+}
+
 function IndicatorCell({
   metric,
   reading,
   previous,
   reference,
+  sinceLabel,
+  history,
 }: {
   metric: MetricKey;
   reading: BodyReading;
   previous: BodyReading | undefined;
   reference: BodyCompositionResponse['reference'];
+  /** Ex.: "desde a anterior", "desde 02 nov 2026". */
+  sinceLabel: string;
+  /** Valores deste indicador, da avaliação mais antiga para a mais recente. */
+  history: number[];
 }) {
   const value = reading[metric];
   if (value == null) return null;
@@ -86,14 +115,17 @@ function IndicatorCell({
         {zone ? <Badge variant={zone === 'in' ? 'success-light' : 'warning-light'}>{ZONE_LABEL[zone]}</Badge> : null}
       </div>
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <p className="m-0 flex items-baseline gap-1">
-          <span className="text-2xl leading-none font-semibold tracking-tight tabular-nums">{formatMetric(metric, value)}</span>
-          {spec.unit ? <span className="text-sm text-muted-foreground">{spec.unit}</span> : null}
-        </p>
+        <div className="flex items-center gap-3">
+          <p className="m-0 flex items-baseline gap-1">
+            <span className="text-2xl leading-none font-semibold tracking-tight tabular-nums">{formatMetric(metric, value)}</span>
+            {spec.unit ? <span className="text-sm text-muted-foreground">{spec.unit}</span> : null}
+          </p>
+          <MiniTrend values={history} tone={zone == null ? 'none' : zone === 'in' ? 'in' : 'out'} />
+        </div>
         {delta != null && DeltaIcon ? (
           <span className="flex items-center gap-1 text-xs text-muted-foreground tabular-nums">
             <DeltaIcon className="size-3.5" aria-hidden="true" />
-            {delta === 0 ? 'igual à anterior' : `${formatDelta(metric, delta)} desde a anterior`}
+            {delta === 0 ? `sem mudança ${sinceLabel}` : `${formatDelta(metric, delta)} ${sinceLabel}`}
           </span>
         ) : null}
       </div>
@@ -166,6 +198,7 @@ export const BodyCompositionPage = () => {
   const [deleting, setDeleting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [allIndicators, setAllIndicators] = useState(false);
+  const [baseline, setBaseline] = useState<Baseline>('anterior');
   // Só no app Android com Health Connect e ponte nova (AAB 585+); no navegador o botão não existe.
   const canImport = useMemo(() => bodyCompositionSupported(), []);
 
@@ -219,6 +252,26 @@ export const BodyCompositionPage = () => {
   const items = data?.items ?? [];
   const latest = items[0];
   const previous = items[1];
+  // Mesma marca de aparelho da última avaliação: comparar InBody com relógio mistura erro de
+  // aparelho com mudança do corpo, então o "início" e os mini gráficos ficam dentro da mesma marca.
+  const sameDevice = latest ? items.filter((item) => deviceLabel(item) === deviceLabel(latest)) : [];
+  const trendSource = sameDevice.length >= 2 ? sameDevice : items;
+  const startReading = sameDevice.length >= 2 ? sameDevice[sameDevice.length - 1] : items[items.length - 1];
+  const monthReading = latest
+    ? [...items].reverse().find((item) => item.id !== latest.id && new Date(latest.measuredAt).getTime() - new Date(item.measuredAt).getTime() <= 30 * 86_400_000)
+    : undefined;
+  const compareTo = baseline === 'inicio' ? (startReading?.id !== latest?.id ? startReading : previous) : baseline === '30d' ? (monthReading ?? previous) : previous;
+  const sinceLabel = !compareTo ? '' : baseline === 'anterior' || compareTo.id === previous?.id ? 'desde a anterior' : `desde ${formatDate(compareTo.measuredAt)}`;
+  const historyOf = (key: MetricKey) => [...trendSource].reverse().map((item) => item[key]).filter((v): v is number => v != null);
+  // O que mudou no peso, e de onde veio: gordura ou o resto (massa livre de gordura).
+  const change = (() => {
+    if (!latest || !compareTo) return null;
+    const weight = deltaOf('weightKg', latest, compareTo);
+    if (weight == null) return null;
+    const fat = deltaOf('fatMassKg', latest, compareTo);
+    const days = Math.round((new Date(latest.measuredAt).getTime() - new Date(compareTo.measuredAt).getTime()) / 86_400_000);
+    return { weight, fat, lean: fat == null ? null : Math.round((weight - fat) * 100) / 100, days, mixed: deviceLabel(latest) !== deviceLabel(compareTo) };
+  })();
   const oldestFirst = useMemo(() => [...(data?.items ?? [])].reverse(), [data]);
   const parts = latest ? partsOf(latest) : null;
   const trendBand = latest ? (metric === 'bodyFatPct' ? rangeFor(metric, latest, data?.reference ?? null) : null) : null;
@@ -407,6 +460,55 @@ export const BodyCompositionPage = () => {
               </Alert>
             ) : null}
 
+            {/* Comparar com: muda todas as variações da tela de uma vez */}
+            {items.length >= 3 ? (
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                <span id="bc-compare-label" className="text-sm text-muted-foreground">Comparar a última com</span>
+                <ToggleGroup value={[baseline]} onValueChange={(next) => { if (next[0]) setBaseline(next[0] as Baseline); }} variant="outline" size="sm" spacing={0} aria-labelledby="bc-compare-label">
+                  <ToggleGroupItem value="anterior" className="h-10 px-3">Anterior</ToggleGroupItem>
+                  {monthReading && monthReading.id !== previous?.id ? <ToggleGroupItem value="30d" className="h-10 px-3">30 dias</ToggleGroupItem> : null}
+                  {startReading && startReading.id !== latest.id && startReading.id !== previous?.id ? <ToggleGroupItem value="inicio" className="h-10 px-3">Início</ToggleGroupItem> : null}
+                </ToggleGroup>
+              </div>
+            ) : null}
+
+            {/* O que mudou: o peso e de onde veio a diferença */}
+            {change && compareTo && change.weight !== 0 ? (
+              <Frame>
+                <FramePanel className="flex flex-col gap-3">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                    <h2 className="m-0 text-sm font-medium text-muted-foreground">O que mudou {sinceLabel}</h2>
+                    <span className="text-xs text-muted-foreground tabular-nums">{change.days <= 0 ? 'no mesmo dia' : change.days === 1 ? 'em 1 dia' : `em ${change.days} dias`}</span>
+                  </div>
+                  <p className="m-0 flex items-baseline gap-1.5">
+                    <span className="text-3xl leading-none font-semibold tracking-tight tabular-nums">{formatDelta('weightKg', change.weight)}</span>
+                    <span className="text-sm text-muted-foreground">de peso</span>
+                  </p>
+                  {change.fat != null && change.lean != null ? (
+                    <dl className="m-0 flex flex-col gap-2.5">
+                      {([['Gordura', change.fat, 'bg-copper-500'], ['Massa livre de gordura', change.lean, 'bg-sky-600 dark:bg-sky-400']] as const).map(([label, value, swatch]) => {
+                        const total = Math.abs(change.fat!) + Math.abs(change.lean!) || 1;
+                        return (
+                          <div key={label} className="flex flex-col gap-1">
+                            <div className="flex items-baseline justify-between gap-3 text-sm">
+                              <dt className="min-w-0 truncate">{label}</dt>
+                              <dd className="m-0 shrink-0 font-medium tabular-nums">{value === 0 ? 'sem mudança' : formatDelta('fatMassKg', value)}</dd>
+                            </div>
+                            <span aria-hidden="true" className="block h-1.5 w-full rounded-full bg-muted">
+                              <span className={cn('block h-full rounded-full', swatch)} style={{ width: `${Math.max(4, (Math.abs(value) / total) * 100)}%` }} />
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </dl>
+                  ) : null}
+                  {change.mixed ? (
+                    <p className="m-0 text-xs text-muted-foreground">As duas avaliações são de aparelhos diferentes: parte da diferença pode ser do aparelho, não do corpo.</p>
+                  ) : null}
+                </FramePanel>
+              </Frame>
+            ) : null}
+
             {/* Última avaliação */}
             <Frame>
               <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
@@ -443,9 +545,9 @@ export const BodyCompositionPage = () => {
                     <span className="mt-1 text-xs text-muted-foreground">kg de peso</span>
                   </RingGauge>
                   <div className="flex min-w-0 flex-1 basis-44 flex-col gap-3">
-                    {deltaOf('weightKg', latest, previous) != null ? (
+                    {deltaOf('weightKg', latest, compareTo) != null ? (
                       <p className="m-0 text-xs text-muted-foreground tabular-nums">
-                        <span className="font-medium text-foreground">{formatDelta('weightKg', deltaOf('weightKg', latest, previous)!)}</span> desde {formatDate(previous!.measuredAt)}
+                        <span className="font-medium text-foreground">{formatDelta('weightKg', deltaOf('weightKg', latest, compareTo)!)}</span> {sinceLabel}
                       </p>
                     ) : null}
                     {parts ? (
@@ -470,7 +572,7 @@ export const BodyCompositionPage = () => {
 
               <FramePanel className="grid gap-px bg-border p-0! sm:grid-cols-2">
                 {shownIndicators.map((key) => (
-                  <IndicatorCell key={key} metric={key} reading={latest} previous={previous} reference={data.reference} />
+                  <IndicatorCell key={key} metric={key} reading={latest} previous={compareTo} reference={data.reference} sinceLabel={sinceLabel} history={historyOf(key)} />
                 ))}
               </FramePanel>
               {orderedIndicators.length > shortCount ? (
@@ -498,12 +600,12 @@ export const BodyCompositionPage = () => {
                 <div className="flex min-w-0 flex-col gap-px">
                   <FrameTitle role="heading" aria-level={2}>Evolução</FrameTitle>
                   <FrameDescription>
-                    {items.length === 1 ? '1 avaliação registrada' : `${items.length} avaliações · variação desde a anterior`}
+                    {items.length === 1 ? '1 avaliação registrada' : `${items.length} avaliações · variação ${sinceLabel}`}
                   </FrameDescription>
                 </div>
               </FrameHeader>
               <FramePanel className="@container">
-                <TrendTiles keys={TREND_KEYS} active={metric} latest={latest} previous={previous} onSelect={setMetric} />
+                <TrendTiles keys={TREND_KEYS} active={metric} latest={latest} previous={compareTo} onSelect={setMetric} />
               </FramePanel>
               <FramePanel className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground">
