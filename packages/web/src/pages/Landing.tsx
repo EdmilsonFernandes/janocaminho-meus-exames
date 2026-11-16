@@ -45,7 +45,6 @@ import { TrustBadges } from '../components/landing/TrustBadges';
 import { FloatingWhatsAppButton } from '../components/FloatingWhatsAppButton';
 import { fetchPublicConfig, API_URL } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
-import { useHeroAb } from '../hooks/useHeroAb';
 import { ScrollReveal, AnimatedNumber } from '../components/ScrollReveal';
 import { Reveal } from '../components/Reveal';
 import { SplitWords } from '../components/motion/SplitWords';
@@ -157,7 +156,6 @@ export const LandingPage = () => {
   // Variante esportiva (?sports=1) — destino do tráfego QR dos cartazes de academia.
   // Message match com o cartaz Métrica Vital ("Você acompanha seus treinos. E seus exames?").
   const isSports = searchParams.get('sports') === '1';
-  const heroAb = useHeroAb(!isSports);
   const [scrolled, setScrolled] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
@@ -264,8 +262,9 @@ export const LandingPage = () => {
             {/* Coluna texto — CRO v3: UM objetivo de conversão (criar conta). Um CTA
                 primário, um secundário de mesma página (âncora, não navega), retornante
                 discreto. Play Store sai do hero (concorria pelo clique) e fica no CTA
-                final, onde a intenção já está confirmada. Headline em A/B 50/50
-                (useHeroAb) — A controle, B específica (outcome + prazo). */}
+                final, onde a intenção já está confirmada. Headline única (v3, 16/11):
+                A/B encerrado — instrumentação era no-op (PostHog desligado) e a variante
+                B ("em 30 segundos") prometia tempo de processamento, vedado pela COPY-v2. */}
             <Box sx={{ ...FADE_SLIDE_UP }}>
               {isSports ? (
                 <>
@@ -288,19 +287,11 @@ export const LandingPage = () => {
               ) : (
                 <>
                   <Typography variant="h1" sx={{ fontSize: { xs: '2.05rem', sm: '2.7rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.12, mb: 2, letterSpacing: '-0.03em', color: 'text.primary' }}>
-                    {heroAb === 'A' ? (
-                      <SplitWords delay={0} step={45} segments={[
-                        { text: 'Entenda seus exames', br: true },
-                        { text: ' como ' },
-                        { text: 'nunca antes.', style: { ...SERIF_I, color: heroAccent, fontSize: '1.06em' } },
-                      ]} />
-                    ) : (
-                      <SplitWords delay={0} step={45} segments={[
-                        { text: 'Seu exame de sangue,', br: true },
-                        { text: ' explicado ' },
-                        { text: 'em 30 segundos.', style: { ...SERIF_I, color: heroAccent, fontSize: '1.06em' } },
-                      ]} />
-                    )}
+                    <SplitWords delay={0} step={45} segments={[
+                      { text: 'Entenda seus exames —', br: true },
+                      { text: ' e acompanhe sua saúde ' },
+                      { text: 'em um só lugar.', style: { ...SERIF_I, color: heroAccent, fontSize: '1.06em' } },
+                    ]} />
                   </Typography>
                   <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'text.secondary', mb: 3, lineHeight: 1.6, maxWidth: 500, animation: 'fadeSlideUp .7s .15s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     Envie o PDF ou a foto. O <b style={{ color: 'text.primary' }}>Dr. Exame</b> lê com IA, explica cada valor em <b style={{ color: 'text.primary' }}>português simples</b>, mostra sua <b style={{ color: 'text.primary' }}>leitura de risco</b> e monta o <b style={{ color: 'text.primary' }}>plano de ação</b> pra levar ao médico.
@@ -445,7 +436,7 @@ export const LandingPage = () => {
               >
                 <AutoAwesomeIcon sx={{ fontSize: 17, color: TEAL_DARK }} />
                 <Typography sx={{ fontSize: 13, fontWeight: 800, color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : INK, fontFamily: '"Poppins",sans-serif' }}>
-                  Laudo lido em ~28s
+                  A IA lê o seu laudo <Box component="span" sx={{ color: TEAL_DARK, fontWeight: 700, fontSize: 12 }}>· valores reais</Box>
                 </Typography>
               </Box>
 
@@ -613,7 +604,7 @@ export const LandingPage = () => {
             ))}
           </Box>
           <Typography sx={{ textAlign: 'center', color: 'text.secondary', mt: { xs: 3.5, md: 4.5 }, fontSize: { xs: 15.5, md: 16.5 } }}>
-            O Dr. Exame traduz na hora — e entrega <b style={{ color: 'text.primary' }}>perguntas prontas</b> pra sua consulta. Em 3 passos:
+            O Dr. Exame traduz cada valor — e entrega <b style={{ color: 'text.primary' }}>perguntas prontas</b> pra sua consulta. Em 3 passos:
           </Typography>
         </Container>
       </Box>
@@ -1153,11 +1144,28 @@ export const LandingPage = () => {
               <Typography sx={{ color: 'rgba(255,255,255,.9)', mb: 4, fontSize: 17, maxWidth: 480, mx: 'auto' }}>
                 {isSports
                   ? 'Ative o Modo Saúde Esportiva e leve perguntas prontas pra sua próxima consulta.'
-                  : 'Crie sua conta grátis e envie seu primeiro exame em menos de 1 minuto.'}
+                  : 'Crie sua conta grátis e envie seu primeiro exame em poucos toques.'}
               </Typography>
               {/* Message match: MESMO texto do CTA do hero (disciplina de conversão). */}
               <Button size="large" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#fff', color: TEAL_DARK, fontWeight: 800, fontSize: 17, borderRadius: '999px', px: 5, py: 1.5, textTransform: 'none', '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-2px)' }, transition: 'all .2s' }}>Começar agora — é grátis</Button>
               <Typography sx={{ color: 'rgba(255,255,255,.75)', fontSize: 13, fontWeight: 600, mt: 1.5 }}>Primeiro exame com análise grátis · sem cartão · cancele quando quiser</Typography>
+              {/* 3 pilares de prova (padrão ReUI cta-4 portado a MUI): o closer responde
+                  às 3 dúvidas que travam o clique — só afirmações verificáveis do produto. */}
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.25, sm: 2.5 }} useFlexGap justifyContent="center" sx={{ mt: 3.5, mb: 1 }}>
+                {[
+                  { icon: <LockIcon sx={{ fontSize: 18 }} />, t: 'LGPD por padrão', d: 'dados sensíveis protegidos' },
+                  { icon: <MedicalServicesIcon sx={{ fontSize: 18 }} />, t: 'A IA educa, não diagnostica', d: 'a decisão é sua e do seu médico' },
+                  { icon: <CheckCircleIcon sx={{ fontSize: 18 }} />, t: 'Comece sem pagar', d: '1º exame com análise grátis' },
+                ].map((p) => (
+                  <Stack key={p.t} direction="row" spacing={1} alignItems="center" sx={{ bgcolor: 'rgba(255,255,255,.12)', border: '1px solid rgba(255,255,255,.22)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderRadius: '999px', px: 2, py: 1 }}>
+                    <Box sx={{ color: '#d4f5f2', display: 'flex' }}>{p.icon}</Box>
+                    <Box sx={{ textAlign: 'left' }}>
+                      <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>{p.t}</Typography>
+                      <Typography sx={{ fontSize: 11.5, color: 'rgba(255,255,255,.78)', lineHeight: 1.2 }}>{p.d}</Typography>
+                    </Box>
+                  </Stack>
+                ))}
+              </Stack>
               {/* App na Play Store — QR OFICIAL + badge Google Play no ponto de maior intenção.
                   Substitui o QR genérico antigo: agora aponta pro app APROVADO na loja (confiança + conversão). */}
               <Stack component="a" href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer"

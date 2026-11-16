@@ -97,3 +97,21 @@ do hero padrão; completa no hero esportivo. Conta a história do produto em 1 v
 - Imagens abaixo da dobra (QR Play, badge) `loading="lazy"`.
 - HeroRuler = SVG inline; sem fonte nova, sem lib nova, sem imagem nova.
 - Meta: bundle do chunk da landing ≤ +10% (verificado no QA).
+
+## v3 (16/11) — conformidade de copy + closer de prova
+
+- **A/B do hero ENCERRADO sem vencedor**: a instrumentação era no-op (PostHog desligado,
+  marcador só em console — o plano de medição nunca coletou) e a variante B ("explicado
+  em 30 segundos") prometia tempo de processamento, vedado pelas regras acima. Headline
+  única (direção do dono): **"Entenda seus exames — e acompanhe sua saúde em um só
+  lugar."** — acento serif em "em um só lugar". `useHeroAb` fora do Landing (hook arquivado).
+- Badge do hero: "Laudo lido em ~28s" → **"A IA lê o seu laudo · valores reais"** (sem tempo).
+- "Traduz na hora" (como funciona) → "traduz cada valor".
+- CTA final: "em menos de 1 minuto" → "em poucos toques" + **3 pilares de prova** (padrão
+  ReUI `cta-4` portado a MUI): LGPD por padrão · A IA educa, não diagnostica · Comece sem
+  pagar — só afirmações verificáveis do produto.
+- Mantidos (verdadeiros): "organiza cada valor na hora" (DecifreReal — parser
+  determinístico, sem IA) e "compara farmácias em segundos" (busca de catálogo).
+- **Pendências da leva**: telas reais do app (modo exemplo "Ana") na vitrine — exige o
+  app rodando para capturar sem PII; 3ª tab "Privacidade & LGPD" no FAQ; fonte do
+  "2.400% Procon-SP" (claim consumer, fora do knowledge/) antes de escalar.
