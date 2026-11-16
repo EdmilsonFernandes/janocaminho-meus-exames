@@ -32,6 +32,7 @@ import { PulseIcon } from '@/components/reui/icons';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 import { RingGauge } from '../components/motion/RingGauge';
 import { CountUp } from '../components/motion/CountUp';
+import { GlassGlow } from '../components/motion/GlassGlow';
 
 /** Ícones (sem emoji — leitor de tela lia "coração vermelho" e a linguagem do app é ícone). */
 export const TYPES = [
@@ -236,7 +237,8 @@ export const MeasurementsPage = () => {
       {stepsRow && (
         <div className="dx-island mb-5 [&_button]:font-[inherit]">
           <Frame>
-            <FramePanel className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4 p-4 sm:p-5">
+            <FramePanel className="dx-glass flex flex-wrap items-center justify-center gap-x-6 gap-y-4 p-4 sm:p-5">
+              <GlassGlow />
               <button
                 type="button"
                 onClick={() => navigate('/medicoes/historico/STEPS')}

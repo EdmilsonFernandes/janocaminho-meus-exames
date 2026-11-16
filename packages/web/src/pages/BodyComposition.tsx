@@ -37,6 +37,7 @@ import {
 import { RangeMeter, type CompositionPart } from '@/components/bodycomp/meters';
 import { RingGauge } from '../components/motion/RingGauge';
 import { CountUp } from '../components/motion/CountUp';
+import { GlassGlow } from '../components/motion/GlassGlow';
 import { TrendPlot, TrendTiles } from '@/components/bodycomp/trend';
 import { NewReadingDialog } from '@/components/bodycomp/new-reading-dialog';
 import {
@@ -430,7 +431,8 @@ export const BodyCompositionPage = () => {
               </FrameHeader>
 
               {latest.weightKg != null ? (
-                <FramePanel className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
+                <FramePanel className="dx-glass flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
+                  <GlassGlow />
                   <RingGauge
                     size={148}
                     thickness={13}

@@ -26,6 +26,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { RangeBar } from '../components/motion/RangeBar';
 import { RingGauge } from '../components/motion/RingGauge';
 import { CountUp } from '../components/motion/CountUp';
+import { GlassGlow } from '../components/motion/GlassGlow';
 import { useNotify, useRefresh } from 'react-admin';
 import { Line, LineChart, XAxis, YAxis } from 'recharts';
 import { ArrowUp, BookOpen, Check, ChevronDown, CircleHelp, Info, MessageCircleQuestion, Salad, Sparkles, Stethoscope, TrendingDown, TrendingUp, TriangleAlert, Upload, X } from 'lucide-react';
@@ -443,7 +444,8 @@ export function FoodGuidePage() {
             {/* ───────── SEUS NÚMEROS: os valores do paciente vêm primeiro (bloco chart-25) ───────── */}
             {data.values.length ? (
               <Frame>
-                <FrameHeader className="flex-row items-center gap-4">
+                <FrameHeader className="dx-glass relative flex-row items-center gap-4 overflow-hidden rounded-[calc(var(--frame-radius)-var(--frame-px))]">
+                  <GlassGlow />
                   <RingGauge
                     size={84}
                     thickness={9}

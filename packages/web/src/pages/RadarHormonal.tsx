@@ -30,6 +30,7 @@ import { IconTile } from '@/components/reui/icon-tile';
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 import { CountUp } from '../components/motion/CountUp';
+import { GlassGlow } from '../components/motion/GlassGlow';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
@@ -376,7 +377,8 @@ export default function RadarHormonal() {
       <div className="dx-island flex flex-col gap-4 [&_button]:font-[inherit]">
         {/* ───────── Resumo em português claro ───────── */}
         <Frame>
-          <FramePanel className="flex flex-col gap-4">
+          <FramePanel className="dx-glass flex flex-col gap-4">
+            <GlassGlow />
             <div className="flex flex-wrap items-start justify-between gap-3">
               <p className="m-0 max-w-2xl text-base leading-relaxed text-foreground sm:text-lg">
                 Com este protocolo, o hormônio no seu corpo <strong className="font-semibold">{stab.phrase}</strong>.

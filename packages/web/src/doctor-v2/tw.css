@@ -227,3 +227,29 @@
 .dark .dx-island [data-slot="frame"], .dx-island.dark [data-slot="frame"] {
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 10px 28px -18px rgb(0 0 0 / 0.6);
 }
+
+/* Cartão de destaque em vidro (16/11, 2ª passada): painel levemente translúcido, aresta de luz
+   e dois focos de cor por dentro (GlassGlow). Alfas baixos: o número por cima mantém contraste AA. */
+.dx-island .dx-glass {
+  isolation: isolate;
+  background-image: linear-gradient(155deg, color-mix(in oklch, var(--card) 96%, transparent), color-mix(in oklch, var(--card) 78%, transparent));
+  background-color: transparent;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 0 0 1px rgb(255 255 255 / 0.28);
+}
+.dx-glass-orb { position: absolute; border-radius: 9999px; }
+.dx-glass-orb-a { top: -38%; right: -22%; width: 78%; aspect-ratio: 1; background: radial-gradient(closest-side, rgb(32 178 170 / 0.24), transparent); }
+.dx-glass-orb-b { bottom: -44%; left: -24%; width: 70%; aspect-ratio: 1; background: radial-gradient(closest-side, rgb(212 165 116 / 0.2), transparent); }
+.dark .dx-island .dx-glass { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1), inset 0 0 0 1px rgb(255 255 255 / 0.04); }
+.dark .dx-glass-orb-a { background: radial-gradient(closest-side, rgb(32 178 170 / 0.28), transparent); }
+.dark .dx-glass-orb-b { background: radial-gradient(closest-side, rgb(99 102 241 / 0.16), transparent); }
+
+/* Painéis que deslizam e diálogos: vidro fosco de verdade (um por vez na tela, então o desfoque
+   é barato). Sem suporte a backdrop-filter, fica o fundo opaco de sempre. */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  [data-slot="sheet-content"], [data-slot="dialog-content"], [data-slot="alert-dialog-content"] {
+    background-color: color-mix(in oklch, var(--popover) 84%, transparent);
+    -webkit-backdrop-filter: blur(22px) saturate(170%);
+    backdrop-filter: blur(22px) saturate(170%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 24px 60px -24px rgb(15 23 42 / 0.35);
+  }
+}
