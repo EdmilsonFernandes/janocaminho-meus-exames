@@ -143,6 +143,36 @@ const ExamHero = ({ r, abnCount, onView, onPdf }: { r: any; abnCount: number; on
   );
 };
 
+/**
+ * Último exame em UMA linha (celular): antes o cartão grande + "O que mudou" ocupavam a primeira
+ * tela inteira e a lista de exames só aparecia rolando (dono, 16/11). O "O que mudou" continua
+ * no Início; aqui a pessoa veio para ver os exames.
+ */
+const ExamHeroCompact = ({ r, abnCount, onView }: { r: any; abnCount: number; onView: () => void }) => {
+  const titleInfo = cleanExtractedLabel(r.title, kindLabel[r.kind] ?? 'Exame', 60);
+  const itemCount: number = r._count?.items ?? 0;
+  return (
+    <AppCard kind="tinted" tone={abnCount > 0 ? 'warning' : 'primary'} tone2="secondary" sx={{ p: 0 }}>
+      <Box component="button" type="button" onClick={onView} aria-label={`Abrir a análise do último exame: ${titleInfo.text || 'Exame'}`}
+        sx={{ all: 'unset', boxSizing: 'border-box', width: '100%', minHeight: 72, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.25, borderRadius: 'inherit',
+          '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 }, '&:active': { transform: 'scale(0.99)' }, transition: 'transform 160ms cubic-bezier(0.22,1,0.36,1)' }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>Último exame</Typography>
+          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 16, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titleInfo.text || 'Exame'}</Typography>
+          <Stack direction="row" spacing={1} sx={{ mt: 0.25, alignItems: 'center', flexWrap: 'wrap', rowGap: 0.25 }}>
+            <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>{itemCount} resultado{itemCount !== 1 ? 's' : ''}</Typography>
+            <Chip size="small" label={abnCount > 0 ? `${abnCount} alterado${abnCount === 1 ? '' : 's'}` : 'Nada alterado'}
+              sx={{ height: 20, fontSize: 12, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: (t) => alpha((abnCount > 0 ? SEM.warn : SEM.ok)[t.palette.mode], 0.14), color: (t) => (abnCount > 0 ? SEM.warn : SEM.ok)[t.palette.mode] }} />
+          </Stack>
+        </Box>
+        <Box aria-hidden sx={{ flexShrink: 0, width: 40, height: 40, borderRadius: '50%', display: 'grid', placeItems: 'center', color: '#fff', background: 'linear-gradient(135deg,#20b2aa,#178f89)' }}>
+          <ArrowForwardIcon sx={{ fontSize: 20 }} />
+        </Box>
+      </Box>
+    </AppCard>
+  );
+};
+
 /** Toolbar Unificada de Filtros: Busca + Alternância por Data/Categoria + Régua Única de Chips (sem duplicação) */
 const ExamFilterToolbar = ({
   q, setQ,
@@ -976,7 +1006,12 @@ const ExamCards = () => {
 
       {/* HERO + "O que mudou" — só no modo padrão (sem busca/filtro), resumo de entrada. */}
       {isDefaultView && lastExam && (
-        <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: '1.6fr 1fr' }, alignItems: 'stretch' }}>
+        <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+          <ExamHeroCompact r={lastExam} abnCount={abnByExam[lastExam.id] ?? 0} onView={() => navigate(`/exams/${lastExam.id}/show`)} />
+        </Box>
+      )}
+      {isDefaultView && lastExam && (
+        <Box sx={{ display: { xs: 'none', sm: 'grid' }, gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: '1.6fr 1fr' }, alignItems: 'stretch' }}>
           <ExamHero r={lastExam} abnCount={abnByExam[lastExam.id] ?? 0} onView={() => navigate(`/exams/${lastExam.id}/show`)} onPdf={() => openPdf(lastExam.id)} />
           <ChangesSinceExam worsened={worsened} improved={improved} loaded={hsLoaded} onView={() => navigate('/tendencias')} />
         </Box>

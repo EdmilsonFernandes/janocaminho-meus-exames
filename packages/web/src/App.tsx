@@ -17,7 +17,6 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
-import QueryStatsOutlinedIcon from '@mui/icons-material/QueryStatsOutlined';
 import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
 import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
 import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
@@ -989,7 +988,9 @@ const AppMenu = () => {
         <NavItem to="/exams" primaryText={translate('menu.exams', { _: 'Todos os exames' })} icon={<FactCheckOutlinedIcon />} />
         <NavItem to="/alterados" primaryText={translate('menu.alterados', { _: 'Valores alterados' })} icon={<WarningAmberOutlinedIcon />} highlight />
         <NavItem to="/evolucao" primaryText={translate('menu.evolution', { _: 'Evolução' })} icon={<InsightsOutlinedIcon />} />
-        <NavItem to="/tendencias" primaryText={translate('menu.trends', { _: 'Tendências' })} icon={<QueryStatsOutlinedIcon />} />
+        {/* Tendências saiu do menu (16/11): é o gráfico de UM exame, e a Evolução já é a lista que
+            leva até ele. Duas entradas para a mesma ideia confundiam. A rota continua existindo
+            (Evolução, lista de exames e Início abrem /tendencias?select=…). */}
         <NavItem to="/linha-do-tempo" primaryText={translate('menu.timeline', { _: 'Linha do tempo' })} icon={<HistoryOutlinedIcon />} />
         <NavItem to="/relatorio" primaryText={translate('menu.report', { _: 'Relatório completo' })} icon={<SummarizeOutlinedIcon />} />
       </MenuSectionAccordion>

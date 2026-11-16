@@ -26,7 +26,6 @@ import BedtimeIcon from '@mui/icons-material/Bedtime';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import SyncIcon from '@mui/icons-material/Sync';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import MedicationIcon from '@mui/icons-material/Medication';
@@ -169,25 +168,7 @@ export const SinaisPage = () => {
   return (
     <PageContainer>
       {/* Barra de Navegação Superior Refinada com Voltar */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/')}
-          sx={{
-            textTransform: 'none',
-            fontWeight: 700,
-            fontSize: 13,
-            color: 'text.secondary',
-            px: 1.5,
-            py: 0.5,
-            borderRadius: '99px',
-            bgcolor: alpha(theme.palette.text.primary, 0.04),
-            '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.08) },
-          }}
-        >
-          Voltar ao Início
-        </Button>
-
+      <Stack direction="row" justifyContent="flex-end" alignItems="center" sx={{ mb: 1.5, minHeight: 28 }}>
         <Stack direction="row" spacing={1} alignItems="center">
           {!supported && cloudSyncedAt && (() => {
             const st = syncStamp(cloudSyncedAt);
@@ -258,17 +239,24 @@ export const SinaisPage = () => {
             <MonitorHeartIcon sx={{ fontSize: 32 }} />
           </Box>
           <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 19, mb: 0.75 }}>
-            {phase === 'denied' ? 'Conecte o Health Connect' : 'Aguardando seus primeiros sinais'}
+            {phase === 'denied' ? 'Conecte o Health Connect' : cloudSyncedAt ? 'Sem leituras nos últimos 30 dias' : 'Aguardando seus primeiros sinais'}
           </Typography>
           <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.6, maxWidth: 440, mx: 'auto', mb: 2 }}>
             {phase === 'denied'
               ? 'Sua rotina — passos, sono, calorias, distância e frequência cardíaca — entra aqui e conversa com seus exames de sangue.'
-              : 'Assim que o app do celular sincronizar sua primeira leitura do Health Connect, seus sinais aparecem aqui.'}
+              : cloudSyncedAt
+                ? `A última sincronização foi ${syncStamp(cloudSyncedAt).label}. Abra o app no celular para trazer os dados novos; o que já foi registrado continua em Medições.`
+                : 'Assim que o app do celular sincronizar sua primeira leitura do Health Connect, seus sinais aparecem aqui.'}
           </Typography>
           {supported && phase === 'denied' && (
             <GradientButton sx={{ px: 4, py: 1.25, borderRadius: '12px' }} onClick={() => void connect()}>
               Conectar agora
             </GradientButton>
+          )}
+          {phase !== 'denied' && cloudSyncedAt && (
+            <Button variant="outlined" onClick={() => navigate('/medicoes')} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, minHeight: 44, px: 3 }}>
+              Ver minhas medições
+            </Button>
           )}
           {connectError && <Alert severity="warning" sx={{ mt: 2, borderRadius: '12px', fontSize: 13, textAlign: 'left' }}>{connectError}</Alert>}
         </AppCard>

@@ -185,8 +185,8 @@ export const TrendsPage = () => {
 
       <PageHeader
         icon={<ShowChartIcon />}
-        title="Tendências e Curvas Clínicas"
-        subtitle="Acompanhe a trajetória histórica de cada biomarcador em relação à faixa ideal de referência."
+        title="Tendências"
+        subtitle="O gráfico de um exame ao longo do tempo, com a faixa do laudo."
       />
 
       {/* SELETOR DE BIOMARCADORES (ReUI Frame) */}
@@ -195,7 +195,7 @@ export const TrendsPage = () => {
           <FrameHeader className="flex flex-row items-center justify-between gap-2 pb-2">
             <div>
               <div className="font-heading text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
-                Selecionar Biomarcador ({multi.length} com série histórica)
+                Escolha o exame ({multi.length} com mais de um resultado)
               </div>
             </div>
           </FrameHeader>
@@ -228,6 +228,8 @@ export const TrendsPage = () => {
                 })}
               </Stack>
             )}
+            {/* A lista suspensa só entra quando os botões acima não mostram todos. */}
+            {multi.length > 10 && (
             <FormControl fullWidth size="small">
               <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty
                 MenuProps={{ PaperProps: { sx: { borderRadius: '16px', maxWidth: { sm: 480 }, '& .MuiMenuItem-root': { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } } } }}
@@ -244,6 +246,7 @@ export const TrendsPage = () => {
                 })}
               </Select>
             </FormControl>
+            )}
           </FramePanel>
         </Frame>
       )}

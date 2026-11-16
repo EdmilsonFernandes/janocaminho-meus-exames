@@ -27,7 +27,7 @@ import { tealText } from '../theme';
 import { chipA11y } from '../utils/chipA11y';
 
 type EvType = 'exam' | 'medicao' | 'vacina';
-interface Event { id: string; date: string | null; title: string; kind: string; abnormalCount: number; itemCount: number; type: EvType }
+interface Event { id: string; date: string | null; title: string; kind: string; abnormalCount: number; itemCount: number; type: EvType; detail?: string }
 
 export const TimelinePage = () => {
   const [pid] = useSelectedPatient();
@@ -63,11 +63,26 @@ export const TimelinePage = () => {
       }));
       // MEDIÇÕES (manuais + Health Connect): rótulo PT-BR + valor formatado — antes exibia
       // "BLOOD_PRESSURE: 120" (inglês cru, sem a diastólica, float com 14 casas).
-      const measEvents: Event[] = (Array.isArray(meas) ? meas : []).map((m: any) => ({
-        id: `m-${m.id}`, date: m.measuredAt,
-        title: `${measurementLabel(m.type)}: ${measurementValue(m)}${m.unit ? ` ${m.unit}` : ''}`,
+      // UM cartão por DIA de medição (dono 16/11): o relógio grava passos, sono, calorias… todo
+      // dia, e cada linha virava um cartão — 50 medições soterravam os exames. A jornada conta
+      // o que aconteceu; o detalhe de cada sinal mora em Medições (o cartão leva para lá).
+      const minutes = (n: number) => (n >= 60 ? `${Math.floor(n / 60)} h${Math.round(n % 60) ? ` ${Math.round(n % 60)} min` : ''}` : `${Math.round(n)} min`);
+      const measText = (m: any) => (m.type === 'SLEEP_MINUTES' || m.type === 'EXERCISE_MINUTES'
+        ? `${measurementLabel(m.type)} ${minutes(Number(m.value))}`
+        : `${measurementLabel(m.type)} ${measurementValue(m)}${m.unit ? ` ${m.unit}` : ''}`);
+      const byDay = new Map<string, any[]>();
+      for (const m of (Array.isArray(meas) ? meas : [])) {
+        const day = String(m.measuredAt).slice(0, 10);
+        const list = byDay.get(day) ?? [];
+        if (!list.some((x) => x.type === m.type)) list.push(m); // 1 por tipo no dia (o mais recente vem primeiro)
+        byDay.set(day, list);
+      }
+      const measEvents: Event[] = [...byDay.entries()].map(([day, list]) => ({
+        id: `m-${day}`, date: list[0].measuredAt,
+        title: list.length === 1 ? measText(list[0]) : `${list.length} medições no dia`,
+        detail: list.length === 1 ? undefined : list.slice(0, 4).map(measText).join(' · ') + (list.length > 4 ? ` · +${list.length - 4}` : ''),
         kind: 'MEASUREMENT',
-        abnormalCount: 0, itemCount: 1, type: 'medicao' as const,
+        abnormalCount: 0, itemCount: list.length, type: 'medicao' as const,
       }));
       const vaxEvents: Event[] = (Array.isArray(vax) ? vax : []).map((v: any) => ({
         id: `v-${v.id}`, date: v.dateApplied, title: `Vacina: ${v.name}`, kind: 'VACCINE',
@@ -104,9 +119,9 @@ export const TimelinePage = () => {
     const isImaging = e.kind === 'IMAGING';
     const hasIssues = e.type === 'exam' && e.abnormalCount > 0;
     const dotColor = e.type === 'vacina' ? '#4f46e5' : e.type === 'medicao' ? '#f59e0b' : isImaging ? '#0ea5e9' : hasIssues ? '#ef4444' : '#059669';
-    const clickable = e.type === 'exam'; // medições/vacinas: informativas (popup é de exame)
+    const clickable = e.type === 'exam' || e.type === 'medicao'; // exame abre o resumo; medição leva para Medições
     const EvIcon = e.type === 'vacina' ? VaccinesIcon : e.type === 'medicao' ? MonitorHeartIcon : isImaging ? LocalHospitalIcon : hasIssues ? TrendingDownIcon : CheckCircleIcon;
-    const action = e.type === 'vacina' ? 'Vacina aplicada' : e.type === 'medicao' ? 'Medição sincronizada' : isImaging ? 'Exame de imagem' : 'Exame laboratorial';
+    const action = e.type === 'vacina' ? 'Vacina aplicada' : e.type === 'medicao' ? 'Medições' : isImaging ? 'Exame de imagem' : 'Exame laboratorial';
     return (
       <Box
         key={e.id || i}
@@ -128,9 +143,9 @@ export const TimelinePage = () => {
           <EvIcon sx={{ color: '#fff', fontSize: 14 }} />
         </Box>
         <Box
-          onClick={clickable ? () => openExam(e) : undefined}
+          onClick={clickable ? () => (e.type === 'medicao' ? navigate('/medicoes') : openExam(e)) : undefined}
           {...(clickable ? chipA11y() : {})}
-          aria-label={clickable ? `Abrir exame ${e.title ?? ''}` : undefined}
+          aria-label={clickable ? (e.type === 'medicao' ? `Abrir medições: ${e.title}` : `Abrir exame ${e.title ?? ''}`) : undefined}
           sx={{
             borderRadius: '14px',
             px: 1.75,
@@ -142,8 +157,8 @@ export const TimelinePage = () => {
             borderLeft: `3px solid ${dotColor}`,
             boxShadow: '0 1px 4px rgba(0,0,0,0.025)',
             cursor: clickable ? 'pointer' : 'default',
-            transition: 'all .18s ease',
-            ...(clickable ? { '&:hover': { borderColor: dotColor, transform: 'translateX(3px)', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' } } : {}),
+            transition: 'border-color 160ms cubic-bezier(0.22,1,0.36,1), transform 160ms cubic-bezier(0.22,1,0.36,1)',
+            ...(clickable ? { '@media (hover: hover) and (pointer: fine)': { '&:hover': { borderColor: dotColor, transform: 'translateX(3px)' } }, '&:active': { transform: 'scale(0.99)' } } : {}),
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
@@ -165,6 +180,9 @@ export const TimelinePage = () => {
           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.35, fontWeight: 500 }}>
             {e.date ? new Date(e.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : 'Data não identificada'}
           </Typography>
+          {e.detail ? (
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5, lineHeight: 1.5 }}>{e.detail}</Typography>
+          ) : null}
           {e.type === 'exam' && (
             <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.85 }}>
               {hasIssues
@@ -183,8 +201,8 @@ export const TimelinePage = () => {
       <Title title="Linha do Tempo" />
       <PageHeader
         icon={<EventIcon />}
-        title="Sua jornada de saúde"
-        subtitle={`${counts.exam} ${counts.exam === 1 ? 'exame' : 'exames'} • ${counts.medicao} ${counts.medicao === 1 ? 'medição' : 'medições'} • ${counts.vacina} ${counts.vacina === 1 ? 'vacina' : 'vacinas'} • ${totalAbnormal > 0 ? `${totalAbnormal} ${totalAbnormal === 1 ? 'sinal' : 'sinais'} de atenção` : 'sem alterações'}. Toque num exame para abri-lo.`}
+        title="Linha do tempo"
+        subtitle={`O que aconteceu com a sua saúde, em ordem: ${counts.exam} ${counts.exam === 1 ? 'exame' : 'exames'}${counts.vacina ? ` e ${counts.vacina} ${counts.vacina === 1 ? 'vacina' : 'vacinas'}` : ''}${totalAbnormal > 0 ? `, ${totalAbnormal} ${totalAbnormal === 1 ? 'valor' : 'valores'} fora da faixa` : ''}.`}
       />
 
       {/* Filtro por tipo de evento (auditoria item 17: narrativa com exames + medições + vacinas) */}

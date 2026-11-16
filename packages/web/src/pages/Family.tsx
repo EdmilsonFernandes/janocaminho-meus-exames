@@ -556,10 +556,11 @@ export const FamilyPage = () => {
         ) : null}
 
         {/* ───────── 4. Atalhos ───────── */}
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="lg" className="h-10" onClick={() => navigate('/patients')}><Users aria-hidden="true" />Editar perfis</Button>
-          <Button variant="outline" size="lg" className="h-10" onClick={() => navigate('/reminders')}><BellRing aria-hidden="true" />Lembretes</Button>
-          <Button variant="outline" size="lg" className="h-10" onClick={() => navigate('/medicos')}><Stethoscope aria-hidden="true" />Compartilhar com médico</Button>
+        {/* Três atalhos em colunas iguais: nunca quebram de linha (antes o terceiro caía para baixo). */}
+        <div className="grid grid-cols-3 gap-2">
+          <Button variant="outline" size="lg" className="h-auto min-h-16 min-w-0 flex-col gap-1.5 px-1 py-2 text-xs leading-tight whitespace-normal" aria-label="Editar perfis" onClick={() => navigate('/patients')}><Users aria-hidden="true" className="size-5" /><span className="text-center">Editar perfis</span></Button>
+          <Button variant="outline" size="lg" className="h-auto min-h-16 min-w-0 flex-col gap-1.5 px-1 py-2 text-xs leading-tight whitespace-normal" aria-label="Lembretes" onClick={() => navigate('/reminders')}><BellRing aria-hidden="true" className="size-5" /><span className="text-center">Lembretes</span></Button>
+          <Button variant="outline" size="lg" className="h-auto min-h-16 min-w-0 flex-col gap-1.5 px-1 py-2 text-xs leading-tight whitespace-normal" aria-label="Compartilhar com médico" onClick={() => navigate('/medicos')}><Stethoscope aria-hidden="true" className="size-5" /><span className="text-center">Enviar ao médico</span></Button>
         </div>
       </div>
 

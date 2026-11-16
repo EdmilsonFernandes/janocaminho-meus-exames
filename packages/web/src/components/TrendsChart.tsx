@@ -202,6 +202,12 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
   // MAGNITUDE como delta absoluto (sem seta/% própria): o % primeiro→último exibia seta
   // OPOSTA à da regressão no mesmo card (↑105% vs ↓queda — bug de confiança clínica
   // reportado 2026-08-19). Direção é UMA só: o veredito da regressão abaixo.
+  // Cor do número = SITUAÇÃO ATUAL (dentro ou fora da faixa), não a direção da reta. Antes um
+  // valor que já tinha voltado à faixa aparecia vermelho só porque a tendência era de alta
+  // (falsa urgência); e subir nem sempre é ruim (HDL).
+  const lastV = lastPt?.valueNumeric;
+  const lastHigh = !!lastPt && ((lastPt as any).flag === 'HIGH' || (uniHigh != null && lastV != null && lastV > uniHigh));
+  const lastLow = !!lastPt && !lastHigh && ((lastPt as any).flag === 'LOW' || (uniLow != null && lastV != null && lastV < uniLow));
   const absDelta = firstPt && lastPt && firstPt.valueNumeric != null && lastPt.valueNumeric != null ? Math.abs(lastPt.valueNumeric - firstPt.valueNumeric) : null;
 
   return (
@@ -217,7 +223,7 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
       {/* Cabeçalho empilhado: valor → tendência → última data → referência. */}
       <Box sx={{ mb: 1.5, minWidth: 0 }}>
         <Stack direction="row" alignItems="baseline" spacing={1.25} flexWrap="wrap" sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontSize: 30, fontWeight: 800, lineHeight: 1, color: predict?.dir === 'up' ? errText : predict?.dir === 'down' ? infoText : titleText }}>
+          <Typography sx={{ fontSize: 30, fontWeight: 800, lineHeight: 1, color: lastHigh ? errText : lastLow ? infoText : titleText }}>
             {fmtNum(lastPt?.valueNumeric)} {ts.unit ? <UnitLabel unit={ts.unit} fontSize="1.875rem" /> : null}
           </Typography>
           {absDelta != null && absDelta > 0 && ts.unit && (
@@ -226,7 +232,7 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
             </Typography>
           )}
         </Stack>
-        <Typography sx={{ fontWeight: 700, mt: 0.25, color: predict?.dir === 'up' ? errText : predict?.dir === 'down' ? infoText : okText }}>
+        <Typography sx={{ fontWeight: 700, mt: 0.25, color: 'text.secondary' }}>
           {predict?.dir === 'up' ? '↑ Tendência de alta' : predict?.dir === 'down' ? '↓ Tendência de queda' : '→ Estável'} · {data.length} {data.length === 1 ? 'medição' : 'medições'}
         </Typography>
         {/* E2.5 — métodos diferentes entre coletas: NÃO comparam (pontos isolados no gráfico). */}
