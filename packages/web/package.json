@@ -48,6 +48,7 @@
     "cn": "^0.4.0",
     "jsqr": "^1.4.0",
     "livekit-client": "^2.23.0",
+    "lottie-web": "^5.13.0",
     "lucide-react": "^1.64.0",
     "posthog-js": "^1.434.15",
     "qrcode": "^1.5.4",

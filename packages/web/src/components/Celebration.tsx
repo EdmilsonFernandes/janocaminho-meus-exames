@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Box, Typography, Button, Stack } from '@mui/material';
 import { DrExame } from './DrExame';
 import { GradientButton } from './GradientButton';
+import { CelebrationLottie } from './CelebrationLottie';
 
 /**
  * Celebration — o "momento woowww" do 1º exame extraído (pico emocional da jornada;
@@ -146,6 +147,7 @@ export const Celebration = ({ open, firstName, title, subtitle, ctaLabel = 'Ver 
         }}
       >
         <Box sx={{
+          position: 'relative',
           width: 104, height: 104, mx: 'auto', mb: 2, borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: 'radial-gradient(circle at 50% 40%, rgba(32,178,170,.28), rgba(32,178,170,.06) 70%)',
@@ -154,7 +156,11 @@ export const Celebration = ({ open, firstName, title, subtitle, ctaLabel = 'Ver 
           '@keyframes dxCelebrateBounce': { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-9px)' } },
           '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
         }}>
-          <DrExame size={68} sx={{ borderRadius: '50%' }} />
+          {/* Piloto Lottie: anel + confete + sparkles atrás do robô (fallback silencioso). */}
+          <CelebrationLottie />
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <DrExame size={68} sx={{ borderRadius: '50%' }} />
+          </Box>
         </Box>
         <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.15rem, 5.5vw, 1.45rem)' }, lineHeight: 1.2, color: 'text.primary', textWrap: 'balance' }}>
           {title ?? `🎉 ${firstName ? `${firstName}, seu` : 'Seu'} primeiro exame virou análise!`}
