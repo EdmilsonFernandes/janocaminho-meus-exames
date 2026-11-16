@@ -128,4 +128,8 @@ do hero padrão; completa no hero esportivo. Conta a história do produto em 1 v
   IA — resposta honesta de que o texto é enviado ao provedor do modelo —, exclusão
   total, dados opcionais). "Meus dados estão seguros?" saiu da lista de paciente e
   virou a 1ª da tab nova. JSON-LD continua só com FAQ de paciente (fonte única).
-- Pendência REMANESCENTE: fonte do "2.400% Procon-SP".
+- Pendência REMANESCENTE: fonte do "2.400% Procon-SP". **Fechada em 17/11**: número
+  verificado — Pesquisa Comparativa de Preços de Medicamentos do Procon-SP, **jul/2026**
+  (variação de até 2.433,59% no mesmo genérico; relatório oficial em procon.sp.gov.br,
+  cobertura O Globo/g1/Agência Brasil). Citação do ano/estudo adicionada inline na seção
+  de remédios.

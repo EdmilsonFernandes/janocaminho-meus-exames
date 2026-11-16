@@ -864,7 +864,7 @@ export const LandingPage = () => {
                 O mesmo remédio pode custar <Box component="span" sx={{ ...SERIF_I, color: '#b88a54' }}>até 20× mais</Box> dependendo da farmácia.
               </Typography>
               <Typography sx={{ color: 'text.secondary', fontSize: 17, lineHeight: 1.65, mb: 3.5 }}>
-                O Procon-SP já encontrou variação de <b style={{ color: 'text.primary' }}>até 2.400%</b> no preço do mesmo medicamento. Você adiciona o remédio que toma — o Dr. Exame compara <b style={{ color: 'text.primary' }}>9 farmácias online</b> em segundos e mostra o menor preço, com foto do produto e o nome da farmácia.
+                O Procon-SP encontrou variação de <b style={{ color: 'text.primary' }}>até 2.400%</b> no preço do mesmo medicamento entre farmácias <Box component="span" sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 600 }}>(Pesquisa Comparativa de Preços de Medicamentos, jul/2026)</Box>. Você adiciona o remédio que toma — o Dr. Exame compara <b style={{ color: 'text.primary' }}>9 farmácias online</b> em segundos e mostra o menor preço, com foto do produto e o nome da farmácia.
               </Typography>
               <Stack spacing={2} sx={{ mb: 4 }}>
                 {[
