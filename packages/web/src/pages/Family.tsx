@@ -25,7 +25,6 @@ import { BellRing, Check, ChevronRight, EllipsisVertical, Pencil, Stethoscope, T
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { RangeBar } from '../components/motion/RangeBar';
-import { CountUp } from '../components/motion/CountUp';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Frame, FrameDescription, FrameHeader, FramePanel, FrameTitle } from '@/components/reui/frame';
 import { Badge } from '@/components/reui/badge';
@@ -176,7 +175,7 @@ function MemberRow({ p, isTitular, onOpen, onUpload, onEdit, onRemove }: { p: Fa
         </span>
         {p.score != null ? (
           <span className="flex shrink-0 flex-col items-end max-[359px]:hidden" aria-label={`Score de saúde ${p.score} de 100`}>
-            <CountUp value={p.score} format={(v) => String(Math.round(v))} className="text-xl leading-none font-semibold text-foreground tabular-nums" />
+            <span className="text-xl leading-none font-semibold text-foreground tabular-nums">{p.score}</span>
             <span className="mt-0.5 text-xs text-muted-foreground">de 100</span>
           </span>
         ) : null}

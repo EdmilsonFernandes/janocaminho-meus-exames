@@ -32,7 +32,7 @@ export function RingGauge({ segments, size = 148, thickness = 12, gap = 3, child
   let start = 0;
   return (
     <div
-      className={cn('relative shrink-0 animate-in fade-in zoom-in-95 duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none', className)}
+      className={cn('relative shrink-0 animate-in fade-in zoom-in-95 duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none', className)}
       style={{ width: size, height: size }}
       role={label ? 'img' : undefined}
       aria-label={label}

@@ -328,8 +328,11 @@ export const MeasurementsPage = () => {
                     gap: 0.75,
                     borderRadius: '16px',
                     boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-                    transition: 'transform 0.2s ease, border-color 0.2s ease',
-                    '&:hover': { transform: 'translateY(-2px)', borderColor: '#0d9488' },
+                    transition: `transform 160ms cubic-bezier(0.22,1,0.36,1), border-color 160ms cubic-bezier(0.22,1,0.36,1)`,
+                    '&:active': { transform: 'scale(0.98)' },
+                    // elevação só onde existe ponteiro de verdade (no toque o hover fica preso)
+                    '@media (hover: hover) and (pointer: fine)': { '&:hover': { transform: 'translateY(-2px)', borderColor: '#0d9488' } },
+                    '@media (prefers-reduced-motion: reduce)': { transition: 'border-color 160ms', '&:active': { transform: 'none' }, '&:hover': { transform: 'none' } },
                   }}
                 >
                   <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minWidth: 0 }}>
@@ -390,7 +393,7 @@ export const MeasurementsPage = () => {
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 minHeight: 85,
-                transition: 'all 0.2s ease',
+                transition: `background-color 160ms cubic-bezier(0.22,1,0.36,1), border-color 160ms cubic-bezier(0.22,1,0.36,1)`,
                 '&:hover': { bgcolor: 'action.hover', borderColor: '#0d9488' },
               }}
             >
@@ -421,7 +424,7 @@ export const MeasurementsPage = () => {
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 minHeight: 85,
-                transition: 'all 0.2s ease',
+                transition: `background-color 160ms cubic-bezier(0.22,1,0.36,1), border-color 160ms cubic-bezier(0.22,1,0.36,1)`,
                 '&:hover': { bgcolor: 'action.hover', borderColor: '#0d9488' },
               }}
             >

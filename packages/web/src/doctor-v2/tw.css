@@ -248,8 +248,21 @@
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   [data-slot="sheet-content"], [data-slot="dialog-content"], [data-slot="alert-dialog-content"] {
     background-color: color-mix(in oklch, var(--popover) 84%, transparent);
-    -webkit-backdrop-filter: blur(22px) saturate(170%);
-    backdrop-filter: blur(22px) saturate(170%);
+    -webkit-backdrop-filter: blur(16px) saturate(170%);
+    backdrop-filter: blur(16px) saturate(170%);
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 24px 60px -24px rgb(15 23 42 / 0.35);
   }
 }
+
+/* Painel deslizante com gesto (Drawer do Base UI em ui/sheet.tsx): com o dedo na tela o painel
+   segue 1:1 (duração zero); ao soltar, a duração escala com a força do gesto. O fundo escurecido
+   clareia junto com o arrasto. `transform` soma com o `translate` das classes de entrada. */
+[data-slot="sheet-content"][data-swipe-direction="right"],
+[data-slot="sheet-content"][data-swipe-direction="left"] { transform: translateX(var(--drawer-swipe-movement-x, 0px)); touch-action: pan-y; }
+[data-slot="sheet-content"][data-swipe-direction="down"],
+[data-slot="sheet-content"][data-swipe-direction="up"] { transform: translateY(var(--drawer-swipe-movement-y, 0px)); touch-action: pan-x; }
+[data-slot="sheet-overlay"][data-swiping] { opacity: calc(1 - var(--drawer-swipe-progress, 0)); }
+[data-slot="sheet-content"][data-swipe-dismiss][data-ending-style],
+[data-slot="sheet-overlay"][data-swipe-dismiss][data-ending-style] { transition-duration: calc(var(--drawer-swipe-strength, 1) * 300ms); }
+[data-slot="sheet-content"][data-swiping],
+[data-slot="sheet-overlay"][data-swiping] { transition-duration: 0ms; }

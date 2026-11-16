@@ -4,7 +4,7 @@ import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Drawer, Avatar, Stack, Link as MuiLink } from '@mui/material';
+import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, SwipeableDrawer, Avatar, Stack, Link as MuiLink } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
@@ -1199,7 +1199,7 @@ const AppDrawer = () => {
   }, [open, closeDrawer]);
 
   return (
-    <Drawer anchor="left" open={open} onClose={closeDrawer} keepMounted={false}
+    <SwipeableDrawer anchor="left" open={open} onClose={closeDrawer} onOpen={() => {}} disableSwipeToOpen disableDiscovery keepMounted={false}
       slotProps={{ backdrop: { sx: { bgcolor: (t: any) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.45)' : 'rgba(10,32,32,0.30)' } } }}
       PaperProps={{
         sx: {
@@ -1238,7 +1238,7 @@ const AppDrawer = () => {
       }}>
         <AppMenu />
       </Box>
-    </Drawer>
+    </SwipeableDrawer>
   );
 };
 

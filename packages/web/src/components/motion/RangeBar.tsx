@@ -39,7 +39,6 @@ export function RangeBar({ value, low = null, high = null, tone, className }: Ra
       <span
         className={cn(
           'absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-background',
-          'animate-in fade-in zoom-in-95 duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none',
           tone === 'ok' ? 'bg-success' : 'bg-warning',
         )}
         style={{ left: `${g.pos}%` }}

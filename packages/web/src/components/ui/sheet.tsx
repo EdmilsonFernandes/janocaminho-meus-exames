@@ -1,12 +1,15 @@
 import * as React from "react"
-import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
+// Desvio local (16/11): o primitivo é o Drawer do Base UI (mesma API do Dialog + gesto).
+// O painel acompanha o dedo e fecha ao deslizar na direção em que entrou; o gesto, a
+// velocidade do "peteleco" e o foco ficam por conta da biblioteca (nada feito à mão).
+import { Drawer as SheetPrimitive } from "@base-ui/react/drawer"
 import { cn } from "cn"
 
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
-function Sheet({ ...props }: SheetPrimitive.Root.Props) {
-  return <SheetPrimitive.Root data-slot="sheet" {...props} />
+function Sheet({ swipeDirection = "right", ...props }: SheetPrimitive.Root.Props) {
+  return <SheetPrimitive.Root data-slot="sheet" swipeDirection={swipeDirection} {...props} />
 }
 
 function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
@@ -47,11 +50,12 @@ function SheetContent({
   return (
     <SheetPortal>
       <SheetOverlay />
+      <SheetPrimitive.Viewport data-slot="sheet-viewport" className="pointer-events-none fixed inset-0 z-[1300]">
       <SheetPrimitive.Popup
         data-slot="sheet-content"
         data-side={side}
         className={cn(
-          "dx-island [&_button]:font-[inherit] [&_textarea]:font-[inherit] fixed z-[1300] flex flex-col gap-4 bg-popover bg-clip-padding text-sm text-popover-foreground shadow-lg transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0 data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=bottom]:data-ending-style:translate-y-[2.5rem] data-[side=bottom]:data-starting-style:translate-y-[2.5rem] data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=left]:data-ending-style:translate-x-[-2.5rem] data-[side=left]:data-starting-style:translate-x-[-2.5rem] data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=right]:data-ending-style:translate-x-[2.5rem] data-[side=right]:data-starting-style:translate-x-[2.5rem] data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[side=top]:data-ending-style:translate-y-[-2.5rem] data-[side=top]:data-starting-style:translate-y-[-2.5rem] data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm",
+          "dx-island [&_button]:font-[inherit] [&_textarea]:font-[inherit] pointer-events-auto fixed z-[1300] flex flex-col gap-4 bg-popover bg-clip-padding text-sm text-popover-foreground shadow-lg transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0 data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=bottom]:data-ending-style:translate-y-[2.5rem] data-[side=bottom]:data-starting-style:translate-y-[2.5rem] data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=left]:data-ending-style:translate-x-[-2.5rem] data-[side=left]:data-starting-style:translate-x-[-2.5rem] data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=right]:data-ending-style:translate-x-[2.5rem] data-[side=right]:data-starting-style:translate-x-[2.5rem] data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[side=top]:data-ending-style:translate-y-[-2.5rem] data-[side=top]:data-starting-style:translate-y-[-2.5rem] data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm",
           className
         )}
         {...props}
@@ -74,6 +78,7 @@ function SheetContent({
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Popup>
+      </SheetPrimitive.Viewport>
     </SheetPortal>
   )
 }
