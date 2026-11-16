@@ -549,6 +549,54 @@ export const LandingPage = () => {
           produto por dentro logo no início, não só descrever). */}
       <ProductPreview />
 
+      {/* DIRETO DO APP — telas REAIS do aplicativo (modo exemplo + conta de dados
+          fictícios "Ana Martins"; capturas 16/11, public/screens/*.webp, ~33-79KB cada,
+          loading="lazy"). Prova visual sem PII e sem simular funcionalidade inexistente. */}
+      <Box sx={{ py: { xs: 5, md: 8 }, bgcolor: 'background.default', position: 'relative' }}>
+        <Container maxWidth="lg" sx={{ position: 'relative' }}>
+          <Box sx={{ textAlign: 'center', mb: { xs: 3, md: 4.5 } }}>
+            <Typography variant="h2" sx={{ fontSize: { xs: '1.55rem', md: '2.1rem' }, fontWeight: 800, color: 'text.primary', letterSpacing: '-0.02em', mb: 0.75 }}>
+              Direto do app. <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>Sem maquiagem.</Box>
+            </Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: 15.5, maxWidth: 560, mx: 'auto', lineHeight: 1.55 }}>
+              Telas reais do Dr. Exame com dados de exemplo — o que você vê é o que existe.
+            </Typography>
+          </Box>
+          <Stack
+            direction="row"
+            spacing={{ xs: 2, md: 4 }}
+            useFlexGap
+            sx={{
+              justifyContent: 'center',
+              overflowX: 'auto',
+              scrollSnapType: 'x mandatory',
+              pb: 2,
+              '&::-webkit-scrollbar': { height: 6 },
+              '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(32,178,170,.35)', borderRadius: 3 },
+            }}
+          >
+            {[
+              { src: 'app-dashboard-demo.webp', alt: 'Painel de saúde no Dr. Exame: metas, o que mudou e mapa do corpo', cap: 'Seu painel: metas, o que mudou e o mapa do corpo' },
+              { src: 'app-exames.webp', alt: 'Lista de exames no Dr. Exame com filtros e valores alterados em destaque', cap: 'Exames organizados — alterados em destaque' },
+              { src: 'app-chat.webp', alt: 'Chat do Dr. Exame com análises guiadas pela IA', cap: 'Tire dúvidas com a IA — análises guiadas' },
+            ].map((s) => (
+              <Box key={s.src} sx={{ flex: { xs: '0 0 235px', sm: '0 0 265px', md: '1 1 0' }, maxWidth: { md: 320 }, scrollSnapAlign: 'center', textAlign: 'center' }}>
+                <Box sx={{
+                  width: '100%', aspectRatio: '390 / 844', borderRadius: '22px', overflow: 'hidden',
+                  border: '1px solid', borderColor: 'rgba(32,178,170,.25)',
+                  background: 'linear-gradient(160deg, rgba(32,178,170,.10), rgba(212,165,116,.08))',
+                  boxShadow: '0 18px 44px rgba(15,95,90,.14)',
+                }}>
+                  <Box component="img" src={`${import.meta.env.BASE_URL}screens/${s.src}`} alt={s.alt} loading="lazy" decoding="async"
+                    sx={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }} />
+                </Box>
+                <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.secondary', mt: 1.5, lineHeight: 1.4 }}>{s.cap}</Typography>
+              </Box>
+            ))}
+          </Stack>
+        </Container>
+      </Box>
+
       {/* TELESTRIP — mapa do corpo, cálculos clínicos, showcase clínico e telemedicina
           migraram pra /features (funil enxuto: a home não é mais 12 mil px). */}
       <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 3.5, md: 5 } }}>

@@ -28,10 +28,6 @@ export const FAQ_ITEMS = [
     a: 'Sim. Qualquer PDF ou foto de exame de sangue, imagem ou laudo. A IA extrai os valores do texto do documento, independente do laboratório.',
   },
   {
-    q: 'Meus dados estão seguros?',
-    a: 'Sim. Dados sensíveis (CPF/RG) são criptografados, os PDFs ficam fora do banco, e o compartilhamento com o médico é por link com PIN (que você revoga a qualquer momento). Você pode excluir tudo quando quiser. Conforme a LGPD.',
-  },
-  {
     q: 'Preciso pagar para testar?',
     a: `Não. Envie seu primeiro exame (PDF ou foto) e ganhe créditos grátis, sem cartão. Use para conversar com a IA, gerar relatórios e perguntar ao médico. Só assina ou compra créditos avulsos se precisar de mais.`,
   },
@@ -87,12 +83,39 @@ export const FAQ_MEDICO_ITEMS = [
   },
 ];
 
+// FAQ Privacidade & LGPD (3ª tab, 16/11): objeções de quem está com o dedo no gatilho
+// do cadastro por causa do dado de saúde. Regra da COPY-v2: só afirmação verificável —
+// criptografia de campo (APP_ENCRYPTION_KEY/pgcrypto), PDFs fora do banco, exclusão
+// total, escopos de share. NÃO afirmamos onde o provedor de IA processa (não confirmável).
+export const FAQ_PRIVACIDADE_ITEMS = [
+  {
+    q: 'Meus dados estão seguros?',
+    a: 'Dados sensíveis como CPF e RG são criptografados no banco de dados. Os PDFs dos exames ficam guardados separados do banco. O compartilhamento com o médico é por link protegido por PIN, com prazo, que você revoga a qualquer momento. Tudo conforme a LGPD.',
+  },
+  {
+    q: 'Quem pode ver meus exames?',
+    a: 'Só você — até você decidir o contrário. O médico só enxerga o que você compartilhar, nas áreas que você autorizar (exames, evolução, alertas e/ou resumo), e você pode cancelar o acesso quando quiser. Relatórios enviados por link expiram e pedem PIN.',
+  },
+  {
+    q: 'A IA usa meus exames para treinar modelos ou vender dados?',
+    a: 'Não vendemos seus dados e eles não alimentam nenhum produto nosso. Para gerar resumos e respostas, o texto do exame é enviado ao provedor de IA que opera o modelo de linguagem — cada uso aparece no seu histórico de créditos, e você pode excluir tudo a qualquer momento.',
+  },
+  {
+    q: 'Posso apagar meus dados e sair?',
+    a: 'Sim, a exclusão é total e feita por você mesmo, dentro do app, sem precisar falar com ninguém — conta, exames e arquivos. A LGPD garante esse direito e nós implementamos o botão.',
+  },
+  {
+    q: 'O app pede dados que não quero dar?',
+    a: 'Não. CPF (quando pedido) serve só para validar identidade e evitar contas falsas, e é um dos campos criptografados. Nada é obrigatório além do essencial para funcionar — e cada pergunta explica por que existe.',
+  },
+];
+
 export const FaqSection = () => {
   const navigate = useNavigate();
   const [credits, setCredits] = useState(60);
   const [openIndex, setOpenIndex] = useState<number | false>(0);
-  const [tab, setTab] = useState<'paciente' | 'medico'>('paciente');
-  const items = tab === 'paciente' ? FAQ_ITEMS : FAQ_MEDICO_ITEMS;
+  const [tab, setTab] = useState<'paciente' | 'medico' | 'privacidade'>('paciente');
+  const items = tab === 'paciente' ? FAQ_ITEMS : tab === 'medico' ? FAQ_MEDICO_ITEMS : FAQ_PRIVACIDADE_ITEMS;
   useEffect(() => { fetchPublicConfig().then((c) => setCredits(c.freeSignup)); }, []);
   return (
     <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
@@ -114,8 +137,8 @@ export const FaqSection = () => {
 
         {/* Tabs dual-funnel (faq-1): a objeção certa pro público certo */}
         <Reveal delay={40}>
-          <div className="mb-6 flex justify-center gap-2">
-            {([['paciente', 'Sou paciente'], ['medico', 'Sou médico']] as const).map(([id, label]) => (
+          <div className="mb-6 flex flex-wrap justify-center gap-2">
+            {([['paciente', 'Sou paciente'], ['medico', 'Sou médico'], ['privacidade', 'Privacidade & LGPD']] as const).map(([id, label]) => (
               <button
                 key={id}
                 type="button"
@@ -178,7 +201,11 @@ export const FaqSection = () => {
         <Reveal delay={120}>
           <Box sx={{ textAlign: 'center', mt: 4.5 }}>
             <Typography sx={{ color: 'text.secondary', fontSize: 15, mb: 1.5 }}>
-              {tab === 'paciente' ? 'Ainda com dúvidas? Teste sem compromisso na prática.' : 'Quer ver o portal funcionando antes de criar conta?'}
+              {tab === 'paciente'
+                ? 'Ainda com dúvidas? Teste sem compromisso na prática.'
+                : tab === 'medico'
+                  ? 'Quer ver o portal funcionando antes de criar conta?'
+                  : 'Quer os detalhes jurídicos completos? Está tudo escrito.'}
             </Typography>
             {tab === 'paciente' ? (
               <button
@@ -189,13 +216,22 @@ export const FaqSection = () => {
                 <span>Começar grátis</span>
                 <ArrowRight className="size-4" />
               </button>
-            ) : (
+            ) : tab === 'medico' ? (
               <button
                 type="button"
                 onClick={() => navigate('/para-medicos')}
                 className="inline-flex items-center gap-2 rounded-full bg-teal-600 px-6 py-2.5 text-sm font-extrabold text-white shadow-xs transition-all hover:bg-teal-700 hover:shadow-sm cursor-pointer"
               >
                 <span>Como funciona para médicos</span>
+                <ArrowRight className="size-4" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => navigate('/privacidade')}
+                className="inline-flex items-center gap-2 rounded-full bg-teal-600 px-6 py-2.5 text-sm font-extrabold text-white shadow-xs transition-all hover:bg-teal-700 hover:shadow-sm cursor-pointer"
+              >
+                <span>Política de privacidade</span>
                 <ArrowRight className="size-4" />
               </button>
             )}

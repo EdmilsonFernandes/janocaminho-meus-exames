@@ -115,3 +115,17 @@ do hero padrão; completa no hero esportivo. Conta a história do produto em 1 v
 - **Pendências da leva**: telas reais do app (modo exemplo "Ana") na vitrine — exige o
   app rodando para capturar sem PII; 3ª tab "Privacidade & LGPD" no FAQ; fonte do
   "2.400% Procon-SP" (claim consumer, fora do knowledge/) antes de escalar.
+
+## v3.1 (16/11, mesmo dia) — as duas pendências técnicas fechadas
+
+- **Nova seção "Direto do app. Sem maquiagem."** (logo após o ProductPreview): 3 telas
+  REAIS do app em moldura de celular — dashboard (deep-link `#/?demo=1`, dados fictícios
+  por design), lista de exames e chat (conta QA dev renomeada p/ identidade fictícia
+  "Ana Martins"). Capturas 390×844@2x → webp 33–79KB cada, `loading="lazy"`, alts
+  descritivos, strip com scroll-snap no mobile. **Porta anti-PII**: o script de captura
+  aborta se "Edmilson" aparecer no texto visível (`docs/landing/capture-screens.mjs`).
+- **FAQ ganha 3ª tab "Privacidade & LGPD"** (5 perguntas: segurança, quem vê, uso pela
+  IA — resposta honesta de que o texto é enviado ao provedor do modelo —, exclusão
+  total, dados opcionais). "Meus dados estão seguros?" saiu da lista de paciente e
+  virou a 1ª da tab nova. JSON-LD continua só com FAQ de paciente (fonte única).
+- Pendência REMANESCENTE: fonte do "2.400% Procon-SP".
