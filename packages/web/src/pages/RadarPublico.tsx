@@ -38,6 +38,8 @@ import { CompoundIcon, durationLabel } from '@/components/radar/compound-picker'
 import { ProtocolItem } from '@/components/radar/protocol-item';
 import { RadarChart, radarDash } from '@/components/radar/radar-chart';
 import { RADAR_COMPOUNDS, RADAR_FAMILIES, compoundById, computeRadarSeries, computeRadarStats, type RadarProtocolItem } from '@/utils/hormoneRadar';
+import { SplitWords } from '@/components/motion/SplitWords';
+import { CountUp } from '@/components/motion/CountUp';
 
 const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.janocaminho.drexame&utm_source=simulador';
 const CANONICAL = 'https://drexame.janocaminho.com.br/simulador-hormonal';
@@ -424,8 +426,11 @@ export function RadarPublicoPage() {
               <Badge variant="primary-light" size="lg"><Sparkles aria-hidden="true" />Grátis</Badge>
               <Badge variant="outline" size="lg">Sem cadastro</Badge>
             </div>
-            <h1 className="dx-rise m-0 text-4xl leading-[1.08] font-bold tracking-tight text-foreground sm:text-5xl" style={{ '--i': 1 } as React.CSSProperties}>
-              Veja o pico e o vale entre as aplicações. <span className="text-primary">Depois, veja nos seus exames.</span>
+            <h1 className="m-0 text-4xl leading-[1.08] font-bold tracking-tight text-foreground sm:text-5xl">
+              <SplitWords delay={45} step={38} segments={[
+                { text: 'Veja o pico e o vale entre as aplicações. ' },
+                { text: 'Depois, veja nos seus exames.', className: 'text-primary' },
+              ]} />
             </h1>
             <p className="dx-rise m-0 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg" style={{ '--i': 2 } as React.CSSProperties}>
               Monte a simulação com testosterona, Durateston, deca, masteron e outros. O gráfico mostra a liberação estimada dia a dia. No app, a mesma curva aparece ao lado do seu hematócrito, estradiol e colesterol.
@@ -503,15 +508,15 @@ export function RadarPublicoPage() {
                 <dl className="m-0 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3">
                   <div className="flex flex-col gap-1 bg-card px-3 py-3">
                     <dt className="text-xs text-muted-foreground">Média por dia</dt>
-                    <dd className="m-0 text-2xl leading-none font-semibold tabular-nums">{n1(stats.avgDailyMg)} <span className="text-sm font-normal text-muted-foreground">mg</span></dd>
+                    <dd className="m-0 text-2xl leading-none font-semibold tabular-nums"><CountUp value={stats.avgDailyMg} format={n1} /> <span className="text-sm font-normal text-muted-foreground">mg</span></dd>
                   </div>
                   <div className="flex flex-col gap-1 bg-card px-3 py-3">
                     <dt className="text-xs text-muted-foreground">Do vale ao pico</dt>
-                    <dd className="m-0 text-2xl leading-none font-semibold tabular-nums">{n1(stats.troughMg)} <span className="text-sm font-normal text-muted-foreground">a</span> {n1(stats.peakMg)} <span className="text-sm font-normal text-muted-foreground">mg/dia</span></dd>
+                    <dd className="m-0 text-2xl leading-none font-semibold tabular-nums"><CountUp value={stats.troughMg} format={n1} /> <span className="text-sm font-normal text-muted-foreground">a</span> <CountUp value={stats.peakMg} format={n1} /> <span className="text-sm font-normal text-muted-foreground">mg/dia</span></dd>
                   </div>
                   <div className="flex flex-col gap-1 bg-card px-3 py-3">
                     <dt className="text-xs text-muted-foreground">Sobe e desce</dt>
-                    <dd className="m-0 text-2xl leading-none font-semibold tabular-nums">{n0(stats.swingPct)} <span className="text-sm font-normal text-muted-foreground">%</span></dd>
+                    <dd className="m-0 text-2xl leading-none font-semibold tabular-nums"><CountUp value={stats.swingPct} format={n0} /> <span className="text-sm font-normal text-muted-foreground">%</span></dd>
                   </div>
                 </dl>
               </FramePanel>

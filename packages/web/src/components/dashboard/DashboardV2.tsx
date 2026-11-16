@@ -4,6 +4,7 @@ import { Stack, Typography, Box, Grid, useTheme, Dialog, DialogTitle, DialogCont
 import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
 import { SEM, copperText, tealText, RADIUS } from '../../theme';
+import { useCountUp } from '../../hooks/useCountUp';
 import { ActivationChecklist } from './ActivationChecklist';
 import { deltaEntre, deltaLabel, diasAteJanela } from '../../utils/mental-delta';
 import { SeverityBar } from '../mental/SeverityBar';
@@ -288,58 +289,8 @@ const scoreGlowColor = (s: number | null) => {
   return 'rgba(239,68,68,.12)';
 };
 
-/** Solver de cubic-bezier CSS (Newton–Raphson + bisseção) — replica no rAF a MESMA
- *  curva de easing usada no CSS do design system, sem dependência externa. */
-const cubicBezier = (x1: number, y1: number, x2: number, y2: number) => {
-  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
-  const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
-  const sampleX = (u: number) => ((ax * u + bx) * u + cx) * u;
-  const sampleY = (u: number) => ((ay * u + by) * u + cy) * u;
-  const dX = (u: number) => (3 * ax * u + 2 * bx) * u + cx;
-  return (t: number) => {
-    let u = t;
-    for (let i = 0; i < 8; i++) {
-      const x = sampleX(u) - t;
-      if (Math.abs(x) < 1e-5) return sampleY(u);
-      const d = dX(u);
-      if (Math.abs(d) < 1e-6) break;
-      u -= x / d;
-    }
-    let lo = 0, hi = 1;
-    for (let i = 0; i < 20; i++) {
-      const x = sampleX(u);
-      if (Math.abs(x - t) < 1e-5) break;
-      if (x < t) lo = u; else hi = u;
-      u = (lo + hi) / 2;
-    }
-    return sampleY(u);
-  };
-};
-/** ease-out exponencial — a curva cubic-bezier(.16,1,.3,1) do motion system. */
-const easeOutExpo = cubicBezier(0.16, 1, 0.3, 1);
-
-/** Countup hook — 0 → alvo em ~800ms (easeOutExpo), CSS-free, cancelável.
- *  prefers-reduced-motion: mostra o valor final direto, sem animar. */
-const useCountUp = (target: number | null, duration = 800) => {
-  const [value, setValue] = useState(0);
-  const prevTarget = useRef<number | null>(null);
-  useEffect(() => {
-    if (target == null || target === prevTarget.current) return;
-    prevTarget.current = target;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setValue(target); return; }
-    let start: number | null = null;
-    let raf: number;
-    const step = (ts: number) => {
-      if (!start) start = ts;
-      const p = Math.min((ts - start) / duration, 1);
-      setValue(Math.round(easeOutExpo(p) * target));
-      if (p < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration]);
-  return target == null ? null : value;
-};
+/** Count-up extraído p/ hooks/useCountUp.ts (compartilhado com o kit de motion —
+ *  Radar público, landing). O score continua animando do último valor, não de zero. */
 
 /** E1 — strip "analisando… há 1:32" no dashboard: sinal GLOBAL de exame em processamento.
  *  Antes só existia na lista de exames — quem ficava no painel não sabia onde estava a
@@ -646,8 +597,8 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
               onClick={toggleAudio}
               aria-label={audioPlaying ? 'Pausar resumo em áudio do Dr. Exame' : 'Ouvir resumo em áudio do Dr. Exame'}
               sx={{
-                width: { xs: 34, sm: 38 },
-                height: { xs: 34, sm: 38 },
+                width: 40,
+                height: 40,
                 p: 0,
                 borderRadius: '50%',
                 background: 'linear-gradient(135deg, #20b2aa 0%, #0f5f5a 100%)',
@@ -724,7 +675,7 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
                 fontFamily: 'Poppins, sans-serif', fontWeight: 800,
                 fontSize: { xs: 'clamp(1.375rem, 7vw, 1.75rem)', sm: 26 },
                 lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums',
-              }}>{animatedScore ?? '—'}</Typography>
+              }}>{animatedScore == null ? '—' : Math.round(animatedScore)}</Typography>
             ) : <Shimmer w={40} h={26} r={8} />}
             <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', mt: 0.15 }}>de 100</Typography>
           </Box>

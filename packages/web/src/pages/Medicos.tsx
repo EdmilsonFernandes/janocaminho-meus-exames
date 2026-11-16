@@ -774,7 +774,7 @@ export const MedicosPage = () => {
       {/* Salvos SEM acesso a exames (§1: "adicionar não concede acesso") */}
       {!loading && semAcesso.length > 0 && (
         <Box sx={{ mb: 3 }}>
-          <Typography sx={{ fontWeight: 900, fontSize: 14, color: 'text.primary', mb: 0.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', fontFamily: 'Poppins, sans-serif' }}>
+          <Typography component="div" sx={{ fontWeight: 900, fontSize: 14, color: 'text.primary', mb: 0.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', fontFamily: 'Poppins, sans-serif' }}>
             <span>🔖 Salvos sem acesso ({semAcesso.length})</span>
             {/* Fix 05/11: era uma seção "morta" no fim da tela — agora grita a ação. */}
             <Chip size="small" label="toque em Compartilhar para liberar" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#b45309', border: '1px solid rgba(245,158,11,.35)' }} />

@@ -1,4 +1,4 @@
-import { Box, Container, Typography, Button, Stack, Chip, Dialog, IconButton, Collapse, Divider } from '@mui/material';
+import { Box, Container, Typography, Button, Stack, Chip, Dialog, IconButton, Collapse, Divider, useTheme } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect, lazy, Suspense } from 'react';
@@ -48,6 +48,7 @@ import { usePlanInfo, fmtBRL } from '../utils/planInfo';
 import { useHeroAb } from '../hooks/useHeroAb';
 import { ScrollReveal, AnimatedNumber } from '../components/ScrollReveal';
 import { Reveal } from '../components/Reveal';
+import { SplitWords } from '../components/motion/SplitWords';
 import { tealText } from '../theme';
 import {
   Gift, CheckCircle, UploadSimple, Heartbeat, Lightning, FileText,
@@ -211,6 +212,9 @@ export const LandingPage = () => {
   }, []);
   // Preço do plano/packs da API pública (admin edita live — landing nunca mais mente sobre preço).
   const planInfo = usePlanInfo();
+  // Acento do headline — SplitWords usa style inline; sx com função de tema não aplica lá.
+  const theme = useTheme();
+  const heroAccent = theme.palette.mode === 'dark' ? '#5fc9c3' : INK;
 
   const goTo = (id: string) => {
     const el = document.getElementById(id);
@@ -268,8 +272,11 @@ export const LandingPage = () => {
                   <Typography sx={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: { xs: 12, sm: 13 }, fontWeight: 700, letterSpacing: { xs: '0.14em', sm: '0.2em' }, color: '#d4a574', mb: 1.5, animation: 'fadeSlideUp .6s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     VOCÊ ACOMPANHA SEUS TREINOS.
                   </Typography>
-                  <Typography variant="h1" sx={{ fontSize: { xs: '2.2rem', sm: '2.8rem', md: '3.8rem' }, fontWeight: 800, lineHeight: 1.1, mb: 2.5, letterSpacing: '-0.03em', color: '#fff', animation: 'fadeSlideUp .7s .1s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
-                    <Box component="span" sx={{ display: 'block' }}>E seus <Box component="span" sx={{ ...SERIF_I, color: '#5fc9c3', fontSize: '1.06em' }}>exames?</Box></Box>
+                  <Typography variant="h1" sx={{ fontSize: { xs: '2.2rem', sm: '2.8rem', md: '3.8rem' }, fontWeight: 800, lineHeight: 1.1, mb: 2.5, letterSpacing: '-0.03em', color: '#fff' }}>
+                    <SplitWords delay={100} step={55} segments={[
+                      { text: 'E seus ' },
+                      { text: 'exames?', style: { ...SERIF_I, color: '#5fc9c3', fontSize: '1.06em' } },
+                    ]} />
                   </Typography>
                   <Typography sx={{ fontSize: { xs: 15.5, sm: 16.5, md: 19 }, color: 'rgba(255,255,255,.85)', mb: 3, lineHeight: 1.6, maxWidth: 520, animation: 'fadeSlideUp .7s .2s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     Hormônios, hematócrito, colesterol, fígado e rim interpretados <b style={{ color: '#fff' }}>no contexto de quem treina</b> — a régua do laboratório de um lado, seu histórico do outro e <b style={{ color: '#fff' }}>a meta do SEU médico</b> no meio.
@@ -280,11 +287,19 @@ export const LandingPage = () => {
                 </>
               ) : (
                 <>
-                  <Typography variant="h1" sx={{ fontSize: { xs: '2.05rem', sm: '2.7rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.12, mb: 2, letterSpacing: '-0.03em', color: 'text.primary', animation: 'fadeSlideUp .7s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
+                  <Typography variant="h1" sx={{ fontSize: { xs: '2.05rem', sm: '2.7rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.12, mb: 2, letterSpacing: '-0.03em', color: 'text.primary' }}>
                     {heroAb === 'A' ? (
-                      <><Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box> como <Box component="span" sx={{ ...SERIF_I, color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : INK), fontSize: '1.06em' }}>nunca antes.</Box></>
+                      <SplitWords delay={0} step={45} segments={[
+                        { text: 'Entenda seus exames', br: true },
+                        { text: ' como ' },
+                        { text: 'nunca antes.', style: { ...SERIF_I, color: heroAccent, fontSize: '1.06em' } },
+                      ]} />
                     ) : (
-                      <><Box component="span" sx={{ display: 'block' }}>Seu exame de sangue,</Box> explicado <Box component="span" sx={{ ...SERIF_I, color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : INK), fontSize: '1.06em' }}>em 30 segundos.</Box></>
+                      <SplitWords delay={0} step={45} segments={[
+                        { text: 'Seu exame de sangue,', br: true },
+                        { text: ' explicado ' },
+                        { text: 'em 30 segundos.', style: { ...SERIF_I, color: heroAccent, fontSize: '1.06em' } },
+                      ]} />
                     )}
                   </Typography>
                   <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'text.secondary', mb: 3, lineHeight: 1.6, maxWidth: 500, animation: 'fadeSlideUp .7s .15s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
