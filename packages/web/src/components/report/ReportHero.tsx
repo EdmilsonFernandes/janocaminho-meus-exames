@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { CardContent, Box, Stack, Typography, Button, CircularProgress, Grid, Chip } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -27,6 +27,34 @@ const StatTile = ({ value, label, accent }: { value: ReactNode; label: string; a
     <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: '.07em', display: 'block', mt: 0.5 }}>{label}</Typography>
   </Box>
 );
+
+/**
+ * Texto do resumo: mostra o começo e deixa o resto atrás de "Ler tudo" (dono, 16/11: "o usuário
+ * não lê muito"). Os pontos de atenção e as perguntas, logo abaixo, já dizem o essencial.
+ * Parágrafos separados de verdade (antes "Leitura final" vinha colada no parágrafo anterior).
+ */
+const ResumoText = ({ text }: { text: string }) => {
+  const [open, setOpen] = useState(false);
+  const parts = text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  const long = text.length > 420;
+  return (
+    <Box sx={{ mt: 2, p: { xs: 2, sm: 2.5 }, borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+      <Box id="relatorio-resumo" sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, ...(long && !open ? { display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical', overflow: 'hidden' } : {}) }}>
+        {(long && !open ? [parts.join(' ')] : parts).map((p, i) => (
+          <Typography key={i} component={long && !open ? 'span' : 'p'} sx={{ m: 0, fontSize: '0.95rem', lineHeight: 1.7, wordBreak: 'break-word', color: 'text.primary', fontWeight: 400 }}>
+            {p}
+          </Typography>
+        ))}
+      </Box>
+      {long && (
+        <Button onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="relatorio-resumo"
+          sx={{ mt: 1, ml: -1, minHeight: 40, textTransform: 'none', fontWeight: 700, borderRadius: '10px' }}>
+          {open ? 'Mostrar menos' : 'Ler tudo'}
+        </Button>
+      )}
+    </Box>
+  );
+};
 
 export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare, onPrint, onRegen, sourceExams, baseDate, onOpenExam }: {
   resumo?: string; counts: { itens: number; atencao: number; positivos: number };
@@ -205,13 +233,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
     </Box>
 
     {/* Resumo Textual — ReUI Prose */}
-    {resumo && (
-      <Box sx={{ mt: 2, p: { xs: 2, sm: 2.5 }, borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-        <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.7, wordBreak: 'break-word', color: 'text.primary', fontWeight: 400 }}>
-          {resumo}
-        </Typography>
-      </Box>
-    )}
+    {resumo && <ResumoText text={resumo} />}
     </FramePanel>
     <FrameFooter className="px-4 py-2 text-xs text-muted-foreground flex items-center justify-between flex-wrap gap-2">
       <span>Síntese gerada com extração determinística de laudos · Leve à sua próxima consulta</span>

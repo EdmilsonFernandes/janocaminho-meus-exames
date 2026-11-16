@@ -158,7 +158,9 @@ export const ValoresAlteradosPage = () => {
           boxShadow: (t) => (t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.03)'),
         }}
       >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: meta.color + '14' }}>
+        {/* Fechado: cartão claro com a barra de cor na lateral; o fundo tingido só entra quando abre
+            (antes a tela era uma pilha de blocos rosa, todos gritando igual). */}
+        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: 'background.paper', transition: 'background-color 160ms cubic-bezier(0.22,1,0.36,1)', '&.Mui-expanded': { bgcolor: meta.color + '14' } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
             <Box component="span" sx={{ fontSize: 18 }}>{meta.emoji}</Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>

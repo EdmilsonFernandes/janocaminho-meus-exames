@@ -1565,7 +1565,8 @@ const DashboardV2Inner = () => {
           <Grid container spacing={3.5} sx={{ mt: !demo && !!sports.profile && sports.eligible === true ? 3.5 : 0 }}>
           {/* COLUNA PRINCIPAL (65%) */}
           <Grid size={{ xs: 12, md: 7, lg: 8 }}>
-            <Stack spacing={3.5}>
+            {/* Cartão que resolve para nada não pode deixar um vão: some do fluxo (16/11). */}
+            <Stack spacing={3.5} sx={{ '& > :empty': { display: 'none' } }}>
               {/* PRÓXIMOS PASSOS (onboarding) — escondido no demo (checklist real não faz
                   sentido). Enquanto carrega: SkeletonCard da marca (nada de estado vazio
                   prematuro "envie o 1º exame" piscando antes dos dados chegarem). */}

@@ -36,7 +36,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { AppCard } from '../components/AppCard';
 import { GradientButton } from '../components/GradientButton';
 import { PageContainer } from '../components/layout/PageContainer';
-import { ActivityRing, MetricMini } from '../components/dashboard/ActivityCard';
+import { MetricMini } from '../components/dashboard/ActivityCard';
 import { hapticLight } from '../utils/haptic';
 import { SEM } from '../theme';
 import {
@@ -52,6 +52,9 @@ import { Badge } from '@/components/reui/badge';
 import { Frame, FramePanel } from '@/components/reui/frame';
 import { IconTile } from '@/components/reui/icon-tile';
 import { PulseIcon } from '@/components/reui/icons';
+import { RingGauge } from '../components/motion/RingGauge';
+import { CountUp } from '../components/motion/CountUp';
+import { GlassGlow } from '../components/motion/GlassGlow';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 
 const RANGES: Array<{ value: ActivityRange; label: string }> = [
@@ -150,7 +153,7 @@ export const SinaisPage = () => {
     hapticLight();
     const text = `📋 *Ficha de Sinais Vitais - Dr. Exame*\n` +
       `• Passos médios: ${fmtSteps(s.avgSteps)} passos/dia (${rangeLabel(range)})\n` +
-      `• Frequência Cardíaca de Repouso: ${s.hrRest ? Math.round(s.hrRest) + ' bpm' : 'Não registrada'}\n` +
+      `• Frequência cardíaca média do dia: ${s.hrRest ? Math.round(s.hrRest) + ' bpm' : 'Não registrada'}\n` +
       `• Sono médio: ${fmtSleep(avgOf(days, 'sleepMin', range)) || 'Não registrado'}\n` +
       `• Atividade/Exercício: ${Math.round(s.totalExercise ?? 0)} min acumulados no período\n` +
       `• Gasto Calórico Médio: ${fmtKcal(s.avgKcal)} kcal/dia\n` +
@@ -313,28 +316,32 @@ export const SinaisPage = () => {
           </Box>
 
           {/* 1. HERO CARD: ANEL CONCÊNTRICO + PASSOS + CHIPS DE SINAIS (ZERO QUEBRA VERTICAL) */}
-          <AppCard sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: '20px' }}>
-            <Stack spacing={2}>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5} alignItems={{ xs: 'flex-start', sm: 'center' }}>
-                <ActivityRing ratio={s.goalRatio} pct={goalPct} done={s.goalRatio >= 1} />
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600 }}>
-                    {range === 'today' ? 'Passos hoje' : `Passos em ${rangeLabel(range).toLowerCase()}`}
-                  </Typography>
-                  <Stack direction="row" alignItems="baseline" spacing={0.75} sx={{ minWidth: 0 }}>
-                    <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 32, sm: 38 }, lineHeight: 1.1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
-                      {fmtSteps(primarySteps)}
+          <AppCard sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: '20px', position: 'relative', overflow: 'hidden' }}>
+            <div className="dx-island"><GlassGlow /></div>
+            <Stack spacing={2} sx={{ position: 'relative' }}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5} alignItems="center">
+                <div className="dx-island">
+                  <RingGauge
+                    size={164}
+                    thickness={14}
+                    segments={[{ fraction: Math.min(1, s.goalRatio), className: s.goalRatio >= 1 ? 'stroke-success' : 'stroke-primary' }]}
+                    label={`${goalPct}% da meta diária de ${fmtSteps(STEPS_GOAL)} passos`}
+                  >
+                    <DirectionsWalkIcon aria-hidden="true" sx={{ fontSize: 18, color: 'primary.dark', mb: 0.25 }} />
+                    <CountUp value={range === 'today' ? s.steps : s.avgSteps} format={(v) => Math.round(v).toLocaleString('pt-BR')} className="text-3xl leading-none font-semibold tracking-tight text-foreground tabular-nums" />
+                    <span className="mt-1 text-xs text-muted-foreground">{range === 'today' ? 'passos hoje' : 'passos por dia'}</span>
+                  </RingGauge>
+                </div>
+                <Box sx={{ flex: 1, minWidth: 0, textAlign: { xs: 'center', sm: 'left' } }}>
+                  <Stack direction="row" alignItems="center" spacing={0.75} justifyContent={{ xs: 'center', sm: 'flex-start' }}>
+                    <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 18, lineHeight: 1.25, color: 'text.primary' }}>
+                      {s.goalRatio >= 1 ? 'Meta do dia batida' : `${goalPct}% da meta do dia`}
                     </Typography>
-                    {s.goalRatio >= 1 && <CheckCircleIcon sx={{ fontSize: 22, color: 'success.main', mb: 0.5 }} aria-label="meta batida" />}
+                    {s.goalRatio >= 1 && <CheckCircleIcon sx={{ fontSize: 20, color: 'success.main' }} aria-hidden="true" />}
                   </Stack>
-                  <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.25, lineHeight: 1.4 }}>
-                    {s.goalRatio >= 1
-                      ? 'Parabéns! Meta batida com sucesso 🎉'
-                      : `${goalPct}% da meta diária de ${fmtSteps(STEPS_GOAL)} passos`}
-                    {' · '}
-                    <Typography component="span" sx={{ color: 'primary.dark', fontWeight: 700, fontSize: 12 }}>
-                      Estudos (Lancet): benefício a partir de 7.000
-                    </Typography>
+                  <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.25, lineHeight: 1.45 }}>
+                    Meta de {fmtSteps(STEPS_GOAL)} passos por dia
+                    {range !== 'today' ? ` · ${fmtSteps(primarySteps)} no total em ${rangeLabel(range).toLowerCase()}` : ''}
                   </Typography>
                 </Box>
               </Stack>
@@ -346,7 +353,7 @@ export const SinaisPage = () => {
                 )}
                 <MetricMini icon={<RouteIcon sx={{ fontSize: 16 }} />} tone={SEM.info[theme.palette.mode]} label="Distância" value={fmtKm(primaryKm)} unit="km" contextLabel={periodMetricLabel} />
                 {(s.hrRest ?? 0) > 0 && (
-                  <MetricMini icon={<FavoriteIcon sx={{ fontSize: 16 }} />} tone={SEM.bad[theme.palette.mode]} label="FC de repouso" value={`${Math.round(s.hrRest ?? 0)}`} unit="bpm" contextLabel={range === 'today' ? undefined : `média ${rangeLabel(range).toLowerCase()}`} />
+                  <MetricMini icon={<FavoriteIcon sx={{ fontSize: 16 }} />} tone={SEM.bad[theme.palette.mode]} label="FC média" value={`${Math.round(s.hrRest ?? 0)}`} unit="bpm" contextLabel={range === 'today' ? undefined : `média ${rangeLabel(range).toLowerCase()}`} />
                 )}
                 {(s.sleepMin ?? 0) > 0 && (
                   <MetricMini icon={<BedtimeIcon sx={{ fontSize: 16 }} />} tone={SEM.info[theme.palette.mode]} label="Sono" value={fmtSleep(s.sleepMin ?? 0)} unit="" contextLabel={range === 'today' ? 'última noite' : `média/noite`} />
@@ -433,16 +440,14 @@ export const SinaisPage = () => {
                   <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.75 }}>
                     <FavoriteIcon sx={{ fontSize: 18, color: '#ef4444' }} />
                     <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#ef4444', textTransform: 'uppercase' }}>
-                      Coração & Repouso
+                      Coração
                     </Typography>
                   </Stack>
                   <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', lineHeight: 1.45, mb: 0.5 }}>
-                    Sua frequência cardíaca de repouso média está em {Math.round(s.hrRest ?? 0)} bpm.
+                    Sua frequência cardíaca média no período foi de {Math.round(s.hrRest ?? 0)} bpm.
                   </Typography>
                   <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.45 }}>
-                    {s.hrRest! <= 80
-                      ? 'Excelente indicador de eficiência miocárdica e baixo estresse cardiovascular.'
-                      : 'Batimentos em repouso ligeiramente aumentados. Manter boa hidratação e sono regular ajuda a estabilizar.'}
+                    É a média do dia inteiro, incluindo os momentos de atividade; não é a frequência de repouso. O que vale acompanhar é a tendência ao longo das semanas.
                   </Typography>
                 </AppCard>
               )}
@@ -473,6 +478,7 @@ export const SinaisPage = () => {
               Tendências Detalhadas
             </Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 1.5 }}>
+              {avgOf(days, 'sleepMin', range) > 0 && (
               <TrendCard
                 icon={<BedtimeIcon sx={{ fontSize: 16 }} />} tone={SEM.info[theme.palette.mode]} label="Sono"
                 value={fmtSleep(avgOf(days, 'sleepMin', range))} valueSub="média/noite"
@@ -481,9 +487,10 @@ export const SinaisPage = () => {
                 delta={deltaPct(days, 'sleepMin', range)} deltaGoodWhenLower={false}
                 footer="Consenso AASM: 7 a 9 horas diárias para reparação física e cognitiva."
               />
+              )}
               {(s.hrRest ?? 0) > 0 && (
                 <TrendCard
-                  icon={<FavoriteIcon sx={{ fontSize: 16 }} />} tone={SEM.bad[theme.palette.mode]} label="FC de repouso"
+                  icon={<FavoriteIcon sx={{ fontSize: 16 }} />} tone={SEM.bad[theme.palette.mode]} label="FC média do dia"
                   value={`${Math.round(s.hrRest ?? 0)}`} valueSub="bpm"
                   series={fcSeries(days, range)}
                   goal={undefined} fmtBar={(v) => `${Math.round(v)} bpm`}
