@@ -113,6 +113,19 @@ function themeCandidates(c: TipContext): { theme: TipTheme; has: boolean }[] {
   ];
 }
 
+/**
+ * Tela que o push da dica abre ao ser tocado. Só a dica de "atenção" que citou um fato de
+ * alimentação do dicionário curado leva para "Alimentação e seus exames"; as demais seguem
+ * abrindo o destino de sempre. Vai no campo `screen` (e não em `link`) de propósito: versões
+ * antigas do app, sem essa tela, ignoram o campo em vez de cair numa página inexistente.
+ */
+export function tipScreenFor(c: TipContext, theme: TipTheme): 'alimentacao' | null {
+  if (theme !== 'atencao') return null;
+  const w = c.worsening[0];
+  if (!w) return null;
+  return foodHintFor(w.name, w.deltaPct != null && w.deltaPct < 0 ? 'baixo' : 'alto') ? 'alimentacao' : null;
+}
+
 export function pickTipTheme(c: TipContext, recentThemes: string[]): TipTheme {
   const cands = themeCandidates(c).filter((x) => x.has);
   const blocked = recentThemes.slice(0, 2); // as 2 mais recentes

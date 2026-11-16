@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildTipPrompt, classifySegment, curatedFallback, isSedentaryWeek, pickTipTheme, type TipContext, type TipMarker } from '../src/jobs/tipEngine';
+import { buildTipPrompt, classifySegment, curatedFallback, isSedentaryWeek, pickTipTheme, tipScreenFor, type TipContext, type TipMarker } from '../src/jobs/tipEngine';
 
 /** Contexto base: nenhum dado (tudo nulo/vazio) → só tema possível é rotina. */
 const ctx = (over: Partial<TipContext> = {}): TipContext => ({
@@ -173,5 +173,18 @@ describe('buildTipPrompt — contexto e anti-repetição', () => {
     const { user } = buildTipPrompt(ctx({ childAgeMonths: 18, childLastMeasureDays: 40 }), 'crianca', []);
     expect(user).toContain('18 meses');
     expect(user).toContain('40 dia(s)');
+  });
+});
+
+describe('tela que o push da dica abre', () => {
+  it('dica de atenção com fato de alimentação abre a tela de alimentação', () => {
+    expect(tipScreenFor(ctx({ worsening: [mk()] }), 'atencao')).toBe('alimentacao');
+  });
+  it('exame sem evidência de alimentação não leva para lá', () => {
+    expect(tipScreenFor(ctx({ worsening: [mk({ name: 'TSH' })] }), 'atencao')).toBeNull();
+  });
+  it('outros temas e dica sem marcador seguem o destino de sempre', () => {
+    expect(tipScreenFor(ctx({ worsening: [mk()] }), 'melhora')).toBeNull();
+    expect(tipScreenFor(ctx(), 'atencao')).toBeNull();
   });
 });

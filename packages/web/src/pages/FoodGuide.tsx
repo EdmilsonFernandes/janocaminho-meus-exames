@@ -2,8 +2,8 @@
  * Alimentação e seus exames — /alimentacao (14/11/26).
  *
  * Plano ReUI: superfície operacional · arquétipo "Frame stack" · família Frame · regiões:
- * exames fora da faixa (linhas com mini gráfico) → resumo personalizado (IA) → o que a ciência diz
- * de cada um → dicionário completo → limites desta tela.
+ * seus números (linhas com mini gráfico; cada linha abre a alimentação daquele exame ali mesmo)
+ * → resumo personalizado (IA) → dicionário dos demais exames → limites desta tela.
  *
  * Blocos ReUI reaproveitados (composição, com dados reais):
  *  - chart-25: lista de métricas com valor, etiqueta e mini gráfico por linha;
@@ -22,7 +22,7 @@
  * orientação · com orientações · resumo: nunca gerado / gerando / pronto / sem saldo / falhou.
  */
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useNotify, useRefresh } from 'react-admin';
 import { Line, LineChart, XAxis, YAxis } from 'recharts';
 import { ArrowUp, BookOpen, Check, ChevronDown, CircleHelp, Info, MessageCircleQuestion, Salad, Sparkles, Stethoscope, TrendingDown, TrendingUp, TriangleAlert, Upload, X } from 'lucide-react';
@@ -123,11 +123,11 @@ function rangeText(low: number | null, high: number | null): string {
 /** Mini gráfico da evolução do exame (composição do bloco chart-25). */
 function Sparkline({ label, points, tone = 'warning' }: { label: string; points?: Array<{ value: number; date: string }>; tone?: 'warning' | 'success' }) {
   const data = (points ?? []).map((p) => ({ period: p.date, value: p.value }));
-  if (data.length < 2) return <span className="shrink-0 text-xs text-muted-foreground">primeiro resultado</span>;
+  if (data.length < 2) return null; // um resultado só: a linha diz "primeiro resultado" no texto
   const config = { value: { label, color: tone === 'success' ? 'var(--success)' : 'var(--warning)' } } satisfies ChartConfig;
   const first = data[0].value; const last = data[data.length - 1].value;
   return (
-    <div className="relative h-11 w-28 shrink-0 sm:w-40" role="img" aria-label={`${label}: de ${fmt(first)} para ${fmt(last)} em ${data.length} resultados`}>
+    <div className="relative h-11 w-20 shrink-0 sm:w-40" role="img" aria-label={`${label}: de ${fmt(first)} para ${fmt(last)} em ${data.length} resultados`}>
       <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-md opacity-60 [background-image:linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] [background-size:16px_11px]" />
       <ChartContainer config={config} className="relative z-10 aspect-auto! h-11 w-full" initialDimension={{ width: 160, height: 44 }}>
         <LineChart accessibilityLayer data={data} margin={{ top: 5, right: 4, bottom: 5, left: 4 }}>
@@ -197,6 +197,81 @@ function GuideBody({ guide }: { guide: Guide }) {
   );
 }
 
+/**
+ * Uma linha de "Seus números": o valor do paciente e, ao tocar, a alimentação daquele exame
+ * aberta ali mesmo (antes era um cartão separado no fim da tela, repetindo o exame).
+ * Abre/fecha pela altura (grid 0fr → 1fr), uma transição de 200ms; parado sob "reduzir movimento".
+ */
+function ValueRow({ v, guide, open, onToggle, onAsk }: { v: PatientValue; guide: Guide | null; open: boolean; onToggle: () => void; onAsk: (() => void) | null }) {
+  const panelId = `food-panel-${v.nameCanonical.replace(/[^a-zA-Z0-9]+/g, '-')}`;
+  // Rótulo em linguagem de gente (dono, 16/11): fala de prato, não de "alimentação".
+  const cta = !guide ? null : guide.strength === 'nao-resolve' ? 'A comida ajuda aqui?' : v.status === 'normal' ? 'O que manter no prato' : 'O que pôr no prato';
+  const first = (v.points?.length ?? 0) < 2;
+  const meta = [
+    rangeText(v.refLow, v.refHigh) ? `Faixa do laudo: ${rangeText(v.refLow, v.refHigh)}` : 'Laudo sem faixa de referência',
+    v.date ? dateBr(v.date) : '',
+    first ? 'primeiro resultado' : '',
+  ].filter(Boolean).join(' · ');
+  const summary = (
+    <>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-sm font-medium text-foreground">{v.label}</span>
+        <span className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="text-base font-semibold whitespace-nowrap text-foreground tabular-nums">{fmt(v.value)}{v.unit ? <span className="ms-1 text-sm font-normal text-muted-foreground">{v.unit}</span> : null}</span>
+          {v.status === 'normal' ? (
+            <Badge className="shrink-0 border-0 whitespace-nowrap" variant="success-light"><Check aria-hidden="true" />Na faixa</Badge>
+          ) : (
+            <Badge className="shrink-0 border-0 whitespace-nowrap" variant="warning-light">
+              {v.status === 'alto' ? <TrendingUp aria-hidden="true" /> : <TrendingDown aria-hidden="true" />}
+              {v.status === 'alto' ? 'Acima da faixa' : 'Abaixo da faixa'}
+            </Badge>
+          )}
+        </span>
+        <span className="mt-1 text-xs text-muted-foreground">{meta}</span>
+        {cta ? (
+          <span className="mt-2 inline-flex items-center gap-1.5 self-start text-sm font-medium text-primary">
+            <Salad aria-hidden="true" className="size-4 shrink-0" />
+            {cta}
+            <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none', open && 'rotate-180')} />
+          </span>
+        ) : null}
+      </span>
+      <Sparkline label={v.label} points={v.points} tone={v.status === 'normal' ? 'success' : 'warning'} />
+    </>
+  );
+  if (!guide) return <div className="flex min-h-20 items-center justify-between gap-3 px-4 py-3">{summary}</div>;
+  return (
+    <>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={onToggle}
+        className="flex min-h-20 w-full cursor-pointer appearance-none items-center justify-between gap-3 border-0 bg-transparent px-4 py-3 text-left transition-colors duration-200 hover:bg-muted/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+      >
+        {summary}
+      </button>
+      <div id={panelId} role="region" aria-label={`${cta}: ${v.label}`} inert={!open} className={cn('grid transition-[grid-template-rows] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none', open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}>
+        <div className="min-h-0 overflow-hidden">
+          <div className="flex flex-col gap-4 border-0 border-t border-dashed border-border bg-muted/30 px-4 py-4">
+            {v.status === 'normal' ? (
+              <p className="m-0 flex items-start gap-2 text-sm leading-relaxed text-foreground">
+                <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-success" />
+                <span>Seu resultado está na faixa. O que vem abaixo é o que costuma ajudar a mantê-lo assim.</span>
+              </p>
+            ) : null}
+            <EvidenceMeter key={open ? 'aberto' : 'fechado'} strength={guide.strength} />
+            <GuideBody guide={guide} />
+            {onAsk ? (
+              <Button variant="outline" size="lg" className="h-10 self-start" onClick={onAsk}><MessageCircleQuestion aria-hidden="true" />Perguntar ao Dr. Exame</Button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 /** Painel "Perguntar ao Dr. Exame" (composição do bloco sheet-10): sugestões + campo de texto. */
 function AskSheet({ match, onClose }: { match: Match | null; onClose: () => void }) {
   const navigate = useNavigate();
@@ -253,12 +328,17 @@ export function FoodGuidePage() {
   const navigate = useNavigate();
   const notify = useNotify();
   const refresh = useRefresh();
-  const [pid] = useSelectedPatient();
+  const [pid, setPid] = useSelectedPatient();
+  // Veio de um push sobre um dependente: troca para o paciente do aviso antes de carregar.
+  const [params] = useSearchParams();
+  const wanted = params.get('paciente');
+  useEffect(() => { if (wanted && wanted !== pid) setPid(wanted); }, [wanted]); // eslint-disable-line react-hooks/exhaustive-deps
   const [data, setData] = useState<Payload | null>(null);
   const [failed, setFailed] = useState(false);
   const [tick, setTick] = useState(0);
   const [generating, setGenerating] = useState(false);
   const [askFor, setAskFor] = useState<Match | null>(null);
+  const [openRows, setOpenRows] = useState<Set<string>>(() => new Set());
   const outOfRange = (data?.values ?? []).filter((v) => v.status !== 'normal').length;
 
   useEffect(() => {
@@ -321,8 +401,13 @@ export function FoodGuidePage() {
     }
   };
 
-  const matched = new Set((data?.matches ?? []).map((m) => m.guide.key));
-  const others = (data?.dictionary ?? []).filter((g) => !matched.has(g.key));
+  // A orientação de cada exame abre na própria linha de "Seus números".
+  const matchFor = (v: PatientValue) => (data?.matches ?? []).find((m) => m.nameCanonical === v.nameCanonical) ?? null;
+  const guideFor = (v: PatientValue) => matchFor(v)?.guide ?? (data?.dictionary ?? []).find((g) => g.key === v.guideKey) ?? null;
+  const toggleRow = (name: string) => setOpenRows((prev) => { const next = new Set(prev); if (next.has(name)) next.delete(name); else next.add(name); return next; });
+  // O dicionário do fim fica só com os exames que NÃO aparecem em "Seus números".
+  const shown = new Set([...(data?.matches ?? []).map((m) => m.guide.key), ...(data?.values ?? []).map((v) => guideFor(v)?.key ?? v.guideKey)]);
+  const others = (data?.dictionary ?? []).filter((g) => !shown.has(g.key));
   const withFood = (data?.matches ?? []).filter((m) => m.guide.strength !== 'nao-resolve').length;
 
   return (
@@ -362,6 +447,7 @@ export function FoodGuidePage() {
                       O resultado mais recente de cada exame que a alimentação costuma influenciar.{' '}
                       {outOfRange === 0 ? 'Todos estão dentro da faixa do laudo.' : outOfRange === 1 ? '1 está fora da faixa.' : `${outOfRange} estão fora da faixa.`}
                       {data.matches.length ? (withFood > 0 ? ` Em ${withFood}, a alimentação ajuda.` : ' Em nenhum deles a alimentação resolve sozinha.') : null}
+                      {' '}Toque em um exame para ver.
                     </FrameDescription>
                   </div>
                 </FrameHeader>
@@ -369,26 +455,13 @@ export function FoodGuidePage() {
                   <ul className="m-0 flex list-none flex-col p-0">
                     {data.values.map((v, i) => (
                       <li key={v.nameCanonical}>
-                        <div className="flex min-h-20 items-center justify-between gap-3 px-4 py-3">
-                          <div className="min-w-0 flex-1">
-                            <p className="m-0 text-sm font-medium text-foreground">{v.label}</p>
-                            <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                              <span className="text-base font-semibold whitespace-nowrap text-foreground tabular-nums">{fmt(v.value)}{v.unit ? <span className="ms-1 text-sm font-normal text-muted-foreground">{v.unit}</span> : null}</span>
-                              {v.status === 'normal' ? (
-                                <Badge className="shrink-0 border-0 whitespace-nowrap" variant="success-light"><Check aria-hidden="true" />Na faixa</Badge>
-                              ) : (
-                                <Badge className="shrink-0 border-0 whitespace-nowrap" variant="warning-light">
-                                  {v.status === 'alto' ? <TrendingUp aria-hidden="true" /> : <TrendingDown aria-hidden="true" />}
-                                  {v.status === 'alto' ? 'Acima da faixa' : 'Abaixo da faixa'}
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="m-0 mt-1 text-xs text-muted-foreground">
-                              {rangeText(v.refLow, v.refHigh) ? `Faixa do laudo: ${rangeText(v.refLow, v.refHigh)}` : 'Laudo sem faixa de referência'}{v.date ? ` · ${new Date(v.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}` : ''}
-                            </p>
-                          </div>
-                          <Sparkline label={v.label} points={v.points} tone={v.status === 'normal' ? 'success' : 'warning'} />
-                        </div>
+                        <ValueRow
+                          v={v}
+                          guide={guideFor(v)}
+                          open={openRows.has(v.nameCanonical)}
+                          onToggle={() => toggleRow(v.nameCanonical)}
+                          onAsk={matchFor(v) ? () => setAskFor(matchFor(v)!) : null}
+                        />
                         {i < data.values.length - 1 ? <Separator /> : null}
                       </li>
                     ))}
@@ -448,23 +521,6 @@ export function FoodGuidePage() {
                     )}
                   </FramePanel>
                 </Frame>
-
-                {/* ───────── O que a ciência diz, exame por exame ───────── */}
-                {data.matches.map((m, i) => (
-                  <Frame key={m.guide.key} className="dx-rise" style={{ '--i': Math.min(i, 5) } as React.CSSProperties}>
-                    <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
-                      <div className="flex min-w-0 flex-col gap-px">
-                        <FrameTitle role="heading" aria-level={2}>{m.guide.label}</FrameTitle>
-                        <FrameDescription>{fmt(m.value)}{m.unit ? ` ${m.unit}` : ''} · {m.direction === 'alto' ? 'acima' : 'abaixo'} da faixa do laudo</FrameDescription>
-                      </div>
-                      <Button variant="outline" size="sm" onClick={() => setAskFor(m)}><MessageCircleQuestion aria-hidden="true" />Perguntar ao Dr. Exame</Button>
-                    </FrameHeader>
-                    <FramePanel className="flex flex-col gap-4">
-                      <EvidenceMeter strength={m.guide.strength} />
-                      <GuideBody guide={m.guide} />
-                    </FramePanel>
-                  </Frame>
-                ))}
               </>
             ) : (
               <Frame>

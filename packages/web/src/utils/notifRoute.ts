@@ -10,6 +10,9 @@ export function notifRoute(n: any): string | null {
   // mais urgente do app, vai DIRETO pra sala (tray tap E popup em foreground).
   if (d.type === 'cross_insight' || d.crossInsight || d.insight_id) return '/notificacoes';
   if ((d.type === 'teleconsulta' || n.type === 'teleconsulta') && d.reminderId) return `/teleconsulta/${d.reminderId}`;
+  // Push que sugere alimentação (alerta de valor fora da faixa ou dica): abre a tela de
+  // alimentação já no paciente do aviso (pode ser um dependente).
+  if (d.screen === 'alimentacao') return `/alimentacao${d.patientId ? `?paciente=${encodeURIComponent(String(d.patientId))}` : ''}`;
   if (d.examId) return `/exams/${d.examId}/show`;
   if (n.type === 'doctor_question' || d.type === 'doctor_question') return '/perguntas';
   if (d.ticketId) return `/suporte/${d.ticketId}`;

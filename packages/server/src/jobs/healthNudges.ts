@@ -1,9 +1,10 @@
 import { prisma } from '../prisma';
 import { sendPushToUser } from '../utils/push';
+import { foodHintFor } from '../analysis/food-guide';
 import { sendNudgeEmail } from '../utils/nudgeMail';
 import { getLlm, getModel } from '../llm';
 import { getCachedHealthSummary } from '../analysis/hs-cache';
-import { buildTipPrompt, curatedFallback, pickTipTheme, classifySegment, type TipContext, type TipMarker, type TipTheme } from './tipEngine';
+import { buildTipPrompt, curatedFallback, pickTipTheme, tipScreenFor, classifySegment, type TipContext, type TipMarker, type TipTheme } from './tipEngine';
 
 /** Scheduler de NUDGES de saúde (08h BRT).
  *  - ALERTA: valor alterado em exame recente (30d) DESTE paciente, sem alerta nos últimos 3 dias.
@@ -58,7 +59,7 @@ async function generateTip(patientId: string, ctx: TipContext, theme: TipTheme, 
 
 /** Monta o contexto REAL do paciente p/ a dica: health-summary + atividade HC + medicação + dicas recentes.
  *  (exportada p/ smoke test manual: `npx tsx scripts/smoke-tip.ts`) */
-export async function buildSmartTip(patientId: string, ownerId: string, firstName: string): Promise<{ body: string; theme: TipTheme } | null> {
+export async function buildSmartTip(patientId: string, ownerId: string, firstName: string): Promise<{ body: string; theme: TipTheme; screen: 'alimentacao' | null } | null> {
   const [hs, lastExam, meds, recentTips, acts, patientRow, lastMental, sportsProfile] = await Promise.all([
     getCachedHealthSummary(patientId).catch(() => null),
     prisma.exam.findFirst({ where: { patientId, status: 'EXTRACTED', performedAt: { not: null } }, orderBy: { performedAt: 'desc' }, select: { performedAt: true } }),
@@ -154,7 +155,7 @@ export async function buildSmartTip(patientId: string, ownerId: string, firstNam
   const recentBodies = recentTips.map((n) => n.body).filter(Boolean);
   const theme = pickTipTheme(ctx, recentThemes);
   const body = await generateTip(patientId, ctx, theme, recentBodies);
-  return { body, theme };
+  return { body, theme, screen: tipScreenFor(ctx, theme) };
 }
 
 export function startHealthNudgeJob(): void {
@@ -204,7 +205,7 @@ async function maybeNudgeForPatient(patient: { id: string; fullName: string; own
       where: { isAbnormal: true, exam: { patientId: patient.id, OR: [{ performedAt: { gte: since } }, { performedAt: null, createdAt: { gte: since } }] } },
       orderBy: { exam: { performedAt: 'desc' } },
       take: 15,
-      select: { name: true, nameCanonical: true, exam: { select: { id: true } } },
+      select: { name: true, nameCanonical: true, flag: true, exam: { select: { id: true } } },
     });
     if (abnormals.length) {
       const a = abnormals[Math.floor(Math.random() * abnormals.length)];
@@ -213,6 +214,13 @@ async function maybeNudgeForPatient(patient: { id: string; fullName: string; own
       body = `Seu ${a.name} está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.`;
       data.examId = a.exam?.id ?? '';
       data.nameCanonical = a.nameCanonical ?? a.name;
+      // Há orientação de alimentação com evidência para este exame, nesta direção? Então o toque
+      // abre "Alimentação e seus exames" (app novo); o app antigo segue abrindo o exame.
+      const dir = a.flag === 'LOW' ? 'baixo' : a.flag === 'HIGH' ? 'alto' : null;
+      if (foodHintFor(a.nameCanonical ?? a.name, dir)) {
+        body = `Seu ${a.name} está fora da faixa em exame recente. Toque para ver o que a alimentação costuma fazer por esse exame e leve ao seu médico.`;
+        data.screen = 'alimentacao';
+      }
     }
   }
 
@@ -227,6 +235,7 @@ async function maybeNudgeForPatient(patient: { id: string; fullName: string; own
     title = `💡 Dica do Dr. Exame pra ${first}`;
     body = tip.body;
     data.theme = tip.theme; // memória da rotação (notification.data.theme)
+    if (tip.screen) data.screen = tip.screen;
   }
 
   // sendPushToUser salva a notificação in-app (central) E envia o push pro OWNER (dono da conta).
