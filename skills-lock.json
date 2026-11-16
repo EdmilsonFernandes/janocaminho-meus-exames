@@ -25,6 +25,12 @@
       "skillPath": ".agents/skills/animate/SKILL.md",
       "computedHash": "98eb19c8e0a5e4d9547e74a8a7913ebf3d26fbe1487f22bbd1359b08ed499cea"
     },
+    "animation-performance": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/animation-performance/SKILL.md",
+      "computedHash": "89ee2c1b55d3a2ae1991fe0cce55a2a9441b215a4ae794816a7e0ca2d5092d75"
+    },
     "audit": {
       "source": "educlopez/ui-craft",
       "sourceType": "github",
@@ -199,6 +205,12 @@
       "skillPath": "plugins/frontend-design/skills/frontend-design/SKILL.md",
       "computedHash": "93f53fd1c0352d3d7ec17b8f73d7351bf76f4821e55d123c9d2abc2c53ba48e4"
     },
+    "gestures": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/gestures/SKILL.md",
+      "computedHash": "f701935046c6d5f122a3977968c49b3aeed432f9746e098950336d33a66b3c18"
+    },
     "harden": {
       "source": "educlopez/ui-craft",
       "sourceType": "github",
@@ -276,6 +288,12 @@
       "sourceType": "github",
       "skillPath": ".agents/skills/remember/SKILL.md",
       "computedHash": "1021381a93ce7163c3bb20319415ec7a2b450d0d8571199269c8a48e43375a83"
+    },
+    "review-animations": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/review-animations/SKILL.md",
+      "computedHash": "60049d4d140565fe2fd22c240a6ba921069cf88c3460d7561ac772d11145ec9f"
     },
     "safe-refactor": {
       "source": "JuliusBrussee/caveman",

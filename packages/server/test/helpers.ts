@@ -27,10 +27,19 @@ export async function resetDb(): Promise<void> {
     `SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename <> '_prisma_migrations';`,
   );
   const tables = rows.map((r) => r.tablename);
-  if (tables.length) {
-    await prisma.$executeRawUnsafe(
-      `TRUNCATE TABLE ${tables.join(', ')} RESTART IDENTITY CASCADE;`,
-    );
+  if (!tables.length) return;
+  // O TRUNCATE pede trava exclusiva em todas as tabelas. Uma escrita solta do teste anterior
+  // (aviso/push disparado depois da resposta) ainda pode estar em curso e o Postgres resolve
+  // matando um dos dois com 40P01 (deadlock). Não é falha do teste: espera e tenta de novo.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tables.join(', ')} RESTART IDENTITY CASCADE;`);
+      return;
+    } catch (e) {
+      const deadlock = /40P01|deadlock detected/i.test(String((e as Error)?.message ?? e));
+      if (!deadlock || attempt >= 4) throw e;
+      await new Promise((r) => setTimeout(r, 150 * attempt));
+    }
   }
 }
 
