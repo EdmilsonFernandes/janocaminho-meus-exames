@@ -1074,7 +1074,7 @@ export const ChatPage = () => {
         <Box sx={{ overflowY: 'auto', flex: 1, p: 1.5 }}>
           {convs.length === 0 && (
             <div className="my-6">
-              <Frame variant="ghost">
+              <Frame variant="ghost" className="bg-transparent! shadow-none!">
                 <FramePanel className="p-6 text-center space-y-2">
                   <div className="mx-auto flex size-10 items-center justify-center rounded-xl bg-teal-500/10 text-teal-600">
                     <History className="size-5" />

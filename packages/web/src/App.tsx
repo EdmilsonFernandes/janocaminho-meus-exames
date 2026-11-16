@@ -210,7 +210,8 @@ const CustomAppBar = (props: AppBarProps) => {
       userMenu={false}
       toolbar={isDesktop ? <LoadingIndicator /> : <span />}
       sx={{
-        bgcolor: isDark ? 'rgba(15, 24, 24, 0.92)' : 'rgba(255, 255, 255, 0.96)',
+        // Vidro de verdade: translúcido quando o WebView desfoca; quase opaco quando não.
+        bgcolor: CAN_BLUR ? (isDark ? 'rgba(15, 24, 24, 0.68)' : 'rgba(255, 255, 255, 0.70)') : (isDark ? 'rgba(15, 24, 24, 0.96)' : 'rgba(255, 255, 255, 0.97)'),
         backdropFilter: 'blur(24px) saturate(180%)',
         WebkitBackdropFilter: 'blur(24px) saturate(180%)',
         // Header limpo (padrão ReUI navbar): só uma linha inferior ultra suave, sem sombra,
@@ -1356,11 +1357,14 @@ const ScreenBackdrop = () => {
     <Box aria-hidden sx={{
       position: 'fixed', inset: 0, zIndex: -1, pointerEvents: 'none',
       background: isDark
-        ? `radial-gradient(ellipse 70% 45% at 18% -6%, rgba(32,178,170,0.13), transparent 60%),
-           radial-gradient(ellipse 60% 40% at 88% 108%, rgba(99,102,241,0.08), transparent 55%),
+        ? `radial-gradient(ellipse 80% 42% at 14% -4%, rgba(32,178,170,0.22), transparent 62%),
+           radial-gradient(ellipse 70% 40% at 88% 104%, rgba(99,102,241,0.14), transparent 58%),
+           radial-gradient(ellipse 60% 36% at 6% 100%, rgba(32,178,170,0.12), transparent 58%),
            #0f1818`
-        : `radial-gradient(ellipse 70% 45% at 18% -6%, rgba(32,178,170,0.12), transparent 60%),
-           radial-gradient(ellipse 55% 38% at 90% 106%, rgba(212,165,116,0.10), transparent 55%),
+        : `radial-gradient(ellipse 80% 42% at 14% -4%, rgba(32,178,170,0.26), transparent 62%),
+           radial-gradient(ellipse 60% 34% at 96% 8%, rgba(99,160,241,0.14), transparent 60%),
+           radial-gradient(ellipse 70% 40% at 88% 104%, rgba(212,165,116,0.22), transparent 58%),
+           radial-gradient(ellipse 60% 36% at 6% 100%, rgba(32,178,170,0.16), transparent 58%),
            #eef7f6`,
     }} />
   );

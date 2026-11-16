@@ -341,7 +341,7 @@ export const MeasurementsPage = () => {
                     {fmtTile(t, d!.latest).value}<Typography component="span" sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 600 }}> {fmtTile(t, d!.latest).unit}</Typography>
                   </Typography>
 
-                  <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', minHeight: 14 }}>{[dayLabel(d!.latest), tileSub(t, d)].filter(Boolean).join(' · ')}</Typography>
+                  <Typography sx={{ fontSize: 12, color: 'text.secondary', minHeight: 14 }}>{[dayLabel(d!.latest), tileSub(t, d)].filter(Boolean).join(' · ')}</Typography>
 
                   <Box sx={{ mt: 'auto', minHeight: 32, display: 'flex', alignItems: 'flex-end', pt: 0.5 }}>
                     {d && d.series7.length >= 2 && <Sparkline points={d.series7} width={118} height={30} color={t.color} />}

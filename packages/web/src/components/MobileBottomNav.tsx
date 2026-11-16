@@ -64,7 +64,8 @@ export const MobileBottomNav = () => {
     <Box key={it.to} component="button" type="button" aria-current={on ? 'page' : undefined}
       aria-label={it.robot ? 'Dr. Exame — conversar com a IA' : translate(it.label)}
       onClick={() => { hapticNav(); (onClick ?? (() => navigate(it.to)))(); }} sx={{
-      flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      // largura pelo conteúdo + sobra dividida: em 320px 'Consultas' não invade 'Exames'
+      flex: '1 1 auto', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.5, cursor: 'pointer', userSelect: 'none',
       background: 'transparent', border: 'none', fontFamily: 'inherit', textAlign: 'center',
       borderRadius: '12px', outline: 'none',
@@ -124,7 +125,8 @@ export const MobileBottomNav = () => {
 
   const maisItem = (on: boolean, onClick?: () => void) => (
     <Box component="button" type="button" aria-label={translate('nav.more')} onClick={() => { hapticNav(); onClick?.(); }} sx={{
-      flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      // largura pelo conteúdo + sobra dividida: em 320px 'Consultas' não invade 'Exames'
+      flex: '1 1 auto', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.5, cursor: 'pointer', userSelect: 'none',
       background: 'transparent', border: 'none', fontFamily: 'inherit', textAlign: 'center',
       borderRadius: '12px', outline: 'none',
@@ -170,6 +172,7 @@ export const MobileBottomNav = () => {
       left: { xs: 12, sm: 24 },
       right: { xs: 12, sm: 24 },
       maxWidth: 460,
+      '@media (max-width:359.95px)': { left: 6, right: 6 },
       margin: '0 auto',
       height: 60,
       borderRadius: '16px',

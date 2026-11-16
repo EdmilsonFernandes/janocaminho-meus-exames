@@ -112,6 +112,7 @@ export default function RadarHormonal() {
   const [startDate, setStartDate] = useState('');
   const [variationPct, setVariationPct] = useState(0);
   const [compare2x, setCompare2x] = useState(false);
+  const [showAllMarkers, setShowAllMarkers] = useState(false);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   /** Composto com o formulário aberto (um por vez); null = todos em modo leitura. */
   const [editingUid, setEditingUid] = useState<string | null>(null);
@@ -360,6 +361,9 @@ export default function RadarHormonal() {
   const settleWeek = Math.ceil(stats.settleDay / 7);
   const testoInProtocol = !!testoValues;
   const withExam = found.filter((f) => f.row).length;
+  // Primeiro os exames que a pessoa já tem; os que faltam ficam atrás de "ver mais".
+  const restMarkers = rows == null ? [] : found.filter((f) => !f.row);
+  const shownMarkers = rows == null || showAllMarkers || withExam === 0 ? found : found.filter((f) => f.row);
 
   return (
     <PageContainer width={1140} sx={{ pb: { xs: 14, sm: 6 } }}>
@@ -702,7 +706,7 @@ export default function RadarHormonal() {
               </p>
             ) : null}
             <ul className="m-0 flex list-none flex-col divide-y divide-border p-0">
-              {found.map(({ marker, row }) => {
+              {shownMarkers.map(({ marker, row }) => {
                 const Dir = marker.direction === 'sobe' ? TrendingUp : marker.direction === 'cai' ? TrendingDown : Activity;
                 return (
                   <li key={marker.key} className="flex flex-col gap-1.5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
@@ -743,6 +747,14 @@ export default function RadarHormonal() {
                 );
               })}
             </ul>
+            {withExam > 0 && restMarkers.length > 0 ? (
+              <div className="border-t border-border p-1.5">
+                <Button variant="ghost" size="lg" className="h-10 w-full" aria-expanded={showAllMarkers} onClick={() => setShowAllMarkers((v) => !v)}>
+                  {showAllMarkers ? 'Mostrar só os que já tenho' : `Ver mais ${restMarkers.length} ${restMarkers.length === 1 ? 'exame' : 'exames'} para acompanhar`}
+                  <ChevronDown aria-hidden="true" className={cn('transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none', showAllMarkers && 'rotate-180')} />
+                </Button>
+              </div>
+            ) : null}
           </FramePanel>
 
           <FrameFooter className="flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
