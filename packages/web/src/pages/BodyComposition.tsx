@@ -492,7 +492,7 @@ export const BodyCompositionPage = () => {
                           <div key={label} className="flex flex-col gap-1">
                             <div className="flex items-baseline justify-between gap-3 text-sm">
                               <dt className="min-w-0 truncate">{label}</dt>
-                              <dd className="m-0 shrink-0 font-medium tabular-nums">{value === 0 ? 'sem mudança' : formatDelta('fatMassKg', value)}</dd>
+                              <dd className="m-0 shrink-0 font-medium tabular-nums">{Math.abs(value) < 0.05 ? 'sem mudança' : formatDelta('fatMassKg', value)}</dd>
                             </div>
                             <span aria-hidden="true" className="block h-1.5 w-full rounded-full bg-muted">
                               <span className={cn('block h-full rounded-full', swatch)} style={{ width: `${Math.max(4, (Math.abs(value) / total) * 100)}%` }} />
