@@ -1190,7 +1190,38 @@ export const ExamCreate = () => {
             ))}
           </Stack>
           <FormControlLabel
-            control={<Checkbox checked={consentChecked} onChange={(e) => setConsentChecked(e.target.checked)} color="primary" />}
+            control={(
+              <Checkbox
+                checked={consentChecked}
+                onChange={(e) => setConsentChecked(e.target.checked)}
+                color="primary"
+                /* Audit motion 17/11: check-draw no consentimento — momento de aceite do envio.
+                   Traço do ✓ desenha (dashoffset) + caixa dá pop sutil no spring da casa.
+                   Input nativo preservado (E2E faz force-check nele). */
+                icon={(
+                  <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+                    <rect x="1.5" y="1.5" width="19" height="19" rx="6" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.45" />
+                  </svg>
+                )}
+                checkedIcon={(
+                  <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+                    <rect className="dx-consent-box" x="1.5" y="1.5" width="19" height="19" rx="6" fill="currentColor" />
+                    <path className="dx-consent-check" d="M6 11.5 L9.5 15 L16 7.5" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+                sx={{
+                  pt: 0.25,
+                  '@keyframes dxConsentDraw': { from: { strokeDashoffset: 16 }, to: { strokeDashoffset: 0 } },
+                  '@keyframes dxConsentPop': { '0%': { transform: 'scale(1)' }, '45%': { transform: 'scale(1.09)' }, '100%': { transform: 'scale(1)' } },
+                  '& .dx-consent-check': { strokeDasharray: 16, strokeDashoffset: 16, animation: 'dxConsentDraw 0.24s ease-out 0.05s forwards' },
+                  '& .dx-consent-box': { transformOrigin: 'center', animation: 'dxConsentPop 0.24s cubic-bezier(.34,1.56,.64,1)' },
+                  '@media (prefers-reduced-motion: reduce)': {
+                    '& .dx-consent-check': { animation: 'none', strokeDashoffset: 0 },
+                    '& .dx-consent-box': { animation: 'none' },
+                  },
+                }}
+              />
+            )}
             label={<Typography variant="body2">Li e entendi este aviso. Concordo em enviar meus exames para processamento.</Typography>}
             sx={{ alignItems: 'flex-start', m: 0 }}
           />

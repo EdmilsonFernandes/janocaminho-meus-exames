@@ -88,7 +88,21 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
   // Etapa corrente pelo status REAL do exame: EXTRACTING = IA já lendo o conteúdo.
   const stage = r.status === 'EXTRACTING' ? 1 : 0;
   return (
-    <AppCard kind="interactive" onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ overflow: 'hidden' }}>
+    <AppCard
+      kind="interactive"
+      onClick={() => navigate(`/exams/${r.id}/show`)}
+      sx={{
+        overflow: 'hidden',
+        // Entrada suave (audit motion 17/11): o card nasce 8px abaixo/97% e assenta —
+        // mesma curva do dxDrawerItemFade do App. Antes teleportava após o submit.
+        animation: 'dxProcCardIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) backwards',
+        '@keyframes dxProcCardIn': {
+          from: { opacity: 0, transform: 'scale(0.97) translateY(8px)' },
+          to: { opacity: 1, transform: 'none' },
+        },
+        '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+      }}
+    >
       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
         <Box sx={{ flexShrink: 0, display: 'grid', placeItems: 'center' }}>
           <DrExameRobot size={48} />
