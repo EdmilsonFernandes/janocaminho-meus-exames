@@ -149,7 +149,7 @@ export const SinaisPage = () => {
     hapticLight();
     const text = `📋 *Ficha de Sinais Vitais - Dr. Exame*\n` +
       `• Passos médios: ${fmtSteps(s.avgSteps)} passos/dia (${rangeLabel(range)})\n` +
-      `• Frequência cardíaca média do dia: ${s.hrRest ? Math.round(s.hrRest) + ' bpm' : 'Não registrada'}\n` +
+      `• Frequência cardíaca mais baixa registrada no dia (média do período): ${s.hrRest ? Math.round(s.hrRest) + ' bpm' : 'Não registrada'}\n` +
       `• Sono médio: ${fmtSleep(avgOf(days, 'sleepMin', range)) || 'Não registrado'}\n` +
       `• Atividade/Exercício: ${Math.round(s.totalExercise ?? 0)} min acumulados no período\n` +
       `• Gasto Calórico Médio: ${fmtKcal(s.avgKcal)} kcal/dia\n` +
@@ -424,10 +424,10 @@ export const SinaisPage = () => {
                     </Typography>
                   </Stack>
                   <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', lineHeight: 1.45, mb: 0.5 }}>
-                    Sua frequência cardíaca média no período foi de {Math.round(s.hrRest ?? 0)} bpm.
+                    Suas leituras mais baixas de frequência cardíaca ficaram em {Math.round(s.hrRest ?? 0)} bpm.
                   </Typography>
                   <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.45 }}>
-                    É a média do dia inteiro, incluindo os momentos de atividade; não é a frequência de repouso. O que vale acompanhar é a tendência ao longo das semanas.
+                    É a parte mais baixa das leituras que o relógio enviou em cada dia. Se ele só envia leituras durante atividade, esse número fica acima da sua frequência de repouso real. Acompanhe a tendência, não o valor isolado.
                   </Typography>
                 </AppCard>
               )}
@@ -470,7 +470,7 @@ export const SinaisPage = () => {
               )}
               {(s.hrRest ?? 0) > 0 && (
                 <TrendCard
-                  icon={<FavoriteIcon sx={{ fontSize: 16 }} />} tone={SEM.bad[theme.palette.mode]} label="FC média do dia"
+                  icon={<FavoriteIcon sx={{ fontSize: 16 }} />} tone={SEM.bad[theme.palette.mode]} label="FC mais baixa do dia"
                   value={`${Math.round(s.hrRest ?? 0)}`} valueSub="bpm"
                   series={fcSeries(days, range)}
                   goal={undefined} fmtBar={(v) => `${Math.round(v)} bpm`}

@@ -544,7 +544,7 @@ export const ActivityView = ({
           )}
           <MetricMini icon={<RouteIcon sx={{ fontSize: 15 }} />} tone={SEM.info[theme.palette.mode]} label="Distância" value={fmtKm(primaryKm)} unit="km" contextLabel={periodMetricLabel} />
           {(s.hrRest ?? 0) > 0 && (
-            <MetricMini icon={<FavoriteIcon sx={{ fontSize: 15 }} />} tone={SEM.bad[theme.palette.mode]} label="FC de repouso" value={`${Math.round(s.hrRest ?? 0)}`} unit="bpm" contextLabel={periodMetricLabel} />
+            <MetricMini icon={<FavoriteIcon sx={{ fontSize: 15 }} />} tone={SEM.bad[theme.palette.mode]} label="FC mais baixa" value={`${Math.round(s.hrRest ?? 0)}`} unit="bpm" contextLabel={periodMetricLabel} />
           )}
           {(s.sleepMin ?? 0) > 0 && (
             <MetricMini
