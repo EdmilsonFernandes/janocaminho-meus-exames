@@ -102,7 +102,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-rec
 - **NUNCA tocar `janocaminho-*` containers** (rodam EdEspeto).
 - **DB URL**: `grep DATABASE_URL .env.prod | sed 's/?.*//'` (tira o schema param pro psql).
 - **Schema do DB**: `public` (tabela `users` NÃO `User` — minúsculas via @@map).
-- **Backup**: `scripts/pg-backup.sh` → S3 bucket `jnc-db-backups-prod`.
+- **Backup**: `scripts/pg-backup.sh` → S3 bucket `jnc-db-backups-prod-222984221398` (⚠️ nome COM sufixo de conta; validado 17/11/26: PITR WAL 5min + base diária + dumps 3h + data 2x/dia; lifecycle 14/30/60d). **Auditoria completa de custo/backup/espaço + runbook de re-avaliação**: `docs/AWS-AUDITORIA-2026-11-17.md` (cortou ~R$200/mês; UaiID dorme 23h-7h seg-sex via cron no EC2).
 
 ## Procedimentos de Emergência / Suporte
 
