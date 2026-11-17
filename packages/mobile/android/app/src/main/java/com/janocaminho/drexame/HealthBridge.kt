@@ -421,6 +421,17 @@ class HealthBridge(private val activity: MainActivity) {
                 }
                 android.util.Log.d("DxHealth", "dedup: ${origins.size} origem(ns) — ${origins.joinToString()}")
 
+                // Gasto em repouso (kcal/dia) mais recente gravado no Health Connect. A permissão é
+                // opcional (EXTENDED): sem ela a leitura lança exceção, fica 0 e a caloria segue
+                // pela regra antiga. Usada para derivar a caloria ativa do dia (ver o merge abaixo).
+                var bmrPerDay = 0.0
+                try {
+                    val bmrs = readAllOf(client, BasalMetabolicRateRecord::class, periodEnd.minus(java.time.Duration.ofDays(400)), periodEnd)
+                    bmrPerDay = bmrs.maxByOrNull { it.time }?.basalMetabolicRate?.inKilocaloriesPerDay ?: 0.0
+                } catch (e: Exception) {
+                    android.util.Log.w("DxHealth", "bmr read skipped: ${e.message}")
+                }
+
                 // Dia corrente primeiro (ordem DESC — o contrato do web espera mais recente primeiro).
                 for (i in 0 until days) {
                     val day: LocalDate = today.minusDays((offset + i).toLong())
@@ -443,8 +454,27 @@ class HealthBridge(private val activity: MainActivity) {
                     // TOTAL (ativa + metabolismo basal, ~1.3-1.8k kcal/dia) é FALLBACK —
                     // dia sem NENHUM ativa em nenhuma origem usa o total (Samsung puro).
                     // Semânticas nunca se misturam no mesmo dia (max separado, flag honesta).
-                    val kcalIsTotal = kcal <= 0.0 && totalKcal > 0.0
-                    if (kcalIsTotal) kcal = totalKcal
+                    //
+                    // ATIVA DERIVADA (17/11, reporte do dono: app 73 kcal × Samsung 453): o Samsung
+                    // Health NÃO publica a caloria ativa do dia — publica o TOTAL (ativa + repouso).
+                    // O número que ele mostra na tela é total − gasto em repouso até a hora. O 73
+                    // era um registro ativo pequeno de outra origem (Google Fit), que fazia a regra
+                    // antiga parar nele e ignorar o total. Com a taxa basal (kcal/dia) lida do HC,
+                    // refazemos a mesma conta; vale só quando o total do dia cobre o repouso até
+                    // agora (total só-de-treinos fica abaixo disso e segue no caminho antigo).
+                    val dayFraction = if (day == today) {
+                        (java.time.Duration.between(start, Instant.now()).seconds.toDouble() /
+                            java.time.Duration.between(start, end).seconds.toDouble()).coerceIn(0.0, 1.0)
+                    } else 1.0
+                    val basalSoFar = bmrPerDay * dayFraction
+                    val derivedActive = if (bmrPerDay > 0.0 && totalKcal >= basalSoFar * 0.9) totalKcal - basalSoFar else 0.0
+                    var kcalIsTotal = false
+                    if (derivedActive > kcal) {
+                        kcal = derivedActive
+                    } else if (kcal <= 0.0 && totalKcal > 0.0) {
+                        kcal = totalKcal; kcalIsTotal = true
+                    }
+                    android.util.Log.d("DxHealth", "kcal $day: ativa=${Math.round(kcal)} total=${Math.round(totalKcal)} repouso=${Math.round(basalSoFar)} derivada=${Math.round(derivedActive)} ehTotal=$kcalIsTotal")
 
                     // FR + exercício: lê RECORDS (não há métrica agregada p/ FR no SDK
                     // alpha11) e calcula avg/max/rest manualmente — mais confiável cross-device.
