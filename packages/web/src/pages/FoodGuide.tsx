@@ -21,7 +21,7 @@
  * Estados: carregando · falha (tentar de novo) · sem exame no app · nenhum alterado com
  * orientação · com orientações · resumo: nunca gerado / gerando / pronto / sem saldo / falhou.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { RangeBar } from '../components/motion/RangeBar';
 import { RingGauge } from '../components/motion/RingGauge';
@@ -29,7 +29,7 @@ import { CountUp } from '../components/motion/CountUp';
 import { GlassGlow } from '../components/motion/GlassGlow';
 import { useNotify, useRefresh } from 'react-admin';
 import { Line, LineChart, XAxis, YAxis } from 'recharts';
-import { ArrowUp, BookOpen, Check, ChevronDown, CircleHelp, Info, MessageCircleQuestion, Salad, Sparkles, Stethoscope, TrendingDown, TrendingUp, TriangleAlert, Upload, X } from 'lucide-react';
+import { ArrowUp, BookOpen, Check, ChevronDown, CircleHelp, Copy, Info, MessageCircleQuestion, Salad, Sparkles, Stethoscope, TrendingDown, TrendingUp, TriangleAlert, Upload, Utensils, X } from 'lucide-react';
 import { cn } from 'cn';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -122,6 +122,124 @@ function rangeText(low: number | null, high: number | null): string {
   return high != null ? `até ${fmt(high)}` : '';
 }
 
+type FoodFilter = 'all' | 'out' | 'strong' | 'ok';
+
+/** Extrai chips curtos e escaneáveis a partir das linhas curadas para a 1ª visão do prato. */
+function extractQuickChips(items: string[], prefix: '+' | '-', limit = 4): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of items) {
+    // Remove explicação após ":" para manter o chip curto no celular
+    const head = raw.split(':')[0].split('(')[0].trim();
+    const short = head.length > 38 ? `${head.slice(0, 36).trim()}…` : head;
+    if (!short || seen.has(short.toLowerCase())) continue;
+    seen.add(short.toLowerCase());
+    out.push(`${prefix} ${short}`);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+/** Frame ReUI no topo: agrega o que priorizar e moderar nos exames da pessoa em 1 toque. */
+function QuickPlateFrame({ values, guideFor }: { values: PatientValue[]; guideFor: (v: PatientValue) => Guide | null }) {
+  const [copied, setCopied] = useState(false);
+
+  const { topHelp, topAvoid, coveredCount } = useMemo(() => {
+    const helpsPool: string[] = [];
+    const avoidPool: string[] = [];
+    let count = 0;
+
+    // Prioriza exames fora da faixa e com maior força de evidência primeiro
+    const ordered = [...values].sort((a, b) => {
+      if (a.status !== 'normal' && b.status === 'normal') return -1;
+      if (a.status === 'normal' && b.status !== 'normal') return 1;
+      return 0;
+    });
+
+    for (const v of ordered) {
+      const g = guideFor(v);
+      if (!g || g.strength === 'nao-resolve') continue;
+      count++;
+      helpsPool.push(...g.helps);
+      avoidPool.push(...g.avoid);
+    }
+
+    return {
+      topHelp: extractQuickChips(helpsPool, '+', 4),
+      topAvoid: extractQuickChips(avoidPool, '-', 3),
+      coveredCount: count,
+    };
+  }, [values, guideFor]);
+
+  if (!topHelp.length && !topAvoid.length) return null;
+
+  const copyList = () => {
+    const lines = [
+      'Dr. Exame · Resumo do prato:',
+      ...(topHelp.length ? [`Priorizar: ${topHelp.join(', ')}`] : []),
+      ...(topAvoid.length ? [`Moderar/Evitar: ${topAvoid.join(', ')}`] : []),
+    ];
+    void navigator.clipboard?.writeText(lines.join('\n')).catch(() => {});
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <Frame>
+      <FrameHeader className="dx-glass relative flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2 overflow-hidden rounded-[calc(var(--frame-radius)-var(--frame-px))]">
+        <GlassGlow />
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+          <IconTile variant="frame" size="sm" aria-hidden="true">
+            <Utensils aria-hidden="true" className="text-primary" />
+          </IconTile>
+          <div className="flex min-w-0 flex-col gap-px">
+            <FrameTitle role="heading" aria-level={2}>Resumo rápido do seu prato</FrameTitle>
+            <FrameDescription>
+              Itens em comum em {coveredCount} {coveredCount === 1 ? 'exame seu' : 'exames seus'} abaixo.
+            </FrameDescription>
+          </div>
+        </div>
+        <Button variant="outline" size="sm" className="h-8 shrink-0 gap-1.5" onClick={copyList}>
+          {copied ? <Check aria-hidden="true" className="size-3.5 text-success" /> : <Copy aria-hidden="true" className="size-3.5" />}
+          {copied ? 'Copiado!' : 'Copiar lista'}
+        </Button>
+      </FrameHeader>
+      <FramePanel className="flex flex-col gap-3">
+        {topHelp.length > 0 && (
+          <div className="flex flex-col gap-1.5">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+              <span aria-hidden="true" className="size-1.5 rounded-full bg-success" />
+              Priorizar no prato
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {topHelp.map((chip) => (
+                <Badge key={chip} variant="success-light" radius="full" size="lg">
+                  {chip}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+        {topAvoid.length > 0 && (
+          <div className="flex flex-col gap-1.5 border-0 border-t border-border/60 pt-2.5">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+              <span aria-hidden="true" className="size-1.5 rounded-full bg-warning" />
+              Moderar / Evitar
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {topAvoid.map((chip) => (
+                <Badge key={chip} variant="warning-light" radius="full" size="lg">
+                  {chip}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+      </FramePanel>
+    </Frame>
+  );
+}
+
 // ───────────────────────── peças ─────────────────────────
 
 /** Mini gráfico da evolução do exame (composição do bloco chart-25). */
@@ -171,9 +289,12 @@ function GuideBody({ guide }: { guide: Guide }) {
       {guide.helps.length || guide.avoid.length ? (
         <div className="grid gap-3 sm:grid-cols-2">
           {guide.helps.length ? (
-            <div className="flex flex-col gap-1.5">
-              <h4 className="m-0 text-xs font-semibold text-muted-foreground">Costuma ajudar</h4>
-              <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
+            <div className="overflow-hidden rounded-xl border border-success/20 bg-card shadow-2xs">
+              <div className="flex items-center gap-1.5 border-0 border-b border-success/15 bg-success/10 px-3 py-2">
+                <Check aria-hidden="true" className="size-3.5 text-success" />
+                <h4 className="m-0 text-xs font-semibold text-foreground">Costuma ajudar</h4>
+              </div>
+              <ul className="m-0 flex list-none flex-col gap-1.5 p-3">
                 {guide.helps.map((t) => (
                   <li key={t} className="flex items-start gap-2 text-sm text-foreground"><Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-success" /><span>{t}</span></li>
                 ))}
@@ -181,9 +302,12 @@ function GuideBody({ guide }: { guide: Guide }) {
             </div>
           ) : null}
           {guide.avoid.length ? (
-            <div className="flex flex-col gap-1.5">
-              <h4 className="m-0 text-xs font-semibold text-muted-foreground">Costuma atrapalhar</h4>
-              <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
+            <div className="overflow-hidden rounded-xl border border-warning/25 bg-card shadow-2xs">
+              <div className="flex items-center gap-1.5 border-0 border-b border-warning/15 bg-warning/10 px-3 py-2">
+                <X aria-hidden="true" className="size-3.5 text-warning" />
+                <h4 className="m-0 text-xs font-semibold text-foreground">Costuma atrapalhar</h4>
+              </div>
+              <ul className="m-0 flex list-none flex-col gap-1.5 p-3">
                 {guide.avoid.map((t) => (
                   <li key={t} className="flex items-start gap-2 text-sm text-foreground"><X aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-warning" /><span>{t}</span></li>
                 ))}
@@ -192,8 +316,8 @@ function GuideBody({ guide }: { guide: Guide }) {
           ) : null}
         </div>
       ) : null}
-      <div className="flex items-start gap-2 rounded-lg bg-muted/60 px-3 py-2.5">
-        <CircleHelp aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+      <div className="flex items-start gap-2 rounded-lg border border-border/80 bg-card/85 px-3 py-2.5">
+        <CircleHelp aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
         <p className="m-0 text-sm leading-relaxed text-foreground"><strong className="font-semibold">Só a alimentação resolve?</strong> {guide.dietAlone}</p>
       </div>
       <p className="m-0 text-xs text-muted-foreground">Fonte: {guide.source}</p>
@@ -202,9 +326,8 @@ function GuideBody({ guide }: { guide: Guide }) {
 }
 
 /**
- * Uma linha de "Seus números": o valor do paciente e, ao tocar, a alimentação daquele exame
- * aberta ali mesmo (antes era um cartão separado no fim da tela, repetindo o exame).
- * Abre/fecha pela altura (grid 0fr → 1fr), uma transição de 200ms; parado sob "reduzir movimento".
+ * Uma linha de "Seus números": resultado no topo + barra de rodapé para expandir/recolher o prato.
+ * Na 1ª visão aberta exibe Badges ReUI rápidos e preserva todo o conteúdo clínico logo abaixo.
  */
 function ValueRow({ v, guide, open, onToggle, onAsk }: { v: PatientValue; guide: Guide | null; open: boolean; onToggle: () => void; onAsk: (() => void) | null }) {
   const panelId = `food-panel-${v.nameCanonical.replace(/[^a-zA-Z0-9]+/g, '-')}`;
@@ -216,13 +339,19 @@ function ValueRow({ v, guide, open, onToggle, onAsk }: { v: PatientValue; guide:
     v.date ? dateBr(v.date) : '',
     first ? 'primeiro resultado' : '',
   ].filter(Boolean).join(' · ');
-  const summary = (
-    <>
-      <span className="flex min-w-0 flex-1 flex-col">
+
+  const isNormal = v.status === 'normal';
+  const st = guide ? STRENGTH[guide.strength] : null;
+  const quickHelp = useMemo(() => (guide ? extractQuickChips(guide.helps, '+', 3) : []), [guide]);
+  const quickAvoid = useMemo(() => (guide ? extractQuickChips(guide.avoid, '-', 2) : []), [guide]);
+
+  const headerMetrics = (
+    <div className="flex items-center justify-between gap-3 px-4 pt-3.5 pb-2.5">
+      <div className="flex min-w-0 flex-1 flex-col">
         <span className="text-sm font-medium text-foreground">{v.label}</span>
         <span className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <span className="text-base font-semibold whitespace-nowrap text-foreground tabular-nums">{fmt(v.value)}{v.unit ? <span className="ms-1 text-sm font-normal text-muted-foreground">{v.unit}</span> : null}</span>
-          {v.status === 'normal' ? (
+          {isNormal ? (
             <Badge className="shrink-0 border-0 whitespace-nowrap" variant="success-light"><Check aria-hidden="true" />Na faixa</Badge>
           ) : (
             <Badge className="shrink-0 border-0 whitespace-nowrap" variant="warning-light">
@@ -231,42 +360,74 @@ function ValueRow({ v, guide, open, onToggle, onAsk }: { v: PatientValue; guide:
             </Badge>
           )}
         </span>
-        <RangeBar value={v.value} low={v.refLow} high={v.refHigh} tone={v.status === 'normal' ? 'ok' : 'warn'} className="mt-2 max-w-56" />
+        <RangeBar value={v.value} low={v.refLow} high={v.refHigh} tone={isNormal ? 'ok' : 'warn'} className="mt-2 max-w-56" />
         <span className="mt-1.5 text-xs text-muted-foreground">{meta}</span>
-        {cta ? (
-          <span className="mt-2 inline-flex items-center gap-1.5 self-start text-sm font-medium text-primary">
-            <Salad aria-hidden="true" className="size-4 shrink-0" />
-            {cta}
-            <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none', open && 'rotate-180')} />
-          </span>
-        ) : null}
-      </span>
-      <Sparkline label={v.label} points={v.points} tone={v.status === 'normal' ? 'success' : 'warning'} />
-    </>
+      </div>
+      <Sparkline label={v.label} points={v.points} tone={isNormal ? 'success' : 'warning'} />
+    </div>
   );
-  if (!guide) return <div className="flex min-h-20 items-center justify-between gap-3 px-4 py-3">{summary}</div>;
+
+  if (!guide || !cta || !st) return headerMetrics;
+
   return (
     <>
+      {headerMetrics}
       <button
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
         onClick={onToggle}
-        className="flex min-h-20 w-full cursor-pointer appearance-none items-center justify-between gap-3 border-0 bg-transparent px-4 py-3 text-left transition-colors duration-200 hover:bg-muted/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+        className={cn(
+          'flex w-full cursor-pointer appearance-none items-center justify-between gap-2 border-0 border-t border-border/60 bg-transparent px-4 py-2.5 text-left transition-colors duration-200 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
+          isNormal ? (open ? 'bg-primary/5' : 'hover:bg-primary/5') : (open ? 'bg-warning/8' : 'hover:bg-warning/5'),
+        )}
       >
-        {summary}
+        <span className={cn('inline-flex min-w-0 items-center gap-2 text-sm font-semibold', isNormal ? 'text-primary' : 'text-warning-foreground')}>
+          <IconTile variant="soft" size="xs" className={isNormal ? 'text-primary' : 'text-warning'} aria-hidden="true">
+            <Salad aria-hidden="true" />
+          </IconTile>
+          <span className="truncate">{cta}</span>
+        </span>
+        <span className="inline-flex shrink-0 items-center gap-2">
+          <Badge variant={st.variant} size="sm">{st.label}</Badge>
+          <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none', open && 'rotate-180')} />
+        </span>
       </button>
+
       <div id={panelId} role="region" aria-label={`${cta}: ${v.label}`} inert={!open} className={cn('grid transition-[grid-template-rows] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none', open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}>
         <div className="min-h-0 overflow-hidden">
-          <div className="flex flex-col gap-4 border-0 border-t border-dashed border-border bg-muted/30 px-4 py-4">
-            {v.status === 'normal' ? (
+          <div className={cn(
+            'flex flex-col gap-4 border-0 border-t border-dashed border-border border-l-[3px] bg-muted/30 px-4 py-4',
+            isNormal ? 'border-l-primary' : 'border-l-warning',
+          )}>
+            {(quickHelp.length > 0 || quickAvoid.length > 0) && (
+              <div className="dx-glass relative flex flex-col gap-2 overflow-hidden rounded-xl border border-border/80 p-3">
+                <GlassGlow />
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-semibold tracking-wider text-primary uppercase">Primeira visão no prato</span>
+                  <span className="text-[11px] text-muted-foreground">Resumo rápido</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {quickHelp.map((chip) => (
+                    <Badge key={chip} variant="success-light" radius="full" size="lg">{chip}</Badge>
+                  ))}
+                  {quickAvoid.map((chip) => (
+                    <Badge key={chip} variant="warning-light" radius="full" size="lg">{chip}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {isNormal ? (
               <p className="m-0 flex items-start gap-2 text-sm leading-relaxed text-foreground">
                 <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-success" />
                 <span>Seu resultado está na faixa. O que vem abaixo é o que costuma ajudar a mantê-lo assim.</span>
               </p>
             ) : null}
+
             <EvidenceMeter key={open ? 'aberto' : 'fechado'} strength={guide.strength} />
             <GuideBody guide={guide} />
+
             {onAsk ? (
               <Button variant="outline" size="lg" className="h-10 self-start" onClick={onAsk}><MessageCircleQuestion aria-hidden="true" />Perguntar ao Dr. Exame</Button>
             ) : null}
@@ -344,6 +505,7 @@ export function FoodGuidePage() {
   const [generating, setGenerating] = useState(false);
   const [askFor, setAskFor] = useState<Match | null>(null);
   const [openRows, setOpenRows] = useState<Set<string>>(() => new Set());
+  const [filter, setFilter] = useState<FoodFilter>('all');
   const outOfRange = (data?.values ?? []).filter((v) => v.status !== 'normal').length;
 
   useEffect(() => {
@@ -413,7 +575,20 @@ export function FoodGuidePage() {
   // O dicionário do fim fica só com os exames que NÃO aparecem em "Seus números".
   const shown = new Set([...(data?.matches ?? []).map((m) => m.guide.key), ...(data?.values ?? []).map((v) => guideFor(v)?.key ?? v.guideKey)]);
   const others = (data?.dictionary ?? []).filter((g) => !shown.has(g.key));
-  const withFood = (data?.matches ?? []).filter((m) => m.guide.strength !== 'nao-resolve').length;
+  const valuesWithFoodCount = (data?.values ?? []).filter((v) => {
+    const g = guideFor(v);
+    return g != null && g.strength !== 'nao-resolve';
+  }).length;
+  const inRangeCount = Math.max(0, (data?.values?.length ?? 0) - outOfRange);
+  const filteredValues = (data?.values ?? []).filter((v) => {
+    if (filter === 'out') return v.status !== 'normal';
+    if (filter === 'ok') return v.status === 'normal';
+    if (filter === 'strong') {
+      const g = guideFor(v);
+      return g != null && g.strength !== 'nao-resolve';
+    }
+    return true;
+  });
 
   return (
     <PageContainer width={1040} sx={{ pb: { xs: 14, sm: 6 } }}>
@@ -441,48 +616,91 @@ export function FoodGuidePage() {
           </Frame>
         ) : (
           <>
-            {/* ───────── SEUS NÚMEROS: os valores do paciente vêm primeiro (bloco chart-25) ───────── */}
+            {/* ───────── RESUMO RÁPIDO DO PRATO (itens em comum nos seus exames) ───────── */}
+            {data.values.length ? <QuickPlateFrame values={data.values} guideFor={guideFor} /> : null}
+
+            {/* ───────── SEUS NÚMEROS: grade unificada (resumo + filtro mobile sem corte) ───────── */}
             {data.values.length ? (
               <Frame>
-                <FrameHeader className="dx-glass relative flex-row items-center gap-4 overflow-hidden rounded-[calc(var(--frame-radius)-var(--frame-px))]">
+                <FrameHeader className="dx-glass relative flex-col items-stretch gap-3 overflow-hidden rounded-[calc(var(--frame-radius)-var(--frame-px))]">
                   <GlassGlow />
-                  <RingGauge
-                    size={84}
-                    thickness={9}
-                    segments={[
-                      { fraction: (data.values.length - outOfRange) / data.values.length, className: 'stroke-success' },
-                      { fraction: outOfRange / data.values.length, className: 'stroke-warning' },
-                    ]}
-                    label={`${data.values.length - outOfRange} de ${data.values.length} exames na faixa`}
-                  >
-                    <CountUp value={data.values.length - outOfRange} format={(n) => String(Math.round(n))} className="text-xl leading-none font-semibold text-foreground tabular-nums" />
-                    <span className="mt-0.5 text-xs text-muted-foreground">de {data.values.length}</span>
-                  </RingGauge>
-                  <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                    <FrameTitle role="heading" aria-level={2}>Seus números</FrameTitle>
-                    <div className="flex flex-wrap gap-1.5">
-                      <Badge className="border-0" variant="success-light"><Check aria-hidden="true" />{data.values.length - outOfRange} na faixa</Badge>
-                      {outOfRange > 0 ? <Badge className="border-0" variant="warning-light"><TriangleAlert aria-hidden="true" />{outOfRange} fora da faixa</Badge> : null}
-                      {withFood > 0 ? <Badge className="border-0" variant="primary-light"><Salad aria-hidden="true" />a comida ajuda em {withFood}</Badge> : null}
+                  <div className="flex items-center gap-3">
+                    <RingGauge
+                      size={64}
+                      thickness={8}
+                      segments={[
+                        { fraction: inRangeCount / data.values.length, className: 'stroke-success' },
+                        { fraction: outOfRange / data.values.length, className: 'stroke-warning' },
+                      ]}
+                      label={`${inRangeCount} de ${data.values.length} exames na faixa`}
+                    >
+                      <CountUp value={inRangeCount} format={(n) => String(Math.round(n))} className="text-base leading-none font-semibold text-foreground tabular-nums" />
+                      <span className="mt-0.5 text-[10px] text-muted-foreground">de {data.values.length}</span>
+                    </RingGauge>
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <FrameTitle role="heading" aria-level={2}>Seus números</FrameTitle>
+                      <FrameDescription>Toque nas categorias abaixo para filtrar ou em um exame para abrir o prato.</FrameDescription>
                     </div>
-                    <FrameDescription>Toque em um exame para ver o que pôr no prato.</FrameDescription>
+                  </div>
+
+                  {/* Grade 4 colunas unificada: cabe 100% em 390px sem corte horizontal */}
+                  <div role="group" aria-label="Filtrar exames" className="grid grid-cols-4 gap-1.5 border-0 border-t border-border/60 pt-2.5">
+                    {(
+                      [
+                        { id: 'all', count: data.values.length, label: 'Todos', dot: null, numTone: 'text-foreground' },
+                        { id: 'out', count: outOfRange, label: 'Fora da faixa', dot: 'bg-warning', numTone: 'text-warning-foreground' },
+                        { id: 'strong', count: valuesWithFoodCount, label: 'Comida ajuda', dot: 'bg-primary', numTone: 'text-primary' },
+                        { id: 'ok', count: inRangeCount, label: 'Na faixa', dot: 'bg-success', numTone: 'text-success-foreground' },
+                      ] as const
+                    ).map((opt) => {
+                      const active = filter === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() => setFilter(opt.id)}
+                          className={cn(
+                            'flex min-h-12 cursor-pointer flex-col items-center justify-center rounded-xl border px-1 py-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-ring',
+                            active
+                              ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                              : 'border-border/80 bg-card/85 text-foreground hover:bg-card',
+                          )}
+                        >
+                          <span className={cn('inline-flex items-center gap-1 text-sm leading-none font-bold tabular-nums', active ? 'text-primary-foreground' : opt.numTone)}>
+                            {opt.dot && !active ? <span aria-hidden="true" className={cn('size-1.5 rounded-full', opt.dot)} /> : null}
+                            {opt.count}
+                          </span>
+                          <span className={cn('mt-1 text-center text-[10.5px] leading-tight font-medium', active ? 'text-primary-foreground/95' : 'text-muted-foreground')}>
+                            {opt.label}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </FrameHeader>
                 <FramePanel className="p-0!">
-                  <ul className="m-0 flex list-none flex-col p-0">
-                    {data.values.map((v, i) => (
-                      <li key={v.nameCanonical}>
-                        <ValueRow
-                          v={v}
-                          guide={guideFor(v)}
-                          open={openRows.has(v.nameCanonical)}
-                          onToggle={() => toggleRow(v.nameCanonical)}
-                          onAsk={matchFor(v) ? () => setAskFor(matchFor(v)!) : null}
-                        />
-                        {i < data.values.length - 1 ? <Separator /> : null}
-                      </li>
-                    ))}
-                  </ul>
+                  {filteredValues.length ? (
+                    <ul className="m-0 flex list-none flex-col p-0">
+                      {filteredValues.map((v, i) => (
+                        <li key={v.nameCanonical}>
+                          <ValueRow
+                            v={v}
+                            guide={guideFor(v)}
+                            open={openRows.has(v.nameCanonical)}
+                            onToggle={() => toggleRow(v.nameCanonical)}
+                            onAsk={matchFor(v) ? () => setAskFor(matchFor(v)!) : null}
+                          />
+                          {i < filteredValues.length - 1 ? <Separator /> : null}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 px-4 py-6 text-center">
+                      <p className="m-0 text-sm text-muted-foreground">Nenhum exame nesta categoria.</p>
+                      <Button variant="outline" size="sm" onClick={() => setFilter('all')}>Ver todos os exames</Button>
+                    </div>
+                  )}
                 </FramePanel>
               </Frame>
             ) : null}
@@ -491,7 +709,8 @@ export function FoodGuidePage() {
               <>
                 {/* ───────── Resumo personalizado (IA) ───────── */}
                 <Frame>
-                  <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                  <FrameHeader className="dx-glass relative flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2 overflow-hidden rounded-[calc(var(--frame-radius)-var(--frame-px))]">
+                    <GlassGlow />
                     <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
                       <IconTile variant="frame" size="sm" aria-hidden="true"><Sparkles aria-hidden="true" /></IconTile>
                       <div className="flex min-w-0 flex-col gap-px">

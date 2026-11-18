@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dr. Exame · Alimentação e seus exames (ReUI Colorize + GlassGlow)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --color-accent: #0d9488;
+      --color-accent-tint: rgba(13, 148, 136, 0.1);
+      --color-copper: #d4a574;
+      --color-copper-tint: rgba(212, 165, 116, 0.16);
+    }
+
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .font-display { font-family: 'Poppins', 'Inter', sans-serif; }
+
+    /* ── ReUI Frame + Sombra Teal de Profundidade (packages/web/src/doctor-v2/tw.css) ── */
+    .reui-frame {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background-color: rgba(241, 245, 249, 0.72);
+      border: 1px solid rgba(203, 213, 225, 0.7);
+      border-radius: 1rem;
+      padding: 0.25rem;
+      gap: 0.25rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 28px -18px rgba(23, 143, 137, 0.35);
+    }
+    .reui-frame-header {
+      padding: 0.8rem 0.95rem;
+    }
+    .reui-frame-panel {
+      position: relative;
+      background-color: #ffffff;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: calc(1rem - 0.25rem - 1px);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+    }
+
+    /* ── GlassGlow oficial do Dr. Exame (tw.css L233-244 + GlassGlow.tsx) ── */
+    .dx-glass {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      background-image: linear-gradient(155deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.8));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+    }
+    .dx-glass-orb-wrap {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      z-index: -10;
+      overflow: hidden;
+      border-radius: inherit;
+    }
+    .dx-glass-orb { position: absolute; border-radius: 9999px; }
+    .dx-glass-orb-a {
+      top: -42%;
+      right: -20%;
+      width: 78%;
+      aspect-ratio: 1;
+      background: radial-gradient(closest-side, rgb(32 178 170 / 0.26), transparent);
+    }
+    .dx-glass-orb-b {
+      bottom: -48%;
+      left: -22%;
+      width: 72%;
+      aspect-ratio: 1;
+      background: radial-gradient(closest-side, rgb(212 165 116 / 0.24), transparent);
+    }
+
+    /* ReUI IconTile (frame sm + soft xs) */
+    .reui-tile-frame {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.1rem;
+      height: 2.1rem;
+      border-radius: 0.55rem;
+      border: 1px solid rgba(13, 148, 136, 0.22);
+      background: rgba(13, 148, 136, 0.08);
+      padding: 2px;
+      flex-shrink: 0;
+    }
+    .reui-tile-frame > span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      border-radius: 0.4rem;
+      background: #ffffff;
+      border: 1px solid rgba(13, 148, 136, 0.16);
+      box-shadow: 0 1px 2px rgba(13, 148, 136, 0.08);
+    }
+    .reui-tile-copper {
+      border-color: rgba(212, 165, 116, 0.35);
+      background: rgba(212, 165, 116, 0.14);
+    }
+    .reui-tile-copper > span {
+      border-color: rgba(212, 165, 116, 0.25);
+    }
+
+    /* Grid de fundo do Sparkline ReUI chart-25 */
+    .spark-grid {
+      background-image:
+        linear-gradient(to right, rgba(226, 232, 240, 0.65) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(226, 232, 240, 0.65) 1px, transparent 1px);
+      background-size: 16px 11px;
+    }
+
+    /* Superfície Expandida Tinted (Menta + Cobre sutil) */
+    .acc-expanded-surface {
+      background: linear-gradient(135deg, rgba(240, 253, 250, 0.78) 0%, rgba(255, 255, 255, 0.96) 55%, rgba(254, 243, 199, 0.36) 100%);
+    }
+
+    /* Accordion grid-rows 0fr -> 1fr */
+    .acc-grid {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .acc-grid.is-open {
+      grid-template-rows: 1fr;
+    }
+    .acc-inner { min-height: 0; overflow: hidden; }
+    .acc-chevron { transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
+    .is-open-btn .acc-chevron { transform: rotate(180deg); }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#eef4f3] text-slate-900 antialiased py-5 px-3 sm:px-6">
+
+  <!-- Barra de Controle do Mock -->
+  <div class="mx-auto max-w-5xl mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-xs">
+    <div class="flex items-center gap-2.5">
+      <span class="inline-flex items-center gap-1.5 rounded-md border border-teal-500/20 bg-teal-500/10 px-2.5 py-1 text-xs font-semibold text-teal-800">
+        <span class="h-2 w-2 rounded-full bg-teal-600"></span>
+        ReUI Ultimate · Paleta Teal &amp; Cobre (GlassGlow)
+      </span>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="inline-flex rounded-lg bg-slate-100 p-1 text-xs font-medium">
+        <button onclick="setViewport('mobile')" id="vp-mobile" class="rounded-md bg-white px-3 py-1 text-slate-900 shadow-xs cursor-pointer">Mobile (390px)</button>
+        <button onclick="setViewport('desktop')" id="vp-desktop" class="rounded-md px-3 py-1 text-slate-600 hover:text-slate-900 cursor-pointer">Desktop (1040px)</button>
+      </div>
+      <button onclick="expandAll(true)" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer">Expandir tudo</button>
+      <button onclick="expandAll(false)" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer">Recolher</button>
+    </div>
+  </div>
+
+  <!-- Shell de Dispositivo -->
+  <div id="deviceShell" class="mx-auto w-full max-w-[400px] overflow-hidden rounded-[30px] border-[5px] border-slate-900 bg-[#f1f6f5] shadow-2xl transition-all duration-300">
+
+    <!-- AppBar Limpa com halo Teal -->
+    <header class="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-teal-900/10 bg-white/90 backdrop-blur px-4">
+      <div class="flex items-center gap-2.5">
+        <button class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 cursor-pointer">←</button>
+        <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 text-white text-xs font-bold shadow-xs shadow-teal-600/25">Dr</div>
+      </div>
+      <span class="inline-flex items-center gap-1 rounded-full bg-teal-500/10 px-3 py-1 text-xs font-semibold text-teal-800">
+        ⚡ <span class="tabular-nums">9640</span> leituras
+      </span>
+      <div class="flex items-center gap-2">
+        <button class="relative flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 cursor-pointer">
+          🔔
+          <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
+        </button>
+        <div class="relative h-8 w-8 rounded-full ring-1 ring-slate-200">
+          <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=96&q=80" alt="Avatar" class="h-full w-full rounded-full object-cover" />
+          <span class="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Conteúdo Principal (/alimentacao) -->
+    <main class="p-3.5 sm:p-6 space-y-4">
+
+      <!-- PageHeader -->
+      <div class="flex items-start gap-3 px-0.5">
+        <span class="reui-tile-frame" style="width:2.65rem;height:2.65rem;border-radius:0.8rem;">
+          <span style="border-radius:0.65rem;color:#0d9488;font-size:1.1rem;">🥗</span>
+        </span>
+        <div>
+          <h1 class="font-display text-lg sm:text-xl font-bold text-slate-900 leading-tight">Alimentação e seus exames</h1>
+          <p class="mt-0.5 text-xs sm:text-sm text-slate-600 leading-snug">
+            O que os estudos dizem sobre alimentação para cada exame seu que saiu da faixa.
+          </p>
+        </div>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- REGIÃO 1: REUI FRAME COM GLASSGLOW — "RESUMO RÁPIDO DO SEU PRATO"   -->
+      <!-- =================================================================== -->
+      <section class="reui-frame">
+        <div class="reui-frame-header dx-glass rounded-t-[calc(1rem-0.25rem)] flex flex-wrap items-center justify-between gap-2">
+          <!-- Orbes de luz Teal + Cobre (GlassGlow) -->
+          <span class="dx-glass-orb-wrap">
+            <span class="dx-glass-orb dx-glass-orb-a"></span>
+            <span class="dx-glass-orb dx-glass-orb-b"></span>
+          </span>
+
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="reui-tile-frame"><span>🍽️</span></span>
+            <div class="min-w-0">
+              <h2 class="text-sm font-semibold text-slate-900 leading-tight">Resumo rápido do seu prato</h2>
+              <p class="text-xs text-slate-600 leading-snug">Itens em comum nos seus exames abaixo</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="copyBtn"
+            onclick="copyQuickPlate()"
+            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-teal-600/25 bg-teal-600/10 px-2.5 text-xs font-semibold text-teal-800 hover:bg-teal-600/15 transition cursor-pointer"
+          >
+            📋 Copiar lista
+          </button>
+        </div>
+
+        <div class="reui-frame-panel p-3.5 space-y-2.5">
+          <div class="space-y-1.5">
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-emerald-800">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+              Priorizar no prato
+            </span>
+            <div class="flex flex-wrap gap-1.5">
+              <span class="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-900">💧 + Água ao longo do dia</span>
+              <span class="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-900">🫒 + Azeite e castanhas</span>
+              <span class="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-900">🥣 + Aveia e feijão</span>
+              <span class="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-900">🌿 + Verduras verde-escuras</span>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-100 space-y-1.5">
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-800">
+              <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+              Moderar / Evitar
+            </span>
+            <div class="flex flex-wrap gap-1.5">
+              <span class="inline-flex items-center gap-1 rounded-full border border-amber-500/25 bg-amber-500/12 px-2.5 py-1 text-xs font-medium text-amber-900">⚠️ - Ferro sem indicação</span>
+              <span class="inline-flex items-center gap-1 rounded-full border border-amber-500/25 bg-amber-500/12 px-2.5 py-1 text-xs font-medium text-amber-900">🥐 - Gordura trans e embutidos</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- REGIÃO 2: REUI FRAME "SEUS NÚMEROS" (dx-glass + ToggleGroup Teal)   -->
+      <!-- =================================================================== -->
+      <section class="reui-frame">
+        <div class="reui-frame-header dx-glass rounded-t-[calc(1rem-0.25rem)] space-y-3">
+          <!-- Orbes de luz Teal + Cobre (GlassGlow) -->
+          <span class="dx-glass-orb-wrap">
+            <span class="dx-glass-orb dx-glass-orb-a"></span>
+            <span class="dx-glass-orb dx-glass-orb-b"></span>
+          </span>
+
+          <div class="flex items-center gap-3">
+            <!-- RingGauge compacto (60px) -->
+            <div class="relative flex h-[60px] w-[60px] shrink-0 items-center justify-center">
+              <svg class="h-[60px] w-[60px] -rotate-90" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="15" fill="none" stroke="#e2e8f0" stroke-width="3.6" />
+                <circle cx="18" cy="18" r="15" fill="none" stroke="#10b981" stroke-width="3.6" stroke-dasharray="89 100" stroke-linecap="round" />
+                <circle cx="18" cy="18" r="15" fill="none" stroke="#f59e0b" stroke-width="3.6" stroke-dasharray="6 100" stroke-dashoffset="-90" stroke-linecap="round" />
+              </svg>
+              <div class="absolute text-center leading-none">
+                <span class="text-base font-bold text-slate-900 tabular-nums">18</span>
+                <span class="block text-[9.5px] text-slate-500">de 19</span>
+              </div>
+            </div>
+
+            <div class="min-w-0 flex-1 space-y-0.5">
+              <h2 class="text-sm font-semibold text-slate-900">Seus números</h2>
+              <p class="text-xs text-slate-600 leading-snug">
+                Toque nas categorias abaixo para filtrar ou em um exame para abrir o prato.
+              </p>
+            </div>
+          </div>
+
+          <!-- ReUI Segmented Stat-Filter (grid-cols-4: zero corte no mobile 390px + elimina badges duplicados) -->
+          <div role="group" aria-label="Filtrar exames" class="grid grid-cols-4 gap-1.5 pt-2 border-t border-teal-900/10">
+            <button
+              type="button"
+              onclick="setFilter('all')"
+              id="flt-all"
+              aria-pressed="true"
+              class="flex min-h-[48px] flex-col items-center justify-center rounded-xl border border-teal-600 bg-teal-600 px-1.5 py-1.5 text-white shadow-xs shadow-teal-600/25 transition cursor-pointer"
+            >
+              <span class="inline-flex items-center gap-1 text-sm font-bold leading-none text-white tabular-nums" data-slot="num">19</span>
+              <span class="mt-1 text-[10.5px] font-medium leading-tight text-white/95" data-slot="lbl">Todos</span>
+            </button>
+
+            <button
+              type="button"
+              onclick="setFilter('out')"
+              id="flt-out"
+              aria-pressed="false"
+              class="flex min-h-[48px] flex-col items-center justify-center rounded-xl border border-slate-200/90 bg-white/90 px-1.5 py-1.5 text-slate-700 hover:bg-white transition cursor-pointer"
+            >
+              <span class="inline-flex items-center gap-1 text-sm font-bold leading-none text-amber-700 tabular-nums" data-slot="num">
+                <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>1
+              </span>
+              <span class="mt-1 text-[10.5px] font-medium leading-tight text-slate-600" data-slot="lbl">Fora da faixa</span>
+            </button>
+
+            <button
+              type="button"
+              onclick="setFilter('strong')"
+              id="flt-strong"
+              aria-pressed="false"
+              class="flex min-h-[48px] flex-col items-center justify-center rounded-xl border border-slate-200/90 bg-white/90 px-1.5 py-1.5 text-slate-700 hover:bg-white transition cursor-pointer"
+            >
+              <span class="inline-flex items-center gap-1 text-sm font-bold leading-none text-teal-700 tabular-nums" data-slot="num">
+                <span class="h-1.5 w-1.5 rounded-full bg-teal-500"></span>3
+              </span>
+              <span class="mt-1 text-[10.5px] font-medium leading-tight text-slate-600" data-slot="lbl">Comida ajuda</span>
+            </button>
+
+            <button
+              type="button"
+              onclick="setFilter('ok')"
+              id="flt-ok"
+              aria-pressed="false"
+              class="flex min-h-[48px] flex-col items-center justify-center rounded-xl border border-slate-200/90 bg-white/90 px-1.5 py-1.5 text-slate-700 hover:bg-white transition cursor-pointer"
+            >
+              <span class="inline-flex items-center gap-1 text-sm font-bold leading-none text-emerald-700 tabular-nums" data-slot="num">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>18
+              </span>
+              <span class="mt-1 text-[10.5px] font-medium leading-tight text-slate-600" data-slot="lbl">Na faixa</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- FramePanel className="p-0!" com os cards de exame -->
+        <div class="reui-frame-panel overflow-hidden divide-y divide-slate-200/80" id="rowsContainer"></div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- REGIÃO 3: REUI FRAME "RESUMO FEITO PARA VOCÊ (IA)" (GlassGlow Cobre)-->
+      <!-- =================================================================== -->
+      <section class="reui-frame">
+        <div class="reui-frame-header dx-glass rounded-t-[calc(1rem-0.25rem)] flex flex-wrap items-center justify-between gap-2">
+          <span class="dx-glass-orb-wrap">
+            <span class="dx-glass-orb dx-glass-orb-a"></span>
+            <span class="dx-glass-orb dx-glass-orb-b"></span>
+          </span>
+
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="reui-tile-frame reui-tile-copper"><span>✨</span></span>
+            <div class="min-w-0">
+              <h2 class="text-sm font-semibold text-slate-900">Resumo feito para você</h2>
+              <p class="text-xs text-slate-600">A IA liga os seus exames usando só o que está no dicionário abaixo.</p>
+            </div>
+          </div>
+          <span class="inline-flex items-center gap-1 rounded-sm border border-teal-500/20 bg-teal-500/12 px-2 py-0.5 text-xs font-semibold text-teal-800">✨ Gerado por IA</span>
+        </div>
+
+        <div class="reui-frame-panel p-4 space-y-3">
+          <p class="text-sm text-slate-800 leading-relaxed">
+            Seu <strong>LDL (58 mg/dL)</strong>, <strong>HDL (35 mg/dL)</strong> e <strong>Creatinina (0,98 mg/dL)</strong> estão na faixa, enquanto a <strong>Hemoglobina (17,4 g/dL)</strong> ficou acima da referência do laudo.
+          </p>
+          <div class="space-y-2">
+            <h3 class="text-xs font-semibold text-slate-900">Por onde começar</h3>
+            <ol class="space-y-2 text-xs sm:text-sm text-slate-700">
+              <li class="flex items-start gap-2.5">
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-teal-700 text-[11px] font-bold text-white tabular-nums shadow-2xs">1</span>
+                <span>Manter hidratação adequada ao longo do dia e evitar ferro ou polivitamínicos por conta própria até investigação médica.</span>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-teal-700 text-[11px] font-bold text-white tabular-nums shadow-2xs">2</span>
+                <span>Conservar o hábito de azeite, castanhas, aveia e feijão que ajuda a sustentar o bom controle do colesterol LDL.</span>
+              </li>
+            </ol>
+          </div>
+          <div class="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-50/55 px-3 py-2.5 text-xs sm:text-sm text-slate-800">
+            <span class="shrink-0">🩺</span>
+            <p><strong class="font-semibold text-slate-900">Leve ao seu médico:</strong> Avaliar a Hemoglobina (17,4 g/dL) em conjunto com o hematócrito e o restante do hemograma.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- REGIÃO 4: REUI FRAME "DICIONÁRIO: ALIMENTAÇÃO POR EXAME"            -->
+      <!-- =================================================================== -->
+      <section class="reui-frame">
+        <div class="reui-frame-header flex items-center gap-2.5">
+          <span class="reui-tile-frame"><span>📖</span></span>
+          <div>
+            <h2 class="text-sm font-semibold text-slate-900">Dicionário: alimentação por exame</h2>
+            <p class="text-xs text-slate-600">Toque em um exame para ver o que a ciência diz.</p>
+          </div>
+        </div>
+
+        <div class="reui-frame-panel overflow-hidden divide-y divide-slate-200/80">
+          <details class="group">
+            <summary class="flex cursor-pointer list-none items-center gap-3 px-4 py-3 hover:bg-teal-50/35 transition [&::-webkit-details-marker]:hidden">
+              <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span class="text-sm font-medium text-slate-900">Triglicerídeos</span>
+                <span class="text-xs text-slate-500">quando está acima da faixa</span>
+              </span>
+              <span class="rounded-sm border border-emerald-500/20 bg-emerald-500/12 px-2 py-0.5 text-xs font-medium text-emerald-800">Evidência forte</span>
+              <svg class="h-4 w-4 text-slate-400 transition-transform duration-200 group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </summary>
+            <div class="border-t border-slate-100 acc-expanded-surface border-l-[3px] border-l-teal-600 px-4 py-3 text-xs text-slate-700 space-y-2">
+              <p>É um dos exames que mais respondem à alimentação, ao álcool e ao peso.</p>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-emerald-900">🐟 + Peixes (sardinha/salmão)</span>
+                <span class="rounded-full border border-amber-500/25 bg-amber-500/12 px-2.5 py-0.5 text-amber-900">⚠️ - Bebidas adoçadas e álcool</span>
+              </div>
+              <p class="text-[11px] text-slate-400">Fonte: American Heart Association (2011) e NLA (2022).</p>
+            </div>
+          </details>
+
+          <details class="group">
+            <summary class="flex cursor-pointer list-none items-center gap-3 px-4 py-3 hover:bg-teal-50/35 transition [&::-webkit-details-marker]:hidden">
+              <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span class="text-sm font-medium text-slate-900">Glicose em jejum / HbA1c</span>
+                <span class="text-xs text-slate-500">quando está acima da faixa</span>
+              </span>
+              <span class="rounded-sm border border-emerald-500/20 bg-emerald-500/12 px-2 py-0.5 text-xs font-medium text-emerald-800">Evidência forte</span>
+              <svg class="h-4 w-4 text-slate-400 transition-transform duration-200 group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </summary>
+            <div class="border-t border-slate-100 acc-expanded-surface border-l-[3px] border-l-teal-600 px-4 py-3 text-xs text-slate-700 space-y-2">
+              <p>Fibras e ordem dos alimentos no prato reduzem picos de glicose após a refeição.</p>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-emerald-900">🥗 + Salada antes dos carboidratos</span>
+                <span class="rounded-full border border-amber-500/25 bg-amber-500/12 px-2.5 py-0.5 text-amber-900">⚠️ - Açúcar líquido e farinha refinada</span>
+              </div>
+              <p class="text-[11px] text-slate-400">Fonte: Diretriz SBD / ADA (2024).</p>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- REGIÃO 5: REUI ALERT "O QUE ESTA TELA É, E O QUE NÃO É"             -->
+      <!-- =================================================================== -->
+      <div class="rounded-xl border border-teal-500/20 bg-teal-50/45 p-3.5 flex items-start gap-2.5 text-xs text-slate-700 shadow-2xs">
+        <span class="text-teal-600 text-sm">ℹ️</span>
+        <div>
+          <p class="font-semibold text-slate-900">O que esta tela é, e o que não é</p>
+          <p class="mt-0.5 leading-relaxed">
+            É conteúdo educativo, tirado de diretrizes médicas, sobre o que costuma ajudar em cada exame. Não é plano alimentar, não traz quantidades e não substitui consulta. Para um cardápio feito para você, procure um nutricionista; para decidir o tratamento, o seu médico.
+          </p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- SHEET REUI (sheet-10): "PERGUNTAR AO DR. EXAME"                       -->
+  <!-- ===================================================================== -->
+  <div id="askModal" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex justify-end p-3">
+    <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-200 flex flex-col justify-between overflow-hidden">
+      <div class="p-4 border-b border-slate-200 dx-glass flex items-center justify-between">
+        <span class="dx-glass-orb-wrap">
+          <span class="dx-glass-orb dx-glass-orb-a"></span>
+          <span class="dx-glass-orb dx-glass-orb-b"></span>
+        </span>
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">💬 Perguntar ao Dr. Exame</h3>
+          <p class="text-xs text-slate-500 mt-0.5" id="askSubtitle">Sobre Hemoglobina: 17,4 g/dL</p>
+        </div>
+        <button onclick="closeAsk()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 cursor-pointer">✕</button>
+      </div>
+      <div class="p-4 space-y-3 flex-1 overflow-y-auto">
+        <p class="text-xs font-semibold text-slate-800">Comece por uma destas</p>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="fillPrompt('Meu exame veio fora da faixa. Me explique, de forma simples, o que costuma fazer esse exame sair da faixa.')" class="rounded-full border border-teal-500/20 bg-teal-50/50 px-3 py-1.5 text-xs font-medium text-teal-800 hover:bg-teal-50 cursor-pointer">Por que alterou?</button>
+          <button onclick="fillPrompt('O que os estudos dizem sobre alimentação para esse exame?')" class="rounded-full border border-teal-500/20 bg-teal-50/50 px-3 py-1.5 text-xs font-medium text-teal-800 hover:bg-teal-50 cursor-pointer">O que muda na alimentação?</button>
+          <button onclick="fillPrompt('Que perguntas eu devo levar para o médico sobre esse resultado?')" class="rounded-full border border-teal-500/20 bg-teal-50/50 px-3 py-1.5 text-xs font-medium text-teal-800 hover:bg-teal-50 cursor-pointer">O que perguntar ao médico?</button>
+          <button onclick="fillPrompt('Em geral, depois de quanto tempo faz sentido repetir esse exame?')" class="rounded-full border border-teal-500/20 bg-teal-50/50 px-3 py-1.5 text-xs font-medium text-teal-800 hover:bg-teal-50 cursor-pointer">Quando repetir?</button>
+        </div>
+        <textarea id="askInput" rows="4" class="w-full rounded-xl border border-slate-200 p-3 text-xs focus:border-teal-500 focus:outline-none" placeholder="Escolha uma sugestão ou escreva a sua pergunta"></textarea>
+        <p class="text-[11px] text-slate-500">A pergunta abre no chat do app, onde você revisa antes de enviar. Cada pergunta do chat usa créditos.</p>
+      </div>
+      <div class="p-4 border-t border-slate-200">
+        <button onclick="closeAsk()" class="w-full rounded-xl bg-teal-600 py-2.5 text-xs font-semibold text-white hover:bg-teal-700 shadow-sm shadow-teal-600/25 cursor-pointer">
+          ↑ Levar para o chat
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STRENGTH_META = {
+      forte: {
+        label: 'Evidência forte',
+        badgeCls: 'border-emerald-500/20 bg-emerald-500/12 text-emerald-800',
+        barCls: 'bg-emerald-500',
+        filled: 18,
+        explain: 'Vários estudos e diretrizes médicas apontam na mesma direção.',
+      },
+      moderada: {
+        label: 'Evidência moderada',
+        badgeCls: 'border-sky-500/20 bg-sky-500/12 text-sky-800',
+        barCls: 'bg-sky-500',
+        filled: 12,
+        explain: 'Há boa base, mas depende da causa da alteração.',
+      },
+      limitada: {
+        label: 'Evidência limitada',
+        badgeCls: 'border-amber-500/25 bg-amber-500/12 text-amber-900',
+        barCls: 'bg-amber-500',
+        filled: 6,
+        explain: 'A alimentação muda pouco este exame.',
+      },
+      'nao-resolve': {
+        label: 'Alimentação não resolve',
+        badgeCls: 'border-slate-200 bg-slate-100/70 text-slate-600',
+        barCls: 'bg-slate-400',
+        filled: 1,
+        explain: 'Não há alimento com efeito comprovado; a avaliação é médica.',
+      },
+    };
+
+    const ROWS = [
+      {
+        id: 'hemo',
+        label: 'Hemoglobina',
+        value: '17,4',
+        unit: 'g/dL',
+        status: 'alto',
+        statusLabel: 'Acima da faixa',
+        rangePct: 82,
+        meta: 'Faixa do laudo: 13 a 16,5 · 23 out 2026',
+        cta: 'O que pôr no prato',
+        strength: 'limitada',
+        sparkColor: '#f59e0b',
+        sparkPoints: '4,30 18,29 32,31 46,34 60,26 74,14 88,16 102,9',
+        quickHelp: ['🌿 + Verduras verde-escuras', '🫘 + Feijões e carnes', '🥗 + Alimentação variada'],
+        quickAvoid: ['⚠️ - Ferro por conta própria', '💊 - Vitaminas sem indicação'],
+        summary: 'Hemoglobina baixa (anemia) tem várias causas; falta de ferro é só uma delas.',
+        helps: ['Manter alimentação variada, com carnes ou feijões e verduras verde-escuras'],
+        avoid: ['Tomar ferro ou vitaminas por conta própria antes de saber a causa'],
+        dietAlone: 'Não dá para saber sem investigar. Antes de mudar a alimentação, o médico precisa identificar o tipo de anemia.',
+        source: 'Manual MSD, anemia e deficiência de ferro.',
+        defaultOpen: true,
+      },
+      {
+        id: 'hdl',
+        label: 'Colesterol HDL',
+        value: '35',
+        unit: 'mg/dL',
+        status: 'normal',
+        statusLabel: 'Na faixa',
+        rangePct: null,
+        meta: 'Laudo sem faixa de referência · 23 out 2026',
+        cta: 'O que manter no prato',
+        strength: 'limitada',
+        sparkColor: '#10b981',
+        sparkPoints: '4,32 18,30 32,16 46,28 60,8 74,20 88,24 102,32',
+        quickHelp: ['🫒 + Azeite e castanhas', '🐟 + Peixes', '🏃 + Atividade física'],
+        quickAvoid: ['🚬 - Cigarro', '⚠️ - Gordura trans (biscoitos/margarinas)'],
+        summary: 'A alimentação muda pouco o HDL; o que mais ajuda é movimento.',
+        helps: [
+          'Atividade física regular',
+          'Parar de fumar',
+          'Perder peso, quando há excesso',
+          'Preferir azeite, castanhas e peixe às gorduras saturadas',
+        ],
+        avoid: [
+          'Cigarro',
+          'Gordura trans (alguns biscoitos, recheios e margarinas)',
+        ],
+        dietAlone: 'Não existe alimento que suba o HDL de forma confiável. O médico avalia o HDL junto com o restante do colesterol, não sozinho.',
+        source: 'Diretriz de colesterol da AHA/ACC (2018).',
+        defaultOpen: false,
+      },
+      {
+        id: 'ldl',
+        label: 'Colesterol LDL',
+        value: '58',
+        unit: 'mg/dL',
+        status: 'normal',
+        statusLabel: 'Na faixa',
+        rangePct: null,
+        meta: 'Laudo sem faixa de referência · 23 out 2026',
+        cta: 'O que manter no prato',
+        strength: 'forte',
+        sparkColor: '#10b981',
+        sparkPoints: '4,18 18,20 32,8 46,18 60,12 74,24 88,26 102,32',
+        quickHelp: ['🫒 + Azeite e abacate', '🥜 + Castanhas e peixe', '🥣 + Aveia, feijão e maçã'],
+        quickAvoid: ['⚠️ - Carnes gordas e embutidos', '⚠️ - Manteiga e frituras'],
+        summary: 'A alimentação tem efeito comprovado sobre o LDL, o colesterol "ruim".',
+        helps: [
+          'Trocar gordura saturada por insaturada: azeite, abacate, castanhas e peixe no lugar de carne gorda, manteiga e fritura',
+          'Fibra solúvel todos os dias: aveia, feijão, lentilha, maçã e frutas cítricas',
+          'Mais legumes, verduras e grãos integrais no prato',
+        ],
+        avoid: [
+          'Carnes gordas e embutidos (linguiça, bacon, salame)',
+          'Manteiga, banha, creme de leite e queijos amarelos em excesso',
+          'Biscoitos, salgadinhos e frituras industrializadas',
+        ],
+        dietAlone: 'Ajuda de verdade, mas tem limite: quando o LDL está muito acima da faixa, ou a pessoa já tem risco no coração, o médico costuma indicar remédio junto com a alimentação.',
+        source: 'Diretrizes de dislipidemia da ESC/EAS (2019) e da AHA/ACC (2018).',
+        defaultOpen: false,
+      },
+      {
+        id: 'creat',
+        label: 'Creatinina',
+        value: '0,98',
+        unit: 'mg/dL',
+        status: 'normal',
+        statusLabel: 'Na faixa',
+        rangePct: 56,
+        meta: 'Faixa do laudo: 0,7 a 1,2 · 23 out 2026',
+        cta: 'A comida ajuda aqui?',
+        strength: 'nao-resolve',
+        sparkColor: '#10b981',
+        sparkPoints: '4,22 18,32 32,16 46,10 60,18 74,15 88,14 102,14',
+        quickHelp: ['💧 + Hidratação adequada'],
+        quickAvoid: ['⚠️ - Uso de anti-inflamatórios sem orientação'],
+        summary: 'A creatinina mede a filtração dos rins; alterações exigem avaliação médica.',
+        helps: ['Manter boa hidratação com água ao longo do dia'],
+        avoid: ['Usar anti-inflamatórios ou fazer dietas restritivas por conta própria'],
+        dietAlone: 'Não há dieta que corrija sozinha alterações na creatinina sem diagnóstico médico da função renal.',
+        source: 'Não há diretriz que indique alimentação como tratamento isolado para esta alteração.',
+        defaultOpen: false,
+      },
+    ];
+
+    let activeFilter = 'all';
+    const openState = {};
+    ROWS.forEach((r) => { openState[r.id] = r.defaultOpen; });
+
+    function setViewport(mode) {
+      const shell = document.getElementById('deviceShell');
+      const bm = document.getElementById('vp-mobile');
+      const bd = document.getElementById('vp-desktop');
+      if (mode === 'desktop') {
+        shell.className = 'mx-auto w-full max-w-[1040px] overflow-hidden rounded-2xl border border-slate-200 bg-[#f1f6f5] shadow-xl transition-all duration-300';
+        bd.className = 'rounded-md bg-white px-3 py-1 text-slate-900 shadow-xs cursor-pointer';
+        bm.className = 'rounded-md px-3 py-1 text-slate-600 hover:text-slate-900 cursor-pointer';
+      } else {
+        shell.className = 'mx-auto w-full max-w-[400px] overflow-hidden rounded-[30px] border-[5px] border-slate-900 bg-[#f1f6f5] shadow-2xl transition-all duration-300';
+        bm.className = 'rounded-md bg-white px-3 py-1 text-slate-900 shadow-xs cursor-pointer';
+        bd.className = 'rounded-md px-3 py-1 text-slate-600 hover:text-slate-900 cursor-pointer';
+      }
+    }
+
+    function setFilter(flt) {
+      activeFilter = flt;
+      const numColors = {
+        all: 'text-slate-900',
+        out: 'text-amber-700',
+        strong: 'text-teal-700',
+        ok: 'text-emerald-700',
+      };
+      ['all', 'out', 'strong', 'ok'].forEach((k) => {
+        const btn = document.getElementById('flt-' + k);
+        const numEl = btn.querySelector('[data-slot="num"]');
+        const lblEl = btn.querySelector('[data-slot="lbl"]');
+        const isActive = k === flt;
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        if (isActive) {
+          btn.className = 'flex min-h-[48px] flex-col items-center justify-center rounded-xl border border-teal-600 bg-teal-600 px-1.5 py-1.5 text-white shadow-xs shadow-teal-600/25 transition cursor-pointer';
+          if (numEl) numEl.className = 'inline-flex items-center gap-1 text-sm font-bold leading-none text-white tabular-nums';
+          if (lblEl) lblEl.className = 'mt-1 text-[10.5px] font-medium leading-tight text-white/95';
+        } else {
+          btn.className = 'flex min-h-[48px] flex-col items-center justify-center rounded-xl border border-slate-200/90 bg-white/90 px-1.5 py-1.5 text-slate-700 hover:bg-white transition cursor-pointer';
+          if (numEl) numEl.className = `inline-flex items-center gap-1 text-sm font-bold leading-none ${numColors[k]} tabular-nums`;
+          if (lblEl) lblEl.className = 'mt-1 text-[10.5px] font-medium leading-tight text-slate-600';
+        }
+      });
+      render();
+    }
+
+    function toggleRow(id) {
+      openState[id] = !openState[id];
+      render();
+    }
+
+    function expandAll(val) {
+      ROWS.forEach((r) => { openState[r.id] = val; });
+      render();
+    }
+
+    function copyQuickPlate() {
+      const btn = document.getElementById('copyBtn');
+      const txt = 'Prato Dr. Exame: Priorizar Água, Azeite e castanhas, Aveia e feijão, Verduras verde-escuras. Moderar ferro sem indicação e gordura trans.';
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => {});
+      btn.textContent = '✓ Copiado!';
+      setTimeout(() => { btn.textContent = '📋 Copiar lista'; }, 2000);
+    }
+
+    function openAsk(label, value, unit) {
+      document.getElementById('askSubtitle').textContent = `Sobre ${label}: ${value} ${unit}`;
+      document.getElementById('askModal').classList.remove('hidden');
+    }
+
+    function closeAsk() {
+      document.getElementById('askModal').classList.add('hidden');
+    }
+
+    function fillPrompt(txt) {
+      document.getElementById('askInput').value = txt;
+    }
+
+    function render() {
+      const filtered = ROWS.filter((r) => {
+        if (activeFilter === 'out') return r.status !== 'normal';
+        if (activeFilter === 'strong') return r.strength !== 'nao-resolve';
+        if (activeFilter === 'ok') return r.status === 'normal';
+        return true;
+      });
+
+      document.getElementById('rowsContainer').innerHTML = filtered.map((r) => {
+        const isOpen = !!openState[r.id];
+        const isNormal = r.status === 'normal';
+        const st = STRENGTH_META[r.strength];
+
+        // Cores contextuais para estado fechado e filete lateral do accordion (colorize + polish)
+        const triggerTone = isNormal
+          ? {
+              barBg: isOpen ? 'bg-teal-50/45' : 'hover:bg-teal-50/25',
+              tile: 'border-teal-500/20 bg-teal-500/10 text-teal-700',
+              text: 'text-teal-700',
+              borderAccent: 'border-l-[3px] border-l-teal-600',
+            }
+          : {
+              barBg: isOpen ? 'bg-amber-50/55' : 'hover:bg-amber-50/35',
+              tile: 'border-amber-500/25 bg-amber-500/12 text-amber-800',
+              text: 'text-amber-800',
+              borderAccent: 'border-l-[3px] border-l-amber-500',
+            };
+
+        const segmentsHtml = Array.from({ length: 18 }, (_, i) =>
+          `<span class="h-2.5 flex-1 rounded-md ${i < st.filled ? st.barCls : 'bg-slate-200/80'}"></span>`
+        ).join('');
+
+        return `
+          <div class="bg-white">
+            <!-- Topo da Linha (ValueRow ReUI chart-25) -->
+            <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <div class="text-sm font-semibold text-slate-900">${r.label}</div>
+                <div class="mt-0.5 flex flex-wrap items-center gap-2">
+                  <span class="text-base font-bold text-slate-900 tabular-nums">
+                    ${r.value} <span class="text-sm font-normal text-slate-500">${r.unit}</span>
+                  </span>
+                  ${isNormal ? `
+                    <span class="inline-flex items-center gap-1 rounded-sm border border-emerald-500/15 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                      ✓ Na faixa
+                    </span>
+                  ` : `
+                    <span class="inline-flex items-center gap-1 rounded-sm border border-amber-500/20 bg-amber-500/12 px-2 py-0.5 text-xs font-semibold text-amber-900">
+                      ↗ ${r.statusLabel}
+                    </span>
+                  `}
+                </div>
+
+                ${r.rangePct !== null ? `
+                  <div class="mt-2 relative h-1.5 w-full max-w-56 rounded-full bg-slate-100">
+                    <div class="absolute inset-y-0 left-[12%] right-[18%] rounded-full bg-emerald-500/35"></div>
+                    <span class="absolute top-1/2 -translate-y-1/2 h-3 w-3 rounded-full ring-2 ring-white shadow-xs ${isNormal ? 'bg-emerald-500' : 'bg-amber-500'}" style="left:${r.rangePct}%"></span>
+                  </div>
+                ` : ''}
+
+                <div class="mt-1.5 text-xs text-slate-500">${r.meta}</div>
+              </div>
+
+              <!-- Sparkline chart-25 ReUI -->
+              <div class="spark-grid relative h-11 w-20 sm:w-40 shrink-0 rounded-md p-1">
+                <svg viewBox="0 0 108 38" class="w-full h-full overflow-visible">
+                  <polyline fill="none" stroke="${r.sparkColor}" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" points="${r.sparkPoints}" />
+                </svg>
+              </div>
+            </div>
+
+            <!-- 1. COLLAPSED TRIGGER ROW (Separador border-slate-100 + IconTile contextual + Badge + Chevron) -->
+            <button
+              type="button"
+              onclick="toggleRow('${r.id}')"
+              class="w-full border-t border-slate-100 px-4 py-2.5 flex items-center justify-between gap-2 text-left transition-colors cursor-pointer ${triggerTone.barBg} ${isOpen ? 'is-open-btn' : ''}"
+            >
+              <span class="inline-flex items-center gap-2 text-sm font-semibold min-w-0 ${triggerTone.text}">
+                <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${triggerTone.tile}">
+                  <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 11h18M5 11c0 4.418 3.134 8 7 8s7-3.582 7-8M9 7c0-1.657 1.343-3 3-3s3 1.343 3 3" />
+                  </svg>
+                </span>
+                <span class="truncate">${r.cta}</span>
+              </span>
+
+              <span class="inline-flex items-center gap-2 shrink-0">
+                <span class="rounded-sm border px-1.5 py-0.5 text-[11px] font-medium ${st.badgeCls}">${st.label}</span>
+                <svg class="acc-chevron h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </button>
+
+            <!-- 2. EXPANDED STATE (Surface Menta+Cobre + Filete lateral + 1ª Visão + 100% Conteúdo Original) -->
+            <div class="acc-grid ${isOpen ? 'is-open' : ''}">
+              <div class="acc-inner">
+                <div class="acc-expanded-surface border-t border-dashed border-slate-200 ${triggerTone.borderAccent} px-4 py-4 space-y-4">
+
+                  <!-- 1ª VISÃO ESCANEÁVEL EM BADGES REUI (dx-glass + radius="full") -->
+                  <div class="dx-glass rounded-xl border border-teal-500/15 p-3 space-y-2">
+                    <span class="dx-glass-orb-wrap">
+                      <span class="dx-glass-orb dx-glass-orb-a"></span>
+                      <span class="dx-glass-orb dx-glass-orb-b"></span>
+                    </span>
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="text-[11px] font-semibold uppercase tracking-wider text-teal-800">Primeira visão no prato</span>
+                      <span class="text-[11px] font-medium text-slate-500">Resumo rápido</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">
+                      ${r.quickHelp.map((c) => `
+                        <span class="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-900">${c}</span>
+                      `).join('')}
+                      ${r.quickAvoid.map((c) => `
+                        <span class="inline-flex items-center rounded-full border border-amber-500/25 bg-amber-500/12 px-2.5 py-0.5 text-xs font-medium text-amber-900">${c}</span>
+                      `).join('')}
+                    </div>
+                  </div>
+
+                  ${isNormal ? `
+                    <p class="flex items-start gap-2 text-sm leading-relaxed text-slate-800">
+                      <span class="text-emerald-600 font-bold">✓</span>
+                      <span>Seu resultado está na faixa. O que vem abaixo é o que costuma ajudar a mantê-lo assim.</span>
+                    </p>
+                  ` : ''}
+
+                  <!-- MEDIDOR REUI stats-4 ORIGINAL -->
+                  <div class="flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between gap-3">
+                      <span class="text-xs font-medium text-slate-600">Quanto a alimentação pesa neste exame</span>
+                      <span class="rounded-sm border px-2 py-0.5 text-xs font-medium ${st.badgeCls}">${st.label}</span>
+                    </div>
+                    <div class="flex w-full gap-0.5">${segmentsHtml}</div>
+                    <span class="text-xs text-slate-500">${st.explain}</span>
+                  </div>
+
+                  <!-- GUIDE BODY COMPLETO ORIGINAL -->
+                  <div class="flex flex-col gap-3">
+                    <p class="text-sm leading-relaxed text-slate-800">${r.summary}</p>
+
+                    <div class="grid gap-3 sm:grid-cols-2">
+                      <div class="rounded-xl border border-emerald-500/20 bg-white overflow-hidden shadow-2xs">
+                        <div class="bg-emerald-50/70 border-b border-emerald-500/15 px-3 py-2 flex items-center gap-1.5">
+                          <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white">✓</span>
+                          <h4 class="text-xs font-semibold text-emerald-900">Costuma ajudar</h4>
+                        </div>
+                        <ul class="p-3 space-y-1.5">
+                          ${r.helps.map((h) => `<li class="flex items-start gap-2 text-sm text-slate-800"><span class="text-emerald-600 font-bold">✓</span><span>${h}</span></li>`).join('')}
+                        </ul>
+                      </div>
+                      <div class="rounded-xl border border-amber-500/25 bg-white overflow-hidden shadow-2xs">
+                        <div class="bg-amber-50/75 border-b border-amber-500/15 px-3 py-2 flex items-center gap-1.5">
+                          <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">✕</span>
+                          <h4 class="text-xs font-semibold text-amber-900">Costuma atrapalhar</h4>
+                        </div>
+                        <ul class="p-3 space-y-1.5">
+                          ${r.avoid.map((a) => `<li class="flex items-start gap-2 text-sm text-slate-800"><span class="text-amber-600 font-bold">✕</span><span>${a}</span></li>`).join('')}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div class="flex items-start gap-2 rounded-lg border border-slate-200/80 bg-white/85 px-3 py-2.5 text-sm leading-relaxed text-slate-800">
+                      <span class="mt-0.5 shrink-0 text-teal-600">❓</span>
+                      <p><strong class="font-semibold text-slate-900">Só a alimentação resolve?</strong> ${r.dietAlone}</p>
+                    </div>
+
+                    <p class="text-xs text-slate-500">Fonte: ${r.source}</p>
+                  </div>
+
+                  ${!isNormal ? `
+                    <button
+                      type="button"
+                      onclick="openAsk('${r.label}', '${r.value}', '${r.unit}')"
+                      class="inline-flex h-10 self-start items-center gap-2 rounded-lg border border-teal-600/25 bg-teal-600/10 px-4 text-sm font-semibold text-teal-800 hover:bg-teal-600/15 shadow-2xs transition cursor-pointer"
+                    >
+                      💬 Perguntar ao Dr. Exame
+                    </button>
+                  ` : ''}
+
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    render();
+  </script>
+</body>
+</html>
