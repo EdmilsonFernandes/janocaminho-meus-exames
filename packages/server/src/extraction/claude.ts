@@ -125,8 +125,9 @@ async function createJson(buffer: Buffer, mediaType: string, instruction: string
     }
     const label = isPdf ? 'CONTEÚDO EXTRAÍDO DO EXAME' : 'CONTEÚDO EXTRAÍDO DO EXAME via OCR';
     const content = instruction + `\n\n=== ${label} (use EXATAMENTE estes dados; NUNCA invente valores/nomes) ===\n` + (text && text.trim().length > 0 ? text : '(não foi possível extrair texto legível)') + '\n' + JSON_SUFFIX;
-    const s = await getLlm().stream({ model: getModel(), maxTokens, messages: [{ role: 'user', content }] });
-    return s.final();
+    // complete() (não stream+final direto): é no complete do FallbackProvider que
+    // resposta-VAZIA (throttle mascarado do relay) rotaciona pro backup (caso Dione 18/11).
+    return getLlm().complete({ model: getModel(), maxTokens, messages: [{ role: 'user', content }] });
   });
 
   if (response.stopReason === 'max_tokens') {

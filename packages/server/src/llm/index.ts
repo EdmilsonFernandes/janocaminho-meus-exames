@@ -54,9 +54,34 @@ export class FallbackProvider implements LlmProvider {
     }
   }
   async complete(req: LlmRequest): Promise<LlmResult> {
-    const s = await this.stream(req);
+    try {
+      return await this.attempt(this.primary, req);
+    } catch (e) {
+      if (!classifyError(e).rotate || !this.backups.length) throw e;
+      console.warn(`[llm] ${this.primary.name} falhou/vazio (${(e as any)?.status ?? '?'}) — failover p/ ${this.backups.map((b) => b.name).join(' → ')}`);
+      let last = e;
+      for (const b of this.backups) {
+        try {
+          return await this.attempt(b, req);
+        } catch (e2) {
+          last = e2;
+          if (!classifyError(e2).rotate) throw e2;
+        }
+      }
+      throw last;
+    }
+  }
+
+  /** stream + final com REGRAS DE VAZIO (caso Dione 18/11): o relay às vezes devolve 200
+   *  com corpo quase vazio (throttle mascarado) em vez de 429. Resposta sem texto =
+   *  erro rotativo (503) → o complete() acima refaz a chamada no backup (ex.: Gemini). */
+  private async attempt(p: LlmProvider, req: LlmRequest): Promise<LlmResult> {
+    // backup não herda o model do primário (strip igual ao stream; cada adapter usa o próprio cfg)
+    const s = await p.stream(p === this.primary ? req : { ...req, model: undefined });
     const r = await s.final();
-    if (!r) throw new Error('LLM: resposta vazia');
+    if (!r || !(r.text ?? '').trim()) {
+      throw Object.assign(new Error(`LLM ${p.name}: resposta vazia (possível throttle)`), { status: 503 });
+    }
     return r;
   }
 }

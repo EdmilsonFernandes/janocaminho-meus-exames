@@ -5,8 +5,8 @@ import type { LlmProvider, LlmRequest, LlmStream, LlmResult } from '../src/llm/t
 /** Regressão 17/11 — a estratégia GLM↔Gemini depende de 2 garantias do FallbackProvider:
  *  (1) backup recebe req.model=undefined (model do GLM não pode vazar pro Gemini);
  *  (2) erro "rotativo" (429/5xx) cai pro backup; erro de request (400) sobe direto. */
-function fake(name: string, opts: { failWith?: any; capture?: (req: LlmRequest) => void } = {}): LlmProvider {
-  const res: LlmResult = { text: `resposta de ${name}` };
+function fake(name: string, opts: { failWith?: any; empty?: boolean; capture?: (req: LlmRequest) => void } = {}): LlmProvider {
+  const res: LlmResult = { text: opts.empty ? '' : `resposta de ${name}` };
   const stream: LlmStream = { onDelta: () => stream, final: async () => res };
   return {
     name,
@@ -57,5 +57,16 @@ describe('FallbackProvider — failover GLM↔Gemini (regressão 17/11)', () => 
   it('todos caem → sobe o último erro (sem sucesso fantasma)', async () => {
     const fb = new FallbackProvider(fake('glm', { failWith: rotativo }), [fake('gemini', { failWith: Object.assign(new Error('quota'), { status: 429 }) })]);
     await expect(fb.complete({ messages: [{ role: 'user', content: 'oi' }] } as LlmRequest)).rejects.toThrow('quota');
+  });
+
+  it('resposta VAZIA do primário (throttle mascarado do relay) → rotaciona pro backup (caso Dione 18/11)', async () => {
+    const fb = new FallbackProvider(fake('glm', { empty: true }), [fake('gemini')]);
+    const r = await fb.complete({ model: 'glm-5.3', messages: [{ role: 'user', content: 'exame com 1700 tokens de texto' }] } as LlmRequest);
+    expect(r.text).toBe('resposta de gemini');
+  });
+
+  it('primário e backup VAZIOS → sobe erro de vazio (não devolve mentira)', async () => {
+    const fb = new FallbackProvider(fake('glm', { empty: true }), [fake('gemini', { empty: true })]);
+    await expect(fb.complete({ messages: [{ role: 'user', content: 'oi' }] } as LlmRequest)).rejects.toThrow('vazia');
   });
 });
