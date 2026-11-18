@@ -1,23 +1,17 @@
 import { useMemo, useState } from 'react';
 import {
-  Accordion, AccordionDetails, AccordionSummary, Box, Chip,
-  InputAdornment, Link as MuiLink, TextField, Typography,
+  Accordion, AccordionDetails, AccordionSummary, Box, Link as MuiLink, Typography,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import SearchIcon from '@mui/icons-material/Search';
-import SupportAgentIcon from '@mui/icons-material/SupportAgent';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate, useSearchParams, Link as RouterLink } from 'react-router-dom';
 import { Title } from 'react-admin';
 import { DrExame } from '../components/DrExame';
-import { GradientButton } from '../components/GradientButton';
 import { PageContainer } from '../components/layout/PageContainer';
-import { tealText } from '../theme';
-import { Frame, FrameHeader, FramePanel, FrameFooter } from '@/components/reui/frame';
-import { Badge } from '@/components/reui/badge';
-import { IconTile } from '@/components/reui/icon-tile';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
-import { ArrowLeft, Search, HelpCircle, LifeBuoy, Mail } from 'lucide-react';
+import {
+  ArrowLeft, Search, HelpCircle, LifeBuoy, Mail, ChevronDown,
+  Sparkles, CreditCard, User, FileText, ShieldCheck, Stethoscope,
+  ArrowRight, Layers, MessageSquare,
+} from 'lucide-react';
 
 type FaqCategory = 'comecando' | 'planos' | 'conta' | 'exames' | 'confianca' | 'medico' | 'privacidade';
 
@@ -30,16 +24,26 @@ interface FaqEntry {
   linkLabel?: string;
 }
 
-const CATEGORIES: { id: FaqCategory | 'all'; label: string }[] = [
-  { id: 'all', label: 'Todas' },
-  { id: 'comecando', label: 'Começando' },
-  { id: 'planos', label: 'Créditos & planos' },
-  { id: 'conta', label: 'Conta' },
-  { id: 'exames', label: 'Exames & IA' },
-  { id: 'confianca', label: 'Como validamos' },
-  { id: 'medico', label: 'Médico' },
-  { id: 'privacidade', label: 'Privacidade' },
+const CATEGORIES: { id: FaqCategory | 'all'; label: string; icon: typeof Layers }[] = [
+  { id: 'all', label: 'Todas', icon: Layers },
+  { id: 'comecando', label: 'Começando', icon: Sparkles },
+  { id: 'planos', label: 'Créditos & planos', icon: CreditCard },
+  { id: 'conta', label: 'Conta', icon: User },
+  { id: 'exames', label: 'Exames & IA', icon: FileText },
+  { id: 'confianca', label: 'Como validamos', icon: ShieldCheck },
+  { id: 'medico', label: 'Médico', icon: Stethoscope },
+  { id: 'privacidade', label: 'Privacidade', icon: ShieldCheck },
 ];
+
+const CAT_LABELS: Record<FaqCategory, string> = {
+  comecando: 'Começando',
+  planos: 'Créditos & planos',
+  conta: 'Conta',
+  exames: 'Exames & IA',
+  confianca: 'Como validamos',
+  medico: 'Médico',
+  privacidade: 'Privacidade',
+};
 
 const FAQ: FaqEntry[] = [
   // Começando
@@ -81,21 +85,25 @@ const FAQ: FaqEntry[] = [
   { cat: 'medico', q: 'Tem pesquisa clínica pra minha condição?', a: 'Seu médico encontra no portal as pesquisas clínicas recrutando no Brasil relacionadas ao seu perfil — uma via a mais de acesso a tratamento de ponta, indicada por quem acompanha você de perto.' },
 ];
 
+/** 3 perguntas de acesso rápido no topo */
+const QUICK_HIGHLIGHTS = [
+  { index: 0, tag: 'O básico', title: 'O que é o Dr. Exame?', preview: 'Guarda, interpreta e monitora seus exames com IA clínica.' },
+  { index: 1, tag: 'Planos', title: 'Preciso pagar pra começar?', preview: 'Não. Comece 100% grátis e envie seu primeiro exame.' },
+  { index: 2, tag: 'Envio', title: 'Como envio meu exame?', preview: 'Envie PDF ou foto do laudo — leitura automática na hora.' },
+];
+
 /**
- * Perguntas frequentes — tela DO APP (rota com layout: header, voltar e menu — era noLayout,
- * "tela solta" com "voltar ao início" jogando pra landing). O suporte agora é IN-APP:
- * "Falar com o suporte" abre o painel de chamados (/suporte), sem sair pra e-mail.
+ * Perguntas frequentes — tela do Dr. Exame com layout premium e ReUI.
+ * Suporte in-app direcionado para /suporte e canal de e-mail integrado.
  */
 export const FaqPage = () => {
   useReuiThemeSync();
   const navigate = useNavigate();
-  // Deep-link de busca (?q=): os cards de auto-ajuda do /suporte chegam com a dúvida pronta.
   const [params] = useSearchParams();
   const [query, setQuery] = useState(() => params.get('q') ?? '');
   const [category, setCategory] = useState<FaqCategory | 'all'>('all');
   const [expanded, setExpanded] = useState<number | false>(false);
 
-  // Todos os hooks ANTES de qualquer return (React #310).
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
     return FAQ.map((entry, index) => ({ ...entry, index })).filter(({ q, a, cat }) => {
@@ -105,157 +113,317 @@ export const FaqPage = () => {
     });
   }, [query, category]);
 
+  const handleSelectQuick = (idx: number) => {
+    setCategory('all');
+    setQuery('');
+    setExpanded(idx);
+    setTimeout(() => {
+      const el = document.getElementById(`faq-item-${idx}`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 120);
+  };
+
   return (
     <PageContainer width={740}>
       <Title title="Dúvidas frequentes" />
 
-      {/* Barra de retorno clara — permite voltar tanto quando aberto dentro do app quanto via rota pública /faq */}
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <button
-          type="button"
-          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-card px-3 py-1.5 text-xs font-bold text-foreground shadow-2xs transition-colors hover:bg-muted cursor-pointer"
-        >
-          <ArrowLeft className="size-3.5" />
-          <span>Voltar</span>
-        </button>
-        <Badge variant="info-light" size="xs">
-          Central de Ajuda · Dr. Exame
-        </Badge>
-      </div>
+      {/* ── HERO BANNER ELEVADO COM GRADIENTE ── */}
+      <div className="relative mb-5 overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#0a4d47] via-[#0d9488] to-[#20b2aa] p-4 sm:p-6 text-white shadow-lg">
+        {/* Glow de fundo */}
+        <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-white/10 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-20 -left-10 size-60 rounded-full bg-teal-300/15 blur-2xl" />
 
-      {/* HERO + BUSCA INTEGRADA (ReUI Frame) */}
-      <Frame variant="default" className="mb-5">
-        <FrameHeader className="flex flex-row items-center justify-between gap-3 flex-wrap pb-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="relative flex size-12 shrink-0 items-center justify-center rounded-2xl bg-teal-500/10 border border-teal-500/25">
-              <DrExame size={36} sx={{ borderRadius: '50%' }} />
+        <div className="relative z-10">
+          <div className="mb-3.5 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-xs font-bold text-white shadow-xs backdrop-blur-md transition-all hover:bg-white/25 cursor-pointer"
+            >
+              <ArrowLeft className="size-3.5" />
+              <span>Voltar</span>
+            </button>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/15 px-2.5 py-1 text-[10.5px] sm:text-[11px] font-bold text-white backdrop-blur-md">
+              Central de Ajuda · Dr. Exame
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 mb-2">
+            <div className="relative flex size-11 sm:size-13 shrink-0 items-center justify-center rounded-2xl bg-white/15 border border-white/30 backdrop-blur-md shadow-md">
+              <DrExame size={34} sx={{ borderRadius: '50%' }} />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="font-heading text-lg sm:text-xl font-extrabold text-foreground">
-                  Perguntas Frequentes
-                </h1>
-                <Badge variant="outline" size="xs">
-                  {FAQ.length} respostas
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Exames, IA, planos, médicos e privacidade — direto ao ponto.
+              <h1 className="font-heading text-lg sm:text-2xl font-black tracking-tight text-white leading-tight">
+                Perguntas Frequentes
+              </h1>
+              <p className="text-xs sm:text-sm text-teal-50 font-medium truncate">
+                {FAQ.length} respostas · Exames, IA, planos e segurança
               </p>
             </div>
           </div>
-        </FrameHeader>
-        <FramePanel className="p-4 space-y-3">
-          <div className="relative flex items-center">
-            <Search className="absolute left-3 size-4 text-muted-foreground pointer-events-none" />
-            <input
-              type="search"
-              placeholder="Busque sua dúvida… (ex.: créditos, PDF, médico, LGPD)"
-              aria-label="Buscar dúvida no FAQ"
-              value={query}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setQuery(e.target.value);
+
+          {/* Mini estatísticas da central */}
+          <div className="mt-3.5 flex items-center gap-4 sm:gap-6 pt-3 border-t border-white/15">
+            <div>
+              <div className="text-base sm:text-xl font-black text-white leading-none">{FAQ.length}</div>
+              <div className="text-[10.5px] sm:text-[11px] text-teal-100 font-medium mt-0.5">Respostas</div>
+            </div>
+            <div className="h-5 sm:h-6 w-px bg-white/20" />
+            <div>
+              <div className="text-base sm:text-xl font-black text-white leading-none">{CATEGORIES.length - 1}</div>
+              <div className="text-[10.5px] sm:text-[11px] text-teal-100 font-medium mt-0.5">Categorias</div>
+            </div>
+            <div className="h-5 sm:h-6 w-px bg-white/20" />
+            <div>
+              <div className="text-base sm:text-xl font-black text-white leading-none">&lt; 1 dia</div>
+              <div className="text-[10.5px] sm:text-[11px] text-teal-100 font-medium mt-0.5">Suporte rápido</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── CAMPO DE BUSCA FLUTUANTE ── */}
+      <div className="relative mb-5 -mt-3 px-1">
+        <div className="relative flex items-center rounded-2xl border border-border/80 bg-card p-1.5 shadow-md shadow-teal-950/5 transition-all focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/20">
+          <Search className="absolute left-4 size-4.5 text-muted-foreground pointer-events-none" />
+          <input
+            type="search"
+            placeholder="Busque sua dúvida… créditos, PDF, médico, LGPD…"
+            aria-label="Buscar dúvida no FAQ"
+            value={query}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setQuery(e.target.value);
+              setExpanded(false);
+            }}
+            className="w-full rounded-xl bg-transparent py-2 pl-10 pr-4 text-xs sm:text-sm text-foreground outline-none placeholder:text-muted-foreground"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              className="mr-2 text-xs font-bold text-muted-foreground hover:text-foreground"
+            >
+              Limpar
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── CATEGORIAS (PILLS COM ÍCONES) ── */}
+      <div className="mb-6 flex gap-1.5 overflow-x-auto pb-1.5 pt-0.5 no-scrollbar sm:flex-wrap">
+        {CATEGORIES.map(({ id, label, icon: Icon }) => {
+          const active = id === category;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => {
+                setCategory(id);
                 setExpanded(false);
               }}
-              className="w-full rounded-xl border border-border/80 bg-background py-2 pl-9 pr-3 text-xs sm:text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-teal-600 focus:ring-1 focus:ring-teal-600"
-            />
-          </div>
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                active
+                  ? 'bg-teal-600 text-white shadow-xs'
+                  : 'border border-border/80 bg-card text-muted-foreground hover:border-teal-500/40 hover:text-foreground'
+              }`}
+            >
+              <Icon className="size-3.5" />
+              <span>{label}</span>
+            </button>
+          );
+        })}
+      </div>
 
-          <div className="flex flex-wrap gap-1.5 pt-0.5">
-            {CATEGORIES.map(({ id, label }) => {
-              const active = id === category;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => {
-                    setCategory(id);
-                    setExpanded(false);
-                  }}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-                    active
-                      ? 'bg-teal-600 text-white shadow-xs'
-                      : 'border border-border/70 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
+      {/* ── QUICK HIGHLIGHTS (PERGUNTAS MAIS COMUNS) ── */}
+      {!query && category === 'all' && (
+        <div className="mb-7">
+          <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            Perguntas mais comuns
           </div>
-        </FramePanel>
-      </Frame>
-
-      {/* LISTA — entrada em cascata (stagger): a lista "chega" em vez de pipocar. */}
-      {filtered.length === 0 ? (
-        <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-          Nenhuma pergunta encontrada com esse termo. Tente outra palavra ou fale com o suporte.
-        </Typography>
-      ) : (
-        filtered.map(({ index, q, a, linkTo, linkLabel }, i) => (
-          <Accordion
-            key={index}
-            expanded={expanded === index}
-            onChange={(_, isOpen) => setExpanded(isOpen ? index : false)}
-            disableGutters
-            sx={{
-              mb: 1.5, animation: `faqUp .45s cubic-bezier(.16,1,.3,1) both`, animationDelay: `${Math.min(i, 8) * 45}ms`,
-              borderRadius: '14px !important',
-              border: '1px solid', borderColor: expanded === index ? 'rgba(32,178,170,.45)' : 'divider',
-              boxShadow: 'none',
-              '&:before': { display: 'none' },
-              transition: 'border-color .25s ease',
-              '&:hover': { boxShadow: '0 6px 18px rgba(32,178,170,0.12)' },
-            }}
-          >
-            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: (t) => tealText(t.palette.mode) }} />} sx={{ fontWeight: 600, fontSize: '0.95rem' }}>
-              {q}
-            </AccordionSummary>
-            <AccordionDetails sx={{ color: 'text.secondary', lineHeight: 1.7, pt: 0, animation: 'faqUp .3s ease both' }}>
-              {a}
-              {linkTo && (
-                <Box component="span" sx={{ display: 'block', mt: 1 }}>
-                  <MuiLink component={RouterLink} to={linkTo} sx={{ fontWeight: 700, fontSize: 13 }}>{linkLabel ?? 'Saiba mais'} →</MuiLink>
-                </Box>
-              )}
-            </AccordionDetails>
-          </Accordion>
-        ))
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            {QUICK_HIGHLIGHTS.map((item) => (
+              <div
+                key={item.index}
+                onClick={() => handleSelectQuick(item.index)}
+                className="group cursor-pointer rounded-2xl border border-border/80 bg-card p-3.5 shadow-2xs transition-all hover:-translate-y-0.5 hover:border-teal-500/40 hover:shadow-md"
+              >
+                <div className="mb-1 text-[10px] font-extrabold uppercase tracking-wide text-teal-600 dark:text-teal-400">
+                  {item.tag}
+                </div>
+                <div className="text-xs sm:text-[13px] font-bold text-foreground group-hover:text-teal-600 transition-colors line-clamp-1">
+                  {item.title}
+                </div>
+                <div className="mt-1 text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
+                  {item.preview}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
-      {/* SUPORTE IN-APP — ReUI Frame */}
-      <Frame variant="default" className="mt-6">
-        <FramePanel className="p-5 text-center space-y-2.5">
-          <div className="mx-auto flex size-11 items-center justify-center rounded-2xl bg-teal-500/10 text-teal-600">
-            <LifeBuoy className="size-5" />
-          </div>
-          <div className="font-heading text-base font-extrabold text-foreground">
-            Ainda com dúvidas?
-          </div>
-          <p className="text-xs text-muted-foreground max-w-md mx-auto">
-            Abra um chamado direto no app — você acompanha a resposta por aqui e por notificação em até 1 dia útil.
-          </p>
-          <div className="pt-1">
-            <GradientButton onClick={() => navigate('/suporte')} endIcon={<ArrowForwardIcon />} sx={{ px: 4 }}>
-              Falar com o suporte
-            </GradientButton>
-          </div>
-        </FramePanel>
-        <FrameFooter className="px-4 py-2.5 flex items-center justify-between flex-wrap gap-2 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5">
-            <Mail className="size-3.5 text-teal-600" />
-            Prefere e-mail? <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontWeight: 700 }}>contato@janocaminho.com.br</MuiLink>
-          </span>
-          <span>Dr. Exame — análise educativa</span>
-        </FrameFooter>
-      </Frame>
+      {/* ── LISTA DE PERGUNTAS COM ACCORDION ELEVADO ── */}
+      <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        {filtered.length} {filtered.length === 1 ? 'pergunta encontrada' : 'perguntas'}
+      </div>
 
-      <style>{`
-        @keyframes faqFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-        @keyframes faqUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes faqShine{0%,55%{transform:translateX(-120%)}80%,100%{transform:translateX(120%)}}
-      `}</style>
+      {filtered.length === 0 ? (
+        <div className="rounded-2xl border border-border/80 bg-card p-8 text-center">
+          <HelpCircle className="mx-auto mb-2 size-8 text-muted-foreground/60" />
+          <Typography color="text.secondary" sx={{ fontSize: 13.5 }}>
+            Nenhuma pergunta encontrada com esse termo. Tente outra palavra ou fale direto com nosso suporte.
+          </Typography>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map(({ index, q, a, cat, linkTo, linkLabel }, i) => {
+            const isOpen = expanded === index;
+            return (
+              <Accordion
+                key={index}
+                id={`faq-item-${index}`}
+                expanded={isOpen}
+                onChange={(_, open) => setExpanded(open ? index : false)}
+                disableGutters
+                sx={{
+                  borderRadius: '16px !important',
+                  border: '1px solid',
+                  borderColor: isOpen ? 'rgba(13,148,136,0.45)' : 'divider',
+                  bgcolor: 'background.paper',
+                  boxShadow: isOpen ? '0 4px 18px rgba(13,148,136,0.08)' : '0 1px 3px rgba(0,0,0,0.02)',
+                  overflow: 'hidden',
+                  transition: 'border-color .2s ease, box-shadow .2s ease',
+                  '&:before': { display: 'none' },
+                  '&:hover': {
+                    borderColor: 'rgba(13,148,136,0.3)',
+                    boxShadow: '0 4px 14px rgba(13,148,136,0.06)',
+                  },
+                }}
+              >
+                <AccordionSummary
+                  sx={{
+                    px: 2,
+                    py: 1,
+                    minHeight: 52,
+                    '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' },
+                  }}
+                >
+                  <div className="flex w-full items-center gap-2.5">
+                    {/* Barra de destaque vertical à esquerda */}
+                    <div
+                      className={`h-7 w-1 shrink-0 rounded-full transition-colors ${
+                        isOpen ? 'bg-teal-600' : 'bg-muted-foreground/20'
+                      }`}
+                    />
+                    <div className="flex-1 min-w-0 pr-1">
+                      <div className={`text-xs sm:text-[13.5px] font-semibold transition-colors ${
+                        isOpen ? 'text-teal-600 dark:text-teal-400 font-bold' : 'text-foreground'
+                      }`}>
+                        {q}
+                      </div>
+                    </div>
+                    {/* Tag de categoria */}
+                    <span className="hidden sm:inline-flex shrink-0 items-center rounded-full bg-teal-500/10 px-2 py-0.5 text-[10px] font-bold text-teal-700 dark:text-teal-300">
+                      {CAT_LABELS[cat] || cat}
+                    </span>
+                    {/* Ícone de expansão */}
+                    <div className={`flex size-6 shrink-0 items-center justify-center rounded-full transition-transform duration-200 ${
+                      isOpen ? 'rotate-180 bg-teal-500/15 text-teal-600' : 'bg-muted/50 text-muted-foreground'
+                    }`}>
+                      <ChevronDown className="size-3.5" />
+                    </div>
+                  </div>
+                </AccordionSummary>
+                <AccordionDetails sx={{ px: 2.5, pb: 2.25, pt: 0.5, borderTop: '1px solid rgba(0,0,0,0.04)' }}>
+                  <Typography
+                    sx={{
+                      color: 'text.secondary',
+                      fontSize: 13,
+                      lineHeight: 1.7,
+                      pl: 1.75,
+                    }}
+                  >
+                    {a}
+                  </Typography>
+                  {linkTo && (
+                    <Box sx={{ pl: 1.75, mt: 1.5 }}>
+                      <MuiLink
+                        component={RouterLink}
+                        to={linkTo}
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          fontWeight: 700,
+                          fontSize: 12.5,
+                          color: '#0d9488',
+                          textDecoration: 'none',
+                          '&:hover': { textDecoration: 'underline' },
+                        }}
+                      >
+                        <span>{linkLabel ?? 'Saiba mais'}</span>
+                        <ArrowRight className="size-3.5" />
+                      </MuiLink>
+                    </Box>
+                  )}
+                </AccordionDetails>
+              </Accordion>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── CARD PREMIUM DE SUPORTE IN-APP ── */}
+      <div className="relative mt-8 overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#0a4d47] to-[#0d9488] p-5 sm:p-6 text-white shadow-lg">
+        {/* Glow de fundo */}
+        <div className="pointer-events-none absolute -right-10 -bottom-10 size-48 rounded-full bg-white/10 blur-xl" />
+
+        <div className="relative z-10 space-y-3">
+          <div className="flex size-11 items-center justify-center rounded-2xl bg-white/15 border border-white/20 backdrop-blur-md">
+            <LifeBuoy className="size-5.5 text-white" />
+          </div>
+
+          <div>
+            <h2 className="font-heading text-lg sm:text-xl font-extrabold text-white">
+              Ainda com dúvidas?
+            </h2>
+            <p className="mt-1 text-xs sm:text-sm text-teal-50/90 leading-relaxed max-w-lg">
+              Abra um chamado direto no app — você acompanha a resposta por aqui e por notificação em até 1 dia útil.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1">
+            <button
+              type="button"
+              onClick={() => navigate('/suporte')}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs sm:text-sm font-extrabold text-teal-800 shadow-md transition-all hover:bg-teal-50 hover:shadow-lg active:scale-98 cursor-pointer"
+            >
+              <MessageSquare className="size-4 text-teal-700" />
+              <span>Falar com o suporte</span>
+              <ArrowRight className="size-3.5 text-teal-700" />
+            </button>
+            <a
+              href="mailto:contato@janocaminho.com.br"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-3.5 py-2.5 text-xs sm:text-sm font-bold text-white backdrop-blur-md transition-colors hover:bg-white/20"
+            >
+              <Mail className="size-4" />
+              <span>Enviar e-mail</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* ── RODAPÉ INFORMATIVO ── */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5">
+          <Mail className="size-3.5 text-teal-600" />
+          Prefere e-mail?{' '}
+          <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontWeight: 700, color: 'inherit' }}>
+            contato@janocaminho.com.br
+          </MuiLink>
+        </span>
+        <span>Dr. Exame — análise educativa</span>
+      </div>
     </PageContainer>
   );
 };

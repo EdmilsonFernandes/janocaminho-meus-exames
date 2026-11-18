@@ -1064,6 +1064,10 @@ const AppMenu = () => {
         }}><InfoOutlinedIcon fontSize="small" /></ListItemIcon>
         <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}>{translate('menu.about')}</ListItemText>
       </MenuItem>
+
+      {/* Divisor pesado — sinaliza ação destrutiva a seguir */}
+      <Box sx={{ mx: 1.5, my: 0.75, height: '1px', background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.10)' }} />
+
       <MenuItem onClick={() => logout('/entrar')} sx={{
         m: '3px 8px', borderRadius: '16px', py: 0.6, minHeight: 48, color: (t) => t.palette.mode === 'dark' ? '#ffb4ab' : '#b42318',
         transition: 'background-color .15s ease',

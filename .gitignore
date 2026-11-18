@@ -90,3 +90,6 @@ packages/web/playwright/.cache/
 # Skills arquivadas (junctions p/ .agents/skills, fora do contexto) — reativar: mv .claude/skills-archive/<pacote>/<skill> .claude/skills/
 .claude/skills-archive/
 releases/
+
+# Fotos de exame REAIS para testes locais de OCR/vision (PII — NUNCA commitar; repo público)
+packages/server/test/fixtures-local/
