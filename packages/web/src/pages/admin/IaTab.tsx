@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Card, CardContent, Stack, Chip, Alert, FormControl, InputLabel, Select, MenuItem, TextField, OutlinedInput, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, Typography, Card, CardContent, Stack, Chip, Alert, FormControl, InputLabel, Select, MenuItem, TextField, OutlinedInput, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Switch } from '@mui/material';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -21,6 +21,7 @@ const PROVIDER_LABEL: Record<string, string> = {
 const AiProviderCard = () => {
   const [cfg, setCfg] = useState<any>(null);
   const [provider, setProvider] = useState('anthropic');
+  const [managing, setManaging] = useState<string | null>(null);
   const [baseURL, setBaseURL] = useState('');
   const [model, setModel] = useState('');
   const [apiKey, setApiKey] = useState('');
@@ -35,6 +36,27 @@ const AiProviderCard = () => {
   const [newL, setNewL] = useState('');
   const [addBusy, setAddBusy] = useState(false);
   const [delModel, setDelModel] = useState<any | null>(null);
+  // Panorama dos providers (17/11): teste rápido POR TILE (usa a config SALVA) + flag de ativação.
+  const [tileTest, setTileTest] = useState<Record<string, any>>({});
+  const [activating, setActivating] = useState(true);
+  const quickTest = async (p: string) => {
+    setTileTest((t) => ({ ...t, [p]: { busy: true } }));
+    try {
+      const r = await fetch(`${API_URL}/admin/ai-config/test`, { method: 'POST', headers: { ...H(), 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: p }) });
+      const j = await r.json();
+      setTileTest((t) => ({ ...t, [p]: j }));
+    } catch { setTileTest((t) => ({ ...t, [p]: { ok: false, error: 'Falha de rede.' } })); }
+  };
+  const saveChatProvider = async (v: string) => {
+    setMsg(null);
+    try {
+      const r = await fetch(`${API_URL}/admin/ai-config`, { method: 'PATCH', headers: { ...H(), 'Content-Type': 'application/json' }, body: JSON.stringify({ chatProvider: v || null }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || 'Erro ao salvar rota do chat');
+      apply(j);
+      setMsg({ ok: true, text: `💬 Chat atendido por: ${v ? (PROVIDER_LABEL[v] ?? v) : 'mesmo do motor'}` });
+    } catch (e: any) { setMsg({ ok: false, text: e?.message || 'Erro ao salvar rota do chat' }); }
+  };
 
   const fetchModels = async () => { try { const r = await fetch(`${API_URL}/admin/ai-models`, { headers: H() }); if (r.ok) setModels(await r.json()); } catch {} };
   const apply = (j: any) => {
@@ -56,8 +78,10 @@ const AiProviderCard = () => {
 
   const onProviderChange = (p: string) => {
     setProvider(p);
+    setManaging(p);
     const row = (cfg?.providers as any[])?.find((x) => x.provider === p);
     setBaseURL(row?.baseURL ?? ''); setModel(row?.model ?? ''); setApiKey(''); setTestResult(null); setMsg(null); setMgmtOpen(false);
+    setActivating(cfg?.activeProvider === p);
   };
   const onModelChange = (v: string) => {
     if (v === '__new__') { setMgmtOpen(true); return; }
@@ -87,10 +111,11 @@ const AiProviderCard = () => {
   const save = async () => {
     setSaving(true); setMsg(null);
     try {
-      const r = await fetch(`${API_URL}/admin/ai-config`, { method: 'PATCH', headers: { ...H(), 'Content-Type': 'application/json' }, body: JSON.stringify({ provider, apiKey: apiKey || undefined, baseURL, model }) });
+      const r = await fetch(`${API_URL}/admin/ai-config`, { method: 'PATCH', headers: { ...H(), 'Content-Type': 'application/json' }, body: JSON.stringify({ provider, apiKey: apiKey || undefined, baseURL, model, activate: activating }) });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || 'Erro ao salvar');
       apply(j);
+      setActivating(j.activeProvider === provider);
       setMsg({ ok: true, text: `Salvo · ativo: ${PROVIDER_LABEL[j.activeProvider] ?? j.activeProvider}` });
     } catch (e: any) { setMsg({ ok: false, text: e?.message || 'Erro ao salvar' }); }
     setSaving(false);
@@ -102,26 +127,82 @@ const AiProviderCard = () => {
   return (
     <Card variant="outlined" sx={{ borderRadius: '12px', mb: 2 }}>
       <CardContent>
-        <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 1 }}>
-          <Typography sx={{ fontWeight: 800, flex: 1 }}>🤖 Provedor de IA (Dr. Exame)</Typography>
-          {cfg && (() => {
-            // Chip reflete o resultado do ÚLTIMO teste (testResult): falhou → vermelho, ok → verde.
-            const tested = PROVIDER_LABEL[provider] ?? provider;
-            if (testResult && !testResult.ok) return <Chip size="small" color="error" variant="outlined" label={`Falhou: ${tested}`} />;
-            if (testResult?.ok) return <Chip size="small" color="success" variant="outlined" label={`Ativo: ${tested}`} />;
-            return <Chip size="small" color="success" variant="outlined" label={`Ativo: ${PROVIDER_LABEL[cfg.activeProvider] ?? cfg.activeProvider}`} />;
-          })()}
+        <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ sm: 'center' }} gap={1} sx={{ mb: 1.25 }}>
+          <Typography sx={{ fontWeight: 800, flex: 1, fontSize: 16 }}>🤖 Motores de IA</Typography>
+          {cfg && (
+            <FormControl size="small" sx={{ minWidth: 210 }}>
+              <InputLabel sx={{ fontSize: 13 }}>💬 Chat atendido por</InputLabel>
+              <Select value={cfg.chatProvider ?? ''} label="💬 Chat atendido por" onChange={(e) => saveChatProvider(String(e.target.value))}>
+                <MenuItem value=""><em>Mesmo do motor ({PROVIDER_LABEL[cfg.activeProvider] ?? cfg.activeProvider})</em></MenuItem>
+                {(cfg.providers as any[]).filter((p) => p.keyMasked || p.provider === cfg.activeProvider).map((p) => (
+                  <MenuItem key={p.provider} value={p.provider}>{PROVIDER_LABEL[p.provider] ?? p.provider}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
         </Stack>
-        <Alert severity="info" sx={{ mb: 1.5, fontSize: 13 }}>Troca em <strong>tempo real</strong> (sem restart/deploy). Os valores abaixo são o que <strong>tá rodando</strong> (banco ou <strong>.env</strong>). A chave é <strong>cifrada</strong> no banco e nunca volta completa — deixe vazia pra manter a atual. Aceita <strong>várias chaves separadas por vírgula</strong> (ex.: chave1,chave2): a 1ª é a principal e, se der rate limit, o sistema alterna pras backups e volta pra principal sozinho quando o limite reseta.</Alert>
+
+        {/* Panorama: 1 linha por motor — papel em linguagem de gente, chave, testar, gerenciar. */}
+        <Stack spacing={1} sx={{ mb: 1 }}>
+          {(cfg?.providers as any[] | undefined)?.map((p) => {
+            const isMotor = p.provider === cfg.activeProvider;
+            const chatWho = cfg.chatProvider ?? cfg.activeProvider;
+            const isChat = p.provider === chatWho;
+            const papel = isMotor
+              ? 'Lê os exames e gera as análises clínicas'
+              : isChat ? 'Conversa com o paciente · dicas diárias'
+              : p.keyMasked ? 'Plano B — assume sozinho se os outros caírem' : 'Reserva (sem chave)';
+            const tt = tileTest[p.provider];
+            return (
+              <Box key={p.provider} sx={{ p: 1.5, borderRadius: '12px', border: '1px solid', borderColor: managing === p.provider ? 'rgba(32,178,170,.55)' : 'divider', bgcolor: managing === p.provider ? 'rgba(32,178,170,.05)' : 'transparent' }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 1.5 }} alignItems={{ sm: 'center' }}>
+                  <Box sx={{ flexShrink: 0, width: 40, height: 40, borderRadius: '11px', display: 'grid', placeItems: 'center', fontSize: 20, bgcolor: 'rgba(32,178,170,.12)', border: '1px solid rgba(32,178,170,.25)' }}>
+                    {p.provider === 'gemini' ? '✨' : p.provider === 'openai' ? '🟢' : '🔷'}
+                  </Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack direction="row" alignItems="center" spacing={0.75} useFlexGap flexWrap="wrap">
+                      <Typography sx={{ fontWeight: 800, fontSize: 14 }}>{PROVIDER_LABEL[p.provider] ?? p.provider}</Typography>
+                      {isMotor && <Chip size="small" label="🔧 motor da extração" sx={{ height: 20, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(32,178,170,.16)', color: (t) => tealText(t.palette.mode) }} />}
+                      {isChat && !isMotor && <Chip size="small" label="💬 chat" sx={{ height: 20, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(212,165,116,.2)', color: '#92600c' }} />}
+                      {!p.keyMasked && <Chip size="small" label="sem chave" sx={{ height: 20, fontSize: 10, fontWeight: 800, bgcolor: 'action.hover', color: 'text.secondary' }} />}
+                    </Stack>
+                    <Typography sx={{ fontSize: 12.5, color: 'text.secondary', fontWeight: 600, mt: 0.25 }}>{papel}</Typography>
+                    <Typography sx={{ fontSize: 11.5, color: 'text.secondary', fontFamily: 'monospace', mt: 0.15 }}>
+                      {p.model ?? '—'}{p.keyMasked ? ` · ${p.keyMasked}` : ''}
+                    </Typography>
+                  </Box>
+                  <Stack direction="row" spacing={0.75} alignItems="center" flexShrink={0}>
+                    <Button size="small" variant="outlined" onClick={() => quickTest(p.provider)} disabled={tt?.busy} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '8px', minWidth: 0, px: 1.25 }}>
+                      {tt?.busy ? '…' : '⚡ Testar'}
+                    </Button>
+                    <Button size="small" variant={managing === p.provider ? 'contained' : 'text'} onClick={() => (managing === p.provider ? setManaging(null) : onProviderChange(p.provider))} sx={{ textTransform: 'none', fontWeight: 700, px: 1.25 }}>
+                      {managing === p.provider ? 'Fechar' : 'Gerenciar'}
+                    </Button>
+                  </Stack>
+                </Stack>
+                {tt && !tt.busy && (
+                  <Alert severity={tt.ok ? 'success' : 'error'} sx={{ mt: 1, py: 0.25, fontSize: 12.5, '& .MuiAlert-message': { overflowWrap: 'anywhere' } }}>
+                    {tt.ok ? `✅ Respondendo · ${tt.latencyMs}ms · ${tt.model}` : `❌ ${String(tt.error ?? 'falhou').slice(0, 220)}`}
+                  </Alert>
+                )}
+              </Box>
+            );
+          })}
+        </Stack>
+        <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.5, mb: managing ? 1.5 : 0 }}>
+          ⚠️ Se um motor cair (limite/429), o próximo com chave assume <strong>sozinho</strong>. Problema na rua? <strong>Gerenciar → cola a chave nova → Salvar</strong> — vale na hora, sem reiniciar nada.
+        </Typography>
+        {Array.isArray(cfg?.usageToday) && cfg.usageToday.length > 0 && (
+          <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mb: managing ? 1.5 : 0 }}>
+            {cfg.usageToday.map((u: any) => (
+              <Chip key={u.model} size="small" variant="outlined" label={`${u.model}: ${u.requests} hoje${u.errors ? ` · ${u.errors} erros` : ''}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, fontFamily: 'monospace' }} />
+            ))}
+          </Stack>
+        )}
+
+        {managing && (
+          <>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5, mb: 1.5 }}>
-          <FormControl size="small" fullWidth>
-            <InputLabel>Provedor</InputLabel>
-            <Select value={provider} label="Provedor" onChange={(e) => onProviderChange(String(e.target.value))}>
-              <MenuItem value="anthropic">Anthropic (Z.ai · GLM)</MenuItem>
-              <MenuItem value="openai">OpenAI</MenuItem>
-              <MenuItem value="gemini">Google Gemini</MenuItem>
-            </Select>
-          </FormControl>
           <FormControl size="small" fullWidth>
             <InputLabel>Modelo</InputLabel>
             <Select value={model} label="Modelo" onChange={(e) => onModelChange(String(e.target.value))}>
@@ -153,6 +234,10 @@ const AiProviderCard = () => {
           </Box>
         )}
         <Stack direction="row" gap={1} flexWrap="wrap" alignItems="center">
+          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mr: 0.5 }}>
+            <Switch size="small" checked={activating} onChange={(e) => setActivating(e.target.checked)} disabled={cfg?.activeProvider === provider} />
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>Tornar motor da extração</Typography>
+          </Stack>
           <Button size="small" variant="outlined" onClick={test} disabled={testing} startIcon={<BoltOutlinedIcon />}>{testing ? 'Testando…' : 'Testar conexão'}</Button>
           <Button size="small" variant="contained" onClick={save} disabled={saving}>{saving ? 'Salvando…' : 'Salvar'}</Button>
           {testResult && (testResult.ok
@@ -164,6 +249,8 @@ const AiProviderCard = () => {
           <Typography component="pre" sx={{ whiteSpace: 'pre-wrap', fontSize: 12, m: 0, mt: 1, color: 'error.main', overflowWrap: 'anywhere' }}>
             {String(testResult.error ?? 'Erro desconhecido.')}
           </Typography>
+        )}
+          </>
         )}
         <ConfirmDialog
           open={!!delModel} onClose={() => setDelModel(null)}
@@ -388,51 +475,6 @@ const ExamKnowledgeCard = () => {
   );
 };
 
-/** Card "Roteamento por função" (17/11) — função → quem atende + failover + uso do dia.
- *  Read-only: a configuração mora no banco (provider ativo + AppSetting aiRouting.chatProvider). */
-const AiRoutingCard = () => {
-  const [cfg, setCfg] = useState<any>(null);
-  useEffect(() => {
-    fetch(`${API_URL}/admin/ai-config`, { headers: H() }).then((r) => (r.ok ? r.json() : null)).then(setCfg).catch(() => {});
-  }, []);
-  if (!cfg) return null;
-  const chat = cfg.chatProvider ?? cfg.activeProvider;
-  const short = (p: string) => (p === 'gemini' ? 'Gemini' : p === 'openai' ? 'OpenAI' : 'GLM (Z.ai)');
-  const rows = [
-    { emoji: '🔬', fn: 'Extração de exames · resumos e análises clínicas', who: cfg.activeProvider },
-    { emoji: '💬', fn: 'Chat Dr. Exame · dicas diárias', who: chat },
-  ];
-  return (
-    <Card variant="outlined" sx={{ borderRadius: '14px', mb: 2 }}>
-      <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.25 }}>
-          <Typography sx={{ fontWeight: 800 }}>🧭 Roteamento por função</Typography>
-          <Chip size="small" label="429/queda → troca automática p/ o outro provider com chave" sx={{ height: 22, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(212,165,116,.16)', color: '#92600c' }} />
-        </Stack>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.25 }}>
-          {rows.map((r) => (
-            <Box key={r.fn} sx={{ display: 'flex', gap: 1.25, alignItems: 'center', p: 1.25, borderRadius: '12px', bgcolor: 'action.hover' }}>
-              <Box sx={{ flexShrink: 0, width: 36, height: 36, borderRadius: '10px', display: 'grid', placeItems: 'center', fontSize: 18, bgcolor: 'rgba(32,178,170,.12)', border: '1px solid rgba(32,178,170,.25)' }}>{r.emoji}</Box>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.secondary', lineHeight: 1.3 }}>{r.fn}</Typography>
-                <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>{short(r.who)}</Typography>
-              </Box>
-            </Box>
-          ))}
-        </Box>
-        {Array.isArray(cfg.usageToday) && cfg.usageToday.length > 0 && (
-          <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 1.25 }}>
-            {cfg.usageToday.map((u: any) => (
-              <Chip key={u.model} size="small" variant="outlined" label={`${u.model}: ${u.requests} hoje${u.errors ? ` · ${u.errors} erros` : ''}`}
-                sx={{ height: 22, fontSize: 11, fontWeight: 700, fontFamily: 'monospace' }} />
-            ))}
-          </Stack>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
-
 /** IA & Alertas — config do provedor (topo) + volume (ai_analyses) + custo/latência (AiUsageLog). */
 export const IaTab = () => {
   const [d, setD] = useState<any>(null);
@@ -444,7 +486,6 @@ export const IaTab = () => {
   return (
     <Box>
       <AiProviderCard />
-      <AiRoutingCard />
       <ExamKnowledgeCard />
       <CompoundKnowledgeCard />
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr 1fr' }, gap: 1.5, mb: 2 }}>

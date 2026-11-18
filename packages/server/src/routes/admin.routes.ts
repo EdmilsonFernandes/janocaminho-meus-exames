@@ -364,7 +364,9 @@ router.get('/ai-config', async (_req, res) => {
 router.patch('/ai-config', async (req, res, next) => {
   try {
     const provider = String(req.body?.provider ?? '').toLowerCase();
-    if (!AI_PROVIDERS.includes(provider as AiProviderName)) {
+    const hasProvider = AI_PROVIDERS.includes(provider as AiProviderName);
+    const hasChatRouting = 'chatProvider' in (req.body ?? {});
+    if (!hasProvider && !hasChatRouting) {
       res.status(400).json({ error: 'provider inválido. Use anthropic | openai | gemini.' }); return;
     }
     const p = provider as AiProviderName;
@@ -372,22 +374,42 @@ router.patch('/ai-config', async (req, res, next) => {
     const baseURL = typeof req.body?.baseURL === 'string' ? req.body.baseURL.trim() : undefined;
     const model = typeof req.body?.model === 'string' ? req.body.model.trim() : undefined;
 
+    // chatProvider (17/11): roteia o CHAT p/ um provider próprio (AppSetting aiRouting).
+    // '' ou null = mesmo do motor. Painel → seletor "💬 Chat atendido por".
+    if (hasChatRouting) {
+      const cpRaw = req.body.chatProvider;
+      const cp = (cpRaw === null || cpRaw === '') ? null : String(cpRaw).toLowerCase();
+      if (cp !== null && !AI_PROVIDERS.includes(cp as AiProviderName)) {
+        res.status(400).json({ error: 'chatProvider inválido. Use anthropic | openai | gemini ou vazio.' }); return;
+      }
+      await prisma.appSetting.upsert({
+        where: { key: 'aiRouting' },
+        create: { key: 'aiRouting', value: { chatProvider: cp } },
+        update: { value: { chatProvider: cp } },
+      });
+    }
+
     const before = { activeProvider: getActiveProvider(), providers: getConfigRows() };
 
+    if (hasProvider) {
     const existing = await prisma.aiProviderConfig.findUnique({ where: { provider: p } });
     let apiKeyEnc = existing?.apiKeyEnc ?? null;
     let apiKeyIv = existing?.apiKeyIv ?? null;
     if (apiKey) { const enc = encryptPII(apiKey); if (enc) { apiKeyEnc = enc.enc; apiKeyIv = enc.iv; } }
 
-    // Atômico: desativa todos + ativa o escolhido na mesma transação (garante exatamente 1 ativo).
+    // activate:false (17/11) = salvar chave/modelo SEM trocar o provider ativo — necessário
+    // pra preencher a chave de um BACKUP (gemini/openai) pelo painel sem virar o motor da
+    // extração por acidente. Default true = comportamento antigo (salvar e ativar).
+    const activate = req.body?.activate !== false;
     await prisma.$transaction([
-      prisma.aiProviderConfig.updateMany({ where: { active: true }, data: { active: false } }),
+      ...(activate ? [prisma.aiProviderConfig.updateMany({ where: { active: true }, data: { active: false } })] : []),
       prisma.aiProviderConfig.upsert({
         where: { provider: p },
-        update: { active: true, apiKeyEnc, apiKeyIv, ...(baseURL !== undefined ? { baseURL: baseURL || null } : {}), ...(model !== undefined ? { model: model || null } : {}) },
-        create: { provider: p, active: true, apiKeyEnc, apiKeyIv, baseURL: baseURL || null, model: model || null },
+        update: { ...(activate ? { active: true } : {}), apiKeyEnc, apiKeyIv, ...(baseURL !== undefined ? { baseURL: baseURL || null } : {}), ...(model !== undefined ? { model: model || null } : {}) },
+        create: { provider: p, active: activate, apiKeyEnc, apiKeyIv, baseURL: baseURL || null, model: model || null },
       }),
     ]);
+    }
 
     await refreshLlm();
     await audit('UPDATE_AI_CONFIG', req, { targetType: 'AI_CONFIG', before, after: { activeProvider: getActiveProvider(), providers: getConfigRows() } });
