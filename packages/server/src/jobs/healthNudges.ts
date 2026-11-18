@@ -2,7 +2,7 @@ import { prisma } from '../prisma';
 import { sendPushToUser } from '../utils/push';
 import { foodHintFor } from '../analysis/food-guide';
 import { sendNudgeEmail } from '../utils/nudgeMail';
-import { getLlm, getModel } from '../llm';
+import { getChatLlm, getModel } from '../llm';
 import { getCachedHealthSummary } from '../analysis/hs-cache';
 import { buildTipPrompt, curatedFallback, pickTipTheme, tipScreenFor, classifySegment, type TipContext, type TipMarker, type TipTheme } from './tipEngine';
 
@@ -45,7 +45,7 @@ async function generateTip(patientId: string, ctx: TipContext, theme: TipTheme, 
   if (cached) return cached;
   const { system, user } = buildTipPrompt(ctx, theme, recentBodies);
   try {
-    const r = await getLlm().complete({ model: getModel(), maxTokens: 220, system, messages: [{ role: 'user', content: user }] });
+    const r = await getChatLlm().complete({ maxTokens: 220, system, messages: [{ role: 'user', content: user }] });
     let text = (r.text || '').trim().replace(/^["'\s]+|["'\s]+$/g, '');
     if (text.length > 280) text = text.slice(0, 277).trimEnd() + '…';
     if (text) { tipCache.set(key, text); return text; }

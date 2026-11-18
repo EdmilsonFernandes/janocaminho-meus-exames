@@ -388,6 +388,51 @@ const ExamKnowledgeCard = () => {
   );
 };
 
+/** Card "Roteamento por função" (17/11) — função → quem atende + failover + uso do dia.
+ *  Read-only: a configuração mora no banco (provider ativo + AppSetting aiRouting.chatProvider). */
+const AiRoutingCard = () => {
+  const [cfg, setCfg] = useState<any>(null);
+  useEffect(() => {
+    fetch(`${API_URL}/admin/ai-config`, { headers: H() }).then((r) => (r.ok ? r.json() : null)).then(setCfg).catch(() => {});
+  }, []);
+  if (!cfg) return null;
+  const chat = cfg.chatProvider ?? cfg.activeProvider;
+  const short = (p: string) => (p === 'gemini' ? 'Gemini' : p === 'openai' ? 'OpenAI' : 'GLM (Z.ai)');
+  const rows = [
+    { emoji: '🔬', fn: 'Extração de exames · resumos e análises clínicas', who: cfg.activeProvider },
+    { emoji: '💬', fn: 'Chat Dr. Exame · dicas diárias', who: chat },
+  ];
+  return (
+    <Card variant="outlined" sx={{ borderRadius: '14px', mb: 2 }}>
+      <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.25 }}>
+          <Typography sx={{ fontWeight: 800 }}>🧭 Roteamento por função</Typography>
+          <Chip size="small" label="429/queda → troca automática p/ o outro provider com chave" sx={{ height: 22, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(212,165,116,.16)', color: '#92600c' }} />
+        </Stack>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.25 }}>
+          {rows.map((r) => (
+            <Box key={r.fn} sx={{ display: 'flex', gap: 1.25, alignItems: 'center', p: 1.25, borderRadius: '12px', bgcolor: 'action.hover' }}>
+              <Box sx={{ flexShrink: 0, width: 36, height: 36, borderRadius: '10px', display: 'grid', placeItems: 'center', fontSize: 18, bgcolor: 'rgba(32,178,170,.12)', border: '1px solid rgba(32,178,170,.25)' }}>{r.emoji}</Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.secondary', lineHeight: 1.3 }}>{r.fn}</Typography>
+                <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>{short(r.who)}</Typography>
+              </Box>
+            </Box>
+          ))}
+        </Box>
+        {Array.isArray(cfg.usageToday) && cfg.usageToday.length > 0 && (
+          <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 1.25 }}>
+            {cfg.usageToday.map((u: any) => (
+              <Chip key={u.model} size="small" variant="outlined" label={`${u.model}: ${u.requests} hoje${u.errors ? ` · ${u.errors} erros` : ''}`}
+                sx={{ height: 22, fontSize: 11, fontWeight: 700, fontFamily: 'monospace' }} />
+            ))}
+          </Stack>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 /** IA & Alertas — config do provedor (topo) + volume (ai_analyses) + custo/latência (AiUsageLog). */
 export const IaTab = () => {
   const [d, setD] = useState<any>(null);
@@ -399,6 +444,7 @@ export const IaTab = () => {
   return (
     <Box>
       <AiProviderCard />
+      <AiRoutingCard />
       <ExamKnowledgeCard />
       <CompoundKnowledgeCard />
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr 1fr' }, gap: 1.5, mb: 2 }}>

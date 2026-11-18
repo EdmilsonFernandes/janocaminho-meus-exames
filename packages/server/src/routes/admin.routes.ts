@@ -18,7 +18,7 @@ import { ticketReplyEmail, webUrl } from '../utils/emailTemplate';
 import { upload } from '../middleware/upload';
 import { audit } from '../utils/audit';
 import { logCredit } from '../utils/credits';
-import { getConfigRows, getActiveProvider, AI_PROVIDERS, resolveProviderConfig, type AiProviderName } from '../llm/ai-config';
+import { getConfigRows, getActiveProvider, getChatProviderPref, AI_PROVIDERS, resolveProviderConfig, type AiProviderName } from '../llm/ai-config';
 import { refreshLlm, testLlmConnection } from '../llm';
 import { generateExplanation } from '../analysis/explain';
 import { COMPOUND_CATALOG, UnknownCompoundError, compoundTextProblems, regenerateCompoundExplanation, saveCuratedCompound } from '../analysis/compound-explain';
@@ -342,12 +342,20 @@ function aiConfigResponse() {
     const keyMasked = eff.apiKey ? (eff.apiKey.length <= 4 ? '••••' : '••••' + eff.apiKey.slice(-4)) : null;
     return { provider: p, active: p === active, baseURL: eff.baseURL ?? null, model: eff.model, keyMasked };
   });
-  return { activeProvider: active, providers };
+  return { activeProvider: active, chatProvider: getChatProviderPref(), providers };
 }
 
-// GET: os 3 providers com a chave MASCARADA (••••1234) — nunca expõe a chave cheia.
-router.get('/ai-config', (_req, res) => {
-  res.json(aiConfigResponse());
+// GET: os 3 providers com a chave MASCARADA (••••1234) + roteamento do chat + uso do dia.
+router.get('/ai-config', async (_req, res) => {
+  let usageToday: Array<{ model: string; requests: number; errors: number }> = [];
+  try {
+    const start = new Date(); start.setUTCHours(0, 0, 0, 0);
+    const rows = await prisma.aiUsageLog.groupBy({ by: ['model'], where: { createdAt: { gte: start } }, _count: { _all: true } });
+    const errs = await prisma.aiUsageLog.groupBy({ by: ['model'], where: { createdAt: { gte: start }, success: false }, _count: { _all: true } });
+    const errMap = new Map(errs.map((e) => [e.model, e._count._all]));
+    usageToday = rows.map((r) => ({ model: r.model, requests: r._count._all, errors: errMap.get(r.model) ?? 0 }));
+  } catch { /* meter best-effort */ }
+  res.json({ ...aiConfigResponse(), usageToday });
 });
 
 // PATCH: define o provider ativo + (opcional) chave/baseURL/modelo.

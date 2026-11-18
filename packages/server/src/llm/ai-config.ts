@@ -52,6 +52,14 @@ let _rows: AiConfigRow[] = [];
 let _activeProvider: AiProviderName = isValid((config.aiProvider || 'anthropic').toLowerCase())
   ? (config.aiProvider.toLowerCase() as AiProviderName)
   : 'anthropic';
+/** Provider preferido do CHAT (AppSetting aiRouting.chatProvider). null = usa o ativo.
+ *  Estratégia 17/11: chat/dicas no Gemini (free tier, mais estável), extração segue no
+ *  ativo (GLM, pipeline calibrado). Failover cruzado cobre o resto. */
+let _chatProvider: AiProviderName | null = null;
+
+export function getChatProviderPref(): AiProviderName | null {
+  return _chatProvider;
+}
 
 /** Resolve a config runtime de um provider específico: override → banco → env → default.
  *  Override (do body do admin) vence — usado no "testar conexão" e ao salvar. */
@@ -93,7 +101,13 @@ export async function loadAiConfig(): Promise<void> {
     }));
     const active = dbRows.find((r) => r.active && isValid(r.provider));
     if (active) _activeProvider = active.provider as AiProviderName;
-    console.log(`[llm] config do banco carregada — ativo: ${_activeProvider} · ${dbRows.length} provedor(es)`);
+    // Roteamento do chat (AppSetting aiRouting) — tolerante a ausência/valor inválido.
+    try {
+      const routing = await prisma.appSetting.findUnique({ where: { key: 'aiRouting' } });
+      const pref = String((routing?.value as any)?.chatProvider ?? '').toLowerCase();
+      _chatProvider = isValid(pref) ? (pref as AiProviderName) : null;
+    } catch { _chatProvider = null; }
+    console.log(`[llm] config do banco carregada — ativo: ${_activeProvider} · chat: ${_chatProvider ?? '(= ativo)'} · ${dbRows.length} provedor(es)`);
   } catch (e) {
     console.warn('[llm] loadAiConfig falhou (usando .env):', (e as Error).message);
   }

@@ -1,5 +1,5 @@
 import type { Response } from 'express';
-import { getLlm, getModel } from '../llm';
+import { getChatLlm, getModel } from '../llm';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
 import { extractSources } from './guidelines';
 
@@ -68,8 +68,7 @@ export async function streamChat(opts: {
     } catch { /* cliente já foi embora */ }
   };
   try {
-    const s = await getLlm().stream({
-      model: getModel(),
+    const s = await getChatLlm().stream({
       maxTokens: 900,
       signal: ac.signal,
       system: [

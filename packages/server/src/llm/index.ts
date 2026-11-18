@@ -6,7 +6,7 @@
 import { AnthropicAdapter, classifyError } from './anthropic';
 import { OpenAIAdapter } from './openai';
 import { GeminiAdapter } from './gemini';
-import { getActiveConfig, loadAiConfig, resolveProviderConfig, seedAiModelsIfEmpty, AI_PROVIDERS, type AiProviderName } from './ai-config';
+import { getActiveConfig, getChatProviderPref, loadAiConfig, resolveProviderConfig, seedAiModelsIfEmpty, AI_PROVIDERS, type AiProviderName } from './ai-config';
 import type { LlmProvider, LlmRequest, LlmStream, LlmResult } from './types';
 
 /** Modelo do provedor ativo (banco → env → default). Substitui o antigo `const MODEL`. */
@@ -16,10 +16,12 @@ export function getModel(): string {
 
 let _llm: LlmProvider | null = null;
 
-function buildAdapter(p: AiProviderName): LlmProvider {
-  if (p === 'openai') return new OpenAIAdapter();
-  if (p === 'gemini') return new GeminiAdapter();
-  return new AnthropicAdapter();
+function buildAdapter(p: AiProviderName, cfg = resolveProviderConfig(p)): LlmProvider {
+  // cfg explícito: sem ele, o adapter defaultava o MODEL do provider ATIVO (bug latente
+  // 17/11: backup gemini herdaria model "glm-5.3" e a primeira tentativa de failover falharia).
+  if (p === 'openai') return new OpenAIAdapter(cfg);
+  if (p === 'gemini') return new GeminiAdapter(cfg);
+  return new AnthropicAdapter(cfg);
 }
 
 /** Failover ENTRE provedores: o ativo esgota (rate limit/auth/overloaded em todas as chaves do
@@ -40,7 +42,9 @@ export class FallbackProvider implements LlmProvider {
       let last = e;
       for (const b of this.backups) {
         try {
-          return await b.stream(req);
+          // req.model vem do PROVIDER DE ORIGEM (ex.: glm-5.3) — o backup usaria o modelo
+          // errado na própria API. Strip: cada adapter cai no model do próprio config.
+          return await b.stream({ ...req, model: undefined });
         } catch (e2) {
           last = e2;
           if (!classifyError(e2).rotate) throw e2;
@@ -57,13 +61,14 @@ export class FallbackProvider implements LlmProvider {
   }
 }
 
-function build(): LlmProvider {
+function build(primaryProvider?: AiProviderName): LlmProvider {
   const active = getActiveConfig();
-  const primary = buildAdapter(active.provider);
-  const backups = AI_PROVIDERS.filter((p) => p !== active.provider)
+  const primaryName = primaryProvider ?? active.provider;
+  const primary = buildAdapter(primaryName);
+  const backups = AI_PROVIDERS.filter((p) => p !== primaryName)
     .map((p) => resolveProviderConfig(p))
     .filter((cfg) => !!cfg.apiKey)
-    .map((cfg) => buildAdapter(cfg.provider));
+    .map((cfg) => buildAdapter(cfg.provider, cfg));
   return backups.length ? new FallbackProvider(primary, backups) : primary;
 }
 
@@ -76,12 +81,28 @@ export function getLlm(): LlmProvider {
   return _llm;
 }
 
+let _chatLlm: LlmProvider | null = null;
+
+/** LLM do CHAT (e afins conversacionais): primário = AppSetting aiRouting.chatProvider
+ *  (ex.: gemini, free tier) — cai no ativo se não configurado. Backups = demais providers
+ *  com chave (o GLM ativo entra como rede de segurança do chat). */
+export function getChatLlm(): LlmProvider {
+  if (!_chatLlm) {
+    const pref = getChatProviderPref();
+    _chatLlm = build(pref ?? undefined);
+    const fb = _chatLlm instanceof FallbackProvider;
+    console.log(`[llm] chat provider: ${_chatLlm.name}${pref ? ' (roteado)' : ' (= ativo)'}${fb ? ' | failover: ON' : ''}`);
+  }
+  return _chatLlm;
+}
+
 /** Boot: carrega a config do banco (sobrepõe o .env) + semeia o catálogo de modelos (1ª vez).
  *  Tolerante a DB indisponível (cai no .env). */
 export async function initLlm(): Promise<void> {
   await loadAiConfig();
   await seedAiModelsIfEmpty();
   _llm = null; // reconstrói com a config do banco no próximo getLlm()
+  _chatLlm = null;
   getLlm();
 }
 
@@ -89,6 +110,7 @@ export async function initLlm(): Promise<void> {
 export async function refreshLlm(): Promise<void> {
   await loadAiConfig();
   _llm = null;
+  _chatLlm = null;
   getLlm();
 }
 
