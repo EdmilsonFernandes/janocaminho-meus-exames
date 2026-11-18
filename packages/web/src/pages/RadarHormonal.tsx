@@ -391,25 +391,66 @@ export default function RadarHormonal() {
 
             <dl className="m-0 grid grid-cols-3 gap-2">
               <div className="flex min-w-0 flex-col gap-1.5 rounded-lg bg-primary/8 p-3">
-                <dt className="text-xs leading-tight text-muted-foreground">Média por dia</dt>
+                <div className="flex items-center justify-between gap-1.5">
+                  <dt className="text-xs leading-tight text-muted-foreground">Média por dia</dt>
+                  <IconTile variant="soft" size="xs" className="text-primary" aria-hidden="true">
+                    <Gauge aria-hidden="true" />
+                  </IconTile>
+                </div>
                 <dd className="m-0 flex flex-wrap items-baseline gap-x-1">
                   <CountUp value={stats.avgDailyMg} format={n1} className="text-xl leading-none font-semibold tracking-tight text-foreground tabular-nums sm:text-2xl" />
                   <span className="text-xs text-muted-foreground">mg</span>
                 </dd>
               </div>
               <div className="flex min-w-0 flex-col gap-1.5 rounded-lg bg-info/8 p-3">
-                <dt className="text-xs leading-tight text-muted-foreground">Vale a pico</dt>
+                <div className="flex items-center justify-between gap-1.5">
+                  <dt className="text-xs leading-tight text-muted-foreground">Vale a pico</dt>
+                  <IconTile variant="soft" size="xs" className="text-info" aria-hidden="true">
+                    <TrendingUp aria-hidden="true" />
+                  </IconTile>
+                </div>
                 <dd className="m-0 flex flex-wrap items-baseline gap-x-1">
                   <span className="text-xl leading-none font-semibold tracking-tight whitespace-nowrap text-foreground tabular-nums sm:text-2xl">{n0(stats.troughMg)}–{n0(stats.peakMg)}</span>
                   <span className="text-xs text-muted-foreground">mg/dia</span>
                 </dd>
               </div>
               <div className={cn('flex min-w-0 flex-col gap-1.5 rounded-lg p-3', stats.stability === 'estavel' ? 'bg-success/10' : 'bg-warning/10')}>
-                <dt className="text-xs leading-tight text-muted-foreground">Sobe e desce</dt>
+                <div className="flex items-center justify-between gap-1.5">
+                  <dt className="text-xs leading-tight text-muted-foreground">Sobe e desce</dt>
+                  <IconTile
+                    variant="soft"
+                    size="xs"
+                    className={stats.stability === 'estavel' ? 'text-success' : 'text-warning'}
+                    aria-hidden="true"
+                  >
+                    <Waves aria-hidden="true" />
+                  </IconTile>
+                </div>
                 <dd className="m-0 flex flex-wrap items-baseline gap-x-1">
                   <CountUp value={stats.swingPct} format={n0} className="text-xl leading-none font-semibold tracking-tight text-foreground tabular-nums sm:text-2xl" />
                   <span className="text-xs text-muted-foreground">%</span>
                 </dd>
+                <div
+                  aria-hidden="true"
+                  className="mt-auto flex h-2 w-full items-center gap-0.5 pt-0.5"
+                >
+                  {Array.from({ length: 10 }).map((_, idx) => {
+                    const activeBars = Math.min(10, Math.max(1, Math.round((Math.min(100, stats.swingPct) / 100) * 10)));
+                    return (
+                      <span
+                        key={idx}
+                        className={cn(
+                          'h-1.5 flex-1 rounded-full transition-colors',
+                          idx < activeBars
+                            ? stats.stability === 'estavel'
+                              ? 'bg-success'
+                              : 'bg-warning'
+                            : 'bg-foreground/10',
+                        )}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             </dl>
             <p className="m-0 text-xs text-muted-foreground">
@@ -443,6 +484,45 @@ export default function RadarHormonal() {
             </ToggleGroup>
           </FrameHeader>
           <FramePanel className="flex flex-col gap-3">
+            {(() => {
+              const activePreset =
+                protocol.length === 1 && protocol[0].compoundId === 'test_cyp' && protocol[0].freqDays === 7
+                  ? 'trt1'
+                  : protocol.length === 1 && protocol[0].compoundId === 'test_cyp' && protocol[0].freqDays === 3.5
+                    ? 'trt2'
+                    : protocol.length === 2 && protocol[0].compoundId === 'sustanon' && protocol[1].compoundId === 'mast_prop'
+                      ? 'dura'
+                      : null;
+              return (
+                <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-2">
+                  <span className="text-xs font-medium text-muted-foreground">Comparar cenários:</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => preset('trt1')}
+                    className={cn(activePreset === 'trt1' && 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/15')}
+                  >
+                    Reposição 1x/sem
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => preset('trt2')}
+                    className={cn(activePreset === 'trt2' && 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/15')}
+                  >
+                    Reposição 2x/sem
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => preset('dura')}
+                    className={cn(activePreset === 'dura' && 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/15')}
+                  >
+                    Durateston + Masteron
+                  </Button>
+                </div>
+              );
+            })()}
             <div className="flex flex-wrap items-center gap-2">
               {series.seriesPerItem.map((s, index) => {
                 const off = hidden.has(s.item.uid);

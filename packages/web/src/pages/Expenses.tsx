@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
+import { cn } from 'cn';
 import { useNotify, useTranslate } from 'react-admin';
 import { confirmDialog } from '../components/ConfirmDialog';
 import { API_URL, apiHeaders, token } from '../config';
@@ -46,6 +48,7 @@ import {
   ReuiInput,
 } from '@/components/reui/form-controls';
 import { WalletReceiptIcon } from '@/components/reui/icons';
+import { GlassGlow } from '../components/motion/GlassGlow';
 
 interface Expense {
   id: string;
@@ -67,6 +70,48 @@ const CATEGORY_BADGE: Record<
   Procedimento: 'success-light',
   Outro: 'outline',
 };
+
+const CATEGORY_BAR_CLASS: Record<string, string> = {
+  Exame: 'bg-primary',
+  Consulta: 'bg-info',
+  Farmácia: 'bg-warning',
+  Procedimento: 'bg-success',
+  Outro: 'bg-muted-foreground',
+};
+
+function detectExpenseCategory(text: string): string | null {
+  const s = text.trim();
+  if (!s) return null;
+  if (
+    /farm[aá]cia|rem[eé]dio|medicamento|droga|drogaria|durateston|duratesteron|deposteron|cipionato|enantato|masteron|ozempic|mounjaro|comprimido|caixa|vitamina|suplemento/i.test(
+      s
+    )
+  ) {
+    return 'Farmácia';
+  }
+  if (
+    /endoscopia|colonoscopia|cirurgia|procedimento|bi[oó]psia|infiltra[çc][aã]o|laser|cauteriza/i.test(
+      s
+    )
+  ) {
+    return 'Procedimento';
+  }
+  if (
+    /consulta|retorno|m[eé]dico|psic[oó]log|nutricion|dentista|odonto|psiquiatra|cardiolog|endocrinolog|urolog|ginecolog|dermatolog/i.test(
+      s
+    )
+  ) {
+    return 'Consulta';
+  }
+  if (
+    /exame|raio.?x|resson[aâ]ncia|tomografia|ultrassom|hemograma|sangue|laborat[oó]rio|check.?up|eletro|ecocardiograma/i.test(
+      s
+    )
+  ) {
+    return 'Exame';
+  }
+  return null;
+}
 
 const brl = (n: number) => `R$ ${n.toFixed(2).replace('.', ',')}`;
 /** Meio-dia local: imune a TZ (o parse cru de date-only caía no dia anterior em UTC-3). */
@@ -92,6 +137,11 @@ export const ExpensesPage = () => {
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [category, setCategory] = useState<string>('Exame');
+  const [categoryTouched, setCategoryTouched] = useState(false);
+  const [autoDetectedCat, setAutoDetectedCat] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const load = async () => {
     if (!pid) {
@@ -114,6 +164,16 @@ export const ExpensesPage = () => {
     load();
   }, [pid]);
 
+  const cancelEdit = () => {
+    setEditingId(null);
+    setDesc('');
+    setAmount('');
+    setDate(new Date().toISOString().slice(0, 10));
+    setCategory('Exame');
+    setCategoryTouched(false);
+    setAutoDetectedCat(null);
+  };
+
   const add = async () => {
     if (!pid || !desc.trim() || !amount) return;
     setSaving(true);
@@ -130,8 +190,17 @@ export const ExpensesPage = () => {
         }),
       });
       if (!r.ok) throw new Error('Falha ao salvar');
+      if (editingId) {
+        await fetch(`${API_URL}/expenses/${editingId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token()}` },
+        });
+      }
       setDesc('');
       setAmount('');
+      setEditingId(null);
+      setCategoryTouched(false);
+      setAutoDetectedCat(null);
       await load();
     } catch (e: any) {
       notify(e.message, { type: 'error' });
@@ -154,27 +223,50 @@ export const ExpensesPage = () => {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token()}` },
       });
+      if (editingId === id) cancelEdit();
       await load();
     } catch {
       /* ignore */
     }
   };
 
-  const total = items.reduce((s, i) => s + i.amount, 0);
+  const years = Array.from(new Set(items.map((i) => i.spentAt.slice(0, 4)))).sort(
+    (a, b) => b.localeCompare(a)
+  );
+  const effectiveYear =
+    selectedYear === 'all' || years.includes(selectedYear) ? selectedYear : 'all';
+
+  const yearFilteredItems =
+    effectiveYear === 'all'
+      ? items
+      : items.filter((i) => i.spentAt.slice(0, 4) === effectiveYear);
+
+  const total = yearFilteredItems.reduce((s, i) => s + i.amount, 0);
 
   // Totais por categoria para resumo rápido de IR
   const byCategory = CATEGORIES.map((cat) => ({
     category: cat,
-    total: items
+    total: yearFilteredItems
       .filter((i) => i.category === cat)
       .reduce((s, i) => s + i.amount, 0),
-    count: items.filter((i) => i.category === cat).length,
+    count: yearFilteredItems.filter((i) => i.category === cat).length,
   })).filter((c) => c.count > 0);
+
+  const effectiveCategory =
+    selectedCategory === 'all' ||
+    byCategory.some((c) => c.category === selectedCategory)
+      ? selectedCategory
+      : 'all';
+
+  const filteredItems =
+    effectiveCategory === 'all'
+      ? yearFilteredItems
+      : yearFilteredItems.filter((i) => i.category === effectiveCategory);
 
   // Histórico AGRUPADO POR MÊS (desc)
   const months = (() => {
     const map = new Map<string, Expense[]>();
-    for (const i of [...items].sort((a, b) =>
+    for (const i of [...filteredItems].sort((a, b) =>
       b.spentAt.localeCompare(a.spentAt)
     )) {
       const key = i.spentAt.slice(0, 7);
@@ -187,7 +279,7 @@ export const ExpensesPage = () => {
 
   return (
     <PageContainer width="content">
-      <div className={`reui-scope ${themeClass} space-y-4`}>
+      <div className={`reui-scope dx-island ${themeClass} space-y-4`}>
         <PageHeader
           icon={<WalletReceiptIcon size={24} />}
           title={translate('page.expenses')}
@@ -206,60 +298,196 @@ export const ExpensesPage = () => {
           }
         />
 
-        {/* RESUMO — ReUI Frame com total acumulado + divisão por categoria */}
+        {/* RESUMO — ReUI Frame com vidro + filtro por ano/categoria + barra proporcional stats-4 */}
         <Frame>
-          <FrameHeader className="flex flex-row items-center justify-between gap-2">
+          <FrameHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
             <div>
               <FrameTitle>Resumo financeiro em saúde</FrameTitle>
               <FrameDescription>
-                {items.length} lançamento{items.length === 1 ? '' : 's'} registrado
-                {items.length === 1 ? '' : 's'} · mantenha os comprovantes fiscais para dedução no IRPF
+                {yearFilteredItems.length} lançamento
+                {yearFilteredItems.length === 1 ? '' : 's'} registrado
+                {yearFilteredItems.length === 1 ? '' : 's'} · mantenha os comprovantes fiscais para dedução no IRPF
               </FrameDescription>
             </div>
-            <ReuiBadge variant="primary-light" size="sm">
-              IRPF Saúde
-            </ReuiBadge>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {years.length > 0 && (
+                <div
+                  role="group"
+                  aria-label="Filtrar por ano do IRPF"
+                  className="inline-flex items-center rounded-full border border-border bg-card/70 p-0.5"
+                >
+                  <button
+                    type="button"
+                    aria-pressed={effectiveYear === 'all'}
+                    onClick={() => setSelectedYear('all')}
+                    className={cn(
+                      'cursor-pointer rounded-full px-2.5 py-1 text-xs font-semibold transition tabular-nums',
+                      effectiveYear === 'all'
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    Todos
+                  </button>
+                  {years.map((y) => (
+                    <button
+                      key={y}
+                      type="button"
+                      aria-pressed={effectiveYear === y}
+                      onClick={() => setSelectedYear(y)}
+                      className={cn(
+                        'cursor-pointer rounded-full px-2.5 py-1 text-xs font-semibold transition tabular-nums',
+                        effectiveYear === y
+                          ? 'bg-primary text-primary-foreground shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      {y}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <ReuiBadge variant="primary-light" size="sm">
+                IRPF Saúde
+              </ReuiBadge>
+            </div>
           </FrameHeader>
 
-          <FramePanel className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-3.5">
-              <IconTile tone="primary" size="lg">
-                <WalletReceiptIcon size={24} />
-              </IconTile>
-              <div>
-                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Total acumulado
-                </div>
-                <div className="font-heading text-2xl font-extrabold tracking-tight text-primary tabular-nums sm:text-3xl">
-                  {brl(total)}
+          <FramePanel className="dx-glass relative flex flex-col gap-4 overflow-hidden">
+            <GlassGlow />
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+              <div className="flex items-center gap-3.5">
+                <IconTile tone="primary" size="lg">
+                  <WalletReceiptIcon size={24} />
+                </IconTile>
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    {effectiveYear === 'all'
+                      ? 'Total acumulado'
+                      : `Total em ${effectiveYear}`}
+                  </div>
+                  <div className="font-heading text-2xl font-extrabold tracking-tight text-primary tabular-nums sm:text-3xl">
+                    {brl(total)}
+                  </div>
                 </div>
               </div>
+
+              {byCategory.length > 0 && (
+                <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por categoria">
+                  {byCategory.map((c) => {
+                    const active = effectiveCategory === c.category;
+                    return (
+                      <button
+                        key={c.category}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() =>
+                          setSelectedCategory((prev) =>
+                            prev === c.category ? 'all' : c.category
+                          )
+                        }
+                        className={cn(
+                          'cursor-pointer rounded-sm transition outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                          active && 'ring-2 ring-primary/50 shadow-xs',
+                          effectiveCategory !== 'all' && !active && 'opacity-55 hover:opacity-90'
+                        )}
+                      >
+                        <ReuiBadge
+                          variant={CATEGORY_BADGE[c.category] ?? 'outline'}
+                          size="sm"
+                          className="gap-1.5 tabular-nums"
+                        >
+                          <span
+                            aria-hidden="true"
+                            className={cn(
+                              'size-1.5 rounded-full',
+                              CATEGORY_BAR_CLASS[c.category] ?? 'bg-muted-foreground'
+                            )}
+                          />
+                          {c.category}: <strong>{brl(c.total)}</strong>
+                        </ReuiBadge>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
-            {byCategory.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {byCategory.map((c) => (
-                  <ReuiBadge
-                    key={c.category}
-                    variant={CATEGORY_BADGE[c.category] ?? 'outline'}
-                    size="sm"
-                    className="tabular-nums"
-                  >
-                    {c.category}: <strong>{brl(c.total)}</strong>
-                  </ReuiBadge>
-                ))}
+            {byCategory.length > 0 && total > 0 && (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                  <span className="font-medium">
+                    Distribuição por categoria · toque para filtrar
+                  </span>
+                  {effectiveCategory !== 'all' && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategory('all')}
+                      className="cursor-pointer font-semibold text-primary hover:underline"
+                    >
+                      Filtrando: {effectiveCategory} · Limpar
+                    </button>
+                  )}
+                </div>
+                <div
+                  aria-label="Proporção de gastos por categoria"
+                  className="flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full bg-muted/70 p-0.5"
+                >
+                  {byCategory.map((c) => {
+                    const pct = Math.max(4, Math.round((c.total / total) * 100));
+                    const active = effectiveCategory === c.category;
+                    return (
+                      <button
+                        key={c.category}
+                        type="button"
+                        title={`${c.category}: ${brl(c.total)} (${Math.round((c.total / total) * 100)}%)`}
+                        onClick={() =>
+                          setSelectedCategory((prev) =>
+                            prev === c.category ? 'all' : c.category
+                          )
+                        }
+                        style={{ width: `${pct}%` }}
+                        className={cn(
+                          'h-full cursor-pointer rounded-full transition-opacity',
+                          CATEGORY_BAR_CLASS[c.category] ?? 'bg-muted-foreground',
+                          effectiveCategory !== 'all' && !active && 'opacity-30'
+                        )}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             )}
           </FramePanel>
         </Frame>
 
-        {/* FORMULÁRIO — ReUI InputGroup (R$) + ReUI Select (corrige bug de <option> nativo) */}
+        {/* FORMULÁRIO — ReUI InputGroup (R$) + ReUI Select + detecção automática de categoria */}
         <Frame>
-          <FrameHeader>
-            <FrameTitle>Registrar nova despesa</FrameTitle>
-            <FrameDescription>
-              Informe o estabelecimento ou descrição, valor, data e categoria fiscal
-            </FrameDescription>
+          <FrameHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <FrameTitle>
+                  {editingId ? 'Corrigir despesa' : 'Registrar nova despesa'}
+                </FrameTitle>
+                {editingId && (
+                  <ReuiBadge variant="warning-light" size="xs">
+                    Editando lançamento
+                  </ReuiBadge>
+                )}
+              </div>
+              <FrameDescription>
+                Informe o estabelecimento ou descrição, valor, data e categoria fiscal
+              </FrameDescription>
+            </div>
+            {editingId && (
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="cursor-pointer rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-foreground transition hover:bg-muted"
+              >
+                Cancelar edição
+              </button>
+            )}
           </FrameHeader>
 
           <FramePanel>
@@ -269,7 +497,19 @@ export const ExpensesPage = () => {
                   <ReuiInput
                     placeholder="Consulta, exame laboratorial, farmácia..."
                     value={desc}
-                    onChange={(e) => setDesc(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setDesc(val);
+                      if (!categoryTouched) {
+                        const detected = detectExpenseCategory(val);
+                        if (detected) {
+                          setCategory(detected);
+                          setAutoDetectedCat(detected);
+                        } else {
+                          setAutoDetectedCat(null);
+                        }
+                      }
+                    }}
                   />
                 </FieldLabelWithHint>
               </div>
@@ -304,11 +544,18 @@ export const ExpensesPage = () => {
               </div>
 
               <div className="sm:col-span-2">
-                <FieldLabelWithHint label="Categoria">
+                <FieldLabelWithHint
+                  label="Categoria"
+                  hint={autoDetectedCat ? 'Automática' : undefined}
+                >
                   <Select
                     value={category}
                     onValueChange={(val) => {
-                      if (val) setCategory(val);
+                      if (val) {
+                        setCategory(val);
+                        setCategoryTouched(true);
+                        setAutoDetectedCat(null);
+                      }
                     }}
                   >
                     <SelectTrigger className="w-full h-9">
@@ -327,7 +574,16 @@ export const ExpensesPage = () => {
             </div>
           </FramePanel>
 
-          <FrameFooter className="flex items-center justify-end">
+          <FrameFooter className="flex items-center justify-end gap-2">
+            {editingId && (
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="cursor-pointer rounded-full border border-border bg-card px-4 py-2 text-xs font-bold text-foreground transition hover:bg-muted"
+              >
+                Cancelar
+              </button>
+            )}
             <button
               type="button"
               disabled={saving || !desc.trim() || !amount}
@@ -335,7 +591,11 @@ export const ExpensesPage = () => {
               className="inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-extrabold text-primary-foreground shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
             >
               <AddRoundedIcon sx={{ fontSize: 16 }} />
-              {saving ? 'Salvando…' : 'Salvar despesa'}
+              {saving
+                ? 'Salvando…'
+                : editingId
+                  ? 'Atualizar despesa'
+                  : 'Salvar despesa'}
             </button>
           </FrameFooter>
         </Frame>
@@ -357,6 +617,24 @@ export const ExpensesPage = () => {
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>
+            </FramePanel>
+          </Frame>
+        ) : months.length === 0 ? (
+          <Frame>
+            <FramePanel className="flex flex-col items-center gap-2 py-8 text-center">
+              <p className="m-0 text-sm font-semibold text-foreground">
+                Nenhum lançamento encontrado para os filtros atuais.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedYear('all');
+                  setSelectedCategory('all');
+                }}
+                className="cursor-pointer rounded-full border border-border bg-card px-3 py-1.5 text-xs font-bold text-primary transition hover:bg-muted"
+              >
+                Limpar filtros
+              </button>
             </FramePanel>
           </Frame>
         ) : (
@@ -385,7 +663,11 @@ export const ExpensesPage = () => {
                     {list.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center justify-between gap-3 px-4 py-3 transition hover:bg-muted/30"
+                        className={cn(
+                          'flex items-center justify-between gap-3 px-4 py-3 transition hover:bg-muted/30',
+                          editingId === item.id &&
+                            'bg-primary/5 ring-1 ring-inset ring-primary/30'
+                        )}
                       >
                         <div className="min-w-0 flex-1">
                           <div className="truncate text-sm font-bold text-foreground">
@@ -404,10 +686,39 @@ export const ExpensesPage = () => {
                           </div>
                         </div>
 
-                        <div className="flex shrink-0 items-center gap-2">
-                          <span className="text-sm font-extrabold text-foreground tabular-nums">
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <span className="mr-1 text-sm font-extrabold text-foreground tabular-nums">
                             {brl(item.amount)}
                           </span>
+                          <button
+                            type="button"
+                            aria-label={`Corrigir ${item.description}`}
+                            title="Corrigir lançamento ou categoria"
+                            onClick={() => {
+                              const suggested = detectExpenseCategory(
+                                item.description
+                              );
+                              const nextCat =
+                                suggested && suggested !== item.category
+                                  ? suggested
+                                  : item.category;
+                              setEditingId(item.id);
+                              setDesc(item.description);
+                              setAmount(String(item.amount));
+                              setDate(item.spentAt.slice(0, 10));
+                              setCategory(nextCat);
+                              setCategoryTouched(false);
+                              setAutoDetectedCat(
+                                suggested && suggested !== item.category
+                                  ? suggested
+                                  : null
+                              );
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-primary/10 hover:text-primary cursor-pointer"
+                          >
+                            <EditOutlinedIcon sx={{ fontSize: 17 }} />
+                          </button>
                           <button
                             type="button"
                             aria-label={`Excluir ${item.description}`}

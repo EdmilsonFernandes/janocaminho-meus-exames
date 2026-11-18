@@ -21,7 +21,7 @@
  * Estados: carregando · falha (tentar de novo) · sem exame no app · nenhum alterado com
  * orientação · com orientações · resumo: nunca gerado / gerando / pronto / sem saldo / falhou.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { RangeBar } from '../components/motion/RangeBar';
 import { RingGauge } from '../components/motion/RingGauge';
@@ -124,62 +124,180 @@ function rangeText(low: number | null, high: number | null): string {
 
 type FoodFilter = 'all' | 'out' | 'strong' | 'ok';
 
-/** Extrai chips curtos e escaneáveis a partir das linhas curadas para a 1ª visão do prato. */
-function extractQuickChips(items: string[], prefix: '+' | '-', limit = 4): string[] {
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const raw of items) {
-    // Remove explicação após ":" para manter o chip curto no celular
-    const head = raw.split(':')[0].split('(')[0].trim();
-    const short = head.length > 38 ? `${head.slice(0, 36).trim()}…` : head;
-    if (!short || seen.has(short.toLowerCase())) continue;
-    seen.add(short.toLowerCase());
-    out.push(`${prefix} ${short}`);
-    if (out.length >= limit) break;
-  }
-  return out;
+interface QuickPlateBuckets {
+  plate: string[];
+  avoid: string[];
+  habits: string[];
 }
 
-/** Frame ReUI no topo: agrega o que priorizar e moderar nos exames da pessoa em 1 toque. */
+/**
+ * Chips curados por exame (chaves de analysis/food-guide.ts): linguagem curta e completa
+ * sem reticências ("…"), separando comida no prato vs. hábitos clínicos/medicação.
+ */
+const CURATED_PLATE_CHIPS: Record<string, QuickPlateBuckets> = {
+  ldl: {
+    plate: ['Azeite, abacate, castanhas e peixe', 'Aveia, feijão, lentilha e maçã', 'Legumes, verduras e integrais'],
+    avoid: ['Carnes gordas e embutidos', 'Manteiga, creme de leite e queijos amarelos', 'Frituras, salgadinhos e biscoitos'],
+    habits: [],
+  },
+  'colesterol-total': {
+    plate: ['Azeite, abacate, castanhas e peixe', 'Aveia, feijão, lentilha e frutas', 'Legumes, verduras e integrais'],
+    avoid: ['Carnes gordas e embutidos', 'Manteiga, creme de leite e frituras', 'Alimentos ultraprocessados'],
+    habits: [],
+  },
+  triglicerideos: {
+    plate: ['Peixes (sardinha, atum e salmão)', 'Carboidratos integrais moderados'],
+    avoid: ['Bebidas adoçadas (refrigerante/suco)', 'Doces, pão branco e massas em excesso', 'Bebida alcoólica', 'Frituras e ultraprocessados'],
+    habits: ['Controle de peso quando há excesso'],
+  },
+  hdl: {
+    plate: ['Azeite, castanhas e peixe no lugar de gorduras saturadas'],
+    avoid: ['Gordura trans (biscoitos e margarinas)'],
+    habits: ['Atividade física regular', 'Parar de fumar', 'Controle de peso quando há excesso'],
+  },
+  glicose: {
+    plate: ['Feijão, legumes, verduras e frutas inteiras', 'Versões integrais em porções menores'],
+    avoid: ['Refrigerante, sucos adoçados e doces', 'Farinha refinada em excesso', 'Alimentos ultraprocessados'],
+    habits: ['Atividade física na maior parte dos dias', 'Controle de peso quando há excesso'],
+  },
+  hba1c: {
+    plate: ['Feijão, legumes, verduras e frutas inteiras', 'Versões integrais em porções menores'],
+    avoid: ['Refrigerante, sucos adoçados e doces', 'Farinha refinada em excesso', 'Alimentos ultraprocessados'],
+    habits: ['Atividade física na maior parte dos dias', 'Controle de peso quando há excesso'],
+  },
+  'acido-urico': {
+    plate: ['Água e alimentação equilibrada'],
+    avoid: ['Vísceras, carne vermelha e frutos do mar em excesso', 'Cerveja, destilados e bebidas adoçadas'],
+    habits: ['Controle de peso quando há excesso'],
+  },
+  figado: {
+    plate: ['Padrão mediterrâneo (azeite, peixe, legumes e frutas)'],
+    avoid: ['Bebida alcoólica', 'Bebidas adoçadas e ultraprocessados'],
+    habits: ['Atividade física regular', 'Controle de peso quando há excesso', 'Investigar remédios e suplementos com médico'],
+  },
+  'ferro-baixo': {
+    plate: ['Carnes, frango e peixe', 'Feijão, lentilha, grão-de-bico e folhas escuras', 'Frutas cítricas (vitamina C) junto das refeições'],
+    avoid: ['Café, chá preto/mate junto das refeições', 'Leite e derivados na mesma refeição do ferro'],
+    habits: ['Investigar causa com médico antes de suplementar'],
+  },
+  anemia: {
+    plate: ['Alimentação variada com carnes ou feijões e folhas verde-escuras'],
+    avoid: [],
+    habits: ['Não tomar ferro ou vitaminas por conta própria'],
+  },
+  'ferritina-alta': {
+    plate: [],
+    avoid: [],
+    habits: ['Evitar suplemento de ferro sem indicação', 'Investigar inflamação ou fígado com médico'],
+  },
+  tsh: {
+    plate: [],
+    avoid: [],
+    habits: ['Não usar suplementos "para tireoide" por conta própria', 'Avaliação clínica com médico'],
+  },
+  psa: {
+    plate: [],
+    avoid: [],
+    habits: ['Avaliação específica com urologista'],
+  },
+  hematocrito: {
+    plate: ['Boa hidratação com água ao longo do dia'],
+    avoid: [],
+    habits: ['Acompanhamento médico (especialmente em reposição hormonal)'],
+  },
+  creatinina: {
+    plate: ['Boa hidratação com água ao longo do dia'],
+    avoid: [],
+    habits: ['Não cortar nem aumentar proteína sem orientação médica', 'Avaliação renal com médico'],
+  },
+  potassio: {
+    plate: [],
+    avoid: [],
+    habits: ['Não alterar dieta ou tomar suplementos sem médico'],
+  },
+};
+
+const HABIT_PATTERN = /atividade f[ií]sica|parar de fumar|cigarro|perder peso|por conta pr[oó]pria|suplemento|orienta[çc][aã]o m[eé]dica|investigar|rem[eé]dio/i;
+
+function guideQuickBuckets(guide: Guide | null): QuickPlateBuckets {
+  if (!guide) return { plate: [], avoid: [], habits: [] };
+  const curated = CURATED_PLATE_CHIPS[guide.key];
+  if (curated) return curated;
+
+  const plate: string[] = [];
+  const avoid: string[] = [];
+  const habits: string[] = [];
+  for (const h of guide.helps) {
+    const clean = h.trim();
+    if (!clean) continue;
+    if (HABIT_PATTERN.test(clean)) habits.push(clean);
+    else plate.push(clean);
+  }
+  for (const a of guide.avoid) {
+    const clean = a.trim();
+    if (!clean) continue;
+    if (HABIT_PATTERN.test(clean)) habits.push(clean);
+    else avoid.push(clean);
+  }
+  return { plate, avoid, habits };
+}
+
+function dedupePush(target: string[], seen: Set<string>, items: string[], limit: number) {
+  for (const item of items) {
+    const norm = item.trim().toLowerCase();
+    if (!norm || seen.has(norm)) continue;
+    seen.add(norm);
+    target.push(item.trim());
+    if (target.length >= limit) break;
+  }
+}
+
+/** Frame ReUI no topo (padrão card-29 / stats-1 3 colunas): separa prato, evitar e hábitos. */
 function QuickPlateFrame({ values, guideFor }: { values: PatientValue[]; guideFor: (v: PatientValue) => Guide | null }) {
   const [copied, setCopied] = useState(false);
 
-  const { topHelp, topAvoid, coveredCount } = useMemo(() => {
-    const helpsPool: string[] = [];
-    const avoidPool: string[] = [];
+  const { topPlate, topAvoid, topHabits, coveredCount } = useMemo(() => {
+    const plate: string[] = [];
+    const avoid: string[] = [];
+    const habits: string[] = [];
+    const seenPlate = new Set<string>();
+    const seenAvoid = new Set<string>();
+    const seenHabits = new Set<string>();
     let count = 0;
 
-    // Prioriza exames fora da faixa e com maior força de evidência primeiro
+    // Prioriza exames fora da faixa e com evidência forte primeiro
+    const strengthWeight: Record<Strength, number> = { forte: 0, moderada: 1, limitada: 2, 'nao-resolve': 3 };
     const ordered = [...values].sort((a, b) => {
       if (a.status !== 'normal' && b.status === 'normal') return -1;
       if (a.status === 'normal' && b.status !== 'normal') return 1;
-      return 0;
+      const ga = guideFor(a);
+      const gb = guideFor(b);
+      return (ga ? strengthWeight[ga.strength] : 9) - (gb ? strengthWeight[gb.strength] : 9);
     });
 
     for (const v of ordered) {
       const g = guideFor(v);
-      if (!g || g.strength === 'nao-resolve') continue;
-      count++;
-      helpsPool.push(...g.helps);
-      avoidPool.push(...g.avoid);
+      if (!g) continue;
+      const buckets = guideQuickBuckets(g);
+      if (buckets.plate.length || buckets.avoid.length || buckets.habits.length) count++;
+      dedupePush(plate, seenPlate, buckets.plate, 4);
+      dedupePush(avoid, seenAvoid, buckets.avoid, 4);
+      dedupePush(habits, seenHabits, buckets.habits, 3);
     }
 
-    return {
-      topHelp: extractQuickChips(helpsPool, '+', 4),
-      topAvoid: extractQuickChips(avoidPool, '-', 3),
-      coveredCount: count,
-    };
+    return { topPlate: plate, topAvoid: avoid, topHabits: habits, coveredCount: count };
   }, [values, guideFor]);
 
-  if (!topHelp.length && !topAvoid.length) return null;
+  if (!topPlate.length && !topAvoid.length && !topHabits.length) return null;
 
   const copyList = () => {
     const lines = [
-      'Dr. Exame · Resumo do prato:',
-      ...(topHelp.length ? [`Priorizar: ${topHelp.join(', ')}`] : []),
-      ...(topAvoid.length ? [`Moderar/Evitar: ${topAvoid.join(', ')}`] : []),
+      'Dr. Exame · Resumo do seu prato:',
+      ...(topPlate.length ? [`No prato:\n- ${topPlate.join('\n- ')}`] : []),
+      ...(topAvoid.length ? [`Reduzir / Evitar:\n- ${topAvoid.join('\n- ')}`] : []),
+      ...(topHabits.length ? [`Hábitos e cuidados:\n- ${topHabits.join('\n- ')}`] : []),
     ];
-    void navigator.clipboard?.writeText(lines.join('\n')).catch(() => {});
+    void navigator.clipboard?.writeText(lines.join('\n\n')).catch(() => {});
     setCopied(true);
     window.setTimeout(() => setCopied(false), 2000);
   };
@@ -195,7 +313,7 @@ function QuickPlateFrame({ values, guideFor }: { values: PatientValue[]; guideFo
           <div className="flex min-w-0 flex-col gap-px">
             <FrameTitle role="heading" aria-level={2}>Resumo rápido do seu prato</FrameTitle>
             <FrameDescription>
-              Itens em comum em {coveredCount} {coveredCount === 1 ? 'exame seu' : 'exames seus'} abaixo.
+              Síntese prática em {coveredCount} {coveredCount === 1 ? 'exame seu' : 'exames seus'} abaixo — sem texto cortado.
             </FrameDescription>
           </div>
         </div>
@@ -204,37 +322,80 @@ function QuickPlateFrame({ values, guideFor }: { values: PatientValue[]; guideFo
           {copied ? 'Copiado!' : 'Copiar lista'}
         </Button>
       </FrameHeader>
-      <FramePanel className="flex flex-col gap-3">
-        {topHelp.length > 0 && (
-          <div className="flex flex-col gap-1.5">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-              <span aria-hidden="true" className="size-1.5 rounded-full bg-success" />
-              Priorizar no prato
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {topHelp.map((chip) => (
-                <Badge key={chip} variant="success-light" radius="full" size="lg">
-                  {chip}
-                </Badge>
-              ))}
+      <FramePanel className="p-0!">
+        <div className="grid grid-cols-1 divide-y divide-border/70 md:grid-cols-3 md:divide-x md:divide-y-0">
+          {/* Coluna 1: Pôr no prato */}
+          <div className="flex flex-col gap-2.5 p-3.5 sm:p-4">
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-2 text-xs font-semibold text-foreground">
+                <IconTile variant="soft" size="xs" className="text-success" aria-hidden="true">
+                  <Salad aria-hidden="true" />
+                </IconTile>
+                Pôr no prato
+              </span>
+              <Badge variant="success-light" size="xs" className="tabular-nums">{topPlate.length}</Badge>
             </div>
+            {topPlate.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {topPlate.map((item) => (
+                  <Badge key={item} variant="success-light" radius="full" size="lg" className="h-auto py-1 text-left whitespace-normal">
+                    + {item}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="m-0 text-xs text-muted-foreground">Sem destaque alimentar direto nos exames atuais.</p>
+            )}
           </div>
-        )}
-        {topAvoid.length > 0 && (
-          <div className="flex flex-col gap-1.5 border-0 border-t border-border/60 pt-2.5">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-              <span aria-hidden="true" className="size-1.5 rounded-full bg-warning" />
-              Moderar / Evitar
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {topAvoid.map((chip) => (
-                <Badge key={chip} variant="warning-light" radius="full" size="lg">
-                  {chip}
-                </Badge>
-              ))}
+
+          {/* Coluna 2: Reduzir / Evitar */}
+          <div className="flex flex-col gap-2.5 p-3.5 sm:p-4">
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-2 text-xs font-semibold text-foreground">
+                <IconTile variant="soft" size="xs" className="text-warning" aria-hidden="true">
+                  <TriangleAlert aria-hidden="true" />
+                </IconTile>
+                Reduzir ou evitar
+              </span>
+              <Badge variant="warning-light" size="xs" className="tabular-nums">{topAvoid.length}</Badge>
             </div>
+            {topAvoid.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {topAvoid.map((item) => (
+                  <Badge key={item} variant="warning-light" radius="full" size="lg" className="h-auto py-1 text-left whitespace-normal">
+                    - {item}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="m-0 text-xs text-muted-foreground">Nenhuma restrição alimentar específica.</p>
+            )}
           </div>
-        )}
+
+          {/* Coluna 3: Além do prato (Hábitos & Cuidados) */}
+          <div className="flex flex-col gap-2.5 p-3.5 sm:p-4">
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-2 text-xs font-semibold text-foreground">
+                <IconTile variant="soft" size="xs" className="text-primary" aria-hidden="true">
+                  <Stethoscope aria-hidden="true" />
+                </IconTile>
+                Além do prato
+              </span>
+              <Badge variant="primary-light" size="xs" className="tabular-nums">{topHabits.length}</Badge>
+            </div>
+            {topHabits.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {topHabits.map((item) => (
+                  <Badge key={item} variant="primary-light" radius="full" size="lg" className="h-auto py-1 text-left whitespace-normal">
+                    {item}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="m-0 text-xs text-muted-foreground">Mantenha acompanhamento de rotina com seu médico.</p>
+            )}
+          </div>
+        </div>
       </FramePanel>
     </Frame>
   );
@@ -342,8 +503,7 @@ function ValueRow({ v, guide, open, onToggle, onAsk }: { v: PatientValue; guide:
 
   const isNormal = v.status === 'normal';
   const st = guide ? STRENGTH[guide.strength] : null;
-  const quickHelp = useMemo(() => (guide ? extractQuickChips(guide.helps, '+', 3) : []), [guide]);
-  const quickAvoid = useMemo(() => (guide ? extractQuickChips(guide.avoid, '-', 2) : []), [guide]);
+  const quickBuckets = useMemo(() => guideQuickBuckets(guide), [guide]);
 
   const headerMetrics = (
     <div className="flex items-center justify-between gap-3 px-4 pt-3.5 pb-2.5">
@@ -400,7 +560,7 @@ function ValueRow({ v, guide, open, onToggle, onAsk }: { v: PatientValue; guide:
             'flex flex-col gap-4 border-0 border-t border-dashed border-border border-l-[3px] bg-muted/30 px-4 py-4',
             isNormal ? 'border-l-primary' : 'border-l-warning',
           )}>
-            {(quickHelp.length > 0 || quickAvoid.length > 0) && (
+            {(quickBuckets.plate.length > 0 || quickBuckets.avoid.length > 0 || quickBuckets.habits.length > 0) && (
               <div className="dx-glass relative flex flex-col gap-2 overflow-hidden rounded-xl border border-border/80 p-3">
                 <GlassGlow />
                 <div className="flex items-center justify-between gap-2">
@@ -408,11 +568,14 @@ function ValueRow({ v, guide, open, onToggle, onAsk }: { v: PatientValue; guide:
                   <span className="text-[11px] text-muted-foreground">Resumo rápido</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {quickHelp.map((chip) => (
-                    <Badge key={chip} variant="success-light" radius="full" size="lg">{chip}</Badge>
+                  {quickBuckets.plate.map((chip) => (
+                    <Badge key={chip} variant="success-light" radius="full" size="lg" className="h-auto py-1 text-left whitespace-normal">+ {chip}</Badge>
                   ))}
-                  {quickAvoid.map((chip) => (
-                    <Badge key={chip} variant="warning-light" radius="full" size="lg">{chip}</Badge>
+                  {quickBuckets.avoid.map((chip) => (
+                    <Badge key={chip} variant="warning-light" radius="full" size="lg" className="h-auto py-1 text-left whitespace-normal">- {chip}</Badge>
+                  ))}
+                  {quickBuckets.habits.map((chip) => (
+                    <Badge key={chip} variant="primary-light" radius="full" size="lg" className="h-auto py-1 text-left whitespace-normal">{chip}</Badge>
                   ))}
                 </div>
               </div>
@@ -643,41 +806,55 @@ export function FoodGuidePage() {
                     </div>
                   </div>
 
-                  {/* Grade 4 colunas unificada: cabe 100% em 390px sem corte horizontal */}
-                  <div role="group" aria-label="Filtrar exames" className="grid grid-cols-4 gap-1.5 border-0 border-t border-border/60 pt-2.5">
-                    {(
-                      [
-                        { id: 'all', count: data.values.length, label: 'Todos', dot: null, numTone: 'text-foreground' },
-                        { id: 'out', count: outOfRange, label: 'Fora da faixa', dot: 'bg-warning', numTone: 'text-warning-foreground' },
-                        { id: 'strong', count: valuesWithFoodCount, label: 'Comida ajuda', dot: 'bg-primary', numTone: 'text-primary' },
-                        { id: 'ok', count: inRangeCount, label: 'Na faixa', dot: 'bg-success', numTone: 'text-success-foreground' },
-                      ] as const
-                    ).map((opt) => {
-                      const active = filter === opt.id;
-                      return (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          aria-pressed={active}
-                          onClick={() => setFilter(opt.id)}
-                          className={cn(
-                            'flex min-h-12 cursor-pointer flex-col items-center justify-center rounded-xl border px-1 py-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-ring',
-                            active
-                              ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                              : 'border-border/80 bg-card/85 text-foreground hover:bg-card',
-                          )}
+                  {/* Grade 4 colunas padrão ReUI chart-6/metric-tiles: divisórias hairline + barra indicadora deslizante */}
+                  {(() => {
+                    const filterTiles = [
+                      { id: 'all', count: data.values.length, label: 'Todos', dot: null, numTone: 'text-foreground', swatch: 'bg-primary' },
+                      { id: 'out', count: outOfRange, label: 'Fora da faixa', dot: 'bg-warning', numTone: 'text-warning-foreground', swatch: 'bg-warning' },
+                      { id: 'strong', count: valuesWithFoodCount, label: 'Comida ajuda', dot: 'bg-primary', numTone: 'text-primary', swatch: 'bg-primary' },
+                      { id: 'ok', count: inRangeCount, label: 'Na faixa', dot: 'bg-success', numTone: 'text-success-foreground', swatch: 'bg-success' },
+                    ] as const;
+                    const activeIdx = Math.max(0, filterTiles.findIndex((t) => t.id === filter));
+                    const activeSwatch = filterTiles[activeIdx].swatch;
+                    return (
+                      <div
+                        role="group"
+                        aria-label="Filtrar exames"
+                        className="relative -mx-(--frame-panel-header-px) -mb-(--frame-panel-header-py) grid grid-cols-4 divide-x divide-border/70 border-0 border-t border-border/70 bg-card/55"
+                      >
+                        {filterTiles.map((opt) => {
+                          const active = filter === opt.id;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              aria-pressed={active}
+                              onClick={() => setFilter(opt.id)}
+                              className={cn(
+                                'flex min-h-13 min-w-0 cursor-pointer flex-col items-center justify-center px-1.5 py-2 transition-colors outline-none hover:bg-muted/45 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                                active && 'bg-card/95',
+                              )}
+                            >
+                              <span className={cn('inline-flex items-center gap-1 text-sm leading-none font-bold tabular-nums', active ? opt.numTone : 'text-foreground')}>
+                                {opt.dot ? <span aria-hidden="true" className={cn('size-1.5 rounded-full', opt.dot)} /> : null}
+                                {opt.count}
+                              </span>
+                              <span className={cn('mt-1 text-center text-[10.5px] leading-tight font-medium', active ? 'text-foreground font-semibold' : 'text-muted-foreground')}>
+                                {opt.label}
+                              </span>
+                            </button>
+                          );
+                        })}
+                        <span
+                          aria-hidden="true"
+                          style={{ '--tile-x': `${activeIdx * 100}%` } as CSSProperties}
+                          className="pointer-events-none absolute start-0 bottom-0 h-full w-1/4 translate-x-(--tile-x) transition-[translate] duration-300 ease-[cubic-bezier(0.77,0,0.175,1)] motion-reduce:transition-none"
                         >
-                          <span className={cn('inline-flex items-center gap-1 text-sm leading-none font-bold tabular-nums', active ? 'text-primary-foreground' : opt.numTone)}>
-                            {opt.dot && !active ? <span aria-hidden="true" className={cn('size-1.5 rounded-full', opt.dot)} /> : null}
-                            {opt.count}
-                          </span>
-                          <span className={cn('mt-1 text-center text-[10.5px] leading-tight font-medium', active ? 'text-primary-foreground/95' : 'text-muted-foreground')}>
-                            {opt.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                          <span className={cn('absolute inset-x-3 bottom-0 h-0.5 rounded-full transition-colors duration-300', activeSwatch)} />
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </FrameHeader>
                 <FramePanel className="p-0!">
                   {filteredValues.length ? (
