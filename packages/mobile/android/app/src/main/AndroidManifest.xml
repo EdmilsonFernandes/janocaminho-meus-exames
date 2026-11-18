@@ -145,6 +145,11 @@
          nega o mic silenciosamente mesmo com o app "tendo" permissão nas Configurações. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <!-- Orientação retrato opcional: MainActivity e ML Kit Document Scanner usam portrait
+         em celulares, mas o Play Console restringe Tablet, Desktop e Android XR se o recurso
+         implícito android.hardware.screen.portrait ficar como required="true". -->
+    <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
     <!-- Galeria/fotos: o app usa o SELETOR DE SISTEMA (<input type=file accept=image/*> → Photo Picker
          no Android 13+), que NÃO exige permissão de mídia. READ_MEDIA_IMAGES foi REMOVIDO por exigência
          da Política de permissões de acesso a fotos/vídeos do Google Play (apps Android 13+ devem usar
