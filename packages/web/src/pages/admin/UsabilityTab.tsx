@@ -26,6 +26,7 @@ interface FeatureRow {
 interface UsageData {
   funnel: { signups: number; verified: number; firstExam: number; usedAI: number; premium: number };
   activity: { active7: number; active30: number };
+  presence?: { onlineNow: number; dauToday: number; wau7: number; d1: { total: number; voltou: number }; d7: { total: number; voltou: number } };
   features: FeatureRow[];
 }
 
@@ -211,7 +212,7 @@ export const UsabilityTab = () => {
     return <Typography color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>Não foi possível carregar os dados de usabilidade.</Typography>;
   }
 
-  const { funnel: f, activity } = data;
+  const { funnel: f, activity, presence } = data;
   const steps = [
     { label: 'Contas criadas', value: f.signups, base: f.signups, color: '#178f89' },
     { label: 'E-mail verificado', value: f.verified, base: f.signups, color: '#178f89' },
@@ -220,8 +221,31 @@ export const UsabilityTab = () => {
     { label: 'Premium ativo', value: f.premium, base: f.verified, color: '#d4a574' },
   ];
 
+  // PRESENÇA (18/11): 🟢 online agora + DAU/WAU + retenção D1/D7 (tile da casa, ReUI vibes)
+  const pct = (n?: number, d?: number) => (d && d > 0 ? Math.round(((n ?? 0) / d) * 100) : 0);
+  const presenceTiles = [
+    { icon: '🟢', label: 'Online agora', value: presence?.onlineNow ?? 0, sub: 'heartbeat 5min' },
+    { icon: '📆', label: 'Ativos hoje (DAU)', value: presence?.dauToday ?? 0, sub: 'dia corrente' },
+    { icon: '🗓️', label: 'Ativos 7d (WAU)', value: presence?.wau7 ?? activity.active7, sub: 'última semana' },
+    { icon: '1️⃣', label: 'Voltaram no dia +1', value: `${pct(presence?.d1?.voltou, presence?.d1?.total)}%`, sub: `de ${presence?.d1?.total ?? 0} cadastos 30d` },
+    { icon: '7️⃣', label: 'Voltaram na 1ª semana', value: `${pct(presence?.d7?.voltou, presence?.d7?.total)}%`, sub: `de ${presence?.d7?.total ?? 0} cadastos 30d` },
+  ];
+
   return (
     <Stack spacing={2.5}>
+      {/* PRESENÇA & RETENÇÃO — o pulso do app (dono 18/11: "preciso mensurar usabilidade") */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(5, 1fr)' }, gap: 1.25 }}>
+        {presenceTiles.map((t) => (
+          <Box key={t.label} sx={{ p: 1.5, borderRadius: '14px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+            <Typography sx={{ fontSize: 18 }}>{t.icon}</Typography>
+            <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 22, color: (th) => tealText(th.palette.mode), lineHeight: 1.2 }}>
+              {t.value}
+            </Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', lineHeight: 1.3 }}>{t.label}</Typography>
+            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 10.5 }}>{t.sub}</Typography>
+          </Box>
+        ))}
+      </Box>
       {/* HEADER & EXPORTAR */}
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 1.5 }}>
         <Box>

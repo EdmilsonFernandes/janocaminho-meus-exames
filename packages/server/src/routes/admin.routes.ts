@@ -759,6 +759,33 @@ router.get('/feature-usage', async (_req, res, next) => {
       feature('libras', 'Libras ativada', 'conta', Prisma.sql`SELECT r.id AS uid, NULL::timestamp AS at FROM users r WHERE r."librasEnabled" = true`),
     ]);
 
+    // --- PRESENÇA & RETENÇÃO (18/11) — 🟢 online agora (heartbeat 5min) + D1/D7 ---
+    const presenceBase = Prisma.sql`u."role" = 'OWNER' AND COALESCE(u."isTest", false) = false`;
+    const [onlineNow, dauToday, d1R, d7R] = await Promise.all([
+      prisma.$queryRaw<{ cnt: number }[]>`SELECT COUNT(*)::int AS cnt FROM users u WHERE ${presenceBase} AND u."lastActiveAt" > now() - interval '5 minutes'`,
+      prisma.$queryRaw<{ cnt: number }[]>`SELECT COUNT(*)::int AS cnt FROM users u WHERE ${presenceBase} AND u."lastActiveDay" = ${dayStr(now)}`,
+      // D1: dos cadastros reais dos últimos 30d, quantos entraram (login) 20h–48h depois do cadastro
+      prisma.$queryRaw<{ total: number; voltou: number }[]>`
+        SELECT COUNT(*)::int AS total,
+               COUNT(*) FILTER (WHERE EXISTS (
+                 SELECT 1 FROM "AuditLog" a
+                 WHERE a.action = 'LOGIN_SUCCESS' AND a."actorId" = u.id
+                   AND a."createdAt" BETWEEN u."createdAt" + interval '20 hours' AND u."createdAt" + interval '48 hours'
+               ))::int AS voltou
+        FROM users u
+        WHERE ${presenceBase} AND u."createdAt" > now() - interval '30 days'`,
+      // D7: mesma população, login entre 24h e 8 dias depois do cadastro
+      prisma.$queryRaw<{ total: number; voltou: number }[]>`
+        SELECT COUNT(*)::int AS total,
+               COUNT(*) FILTER (WHERE EXISTS (
+                 SELECT 1 FROM "AuditLog" a
+                 WHERE a.action = 'LOGIN_SUCCESS' AND a."actorId" = u.id
+                   AND a."createdAt" BETWEEN u."createdAt" + interval '24 hours' AND u."createdAt" + interval '8 days'
+               ))::int AS voltou
+        FROM users u
+        WHERE ${presenceBase} AND u."createdAt" > now() - interval '30 days'`,
+    ]).catch(() => [[{ cnt: 0 }], [{ cnt: 0 }], [{ total: 0, voltou: 0 }], [{ total: 0, voltou: 0 }]] as any);
+
     res.json({
       funnel: {
         signups, verified,
@@ -767,6 +794,13 @@ router.get('/feature-usage', async (_req, res, next) => {
         premium: premiumActive,
       },
       activity: { active7, active30 },
+      presence: {
+        onlineNow: Number(onlineNow[0]?.cnt ?? 0),
+        dauToday: Number(dauToday[0]?.cnt ?? 0),
+        wau7: active7,
+        d1: { total: Number(d1R[0]?.total ?? 0), voltou: Number(d1R[0]?.voltou ?? 0) },
+        d7: { total: Number(d7R[0]?.total ?? 0), voltou: Number(d7R[0]?.voltou ?? 0) },
+      },
       features,
     });
   } catch (e) { next(e); }
@@ -1257,7 +1291,7 @@ router.get('/logins/user-search', async (req, res, next) => {
     // Filtro em JS: simples e sem ginástica de enum/null no Prisma (máx. 20 linhas).
     const found = await prisma.user.findMany({
       where: { OR: [{ email: { contains: q, mode: 'insensitive' } }, { name: { contains: q, mode: 'insensitive' } }] },
-      select: { id: true, name: true, email: true, role: true, lastActiveDay: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, lastActiveDay: true, lastActiveAt: true, createdAt: true },
       take: 20,
       orderBy: { createdAt: 'desc' },
     });
@@ -1271,7 +1305,7 @@ router.get('/logins/user/:id', async (req, res, next) => {
   try {
     const id = String(req.params.id);
     const [user, events] = await Promise.all([
-      prisma.user.findUnique({ where: { id }, select: { id: true, name: true, email: true, role: true, lastActiveDay: true, createdAt: true } }),
+      prisma.user.findUnique({ where: { id }, select: { id: true, name: true, email: true, role: true, lastActiveDay: true, lastActiveAt: true, createdAt: true } }),
       prisma.auditLog.findMany({
         where: { actorId: id, action: { startsWith: 'LOGIN_' } },
         select: { action: true, actorType: true, after: true, ip: true, userAgent: true, createdAt: true },

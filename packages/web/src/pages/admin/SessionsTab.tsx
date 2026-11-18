@@ -27,8 +27,17 @@ interface Overview {
   byWeekday: { weekday: number; count: number }[];
   failReasons: { reason: string; count: number }[];
 }
-interface UserHit { id: string; name: string; email: string; role: string; lastActiveDay: string | null; createdAt: string }
+interface UserHit { id: string; name: string; email: string; role: string; lastActiveDay: string | null; lastActiveAt: string | null; createdAt: string }
 interface TimelineEvent { at: string; action: string; via: string | null; reason: string | null; ip: string | null; ua: string | null }
+
+/** "visto há Xh/min" — presença 18/11 (lastActiveAt do heartbeat de 5min). */
+const vistoHa = (iso: string): string => {
+  const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if (min < 60) return `há ${min}min`;
+  const h = Math.round(min / 60);
+  if (h < 48) return `há ${h}h`;
+  return `há ${Math.round(h / 24)}d`;
+};
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const fmt = (iso: string | null) =>
@@ -233,7 +242,7 @@ export const SessionsTab = () => {
                   className="flex items-center gap-2 rounded-lg border border-border px-2.5 py-2 text-left hover:border-primary/40 hover:bg-primary/5">
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-bold text-foreground">{h.name}</span>
-                    <span className="block text-xs text-muted-foreground">{h.email} · ativo {h.lastActiveDay ?? '—'}</span>
+                    <span className="block text-xs text-muted-foreground">{h.email} · visto {h.lastActiveAt ? vistoHa(h.lastActiveAt) : (h.lastActiveDay ?? '—')}</span>
                   </span>
                   <Badge variant={h.role === 'DOCTOR' ? 'focus-light' : 'info-light'} size="xs">{h.role === 'DOCTOR' ? 'médico' : 'paciente'}</Badge>
                 </button>

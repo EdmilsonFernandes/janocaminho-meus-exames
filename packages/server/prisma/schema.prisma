@@ -26,6 +26,9 @@ model User {
   // Gamificação (conquistas): streak server-side (anti-farm) + pref de aviso de nova conquista
   streakDays        Int     @default(0)
   lastActiveDay     String? // YYYY-MM-DD do último dia ativo (idempotente no dia)
+  // PRESENÇA (18/11): batida de coração do requireAuth (throttle 5min) — alimenta o
+  // "🟢 N online agora" e o "visto há Xh" do admin. lastActiveDay continua pra streak/DAU.
+  lastActiveAt      DateTime?
   achievementAlerts Boolean @default(true) // notifica (in-app) quando desbloqueia conquista
   // Libras (VLibras opt-in): antes só localStorage — o admin não sabia quem ativou.
   // localStorage continua mandando no widget (client), isto é o ESPELHO server p/ usabilidade.

@@ -141,6 +141,15 @@ export async function requireAuth(req: AuthedRequest, res: Response, next: NextF
       return;
     }
     req.userId = user.id;
+    // PRESENÇA (18/11): heartbeat com throttle — só escreve se a última batida tiver
+    // mais de 5min (condição no WHERE = zero leitura extra; no-op quando recente).
+    // Alimenta "🟢 N online agora" + "visto há Xh" do admin. Fire-and-forget.
+    try {
+      void prisma.user.updateMany({
+        where: { id: user.id, OR: [{ lastActiveAt: null }, { lastActiveAt: { lt: new Date(Date.now() - 5 * 60_000) } }] },
+        data: { lastActiveAt: new Date(), lastActiveDay: new Date().toISOString().slice(0, 10) },
+      }).catch(() => { /* presença é best-effort */ });
+    } catch { /* nunca derruba request por presença */ }
     // SLIDING SESSION transparente: token válido mas perto de expirar → emite um novo no
     // header de resposta. O frontend (utils/fetch-cache.ts) lê e troca no localStorage em
     // TODA resposta (upload, dataProvider, profile…), sem cada página tratar. Assim um
