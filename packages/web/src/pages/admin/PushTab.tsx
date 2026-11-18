@@ -123,6 +123,14 @@ const TEMPLATES: { emoji: string; title: string; body: string; route?: string; a
   { emoji: '👑', title: 'Seu Premium expira em breve', body: 'Histórico completo, tendências e relatório pro médico continuam com você. Renove e não perca o ritmo.', route: '/planos', aud: { plan: 'premiumExpiring7d' } },
   { emoji: '👥', title: 'Indique e ganhe créditos! 🎁', body: '{{nome}}, convide um amigo: ele ganha bônus no cadastro e você ganha quando ele ativar. Saúde fica melhor em dupla. 💚', route: '/indique' },
   { emoji: '📋', title: 'Envie seu primeiro exame 📋', body: 'Envie seu último exame e deixe o Dr. Exame te ajudar a entender cada valor.', route: '/exams', aud: { engagement: 'noFirstExam' } },
+  // ── Geração nova (17/11): hormônios, corporal, alimentação por exame, sinais/relógio ──
+  { emoji: '🧬', title: '{{nome}}, seus hormônios numa linha do tempo 🧬', body: 'Testosterona, estradiol, SHBG… veja a TENDÊNCIA de cada um e em que ponto do ciclo você colheu (pico ou vale muda tudo).', route: '/radar-hormonal' },
+  { emoji: '📊', title: 'Sua composição corporal, período a período 📊', body: 'Peso é só um número. Veja músculo, gordura e água do corpo evoluindo juntos — e o que mudou desde o último exame.', route: '/composicao' },
+  { emoji: '🍎', title: 'O que comer pelo SEU exame, {{nome}} 🍎', body: 'Marcador alterado? O guia alimentar sugere alimentos que conversam com o seu resultado — ferro, colesterol, glicose e mais.', route: '/alimentacao', aud: { exams: 'abnormal30d' } },
+  { emoji: '⌚', title: 'Conecte seu relógio, {{nome}} ⌚', body: 'Sono, batimentos e calorias direto do seu smartwatch pro app — cruzados com seus exames, sem digitar nada.', route: '/sinais' },
+  { emoji: '👟', title: 'Passos e calorias encontraram seus exames 👟', body: 'Sua atividade diária agora aparece junto da evolução de saúde. Quanto você andou reflete no próximo exame — acompanhe.', route: '/evolucao' },
+  { emoji: '💡', title: 'A dica de hoje foi escolhida pra VOCÊ 💡', body: 'O Dr. Exame seleciona 1 dica por dia com base nos seus exames e no seu momento. Leva 20 segundos e pode mudar o dia.', route: '/' },
+  { emoji: '🔁', title: '{{nome}}, o que seus exames estão CONTANDO 🔁', body: 'Tendências mostram a direção de cada marcador ao longo dos meses — o sinal antes do valor sair da faixa.', route: '/tendencias', aud: { exams: 'stale90d' } },
 ];
 
 const hasAudience = (a: Audience) => Object.values(a).some(Boolean);
@@ -420,16 +428,49 @@ export const PushTab = () => {
             <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'text.primary' }}>Mensagem & Prévia no Celular</Typography>
           </Stack>
 
-          {/* Modelos prontos que NÃO mudam o público em Global */}
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-            Modelos prontos (clique para preencher o texto — seu público selecionado acima será mantido):
+          {/* Modelos prontos que NÃO mudam o público em Global — galeria premium (padrão ReUI
+              portado ao MUI: tile arredondado, resumo, rota e público à mostra). */}
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.25 }}>
+            Modelos prontos ({TEMPLATES.length}) — clique para preencher o texto; seu público selecionado acima será mantido:
           </Typography>
-          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 2.5 }}>
-            {TEMPLATES.map((t) => (
-              <Chip key={t.title} clickable onClick={() => pick(t)} label={`${t.emoji} ${chipTitle(t.title)}`}
-                sx={{ height: 32, fontSize: 12.5, bgcolor: 'rgba(32,178,170,.08)', color: (t) => tealText(t.palette.mode), fontWeight: 600, '&:hover': { bgcolor: 'rgba(32,178,170,.18)' } }} />
-            ))}
-          </Stack>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 1.25, mb: 2.5 }}>
+            {TEMPLATES.map((t) => {
+              const audLabel = t.aud ? segLabel(Object.keys(t.aud)[0], Object.values(t.aud)[0]) : null;
+              return (
+                <Box
+                  key={t.title} onClick={() => pick(t)} role="button" tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') pick(t); }}
+                  sx={{
+                    display: 'flex', gap: 1.25, alignItems: 'flex-start', p: 1.5, cursor: 'pointer',
+                    borderRadius: '14px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper',
+                    transition: 'transform .18s cubic-bezier(.34,1.56,.64,1), border-color .18s ease, box-shadow .18s ease',
+                    '&:hover': { transform: 'translateY(-2px)', borderColor: 'rgba(32,178,170,.55)', boxShadow: '0 6px 18px rgba(32,178,170,.12)' },
+                    '&:focus-visible': { outline: '2px solid #178f89', outlineOffset: 2 },
+                  }}
+                >
+                  <Box sx={{ flexShrink: 0, width: 38, height: 38, borderRadius: '11px', display: 'grid', placeItems: 'center', fontSize: 19, bgcolor: 'rgba(32,178,170,.12)', border: '1px solid rgba(32,178,170,.25)' }}>
+                    {t.emoji}
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography sx={{ fontSize: 13, fontWeight: 800, lineHeight: 1.25, color: 'text.primary', mb: 0.25 }}>
+                      {chipTitle(t.title)}
+                    </Typography>
+                    <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {t.body}
+                    </Typography>
+                    <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
+                      {t.route && (
+                        <Chip size="small" label={t.route} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, fontFamily: 'monospace', bgcolor: 'rgba(32,178,170,.1)', color: (th) => tealText(th.palette.mode) }} />
+                      )}
+                      {audLabel && (
+                        <Chip size="small" label={audLabel} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(212,165,116,.16)', color: '#92600c' }} />
+                      )}
+                    </Stack>
+                  </Box>
+                </Box>
+              );
+            })}
+          </Box>
 
           {/* Grade: Formulário à esquerda + Celular à direita */}
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.2fr 0.8fr' }, gap: 3, alignItems: 'start' }}>
