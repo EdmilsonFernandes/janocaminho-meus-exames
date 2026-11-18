@@ -32,6 +32,13 @@ const IMG_SIGNALS = [
   'RAIOS-X', 'RADIOGRAFIA', 'LAUDO', 'RELATORIO', 'RELATÓRIO', 'ACHADOS',
   'CONCLUSAO', 'CONCLUSÃO', 'ECG', 'ELETROCARDIOGRAMA',
 ];
+// Modalidades de imagem: quase nunca aparecem num painel de laboratório — contam DOBRO
+// na heurística (caso real 17/11: laudo de TOMOGRAFIA de foto perdia p/ termos "lab"
+// acessórios do cabeçalho e morria no guard de 0-itens como se não fosse exame).
+const IMG_STRONG = [
+  'TOMOGRAFIA', 'RESSONANCIA', 'RESSONÂNCIA', 'ULTRASSON',
+  'RADIOGRAFIA', 'MAMOGRAFIA', 'ECOGRAFIA',
+];
 
 function countSignals(upper: string, signals: string[]): number {
   return signals.reduce((n, s) => (upper.includes(s) ? n + 1 : n), 0);
@@ -41,10 +48,15 @@ function countSignals(upper: string, signals: string[]): number {
 export function classifyKind(text: string): ExamKind {
   const t = (text || '').toUpperCase();
   const lab = countSignals(t, LAB_SIGNALS);
-  const img = countSignals(t, IMG_SIGNALS);
+  const img = countSignals(t, IMG_SIGNALS) + countSignals(t, IMG_STRONG);
   if (img >= 2 && img >= lab) return 'IMAGING';
   if (lab >= 3 && lab > img) return 'LAB_PANEL';
   return 'OTHER';
+}
+
+/** Nº de sinais de imagem no texto (≥1 = vale tentar extração de laudo no reroute). */
+export function imagingSignalCount(text: string): number {
+  return countSignals((text || '').toUpperCase(), IMG_SIGNALS);
 }
 
 /** Tem sinal médico no texto? (p/ descartar documento que não é exame/laudo) */

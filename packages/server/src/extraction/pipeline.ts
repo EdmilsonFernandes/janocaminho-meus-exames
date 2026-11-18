@@ -2,7 +2,7 @@ import { prisma } from '../prisma';
 import { config } from '../config';
 import { NotificationService } from '../services/notification';
 import { ExamKind, type ItemFlag } from '@prisma/client';
-import { readPdf, classifyKind, looksLikeMedical } from './pdfutil';
+import { readPdf, classifyKind, looksLikeMedical, imagingSignalCount } from './pdfutil';
 import { classifyDoc } from './docPatterns';
 import { extractLabPanel, extractLabPanels, extractImaging } from './claude';
 import { ocrPdfPages } from './ocrPdf';
@@ -140,7 +140,7 @@ async function runExtractionOnce(examId: string): Promise<void> {
         return;
       }
     }
-    const kind: ExamKind = exam.kind !== 'OTHER' ? exam.kind : classifyKind(text);
+    let kind: ExamKind = exam.kind !== 'OTHER' ? exam.kind : classifyKind(text);
 
     // RAG de padrões: rejeita cedo (msg específica) documentos que claramente NÃO são
     // exame (receita, nota fiscal, RG, rótulo...) — antes de gastar IA.
@@ -212,17 +212,44 @@ async function runExtractionOnce(examId: string): Promise<void> {
     // Camada conversacional (dono 10/11): se o doc escapou do KB, a IA LÊ e responde
     // personalizado (2 frases citando detalhe do papel); falha → texto fixo.
     if (kind !== 'IMAGING' && items.length === 0 && !dryRun) {
-      const generic = 'Não encontramos resultados de exame neste documento 😕 — se for o PEDIDO/agendamento (comprovante de coleta), ele ainda não tem valores: espere o resultado sair no portal do laboratório e envie ele. Se for um resultado de verdade, uma foto mais nítida (ou o PDF do laboratório) resolve.';
       const weakPhoto = media !== 'application/pdf' && ocrWordCount(text) < OCR_WEAK_WORDS;
-      const conversational = weakPhoto ? null : await explainNonExamDoc(text);
-      const reason = weakPhoto
-        ? 'Não encontrei resultados nesta foto 😕 — consegui ler pouco texto. Se for o resultado do exame, tire outra foto com a folha inteira na tela, em lugar claro e sem sombra, ou use o botão Escanear. Se for o pedido do médico ou o comprovante de coleta, ele ainda não tem valores: envie o resultado quando sair. Seu crédito de envio foi devolvido.'
-        : conversational ?? generic;
-      await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: weakPhoto ? 'low_quality' : 'not_a_document', extractionError: reason } });
-      await refundUploadOnFailure(examId);
-      console.log(`[extraction] ${examId} rejeitado (0 itens)${conversational ? ' (explicação conversacional da IA)' : ''}: documento sem resultados`);
-      void NotificationService.examFailed({ userId: patient?.ownerId ?? undefined, patientName: patient?.fullName ?? undefined, examTitle: exam.title ?? '—', reason });
-      return;
+      // RE-ROTEIO (caso real 17/11, usuário real: laudo de TOMOGRAFIA enviado por foto —
+      // o OCR deturpava termos e a heurística mandava pro caminho de LAB → 0 painéis →
+      // "falhou" com a IA descrevendo o próprio laudo no motivo. Se o texto tem qualquer
+      // sinal de imagem, tenta extrair como LAUDO antes de declarar falha: o exame é
+      // arquivado (título/achados/impressão) em vez de virar erro).
+      if (!weakPhoto && imagingSignalCount(text) >= 1) {
+        try {
+          const ext = await extractImaging(buffer, media, text);
+          const substancia =
+            (ext.findings ?? []).map((f) => String(f.text ?? '').trim()).join(' ').length +
+            String(ext.impression ?? '').trim().length;
+          if (String(ext.examTitle ?? '').trim() && substancia >= 20) {
+            console.log(`[extraction] ${examId}: 0 painéis LAB + sinais de imagem → re-roteado p/ IMAGING ("${ext.examTitle}")`);
+            kind = 'IMAGING';
+            raw = ext;
+            title = ext.examTitle ?? title;
+            performedAt = parseDate(ext.performedAt) ?? performedAt;
+            sourceLab = ext.sourceLab ?? sourceLab;
+          } else {
+            console.log(`[extraction] ${examId}: reroteio IMAGING sem substância (título/achados vazios) — segue fluxo de falha`);
+          }
+        } catch (e) {
+          console.warn(`[extraction] ${examId}: reroteio IMAGING falhou:`, (e as Error).message);
+        }
+      }
+      if (kind !== 'IMAGING') {
+        const generic = 'Não encontramos resultados de exame neste documento 😕 — se for o PEDIDO/agendamento (comprovante de coleta), ele ainda não tem valores: espere o resultado sair no portal do laboratório e envie ele. Se for um resultado de verdade, uma foto mais nítida (ou o PDF do laboratório) resolve.';
+        const conversational = weakPhoto ? null : await explainNonExamDoc(text);
+        const reason = weakPhoto
+          ? 'Não encontrei resultados nesta foto 😕 — consegui ler pouco texto. Se for o resultado do exame, tire outra foto com a folha inteira na tela, em lugar claro e sem sombra, ou use o botão Escanear. Se for o pedido do médico ou o comprovante de coleta, ele ainda não tem valores: envie o resultado quando sair. Seu crédito de envio foi devolvido.'
+          : conversational ?? generic;
+        await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: weakPhoto ? 'low_quality' : 'not_a_document', extractionError: reason } });
+        await refundUploadOnFailure(examId);
+        console.log(`[extraction] ${examId} rejeitado (0 itens)${conversational ? ' (explicação conversacional da IA)' : ''}: documento sem resultados`);
+        void NotificationService.examFailed({ userId: patient?.ownerId ?? undefined, patientName: patient?.fullName ?? undefined, examTitle: exam.title ?? '—', reason });
+        return;
+      }
     }
 
     // trava anti-alucinação (apenas painel lab): compara itens extraídos vs. densidade de valores no texto
