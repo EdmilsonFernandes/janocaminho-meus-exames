@@ -1,4 +1,6 @@
 import { getLlm, getModel } from '../llm';
+import { GeminiAdapter } from '../llm/gemini';
+import { resolveProviderConfig } from '../llm/ai-config';
 import {
   LabExtractionSchema,
   LabMultiExtractionSchema,
@@ -108,8 +110,11 @@ const IMAGING_INSTRUCTIONS = `Você está lendo o LAUDO de um exame (tomografia,
 }
 Copie fielmente o texto. Não invente achados nem nomes.`;
 
-/** Chamada base — usa STREAMING (necessário para max_tokens altos + evita timeout de 10min). */
-async function createJson(buffer: Buffer, mediaType: string, instruction: string, maxTokens = 16000, precomputedText?: string): Promise<any> {
+/** Chamada base — usa STREAMING (necessário para max_tokens altos + evita timeout de 10min).
+ *  forceProvider: pula a cadeia ativa e usa UM adapter específico (2ª opinião — caso
+ *  Dione 18/11: relay pode devolver {"exams":[]} com throttle, e o GLM pode julgar
+ *  resultado qualitativo como vazio; o Gemini decide em desempate). */
+async function createJson(buffer: Buffer, mediaType: string, instruction: string, maxTokens = 16000, precomputedText?: string, forceProvider?: 'gemini'): Promise<any> {
   const response = await withRateLimitRetry(async () => {
     // PDF: pdftotext. Imagem/foto: OCR (tesseract). Em ambos manda TEXTO ao modelo (o relay GLM
     // NÃO enxerga imagem/PDF; e content como TEXTO funciona em QUALQUER provider da abstração llm/).
@@ -127,7 +132,8 @@ async function createJson(buffer: Buffer, mediaType: string, instruction: string
     const content = instruction + `\n\n=== ${label} (use EXATAMENTE estes dados; NUNCA invente valores/nomes) ===\n` + (text && text.trim().length > 0 ? text : '(não foi possível extrair texto legível)') + '\n' + JSON_SUFFIX;
     // complete() (não stream+final direto): é no complete do FallbackProvider que
     // resposta-VAZIA (throttle mascarado do relay) rotaciona pro backup (caso Dione 18/11).
-    return getLlm().complete({ model: getModel(), maxTokens, messages: [{ role: 'user', content }] });
+    const llm = forceProvider ? new GeminiAdapter(resolveProviderConfig(forceProvider)) : getLlm();
+    return llm.complete({ maxTokens, messages: [{ role: 'user', content }] });
   });
 
   if (response.stopReason === 'max_tokens') {
@@ -202,7 +208,28 @@ export async function extractLabPanels(buffer: Buffer, mediaType = 'application/
   if (!exams.length && (json as any)?.panels) exams = [json as LabExtraction];
   if (!parsed.success && !exams.length) console.warn('[extraction] multi Zod falhou:', parsed.error.issues.slice(0, 3));
   // descarta exames sem nenhum item (ruído) — só vira registro quem tem analito de verdade
-  return (exams as LabExtraction[]).filter((e) => (e.panels ?? []).some((p) => (p.items ?? []).length > 0));
+  let usable = (exams as LabExtraction[]).filter((e) => (e.panels ?? []).some((p) => (p.items ?? []).length > 0));
+  // 2ª OPINIÃO NO GEMINI (caso Dione 18/11): vazio com texto longo pode ser (a) throttle
+  // mascarado do relay (devolve {"exams":[]} em vez de 429) ou (b) o GLM julgando
+  // resultado QUALITATIVO (coprológico: "não foram visualizados ovos") como sem valor.
+  // O Gemini refaz com o MESMO prompt antes de o pipeline declarar "sem resultados".
+  if (!usable.length && (precomputedText ?? '').trim().length > 300) {
+    const gem = resolveProviderConfig('gemini');
+    if (gem.apiKey) {
+      console.log('[extraction] multi vazio com texto longo → 2ª opinião no GEMINI');
+      try {
+        const json2 = await createJson(buffer, mediaType, LAB_MULTI_INSTRUCTIONS, 16000, precomputedText, 'gemini');
+        const parsed2 = LabMultiExtractionSchema.safeParse(json2);
+        let exams2 = parsed2.success ? parsed2.data.exams : (Array.isArray((json2 as any)?.exams) ? (json2 as any).exams : []);
+        if (!exams2.length && (json2 as any)?.panels) exams2 = [json2 as LabExtraction];
+        usable = (exams2 as LabExtraction[]).filter((e) => (e.panels ?? []).some((p) => (p.items ?? []).length > 0));
+        console.log(`[extraction] 2ª opinião gemini: ${usable.length} exame(s)`);
+      } catch (e) {
+        console.warn('[extraction] 2ª opinião gemini falhou (segue fluxo):', (e as Error).message);
+      }
+    }
+  }
+  return usable;
 }
 
 export async function extractImaging(buffer: Buffer, mediaType = 'application/pdf', precomputedText?: string): Promise<ImagingExtraction> {
