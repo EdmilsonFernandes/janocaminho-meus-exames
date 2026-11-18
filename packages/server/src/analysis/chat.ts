@@ -69,7 +69,7 @@ export async function streamChat(opts: {
   };
   try {
     const s = await getChatLlm().stream({
-      maxTokens: 900,
+      maxTokens: 1400, // 18/11: 900 era justo p/ GLM; 1400 dá folga p/ respostas comparativas
       signal: ac.signal,
       system: [
         HEALTH_SYSTEM,

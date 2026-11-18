@@ -40,7 +40,13 @@ export class GeminiAdapter implements LlmProvider {
     const body: any = {
       ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
       contents,
-      generationConfig: { maxOutputTokens: req.maxTokens },
+      generationConfig: {
+        maxOutputTokens: req.maxTokens,
+        // 2.5 é "pensante": sem isto, o raciocínio CONTA no maxOutputTokens e corta a
+        // resposta no meio (caso real 18/11: chat com 900 tokens truncava em MAX_TOKENS).
+        // Chat de paciente (e extração JSON via fallback) não precisam de raciocínio.
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     };
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(this.cfg.apiKey)}`;
     const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: req.signal });
