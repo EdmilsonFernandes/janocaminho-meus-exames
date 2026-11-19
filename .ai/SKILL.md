@@ -195,6 +195,22 @@ curl -s "https://api.github.com/repos/EdmilsonFernandes/janocaminho-meus-exames/
 | **consultacRM 100/mês** | Limite de buscas de CRM | Cacheia no banco (Doctor lookup persiste). Sem chave → manual. |
 | **normalizeKey stripa acentos** | Regex não casa "MÉDICO" | Patterns SEM acento (MEDICO, ATENCAO, etc.). |
 
+## Nginx da EC2 — gzip OBRIGATÓRIO (19/11/26, perf)
+O nginx do HOST (não do container) atende os 2 apps. Sem o arquivo abaixo, os chunks JS
+iam CRUS pro celular (2,98MB!) — perda de 73% no 1º acesso. **Sobrevive a deploys**
+(deploy só recria o container do app), mas uma EC2 recriada do zero PRECISA reaplicar:
+```bash
+sudo tee /etc/nginx/conf.d/00-gzip.conf << 'EOF'
+gzip on;
+gzip_vary on;
+gzip_min_length 1024;
+gzip_comp_level 5;
+gzip_types text/css text/javascript application/javascript application/json application/xml image/svg+xml font/woff2;
+EOF
+sudo nginx -t && sudo nginx -s reload
+```
+Verificar: `curl -sI -H "Accept-Encoding: gzip" https://drexame.janocaminho.com.br/assets/index-*.js | grep -i content-encoding`
+
 ## Email (Zoho SMTP)
 - Host: `smtp.zoho.com:587`, User: `contato@janocaminho.com.br`
 - Secure: false (STARTTLS). From: `Meus Exames <contato@janocaminho.com.br>`
