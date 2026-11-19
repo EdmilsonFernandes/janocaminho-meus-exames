@@ -189,6 +189,11 @@ export default function RadarHormonal() {
     [compare2x, canSplit, protocol, totalDays, variationPct],
   );
   const compareStats = useMemo(() => (compare ? computeRadarStats(compare) : null), [compare]);
+  // Resultado de dividir em 2x por semana — SEMPRE calculado (alimenta a dica "o que fazer", mesmo com o gráfico desligado).
+  const splitStats = useMemo(
+    () => (canSplit ? computeRadarStats(computeRadarSeries(protocol, totalDays, variationPct, true)) : null),
+    [canSplit, protocol, totalDays, variationPct],
+  );
   const mixedFamilies = new Set(series.seriesPerItem.map((s) => s.comp.family)).size > 1;
 
   // Só a testosterona se compara com o exame de testosterona.
@@ -366,6 +371,28 @@ export default function RadarHormonal() {
   const restMarkers = rows == null ? [] : found.filter((f) => !f.row);
   const shownMarkers = rows == null || showAllMarkers || withExam === 0 ? found : found.filter((f) => f.row);
 
+  // Narrativa em linguagem de gente: o que uso → como se comporta → o que fazer → ligação com o exame.
+  const protoSummary = protocol.map((pr) => {
+    const comp = compoundById(pr.compoundId);
+    const f = RADAR_FREQUENCIES.find((x) => x.days === pr.freqDays)?.label.toLowerCase() ?? `a cada ${pr.freqDays} dias`;
+    return { id: pr.uid, name: comp.name, detail: `${n0(getDoseMg(pr))} mg · ${f}` };
+  });
+  const verdict = stats.stability === 'alto'
+    ? { head: 'Você vive numa montanha-russa:', rest: ' pico logo depois de aplicar e vale antes da próxima aplicação.' }
+    : stats.stability === 'moderado'
+      ? { head: 'Seu nível oscila um pouco:', rest: ' há um pico depois de aplicar e um vale antes da próxima.' }
+      : { head: 'Seu nível fica estável:', rest: ' quase não muda entre uma aplicação e outra.' };
+  const meterTone = stats.stability === 'estavel' ? 'bg-success' : stats.stability === 'moderado' ? 'bg-warning' : 'bg-destructive';
+  const meterOn = Math.min(10, Math.max(1, Math.round((Math.min(100, stats.swingPct) / 100) * 10)));
+  const splitHelps = !!splitStats && splitStats.swingPct < stats.swingPct - 5;
+  const examPoint = swingPos > 0.72 ? 'perto do pico' : swingPos < 0.28 ? 'perto do vale' : 'no meio da oscilação';
+  const examHint = swingPos > 0.72
+    ? 'Por isso o resultado pode ter vindo mais ALTO que a sua média real.'
+    : swingPos < 0.28
+      ? 'Por isso o resultado pode ter vindo mais BAIXO que a sua média real.'
+      : 'Esse ponto representa bem a sua média.';
+  const showExamLink = testoInProtocol && !!testoRow?.lastDate && autoInRange && daysAfterShot != null && !!testoStats;
+
   return (
     <PageContainer width={1140} sx={{ pb: { xs: 14, sm: 6 } }}>
       <PageHeader
@@ -375,87 +402,72 @@ export default function RadarHormonal() {
       />
 
       <div className="dx-island flex flex-col gap-4 [&_button]:font-[inherit]">
-        {/* ───────── Resumo em português claro ───────── */}
+        {/* ───────── 1) O que uso → 2) Como se comporta → 3) O que fazer → 4) Ligação com o exame ───────── */}
         <Frame>
           <FramePanel className="dx-glass flex flex-col gap-4">
             <GlassGlow />
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <p className="m-0 max-w-2xl text-base leading-relaxed text-foreground sm:text-lg">
-                Com este protocolo, o hormônio no seu corpo <strong className="font-semibold">{stab.phrase}</strong>.
-                {compareStats ? (
-                  <> Dividindo a mesma dose em 2 aplicações por semana, a oscilação cairia de <strong className="font-semibold tabular-nums">{n0(stats.swingPct)}%</strong> para <strong className="font-semibold tabular-nums">{n0(compareStats.swingPct)}%</strong>.</>
-                ) : null}
-              </p>
-              <Badge variant={stab.variant} size="lg">{stab.label}</Badge>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-xs font-medium text-muted-foreground">Seu protocolo</span>
+              <ul className="m-0 flex list-none flex-col gap-1 p-0">
+                {protoSummary.map((s) => (
+                  <li key={s.id} className="flex flex-wrap items-baseline gap-x-2 text-sm text-foreground">
+                    <span className="font-semibold">💉 {s.name}</span>
+                    <span className="text-muted-foreground">{s.detail}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <dl className="m-0 grid grid-cols-3 gap-2">
-              <div className="flex min-w-0 flex-col gap-1.5 rounded-lg bg-primary/8 p-3">
-                <div className="flex items-center justify-between gap-1.5">
-                  <dt className="text-xs leading-tight text-muted-foreground">Média por dia</dt>
-                  <IconTile variant="soft" size="xs" className="text-primary" aria-hidden="true">
-                    <Gauge aria-hidden="true" />
-                  </IconTile>
-                </div>
-                <dd className="m-0 flex flex-wrap items-baseline gap-x-1">
-                  <CountUp value={stats.avgDailyMg} format={n1} className="text-xl leading-none font-semibold tracking-tight text-foreground tabular-nums sm:text-2xl" />
-                  <span className="text-xs text-muted-foreground">mg</span>
-                </dd>
+            <div className="flex flex-col gap-2 rounded-xl border border-border/70 bg-background/60 p-3.5">
+              <span className="text-xs font-medium text-muted-foreground">Como isso se comporta no seu corpo</span>
+              <p className="m-0 text-base leading-snug font-semibold tracking-tight text-foreground sm:text-lg">
+                {verdict.head}<span className="font-normal">{verdict.rest}</span>
+              </p>
+              <div aria-hidden="true" className="mt-1 flex h-2 w-full items-center gap-0.5">
+                {Array.from({ length: 10 }).map((_, idx) => (
+                  <span key={idx} className={cn('h-2 flex-1 rounded-full', idx < meterOn ? meterTone : 'bg-foreground/10')} />
+                ))}
               </div>
-              <div className="flex min-w-0 flex-col gap-1.5 rounded-lg bg-info/8 p-3">
-                <div className="flex items-center justify-between gap-1.5">
-                  <dt className="text-xs leading-tight text-muted-foreground">Vale a pico</dt>
-                  <IconTile variant="soft" size="xs" className="text-info" aria-hidden="true">
-                    <TrendingUp aria-hidden="true" />
-                  </IconTile>
-                </div>
-                <dd className="m-0 flex flex-wrap items-baseline gap-x-1">
-                  <span className="text-xl leading-none font-semibold tracking-tight whitespace-nowrap text-foreground tabular-nums sm:text-2xl">{n0(stats.troughMg)}–{n0(stats.peakMg)}</span>
-                  <span className="text-xs text-muted-foreground">mg/dia</span>
-                </dd>
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>Estável</span>
+                <span className="font-semibold text-foreground tabular-nums">{stab.label} · {n0(stats.swingPct)}%</span>
+                <span>Montanha-russa</span>
               </div>
-              <div className={cn('flex min-w-0 flex-col gap-1.5 rounded-lg p-3', stats.stability === 'estavel' ? 'bg-success/10' : 'bg-warning/10')}>
-                <div className="flex items-center justify-between gap-1.5">
-                  <dt className="text-xs leading-tight text-muted-foreground">Sobe e desce</dt>
-                  <IconTile
-                    variant="soft"
-                    size="xs"
-                    className={stats.stability === 'estavel' ? 'text-success' : 'text-warning'}
-                    aria-hidden="true"
-                  >
-                    <Waves aria-hidden="true" />
-                  </IconTile>
+              <p className="m-0 text-sm text-foreground tabular-nums">
+                Pico <strong className="font-semibold">{n0(stats.peakMg)} mg/dia</strong> · Vale <strong className="font-semibold">{n0(stats.troughMg)} mg/dia</strong> · Média <strong className="font-semibold">{n1(stats.avgDailyMg)} mg/dia</strong>
+              </p>
+              <p className="m-0 text-xs text-muted-foreground">
+                Pico é o ponto mais alto, logo depois de aplicar. Vale é o mais baixo, antes da próxima aplicação. É o que o depósito da injeção libera, não o resultado do exame de sangue.
+              </p>
+            </div>
+
+            {splitHelps && splitStats ? (
+              <div className="flex flex-col gap-2 rounded-xl border border-primary/30 bg-primary/8 p-3.5">
+                <strong className="text-sm font-semibold text-foreground">💡 O que fazer: dividir em 2 aplicações por semana</strong>
+                <div className="flex items-baseline gap-2 tabular-nums">
+                  <span className="text-xs text-muted-foreground">Oscilação</span>
+                  <span className="text-xl font-semibold text-destructive">{n0(stats.swingPct)}%</span>
+                  <span aria-hidden="true" className="text-muted-foreground">→</span>
+                  <span className="text-xl font-semibold text-success">≈{n0(splitStats.swingPct)}%</span>
                 </div>
-                <dd className="m-0 flex flex-wrap items-baseline gap-x-1">
-                  <CountUp value={stats.swingPct} format={n0} className="text-xl leading-none font-semibold tracking-tight text-foreground tabular-nums sm:text-2xl" />
-                  <span className="text-xs text-muted-foreground">%</span>
-                </dd>
-                <div
-                  aria-hidden="true"
-                  className="mt-auto flex h-2 w-full items-center gap-0.5 pt-0.5"
-                >
-                  {Array.from({ length: 10 }).map((_, idx) => {
-                    const activeBars = Math.min(10, Math.max(1, Math.round((Math.min(100, stats.swingPct) / 100) * 10)));
-                    return (
-                      <span
-                        key={idx}
-                        className={cn(
-                          'h-1.5 flex-1 rounded-full transition-colors',
-                          idx < activeBars
-                            ? stats.stability === 'estavel'
-                              ? 'bg-success'
-                              : 'bg-warning'
-                            : 'bg-foreground/10',
-                        )}
-                      />
-                    );
-                  })}
-                </div>
+                <p className="m-0 text-xs text-muted-foreground">Mesma dose total na semana, picos menores e vales menos fundos. Converse com o seu médico antes de mudar.</p>
+                <Button variant="outline" size="sm" className="self-start" onClick={() => setCompare2x((v) => !v)}>
+                  {compare2x ? 'Esconder 2x/semana no gráfico' : 'Ver 2x/semana no gráfico'}
+                </Button>
               </div>
-            </dl>
-            <p className="m-0 text-xs text-muted-foreground">
-              Hormônio já sem o peso do éster. Vale é o ponto mais baixo (antes de aplicar) e pico o mais alto (depois). Quanto menor o sobe e desce, mais uniforme.
-            </p>
+            ) : null}
+
+            {showExamLink ? (
+              <Alert variant="info">
+                <Info aria-hidden="true" />
+                <AlertTitle>Ligando com o seu exame de testosterona</AlertTitle>
+                <AlertDescription>
+                  <p className="m-0">
+                    Foi colhido {daysAfterShot === 0 ? 'no dia da aplicação' : `${daysAfterShot} dia(s) depois da aplicação`}, {examPoint}. {examHint} Para comparar exames, colha sempre no mesmo ponto do ciclo.
+                  </p>
+                </AlertDescription>
+              </Alert>
+            ) : null}
 
             {!stats.settled ? (
               <Alert variant="info">
@@ -475,8 +487,8 @@ export default function RadarHormonal() {
             <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
               <IconTile variant="soft" size="sm" className="text-primary" aria-hidden="true"><Waves aria-hidden="true" /></IconTile>
               <div className="flex min-w-0 flex-col gap-px">
-                <FrameTitle role="heading" aria-level={2}>Como a liberação estimada varia entre as aplicações</FrameTitle>
-                <FrameDescription>Simulação de quanto hormônio o depósito da injeção libera por dia (mg/dia). Não é o nível no sangue.</FrameDescription>
+                <FrameTitle role="heading" aria-level={2}>Seu hormônio ao longo das semanas</FrameTitle>
+                <FrameDescription>Quanto hormônio o depósito da injeção libera por dia (mg/dia). É uma simulação, não é o nível no sangue.</FrameDescription>
               </div>
             </div>
             <ToggleGroup value={[String(weeks)]} onValueChange={(next) => { if (next[0]) setWeeks(Number(next[0])); }} variant="outline" size="sm" spacing={0} aria-label="Período mostrado">
@@ -495,7 +507,7 @@ export default function RadarHormonal() {
                       : null;
               return (
                 <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-2">
-                  <span className="text-xs font-medium text-muted-foreground">Comparar cenários:</span>
+                  <span className="text-xs font-medium text-muted-foreground">Testar outro protocolo:</span>
                   <Button
                     variant="outline"
                     size="sm"
@@ -544,9 +556,9 @@ export default function RadarHormonal() {
                 );
               })}
               {series.seriesPerItem.length > 1 ? (
-                <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden="true" className="h-0.5 w-4 rounded-full bg-foreground" />Soma dos compostos</span>
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden="true" className="h-0.5 w-4 rounded-full bg-foreground" />Total dos compostos</span>
               ) : null}
-              <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden="true" className="h-0 w-4 border-t border-dotted border-foreground/60" />Média diária</span>
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden="true" className="h-0 w-4 border-t border-dotted border-foreground/60" />Média por dia</span>
               {canSplit ? (
                 <button
                   type="button"
@@ -555,7 +567,7 @@ export default function RadarHormonal() {
                   className={cn('ms-auto flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-transparent px-2.5 text-xs text-foreground transition-colors hover:bg-muted', compare2x && 'border-warning/50 bg-warning/10')}
                 >
                   <span aria-hidden="true" className="h-0 w-4 border-t-2 border-dashed border-warning" />
-                  E se dividir em 2x por semana?
+                  Ver 2x por semana
                 </button>
               ) : null}
             </div>

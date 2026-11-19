@@ -140,6 +140,7 @@ import { MobileBottomNav } from './components/MobileBottomNav';
 import { ExamCreateFab } from './components/ExamCreateFab';
 import { BiometricGate } from './components/BiometricGate';
 import { DrawerProvider, useAppDrawer } from './components/drawerState';
+import { readsOf, useReadsDivisor } from './utils/creditsLabel';
 import { NudgeQueueProvider } from './hooks/useNudgeQueue';
 import { ForceUpdate } from './components/ForceUpdate';
 import { checkAppUpdate, checkPlayUpdate } from './utils/version';
@@ -755,6 +756,19 @@ const MenuSectionLabel = ({ children }: { children: React.ReactNode }) => (
   </Typography>
 );
 
+/** Sub-rótulo dentro de um acordeão (Créditos / Proteção). Só texto, sem clique. */
+const MenuSubLabel = ({ children }: { children: React.ReactNode }) => (
+  <Typography
+    component="div"
+    sx={{
+      px: 1.5, pt: 0.9, pb: 0.15, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase',
+      color: (t) => (t.palette.mode === 'dark' ? 'rgba(241,245,249,0.45)' : '#64748b'), userSelect: 'none', pointerEvents: 'none',
+    }}
+  >
+    {children}
+  </Typography>
+);
+
 /**
  * Família como pílula roxa compacta (mock-nav-menu-redesign ③): nome + sublinha e
  * "+ Adicionar" (abre /familia?novo=1). Mantém ListItemButton (haptic, foco, ripple, 48px+).
@@ -826,6 +840,7 @@ const FamilyMenuPill = () => {
 const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
   const navigate = useNavigate();
   const { credits } = useCredits();
+  const readsDivisor = useReadsDivisor();
   const [userInfo, setUserInfo] = useState<{ name: string; photo?: string; isPremium: boolean }>({
     name: 'Usuário',
     isPremium: false,
@@ -959,7 +974,7 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
                       onClose?.();
                       navigate('/planos');
                     }}
-                    label={`⚡ ${Number(credits).toLocaleString('pt-BR')}`}
+                    label={(() => { const r = readsOf(Number(credits), readsDivisor); return r > 0 ? `⚡ ${r.toLocaleString('pt-BR')} ${r === 1 ? 'leitura' : 'leituras'}` : `⚡ ${Number(credits).toLocaleString('pt-BR')} 💎`; })()}
                     sx={{
                       height: 20,
                       fontSize: 11,
@@ -1150,18 +1165,25 @@ const AppMenu = () => {
         routes={['/perfil', '/carteira', '/indique', '/seguranca', '/privacidade', '/planos', '/admin']}
       >
         <NavItem to="/perfil" primaryText={translate('menu.profile', { _: 'Meu perfil' })} icon={<AccountCircleOutlinedIcon />} />
-        <NavItem to="/carteira" primaryText={translate('menu.wallet', { _: 'Carteira & créditos' })} icon={<BoltOutlinedIcon />} highlight />
+        <MenuSubLabel>Créditos</MenuSubLabel>
+        <NavItem to="/carteira" primaryText="Carteira · saldo e extrato" icon={<BoltOutlinedIcon />} highlight />
+        <NavItem to="/planos" primaryText="Planos e créditos · comprar" icon={<WorkspacePremiumOutlinedIcon />} />
         <NavItem to="/indique" primaryText={translate('menu.invite', { _: 'Indique e ganhe 🎁' })} icon={<CardGiftcardOutlinedIcon />} highlight />
+        <MenuSubLabel>Proteção</MenuSubLabel>
         <NavItem to="/seguranca" primaryText={translate('menu.security_pwd', { _: 'Segurança e senha' })} icon={<LockOutlinedIcon />} />
-        <NavItem to="/privacidade" primaryText={translate('menu.privacy', { _: 'Privacidade (LGPD)' })} icon={<HealthAndSafetyOutlinedIcon />} />
-        <NavItem to="/planos" primaryText={translate('menu.plans', { _: 'Planos' })} icon={<WorkspacePremiumOutlinedIcon />} />
-        {isAdmin && <NavItem to="/admin" primaryText={translate('menu.admin', { _: 'Painel Admin' })} icon={<AdminPanelSettingsOutlinedIcon />} badge={onlineNow !== null ? `🟢 ${onlineNow} online` : undefined} />}
+        <NavItem to="/privacidade" primaryText="Privacidade e termos" icon={<HealthAndSafetyOutlinedIcon />} />
+        {isAdmin && (
+          <>
+            <Box sx={{ mx: 1.5, my: 0.75, height: '1px', background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.10)' : 'rgba(0,0,0,.08)' }} />
+            <NavItem to="/admin" primaryText={translate('menu.admin', { _: 'Painel Admin' })} icon={<AdminPanelSettingsOutlinedIcon />} badge={onlineNow !== null ? `🟢 ${onlineNow} online` : undefined} />
+          </>
+        )}
       </MenuSectionAccordion>
 
       <MenuSectionLabel>Suporte</MenuSectionLabel>
 
       <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<HelpOutlineOutlinedIcon />} tile />
-      <MenuItem onClick={() => setAboutOpen(true)} sx={{ m: '3px 8px', borderRadius: '16px', py: 0.6, minHeight: 48, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.9)' : '#1f2d2d', '&:hover': { bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.7)', boxShadow: (t) => glassRim(t.palette.mode === 'dark') } }}>
+      <MenuItem onClick={() => setAboutOpen(true)} sx={{ m: '3px 8px', pl: 1, borderRadius: '16px', py: 0.6, minHeight: 48, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.9)' : '#1f2d2d', '&:hover': { bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.7)', boxShadow: (t) => glassRim(t.palette.mode === 'dark') } }}>
         <ListItemIcon sx={{
           minWidth: 0, mr: 1.5, width: 34, height: 34, borderRadius: '11px', display: 'grid', placeItems: 'center',
           bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.72)',

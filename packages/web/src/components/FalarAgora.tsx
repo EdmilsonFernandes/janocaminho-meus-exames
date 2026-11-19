@@ -480,28 +480,28 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
             }}
           >
             <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.45, mb: 1.25 }}>
-              Nenhum plantonista online agora. Entre na fila para ser avisado assim que um médico iniciar plantão ou agende com seus especialistas.
+              Nenhum plantonista agora. Agende com seu médico ou peça aviso quando um entrar.
             </Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+            <Stack direction="column" spacing={1}>
               <Button
                 fullWidth
                 variant="contained"
                 size="small"
-                disabled={joinBusy || !pid}
-                onClick={() => pickNoPreference()}
-                sx={{ ...gradBtn, minHeight: 40, fontSize: 13 }}
+                startIcon={<MedicalServicesRoundedIcon sx={{ fontSize: 17 }} />}
+                onClick={() => { hapticLight(); navigate('/medicos'); }}
+                sx={{ ...gradBtn, minHeight: 44, fontSize: 13.5 }}
               >
-                Avisar quando médico entrar
+                Agendar com meu médico
               </Button>
               <Button
                 fullWidth
                 variant="outlined"
                 size="small"
-                startIcon={<MedicalServicesRoundedIcon sx={{ fontSize: 17 }} />}
-                onClick={() => { hapticLight(); navigate('/medicos'); }}
-                sx={{ minHeight: 40, borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: 13, borderColor: 'divider', color: 'text.primary' }}
+                disabled={joinBusy || !pid}
+                onClick={() => pickNoPreference()}
+                sx={{ minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: 13, borderColor: 'divider', color: 'text.primary' }}
               >
-                Agendar com meu médico
+                Avisar quando médico entrar
               </Button>
             </Stack>
           </Box>

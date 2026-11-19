@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Avatar, Box, Button, Card, CardContent, Chip, Skeleton, Stack, Typography,
 } from '@mui/material';
@@ -51,7 +51,6 @@ export const MinhasConsultasPage = () => {
   // AUD-013: sem loading state a tela piscava "Nenhuma consulta" antes do fetch
   // responder — o vazio só pode aparecer depois da PRIMEIRA resposta.
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'abertas' | 'historico'>('abertas');
   // §2 (28/10/26): duas áreas — Teleconsultas (sala virtual do produto) × Minhas
   // consultas (registro particular: presencial ou link externo, convênio, exames).
   const location = useLocation() as { state?: { tab?: string; prefillDoctor?: { doctorId?: string; doctorName?: string; specialty?: string } | null } };
@@ -118,11 +117,6 @@ export const MinhasConsultasPage = () => {
   const abertas = teleconsultas.filter((r) => !isDone(r)).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
   const historico = teleconsultas.filter(isDone).sort((a, b) => new Date(b.endedAt ?? b.dueDate).getTime() - new Date(a.endedAt ?? a.dueDate).getTime());
 
-  const TABS: { v: 'abertas' | 'historico'; l: string; n: number }[] = [
-    { v: 'abertas', l: 'Próximas', n: abertas.length },
-    { v: 'historico', l: 'Histórico', n: historico.length },
-  ];
-
   return (
     <PageContainer width="content" sx={{ pb: { xs: 12, sm: 5 } }}>
       <PageHeader
@@ -164,39 +158,9 @@ export const MinhasConsultasPage = () => {
         {/* Fila imediata "Falar agora" — plantão médico Dr. Exame */}
         <FalarAgora sx={{ mb: 2.5 }} />
 
-        {/* Sub-abas: Abertas vs Histórico */}
-        <Stack direction="row" spacing={1} sx={{ mb: 2.5 }}>
-          {TABS.map((t) => {
-            const on = tab === t.v;
-            return (
-              <Button
-                key={t.v}
-                onClick={() => { hapticLight(); setTab(t.v); }}
-                startIcon={t.v === 'historico' ? <HistoryRoundedIcon /> : <EventAvailableRoundedIcon />}
-                aria-pressed={on}
-                sx={{
-                  minHeight: 38,
-                  px: 2.2,
-                  borderRadius: '999px',
-                  textTransform: 'none',
-                  fontWeight: 800,
-                  fontSize: 13,
-                  color: on ? '#fff' : 'text.secondary',
-                  bgcolor: on ? '#0f766e' : (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f1f5f5',
-                  boxShadow: on ? '0 2px 10px rgba(15,118,110,0.25)' : 'none',
-                  border: '1px solid',
-                  borderColor: on ? 'transparent' : 'divider',
-                  '&:hover': { bgcolor: on ? '#115e59' : 'action.hover' },
-                }}
-              >
-                {t.l} ({t.n})
-              </Button>
-            );
-          })}
-        </Stack>
-
-      {/* ── ABERTAS ── */}
-      {tab === 'abertas' && loading && abertas.length === 0 && (
+      {/* ── PRÓXIMAS ── */}
+      <SecHead>Próximas{abertas.length ? ` · ${abertas.length}` : ''}</SecHead>
+      {loading && abertas.length === 0 && (
         <Stack spacing={2}>
           {[0, 1].map((i) => (
             <Card key={i} variant="outlined" sx={{ borderRadius: '20px', p: 2.5 }}>
@@ -207,46 +171,25 @@ export const MinhasConsultasPage = () => {
           ))}
         </Stack>
       )}
-      {tab === 'abertas' && !loading && (
+      {!loading && (
         abertas.length === 0 ? (
           <Frame className="w-full">
-            <FramePanel className="flex flex-col items-center py-7 text-center">
-              <IconTile tone="primary" size="lg" className="mb-3">
-                <VideocamRoundedIcon sx={{ fontSize: 24 }} />
-              </IconTile>
-              <Typography sx={{ fontWeight: 800, fontSize: 16, mb: 0.5, fontFamily: '"Poppins",sans-serif' }}>
-                Nenhuma teleconsulta agendada agora
+            <FramePanel className="flex flex-col items-center gap-2 py-4 text-center">
+              <Typography color="text.secondary" sx={{ maxWidth: 360, mx: 'auto', fontSize: 13, lineHeight: 1.5 }}>
+                Nenhuma consulta marcada. Quando seu médico agendar por vídeo, a sala e o lembrete aparecem aqui.
               </Typography>
-              <Typography color="text.secondary" sx={{ mb: 2.5, maxWidth: 360, mx: 'auto', fontSize: 13, lineHeight: 1.5 }}>
-                Quando seu médico agendar uma chamada por vídeo, a sala virtual e o lembrete aparecerão aqui automaticamente.
-              </Typography>
-
-              {historico.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => { hapticLight(); setTab('historico'); }}
-                  className="mb-3 inline-flex items-center gap-2 rounded-xl border border-primary/25 bg-primary/[0.06] px-3.5 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/12"
-                >
-                  <HistoryRoundedIcon sx={{ fontSize: 16 }} />
-                  <span>
-                    Você tem {historico.length} {historico.length === 1 ? 'consulta concluída' : 'consultas concluídas'} no histórico
-                  </span>
-                  <ArrowForwardRoundedIcon sx={{ fontSize: 14 }} />
-                </button>
-              )}
-
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center" sx={{ width: { xs: '100%', sm: 'auto' } }}>
                 <Button
                   variant="outlined"
                   onClick={() => { hapticLight(); setArea('minhas'); }}
-                  sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800, borderColor: 'rgba(32,178,170,0.4)', color: '#0f766e', px: 2.5 }}
+                  sx={{ minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 800, borderColor: 'rgba(32,178,170,0.4)', color: '#0f766e', px: 2.5 }}
                 >
                   + Anotar na minha agenda
                 </Button>
                 <Button
                   variant="text"
                   onClick={() => { hapticLight(); navigate('/encontrar'); }}
-                  sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, color: 'text.secondary', px: 2 }}
+                  sx={{ minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 700, color: 'text.secondary', px: 2 }}
                 >
                   Buscar especialistas →
                 </Button>
@@ -269,35 +212,11 @@ export const MinhasConsultasPage = () => {
         )
       )}
 
-      {/* ── HISTÓRICO ── */}
-      {tab === 'historico' && loading && historico.length === 0 && (
-        <Stack spacing={1.5}>
-          {[0, 1, 2].map((i) => (
-            <Card key={i} variant="outlined" sx={{ borderRadius: '20px', p: 2.5 }}>
-              <Skeleton variant="text" width="60%" height={24} />
-              <Skeleton variant="text" width="40%" />
-            </Card>
-          ))}
-        </Stack>
-      )}
-      {tab === 'historico' && !loading && (
+      {/* ── CONCLUÍDAS ── */}
+      {!loading && historico.length > 0 && <SecHead>Concluídas · {historico.length}</SecHead>}
+      {!loading && historico.length > 0 && (
         historico.length === 0 ? (
-          <Frame className="w-full">
-            <FramePanel className="flex flex-col items-center py-7 text-center">
-              <IconTile tone="muted" size="lg" className="mb-3">
-                <HistoryRoundedIcon sx={{ fontSize: 24 }} />
-              </IconTile>
-              <Typography sx={{ fontWeight: 800, fontSize: 16, mb: 0.5, fontFamily: '"Poppins",sans-serif' }}>
-                Histórico vazio
-              </Typography>
-              <Typography color="text.secondary" sx={{ maxWidth: 340, mx: 'auto', fontSize: 13 }}>
-                Consultas concluídas ficam arquivadas aqui, com resumo clínico e pedidos de exames aprovados pelo médico.
-              </Typography>
-              <ReuiBadge variant="outline" size="xs" className="mt-3">
-                Prontuário seguro LGPD
-              </ReuiBadge>
-            </FramePanel>
-          </Frame>
+          null
         ) : (
           <Stack spacing={1.5}>
             {historico.map((r) => {
@@ -522,6 +441,13 @@ export const MinhasConsultasPage = () => {
     </PageContainer>
   );
 };
+
+/** Título de seção da lista única (Próximas / Concluídas). */
+const SecHead = ({ children }: { children: ReactNode }) => (
+  <Typography component="h2" sx={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'text.secondary', mt: 2.5, mb: 1, px: 0.5 }}>
+    {children}
+  </Typography>
+);
 
 /** Segmento do seletor de área — pílula de vidro no padrão do menu premium (mock aprovado). */
 const segArea = (on: boolean) => ({
