@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import nodemailer, { type Transporter } from 'nodemailer';
 
 export interface OutboundEmail {
   to: string;
@@ -11,10 +11,10 @@ export interface OutboundEmail {
   attachments?: { filename: string; path: string }[];
 }
 
-let _transport: nodemailer.Transporter | null = null;
+let _transport: Transporter | null = null;
 
 /** Cria (e cacheia) o transporte SMTP a partir das variáveis SMTP_*. */
-function getTransport(): nodemailer.Transporter | null {
+function getTransport(): Transporter | null {
   if (_transport) return _transport;
   const host = process.env.SMTP_HOST;
   const user = process.env.SMTP_USER;

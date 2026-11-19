@@ -19,6 +19,8 @@ export interface Marker {
   nameCanonical?: string; // chave de agrupamento (guards de dedupe) — opcional: fontes antigas só trazem name
   unit?: string;
   latest?: { valueNumeric?: number | null };
+  prior?: { valueNumeric?: number | null };
+  deltaPct?: number | null;
   refHigh?: number | null;
   refLow?: number | null;
   flag?: string;
@@ -139,54 +141,80 @@ export const ChangesSinceExam = ({
         )}
       </Stack>
       <Stack spacing={1.2}>
-        {worsened.slice(0, 3).map((m, i) => (
-          <Box
-            key={`w${i}`}
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              p: '6px 10px',
-              borderRadius: '10px',
-              bgcolor: alpha('#dc2626', 0.04),
-              borderLeft: '3px solid #dc2626',
-              animation: `dxMarkerIn .3s ease ${i * 0.06}s both`,
-              '@keyframes dxMarkerIn': { from: { opacity: 0, transform: 'translateX(-8px)' }, to: { opacity: 1, transform: 'none' } },
-            }}
-          >
-            <Typography sx={{ fontSize: 13.5, color: 'text.primary', fontWeight: 600 }}>
-              <Box component="span" sx={{ color: (t) => dangerText(t.palette.mode), mr: 0.75, fontWeight: 800 }}>{flagDir(m, false)}</Box>
-              {m.name}
-            </Typography>
-            <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', ml: 1 }}>{fmtMarker(m)}</Typography>
-          </Box>
-        ))}
+        {worsened.slice(0, 3).map((m, i) => {
+          const priorVal = m.prior?.valueNumeric;
+          const delta = m.deltaPct;
+          return (
+            <Box
+              key={`w${i}`}
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                p: '7px 11px',
+                borderRadius: '11px',
+                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.08)' : alpha('#dc2626', 0.04),
+                borderLeft: '3.5px solid #dc2626',
+                animation: `dxMarkerIn .3s ease ${i * 0.06}s both`,
+                '@keyframes dxMarkerIn': { from: { opacity: 0, transform: 'translateX(-8px)' }, to: { opacity: 1, transform: 'none' } },
+              }}
+            >
+              <Typography sx={{ fontSize: 13, color: 'text.primary', fontWeight: 600, minWidth: 0, pr: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <Box component="span" sx={{ color: (t) => dangerText(t.palette.mode), mr: 0.75, fontWeight: 800 }}>{flagDir(m, false)}</Box>
+                {m.name}
+              </Typography>
+              <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                <Typography sx={{ fontSize: 13, color: 'text.primary', fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                  {fmtMarker(m)}
+                </Typography>
+                {priorVal != null && (
+                  <Typography sx={{ fontSize: 10.5, color: 'text.secondary', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                    era {fmtNum(priorVal)}{delta != null ? ` · ${delta > 0 ? '+' : ''}${Math.round(delta)}%` : ''}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          );
+        })}
 
         {worsened.length > 0 && improvedUnique.length > 0 && (
           <Box sx={{ borderBottom: '1px dashed', borderColor: 'divider', my: 0.5 }} />
         )}
 
-        {improvedUnique.slice(0, 3).map((m, i) => (
-          <Box
-            key={`i${i}`}
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              p: '6px 10px',
-              borderRadius: '10px',
-              bgcolor: alpha('#047857', 0.04),
-              borderLeft: '3px solid #047857',
-              animation: `dxMarkerIn .3s ease ${(worsened.length + i) * 0.06}s both`,
-            }}
-          >
-            <Typography sx={{ fontSize: 13.5, color: 'text.primary', fontWeight: 600 }}>
-              <Box component="span" sx={{ color: '#047857', mr: 0.75, fontWeight: 800 }}>{flagDir(m, true)}</Box>
-              {m.name}
-            </Typography>
-            <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', ml: 1 }}>{fmtMarker(m)}</Typography>
-          </Box>
-        ))}
+        {improvedUnique.slice(0, 3).map((m, i) => {
+          const priorVal = m.prior?.valueNumeric;
+          const delta = m.deltaPct;
+          return (
+            <Box
+              key={`i${i}`}
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                p: '7px 11px',
+                borderRadius: '11px',
+                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(16, 185, 129, 0.08)' : alpha('#047857', 0.04),
+                borderLeft: '3.5px solid #047857',
+                animation: `dxMarkerIn .3s ease ${(worsened.length + i) * 0.06}s both`,
+              }}
+            >
+              <Typography sx={{ fontSize: 13, color: 'text.primary', fontWeight: 600, minWidth: 0, pr: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <Box component="span" sx={{ color: (t) => t.palette.mode === 'dark' ? '#34d399' : '#047857', mr: 0.75, fontWeight: 800 }}>{flagDir(m, true)}</Box>
+                {m.name}
+              </Typography>
+              <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                <Typography sx={{ fontSize: 13, color: 'text.primary', fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                  {fmtMarker(m)}
+                </Typography>
+                {priorVal != null && (
+                  <Typography sx={{ fontSize: 10.5, color: 'text.secondary', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                    era {fmtNum(priorVal)}{delta != null ? ` · ${delta > 0 ? '+' : ''}${Math.round(delta)}%` : ''}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          );
+        })}
 
         {loaded && !hasExamChanges && (
           <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>

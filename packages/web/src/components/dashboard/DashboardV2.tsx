@@ -8,7 +8,7 @@ import { useCountUp } from '../../hooks/useCountUp';
 import { ActivationChecklist } from './ActivationChecklist';
 import { deltaEntre, deltaLabel, diasAteJanela } from '../../utils/mental-delta';
 import { SeverityBar } from '../mental/SeverityBar';
-import { Heartbeat, Stethoscope, ChartLineUp, ChatCircle } from '@phosphor-icons/react';
+import { Heartbeat, Stethoscope, ChartLineUp, ChatCircle, Sparkle } from '@phosphor-icons/react';
 import { useSelectedPatient } from '../../patient-context';
 import { syncPushToken } from '../../push';
 import { BiometricService } from '../BiometricService';
@@ -590,36 +590,58 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
           )}
         </Box>
 
-        {/* Play compacto do resumo em áudio DENTRO do hero (alinhado graciosamente no canto superior direito) */}
+        {/* Play compacto do resumo em áudio DENTRO do hero (pílula elegante mode-aware com IA) */}
         {audioSummary && (
           <Tooltip title={audioPlaying ? 'Pausar resumo em áudio' : 'Ouvir resumo em áudio com IA'} arrow placement="left">
-            <IconButton
+            <Box
+              component="button"
+              type="button"
               onClick={toggleAudio}
-              aria-label={audioPlaying ? 'Pausar resumo em áudio do Dr. Exame' : 'Ouvir resumo em áudio do Dr. Exame'}
+              aria-label={audioPlaying ? 'Pausar resumo em áudio do Dr. Exame' : 'Ouvir resumo em áudio com IA'}
               sx={{
-                width: 40,
-                height: 40,
-                p: 0,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #20b2aa 0%, #0f5f5a 100%)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.75,
+                px: 1.5,
+                py: 0.55,
+                borderRadius: '999px',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontSize: 12,
+                fontWeight: 800,
+                background: audioPlaying
+                  ? 'linear-gradient(135deg, #0d9488, #059669)'
+                  : (th) => th.palette.mode === 'dark' ? 'linear-gradient(135deg, #0d9488, #115e59)' : 'linear-gradient(135deg, #0d9488, #0f766e)',
                 color: '#ffffff',
-                flexShrink: 0,
-                boxShadow: audioPlaying ? '0 4px 16px rgba(32,178,170,.45)' : '0 2px 10px rgba(32,178,170,.3)',
-                transition: 'transform .2s cubic-bezier(.16,1,.3,1)',
-                '&:hover': { transform: 'scale(1.07)' },
-                '&:active': { transform: 'scale(.94)' },
+                boxShadow: (th) => audioPlaying
+                  ? '0 4px 14px rgba(13,148,136,0.5)'
+                  : (th.palette.mode === 'dark' ? '0 2px 10px rgba(0,0,0,0.4)' : '0 2px 8px rgba(13,148,136,0.3)'),
+                transition: 'all .2s ease',
+                '&:hover': { transform: 'scale(1.04)' },
+                '&:active': { transform: 'scale(.97)' },
                 ...(audioPlaying && !reduced ? {
                   animation: 'dxAudioPulse 2s ease-in-out infinite',
                   '@keyframes dxAudioPulse': {
                     '0%, 100%': { transform: 'scale(1)' },
-                    '50%': { transform: 'scale(1.06)' },
+                    '50%': { transform: 'scale(1.05)' },
                   },
                 } : {}),
                 '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
               }}
             >
-              {audioPlaying ? <PauseIcon sx={{ fontSize: 18 }} /> : <PlayArrowIcon sx={{ fontSize: 20, ml: 0.2 }} />}
-            </IconButton>
+              {audioPlaying ? (
+                <>
+                  <PauseIcon sx={{ fontSize: 16 }} />
+                  <span>Pausar</span>
+                </>
+              ) : (
+                <>
+                  <Box component="span" sx={{ fontSize: 13, display: 'inline-flex' }}>🎙️</Box>
+                  <span>Ouvir resumo IA</span>
+                </>
+              )}
+            </Box>
           </Tooltip>
         )}
       </Stack>
@@ -799,9 +821,9 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
           sx={{
             mt: 1.75,
             p: 1.25,
-            borderRadius: '12px',
+            borderRadius: '14px',
             bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(254, 243, 199, 0.65)'),
-            border: (th) => `1px solid ${th.palette.mode === 'dark' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
+            border: (th) => `1px solid ${th.palette.mode === 'dark' ? 'rgba(245, 158, 11, 0.28)' : 'rgba(245, 158, 11, 0.25)'}`,
             display: 'flex',
             alignItems: 'flex-start',
             gap: 1,
@@ -810,9 +832,25 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
           }}
         >
           <HourglassTopIcon sx={{ fontSize: 16, color: (th) => (th.palette.mode === 'dark' ? '#fbbf24' : '#d97706'), flexShrink: 0, mt: 0.15 }} />
-          <Typography sx={{ fontSize: 12, lineHeight: 1.45, fontWeight: 500, color: (th) => (th.palette.mode === 'dark' ? '#fde68a' : '#78350f') }}>
-            {staleWarning}
-          </Typography>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography sx={{ fontSize: 12, lineHeight: 1.45, fontWeight: 500, color: (th) => (th.palette.mode === 'dark' ? '#fde68a' : '#78350f') }}>
+              {staleWarning}
+            </Typography>
+            <Box
+              component="button"
+              type="button"
+              onClick={onFirstExam}
+              sx={{
+                p: 0, mt: 0.4, border: 'none', background: 'transparent', cursor: 'pointer',
+                fontFamily: 'inherit', fontSize: 11.5, fontWeight: 800,
+                color: (th) => (th.palette.mode === 'dark' ? '#2dd4bf' : '#0f766e'),
+                textDecoration: 'underline', display: 'inline-flex', alignItems: 'center', gap: 0.5,
+                '&:hover': { opacity: 0.8 },
+              }}
+            >
+              Envie um exame recente para atualizar →
+            </Box>
+          </Box>
         </Box>
       )}
 
@@ -840,21 +878,21 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
               <Button
                 onClick={onChat}
                 variant="outlined"
-                startIcon={<ChatCircle size={18} weight="bold" />}
+                startIcon={<Sparkle size={17} weight="fill" />}
                 sx={{
                   flex: { xs: 'none', sm: '0 0 auto' },
                   width: { xs: '100%', sm: 'auto' },
                   py: 1.1, px: 2.25,
                   borderRadius: RADIUS.button,
-                  borderColor: (th) => alpha(th.palette.primary.main, 0.35),
+                  borderColor: (th) => th.palette.mode === 'dark' ? 'rgba(45, 212, 191, 0.35)' : 'rgba(13, 148, 136, 0.35)',
                   color: (th) => tealText(th.palette.mode),
                   fontWeight: 700,
                   fontSize: 13,
                   textTransform: 'none',
-                  bgcolor: (th) => alpha(th.palette.primary.main, 0.04),
+                  bgcolor: (th) => th.palette.mode === 'dark' ? 'rgba(45, 212, 191, 0.06)' : 'rgba(13, 148, 136, 0.04)',
                   '&:hover': {
                     borderColor: 'primary.main',
-                    bgcolor: (th) => alpha(th.palette.primary.main, 0.1),
+                    bgcolor: (th) => th.palette.mode === 'dark' ? 'rgba(45, 212, 191, 0.14)' : 'rgba(13, 148, 136, 0.08)',
                   }
                 }}
               >
@@ -881,15 +919,14 @@ const MiniArc = ({ percent, color, size = 32 }: { percent: number; color: string
 };
 
 /** Tile de indicador — SOFT BADGE MODERNO (SaaS / Hospital management). */
-const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeBg, badgeColor, arcPercent, arcColor, spark }: {
+const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeBg, badgeColor, arcPercent, arcColor, spark, progressBar }: {
   icon: ReactNode; label: string; value: string; sub?: string;
   tone: 'error' | 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'premium';
   onClick: () => void; idx?: number;
   badgeBg?: string; badgeColor?: string;
   arcPercent?: number; arcColor?: string;
-  /** CONTRATO item 3: mini-linha SVG com dado REAL (ex.: exames/mês) — undefined
-   *  significa "sem série" e o tile fica exatamente como era (nada decorativo). */
   spark?: number[];
+  progressBar?: { percent: number; color: string };
 }) => {
   const theme = useTheme();
   const reduced = usePrefersReducedMotion();
@@ -924,7 +961,20 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeB
         <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5vw, 1.375rem)', sm: 22 }, color: 'text.primary', lineHeight: 1.2, mt: 0.25, fontVariantNumeric: 'tabular-nums' }}>
           {value}
         </Typography>
-        {arcPercent != null && arcColor && <MiniArc percent={arcPercent} color={arcColor} />}
+        {progressBar ? (
+          <Box sx={{
+            width: '100%', height: 4, borderRadius: 2, mt: 0.75, mb: 0.25, overflow: 'hidden',
+            bgcolor: (th) => th.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)'
+          }}>
+            <Box sx={{
+              width: `${Math.max(4, Math.min(100, progressBar.percent))}%`,
+              height: '100%',
+              borderRadius: 2,
+              bgcolor: progressBar.color,
+              transition: 'width .8s ease',
+            }} />
+          </Box>
+        ) : (arcPercent != null && arcColor && <MiniArc percent={arcPercent} color={arcColor} />)}
         {sub && (
           <Typography sx={{ fontSize: 12, lineHeight: 1.3, color: 'text.secondary', fontWeight: 600, mt: 0.25 }}>
             {sub}
@@ -1507,8 +1557,7 @@ const DashboardV2Inner = () => {
             label={d.stats.abnormal > 0 ? 'Fora da faixa' : SEVERITY.low}
             value={d.loaded ? String(d.stats.abnormal) : '—'}
             sub={d.loaded ? (totalResults > 0 ? `de ${totalResults} marcadores` : '') : ''}
-            arcPercent={totalResults > 0 ? Math.max(0, Math.round((d.stats.abnormal / totalResults) * 100)) : undefined}
-            arcColor={d.stats.abnormal > 0 ? '#ef4444' : '#059669'}
+            progressBar={totalResults > 0 && d.loaded ? { percent: Math.round((d.stats.abnormal / totalResults) * 100), color: '#ef4444' } : undefined}
             onClick={go('/tendencias')}
           />
           <IndicatorTile
@@ -1537,8 +1586,7 @@ const DashboardV2Inner = () => {
             sub={cardioLevel
               ? (cardioFactors > 0 ? `${cardioFactors} fator${cardioFactors > 1 ? 'es' : ''} de risco` : 'sem fatores')
               : (d.loaded ? (d.stats.exams > 0 ? 'sem colesterol, peso ou pressão' : 'envie um exame') : '')}
-            arcPercent={cardioArc}
-            arcColor={cardioArcColor}
+            progressBar={cardioLevel ? { percent: cardioLevel === 'baixo' ? 25 : cardioLevel === 'moderado' ? 55 : 85, color: cardioArcColor } : undefined}
             /* 28/09 (bug bash do dono): levava a Tendências — incoerente. Agora abre os
                FATORES que dimensionam o risco (o que o tile promete). */
             onClick={() => setCardioOpen(true)}

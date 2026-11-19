@@ -8,7 +8,10 @@ import sharp from 'sharp';
  */
 export async function optimizeAvatar(buffer: Buffer): Promise<{ buffer: Buffer; contentType: string }> {
   try {
-    const optimized = await sharp(buffer, { failOn: 'none' })
+    // Strix 19/11 (CVE-2026-33327): failOn 'none' desarmava a proteção de rejeitar
+    // imagens malformadas — com sharp 0.32.6 era caminho direto pra corrupção de memória.
+    // Padrão do sharp 0.35.x rejeita cedo; mantemos explícito p/ clareza.
+    const optimized = await sharp(buffer, { failOn: 'warning' })
       .rotate() // aplica a orientação EXIF ANTES de tudo — sem isso fotos de celular
                 // saem tortas/de cabeça pra baixo (o .jpeg() final stripa o EXIF,
                 // então os pixels precisam já estar girados). Bug dono 18/10.
