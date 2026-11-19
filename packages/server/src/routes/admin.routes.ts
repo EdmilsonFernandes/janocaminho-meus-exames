@@ -806,6 +806,19 @@ router.get('/feature-usage', async (_req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// PRESENÇA LEVE (19/11) — só os contadores p/ o chip "🟢 N online" do topbar (mobile+web).
+// Separado do /feature-usage (pesado) p/ poder fazer polling a cada 60s sem custo.
+router.get('/presence', async (_req, res, next) => {
+  try {
+    const base = Prisma.sql`u."role" = 'OWNER' AND COALESCE(u."isTest", false) = false`;
+    const [online, dau] = await Promise.all([
+      prisma.$queryRaw<{ cnt: number }[]>`SELECT COUNT(*)::int AS cnt FROM users u WHERE ${base} AND u."lastActiveAt" > now() - interval '5 minutes'`,
+      prisma.$queryRaw<{ cnt: number }[]>`SELECT COUNT(*)::int AS cnt FROM users u WHERE ${base} AND u."lastActiveDay" = ${new Date().toISOString().slice(0, 10)}`,
+    ]);
+    res.json({ onlineNow: Number(online[0]?.cnt ?? 0), dauToday: Number(dau[0]?.cnt ?? 0), at: new Date().toISOString() });
+  } catch (e) { next(e); }
+});
+
 // INDICAÇÕES / REFERRALS — Gestão completa do programa "Indique e Ganhe"
 router.get('/referrals', async (_req, res, next) => {
   try {

@@ -15,7 +15,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API_URL, token, photoUrlFor } from '../config';
 import { PageContainer } from '../components/layout/PageContainer';
 import { getSelectedPatient, setSelectedPatient } from '../patient-context';
@@ -275,7 +275,17 @@ export const FamilyPage = () => {
   }, [data?.crossAlerts]);
 
   // Modal rápido de adicionar dependente
-  const [addModalOpen, setAddModalOpen] = useState(false);
+  // Menu lateral (pílula Família · "+ Adicionar") chega com ?novo=1 → abre o modal direto.
+  const [familyParams, setFamilyParams] = useSearchParams();
+  const [addModalOpen, setAddModalOpen] = useState(() => familyParams.get('novo') === '1');
+  useEffect(() => {
+    if (familyParams.get('novo') === '1') {
+      setAddModalOpen(true);
+      const next = new URLSearchParams(familyParams); next.delete('novo');
+      setFamilyParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [familyParams]);
   const [newName, setNewName] = useState('');
   const [newRelationship, setNewRelationship] = useState('Filho(a)');
   const [newDob, setNewDob] = useState('');

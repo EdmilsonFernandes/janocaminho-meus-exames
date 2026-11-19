@@ -29,7 +29,7 @@ import { CountUp } from '../components/motion/CountUp';
 import { GlassGlow } from '../components/motion/GlassGlow';
 import { useNotify, useRefresh } from 'react-admin';
 import { Line, LineChart, XAxis, YAxis } from 'recharts';
-import { ArrowUp, BookOpen, Check, ChevronDown, CircleHelp, Copy, Info, MessageCircleQuestion, Salad, Sparkles, Stethoscope, TrendingDown, TrendingUp, TriangleAlert, Upload, Utensils, X } from 'lucide-react';
+import { ArrowUp, BookOpen, Check, ChevronDown, CircleHelp, Copy, Info, MessageCircleQuestion, Salad, Share2, Sparkles, Stethoscope, TrendingDown, TrendingUp, TriangleAlert, Upload, Utensils, X } from 'lucide-react';
 import { cn } from 'cn';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -242,27 +242,49 @@ function guideQuickBuckets(guide: Guide | null): QuickPlateBuckets {
   return { plate, avoid, habits };
 }
 
-function dedupePush(target: string[], seen: Set<string>, items: string[], limit: number) {
-  for (const item of items) {
-    const norm = item.trim().toLowerCase();
-    if (!norm || seen.has(norm)) continue;
-    seen.add(norm);
-    target.push(item.trim());
-    if (target.length >= limit) break;
+type PlateTab = 'plate' | 'avoid' | 'habits';
+interface PlateItem { text: string; from: string[] }
+
+const PLATE_TABS: Record<PlateTab, { label: string; short: string; emoji: string; variant: 'success-light' | 'warning-light' | 'primary-light'; dot: string; empty: string }> = {
+  plate: { label: 'Pôr no prato', short: 'No prato', emoji: '🟢', variant: 'success-light', dot: 'bg-success', empty: 'Sem destaque alimentar direto nos exames atuais.' },
+  avoid: { label: 'Reduzir ou evitar', short: 'Evitar', emoji: '🟡', variant: 'warning-light', dot: 'bg-warning', empty: 'Nenhuma restrição alimentar específica.' },
+  habits: { label: 'Além do prato', short: 'Hábitos', emoji: '🟣', variant: 'primary-light', dot: 'bg-primary', empty: 'Mantenha acompanhamento de rotina com seu médico.' },
+};
+const PLATE_PREVIEW = 4;
+
+/** Junta itens iguais (mesmo texto) e guarda de QUAIS exames vieram — item citado por mais exames sobe. */
+function collect(target: PlateItem[], index: Map<string, PlateItem>, items: string[], examLabel: string) {
+  for (const raw of items) {
+    const text = raw.trim();
+    const norm = text.toLowerCase();
+    if (!norm) continue;
+    const hit = index.get(norm);
+    if (hit) { if (!hit.from.includes(examLabel)) hit.from.push(examLabel); continue; }
+    const item = { text, from: [examLabel] };
+    index.set(norm, item);
+    target.push(item);
   }
 }
 
-/** Frame ReUI no topo (padrão card-29 / stats-1 3 colunas): separa prato, evitar e hábitos. */
+/**
+ * Resumo do prato (19/11, dono: "scroll infinito no celular, usuário é preguiçoso").
+ * Antes: 3 colunas empilhadas no mobile = 30+ chips (~1.200px) antes de "Seus números".
+ * Agora: abas segmentadas (1 lista por vez) · 4 itens mais relevantes (citados por mais
+ * exames / evidência mais forte primeiro) · "ver mais" sob demanda · cada item diz de qual
+ * exame veio · "Copiar lista" sai pronta pra colar no WhatsApp / lista de mercado.
+ */
 function QuickPlateFrame({ values, guideFor }: { values: PatientValue[]; guideFor: (v: PatientValue) => Guide | null }) {
   const [copied, setCopied] = useState(false);
+  const [tab, setTab] = useState<PlateTab>('plate');
+  const [expanded, setExpanded] = useState(false);
 
-  const { topPlate, topAvoid, topHabits, coveredCount } = useMemo(() => {
-    const plate: string[] = [];
-    const avoid: string[] = [];
-    const habits: string[] = [];
-    const seenPlate = new Set<string>();
-    const seenAvoid = new Set<string>();
-    const seenHabits = new Set<string>();
+  const { lists, coveredCount } = useMemo(() => {
+    const plate: PlateItem[] = [];
+    const avoid: PlateItem[] = [];
+    const habits: PlateItem[] = [];
+    const iPlate = new Map<string, PlateItem>();
+    const iAvoid = new Map<string, PlateItem>();
+    const iHabits = new Map<string, PlateItem>();
     let count = 0;
 
     // Prioriza exames fora da faixa e com evidência forte primeiro
@@ -280,26 +302,67 @@ function QuickPlateFrame({ values, guideFor }: { values: PatientValue[]; guideFo
       if (!g) continue;
       const buckets = guideQuickBuckets(g);
       if (buckets.plate.length || buckets.avoid.length || buckets.habits.length) count++;
-      dedupePush(plate, seenPlate, buckets.plate, 4);
-      dedupePush(avoid, seenAvoid, buckets.avoid, 4);
-      dedupePush(habits, seenHabits, buckets.habits, 3);
+      const label = v.label || g.label;
+      collect(plate, iPlate, buckets.plate, label);
+      collect(avoid, iAvoid, buckets.avoid, label);
+      collect(habits, iHabits, buckets.habits, label);
     }
-
-    return { topPlate: plate, topAvoid: avoid, topHabits: habits, coveredCount: count };
+    // Sort estável: mais exames citando primeiro; empate mantém a ordem de prioridade acima.
+    const rank = (arr: PlateItem[]) => arr.map((it, i) => ({ it, i })).sort((a, b) => b.it.from.length - a.it.from.length || a.i - b.i).map((x) => x.it);
+    return { lists: { plate: rank(plate), avoid: rank(avoid), habits: rank(habits) } as Record<PlateTab, PlateItem[]>, coveredCount: count };
   }, [values, guideFor]);
 
-  if (!topPlate.length && !topAvoid.length && !topHabits.length) return null;
+  const total = lists.plate.length + lists.avoid.length + lists.habits.length;
+  if (!total) return null;
 
-  const copyList = () => {
-    const lines = [
-      'Dr. Exame · Resumo do seu prato:',
-      ...(topPlate.length ? [`No prato:\n- ${topPlate.join('\n- ')}`] : []),
-      ...(topAvoid.length ? [`Reduzir / Evitar:\n- ${topAvoid.join('\n- ')}`] : []),
-      ...(topHabits.length ? [`Hábitos e cuidados:\n- ${topHabits.join('\n- ')}`] : []),
-    ];
-    void navigator.clipboard?.writeText(lines.join('\n\n')).catch(() => {});
+  const current = lists[tab];
+  const visible = expanded ? current : current.slice(0, PLATE_PREVIEW);
+  const hidden = current.length - visible.length;
+  const meta = PLATE_TABS[tab];
+
+  const selectTab = (t: PlateTab) => { setTab(t); setExpanded(false); };
+
+  const buildText = () => {
+    const block = (title: string, arr: PlateItem[]) => (arr.length ? [`${title}`, ...arr.map((i) => `• ${i.text}`)].join('\n') : '');
+    return [
+      '🛒 *Minha alimentação · Dr. Exame*',
+      `_Baseado em ${coveredCount} ${coveredCount === 1 ? 'exame' : 'exames'} meus_`,
+      block('✅ *PÔR NO PRATO / COMPRAR*', lists.plate),
+      block('🚫 *REDUZIR / EVITAR*', lists.avoid),
+      block('💧 *HÁBITOS E CUIDADOS*', lists.habits),
+      '_Orientação educativa — não substitui nutricionista ou médico._',
+    ].filter(Boolean).join('\n\n');
+  };
+
+  const shareWhatsApp = async () => {
+    const text = buildText();
+    try {
+      const { Share } = await import('@capacitor/share');
+      if ((await Share.canShare?.())?.value) {
+        await Share.share({
+          title: 'Minha alimentação · Dr. Exame',
+          text,
+          dialogTitle: 'Compartilhar no WhatsApp',
+        });
+        return;
+      }
+    } catch { /* fallback */ }
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const copyList = async () => {
+    const text = buildText();
+    let ok = false;
+    try { await navigator.clipboard?.writeText(text); ok = true; } catch { /* WebView antigo */ }
+    if (!ok) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      } catch { /* sem cópia */ }
+    }
     setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
+    window.setTimeout(() => setCopied(false), 2200);
   };
 
   return (
@@ -313,88 +376,91 @@ function QuickPlateFrame({ values, guideFor }: { values: PatientValue[]; guideFo
           <div className="flex min-w-0 flex-col gap-px">
             <FrameTitle role="heading" aria-level={2}>Resumo rápido do seu prato</FrameTitle>
             <FrameDescription>
-              Síntese prática em {coveredCount} {coveredCount === 1 ? 'exame seu' : 'exames seus'} abaixo — sem texto cortado.
+              {total} dicas de {coveredCount} {coveredCount === 1 ? 'exame seu' : 'exames seus'} — as mais importantes primeiro.
             </FrameDescription>
           </div>
         </div>
-        <Button variant="outline" size="sm" className="h-8 shrink-0 gap-1.5" onClick={copyList}>
-          {copied ? <Check aria-hidden="true" className="size-3.5 text-success" /> : <Copy aria-hidden="true" className="size-3.5" />}
-          {copied ? 'Copiado!' : 'Copiar lista'}
-        </Button>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Button
+            size="sm"
+            className="h-8 shrink-0 gap-1.5 bg-[#25D366] hover:bg-[#20bd5a] text-white border-0 font-semibold shadow-xs text-xs px-2.5 sm:px-3"
+            onClick={() => void shareWhatsApp()}
+            aria-label="Compartilhar no WhatsApp"
+          >
+            <Share2 aria-hidden="true" className="size-3.5" />
+            <span>WhatsApp</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 shrink-0 gap-1 px-2 text-xs"
+            onClick={() => void copyList()}
+            aria-live="polite"
+            title="Copiar texto"
+          >
+            {copied ? <Check aria-hidden="true" className="size-3.5 text-success" /> : <Copy aria-hidden="true" className="size-3.5" />}
+            <span className="hidden sm:inline">{copied ? 'Copiado!' : 'Copiar'}</span>
+          </Button>
+        </div>
       </FrameHeader>
-      <FramePanel className="p-0!">
-        <div className="grid grid-cols-1 divide-y divide-border/70 md:grid-cols-3 md:divide-x md:divide-y-0">
-          {/* Coluna 1: Pôr no prato */}
-          <div className="flex flex-col gap-2.5 p-3.5 sm:p-4">
-            <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-2 text-xs font-semibold text-foreground">
-                <IconTile variant="soft" size="xs" className="text-success" aria-hidden="true">
-                  <Salad aria-hidden="true" />
-                </IconTile>
-                Pôr no prato
-              </span>
-              <Badge variant="success-light" size="xs" className="tabular-nums">{topPlate.length}</Badge>
-            </div>
-            {topPlate.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {topPlate.map((item) => (
-                  <Badge key={item} variant="success-light" radius="full" size="lg" className="h-auto py-1 text-left whitespace-normal">
-                    + {item}
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <p className="m-0 text-xs text-muted-foreground">Sem destaque alimentar direto nos exames atuais.</p>
-            )}
-          </div>
+      <FramePanel className="flex flex-col gap-3 p-3! sm:p-4!">
+        {/* Abas segmentadas — 1 lista por vez (fim do scroll de 30 chips) */}
+        <div role="tablist" aria-label="Resumo do prato" className="grid grid-cols-3 gap-1 rounded-xl bg-muted/70 p-1">
+          {(Object.keys(PLATE_TABS) as PlateTab[]).map((t) => {
+            const on = t === tab;
+            return (
+              <button
+                key={t}
+                type="button"
+                role="tab"
+                id={`plate-tab-${t}`}
+                aria-selected={on}
+                aria-controls="plate-panel"
+                onClick={() => selectTab(t)}
+                className={cn(
+                  'flex min-h-10 min-w-0 items-center justify-center gap-1.5 rounded-lg px-1.5 text-xs font-semibold transition-colors',
+                  on ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                <span aria-hidden="true" className={cn('size-2 shrink-0 rounded-full', PLATE_TABS[t].dot)} />
+                <span className="truncate">{PLATE_TABS[t].short}</span>
+                <span className="shrink-0 tabular-nums opacity-70">{lists[t].length}</span>
+              </button>
+            );
+          })}
+        </div>
 
-          {/* Coluna 2: Reduzir / Evitar */}
-          <div className="flex flex-col gap-2.5 p-3.5 sm:p-4">
-            <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-2 text-xs font-semibold text-foreground">
-                <IconTile variant="soft" size="xs" className="text-warning" aria-hidden="true">
-                  <TriangleAlert aria-hidden="true" />
-                </IconTile>
-                Reduzir ou evitar
-              </span>
-              <Badge variant="warning-light" size="xs" className="tabular-nums">{topAvoid.length}</Badge>
-            </div>
-            {topAvoid.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {topAvoid.map((item) => (
-                  <Badge key={item} variant="warning-light" radius="full" size="lg" className="h-auto py-1 text-left whitespace-normal">
-                    - {item}
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <p className="m-0 text-xs text-muted-foreground">Nenhuma restrição alimentar específica.</p>
-            )}
-          </div>
-
-          {/* Coluna 3: Além do prato (Hábitos & Cuidados) */}
-          <div className="flex flex-col gap-2.5 p-3.5 sm:p-4">
-            <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-2 text-xs font-semibold text-foreground">
-                <IconTile variant="soft" size="xs" className="text-primary" aria-hidden="true">
-                  <Stethoscope aria-hidden="true" />
-                </IconTile>
-                Além do prato
-              </span>
-              <Badge variant="primary-light" size="xs" className="tabular-nums">{topHabits.length}</Badge>
-            </div>
-            {topHabits.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {topHabits.map((item) => (
-                  <Badge key={item} variant="primary-light" radius="full" size="lg" className="h-auto py-1 text-left whitespace-normal">
-                    {item}
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <p className="m-0 text-xs text-muted-foreground">Mantenha acompanhamento de rotina com seu médico.</p>
-            )}
-          </div>
+        <div id="plate-panel" role="tabpanel" aria-labelledby={`plate-tab-${tab}`} className="flex flex-col gap-2">
+          {current.length === 0 ? (
+            <p className="m-0 px-1 py-2 text-xs text-muted-foreground">{meta.empty}</p>
+          ) : (
+            <ul className="m-0 grid list-none grid-cols-1 gap-1.5 p-0 md:grid-cols-2">
+              {visible.map((item, i) => (
+                <li key={item.text} className="flex min-w-0 items-start gap-2.5 rounded-lg border border-border/70 bg-background/60 px-3 py-2.5">
+                  <span aria-hidden="true" className={cn('mt-1.5 size-1.5 shrink-0 rounded-full', meta.dot)} />
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    <span className="text-[13px] leading-snug font-medium text-foreground break-words">{item.text}</span>
+                    <span className="text-[11.5px] leading-tight text-muted-foreground break-words">
+                      {i === 0 && item.from.length > 1 ? '⭐ ' : ''}
+                      {item.from.length > 2 ? `${item.from.slice(0, 2).join(', ')} +${item.from.length - 2}` : item.from.join(', ')}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          {current.length > PLATE_PREVIEW && (
+            <button
+              type="button"
+              onClick={() => setExpanded((e) => !e)}
+              aria-expanded={expanded}
+              aria-controls="plate-panel"
+              className="inline-flex min-h-10 items-center justify-center gap-1.5 self-center rounded-lg px-3 text-xs font-semibold text-primary hover:bg-primary/10"
+            >
+              {expanded ? 'Mostrar só as principais' : `Ver mais ${hidden} ${hidden === 1 ? 'dica' : 'dicas'}`}
+              <ChevronDown aria-hidden="true" className={cn('size-3.5 transition-transform', expanded && 'rotate-180')} />
+            </button>
+          )}
         </div>
       </FramePanel>
     </Frame>

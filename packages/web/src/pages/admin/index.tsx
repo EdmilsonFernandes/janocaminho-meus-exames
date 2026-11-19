@@ -195,6 +195,24 @@ export const AdminPage = () => {
     })();
   }, []);
 
+  // 🟢 Presença ao vivo (endpoint leve /admin/presence) — polling 60s, pausa com aba oculta.
+  const [presence, setPresence] = useState<{ onlineNow: number; dauToday: number } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      if (document.visibilityState === 'hidden') return;
+      try {
+        const r = await fetch(`${API_URL}/admin/presence`, { headers: authH() });
+        if (r.ok && alive) setPresence(await r.json());
+      } catch {}
+    };
+    void load();
+    const id = window.setInterval(load, 60_000);
+    const onVis = () => { if (document.visibilityState === 'visible') void load(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => { alive = false; window.clearInterval(id); document.removeEventListener('visibilitychange', onVis); };
+  }, []);
+
   // Módulos filtrados pela busca rápida
   const filteredModules = useMemo(() => {
     const q = filterText.toLowerCase().trim();
@@ -485,20 +503,55 @@ export const AdminPage = () => {
 
             {/* Enterprise Status & Quick KPI Capsules */}
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="nowrap">
-              <Chip
-                size="small"
-                icon={<Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#22c55e', ml: '6px !important' }} />}
-                label="Online"
+              {/* 🟢 PRESENÇA AO VIVO (19/11) — visível no MOBILE também (antes só em Adoção).
+                  xs: "● 3" compacto; sm+: "3 online · 12 hoje". Toque → aba Adoção (detalhe D1/D7). */}
+              <Box
+                component="button"
+                type="button"
+                onClick={() => select('usabilidade')}
+                aria-label={presence ? `${presence.onlineNow} usuários online agora, ${presence.dauToday} ativos hoje` : 'Usuários online'}
+                title="Online = ativos nos últimos 5 min · Hoje = ativos no dia"
                 sx={{
-                  display: { xs: 'none', md: 'inline-flex' },
-                  height: 26,
-                  fontSize: 12,
-                  fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.6,
+                  height: 28,
+                  px: 1,
+                  borderRadius: '999px',
+                  cursor: 'pointer',
+                  font: 'inherit',
+                  flexShrink: 0,
+                  whiteSpace: 'nowrap',
                   bgcolor: 'rgba(34, 197, 94, 0.08)',
-                  color: '#166534',
-                  border: '1px solid rgba(34, 197, 94, 0.2)',
+                  color: (t) => (t.palette.mode === 'dark' ? '#86efac' : '#166534'),
+                  border: '1px solid rgba(34, 197, 94, 0.25)',
+                  '@keyframes presencePulse': {
+                    '0%': { boxShadow: '0 0 0 0 rgba(34,197,94,.55)' },
+                    '70%': { boxShadow: '0 0 0 6px rgba(34,197,94,0)' },
+                    '100%': { boxShadow: '0 0 0 0 rgba(34,197,94,0)' },
+                  },
                 }}
-              />
+              >
+                <Box
+                  sx={{
+                    width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+                    bgcolor: presence && presence.onlineNow > 0 ? '#22c55e' : '#94a3b8',
+                    animation: presence && presence.onlineNow > 0 ? 'presencePulse 2s infinite' : 'none',
+                    '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+                  }}
+                />
+                <Typography component="span" sx={{ fontSize: 12.5, fontWeight: 800, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                  {presence ? presence.onlineNow : '–'}
+                </Typography>
+                <Typography component="span" sx={{ fontSize: 12, fontWeight: 600, lineHeight: 1, display: { xs: 'none', sm: 'inline' } }}>
+                  online
+                </Typography>
+                {presence && (
+                  <Typography component="span" sx={{ fontSize: 12, fontWeight: 500, lineHeight: 1, opacity: 0.75, display: { xs: 'none', sm: 'inline' } }}>
+                    · {presence.dauToday} hoje
+                  </Typography>
+                )}
+              </Box>
 
               {stats && (
                 <Stack direction="row" spacing={0.75} useFlexGap flexWrap="nowrap" sx={{ overflowX: 'auto' }}>
@@ -560,6 +613,8 @@ export const AdminPage = () => {
                       border: '1px solid rgba(23, 143, 137, 0.25)',
                       color: '#178f89',
                       flexShrink: 0,
+                      // telas muito estreitas (≤359px): cede espaço ao chip 🟢 online
+                      '@media (max-width: 359px)': { display: 'none' },
                     }}
                   >
                     <Typography sx={{ fontSize: 12 }}>💰</Typography>

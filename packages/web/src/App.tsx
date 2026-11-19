@@ -733,6 +733,84 @@ const NavItem = ({
 };
 
 // Card de perfil do usuário — perfeitamente harmonizado com a sidebar de Consultório
+/** Rótulo de seção do menu (mock-nav-menu-redesign ②④): SAÚDE / SUPORTE. Só texto, ~26px. */
+const MenuSectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <Typography
+    component="div"
+    sx={{
+      px: 2.25, pt: 1.25, pb: 0.25,
+      fontSize: 11, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase',
+      color: (t) => (t.palette.mode === 'dark' ? 'rgba(241,245,249,0.5)' : '#64748b'),
+      userSelect: 'none',
+    }}
+  >
+    {children}
+  </Typography>
+);
+
+/**
+ * Família como pílula roxa compacta (mock-nav-menu-redesign ③): nome + sublinha e
+ * "+ Adicionar" (abre /familia?novo=1). Mantém ListItemButton (haptic, foco, ripple, 48px+).
+ */
+const FamilyMenuPill = () => {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const active = pathname.startsWith('/familia');
+  return (
+    <ListItemButton
+      onClick={() => { hapticNav(); navigate('/familia'); }}
+      selected={active}
+      sx={{
+        m: '4px 8px', px: 1.25, py: 0.75, minHeight: 52, borderRadius: '16px', gap: 1.25,
+        bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(167,139,250,0.10)' : 'rgba(124,58,237,0.07)'),
+        border: '1px solid',
+        borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(167,139,250,0.24)' : 'rgba(124,58,237,0.18)'),
+        transition: 'background-color .15s ease',
+        '&:hover, &.Mui-selected, &.Mui-selected:hover': {
+          bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(167,139,250,0.16)' : 'rgba(124,58,237,0.12)'),
+        },
+      }}
+    >
+      <Box component="span" sx={{
+        width: 34, height: 34, borderRadius: '11px', flexShrink: 0, display: 'grid', placeItems: 'center',
+        bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(167,139,250,0.16)' : 'rgba(124,58,237,0.11)'),
+        color: (t) => (t.palette.mode === 'dark' ? '#c4b5fd' : '#7c3aed'),
+        boxShadow: (t) => `inset 0 0 0 1px ${t.palette.mode === 'dark' ? 'rgba(167,139,250,0.3)' : 'rgba(124,58,237,0.18)'}`,
+        '& svg': { fontSize: 20 },
+      }}>
+        <Diversity3OutlinedIcon />
+      </Box>
+      <ListItemText
+        sx={{ my: 0, minWidth: 0 }}
+        primary="Família"
+        secondary="Dependentes e perfis"
+        primaryTypographyProps={{ fontSize: 14, fontWeight: active ? 700 : 600, noWrap: true, sx: { color: (t: any) => (t.palette.mode === 'dark' ? '#f1f5f9' : '#0f172a') } }}
+        secondaryTypographyProps={{ fontSize: 11.5, noWrap: true, sx: { color: (t: any) => (t.palette.mode === 'dark' ? 'rgba(241,245,249,0.6)' : '#64748b') } }}
+      />
+      <Box
+        component="span"
+        role="button"
+        tabIndex={0}
+        aria-label="Adicionar dependente"
+        onClick={(e: React.MouseEvent) => { e.stopPropagation(); hapticNav(); navigate('/familia?novo=1'); }}
+        onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); navigate('/familia?novo=1'); } }}
+        sx={{
+          flexShrink: 0, display: 'inline-flex', alignItems: 'center', minHeight: 30, px: 1.25, borderRadius: 99,
+          fontSize: 11.5, fontWeight: 700, whiteSpace: 'nowrap', cursor: 'pointer',
+          bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(167,139,250,0.18)' : 'rgba(124,58,237,0.12)'),
+          color: (t) => (t.palette.mode === 'dark' ? '#ddd6fe' : '#6d28d9'),
+          border: '1px solid',
+          borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(167,139,250,0.32)' : 'rgba(124,58,237,0.22)'),
+          // container estreito (drawer < 240px): esconde o "+ Adicionar" p/ nunca quebrar o rótulo
+          '@container (max-width: 239px)': { display: 'none' },
+        }}
+      >
+        + Adicionar
+      </Box>
+    </ListItemButton>
+  );
+};
+
 const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
   const navigate = useNavigate();
   const { credits } = useCredits();
@@ -935,6 +1013,21 @@ const AppMenu = () => {
     return () => cancelAnimationFrame(raf);
   }, [sidebarOpen, isDesktop]);
 
+  // 🟢 Admin: nº de usuários online no item "Painel Admin" (mobile+web). Só busca p/ ADMIN,
+  // ao montar e a cada abertura do drawer — endpoint leve /admin/presence.
+  const [onlineNow, setOnlineNow] = useState<number | null>(null);
+  useEffect(() => {
+    if (!isAdmin) return;
+    if (!isDesktop && !sidebarOpen && onlineNow !== null) return;
+    let alive = true;
+    fetch(`${API_URL}/admin/presence`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (alive && d) setOnlineNow(Number(d.onlineNow ?? 0)); })
+      .catch(() => {});
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, sidebarOpen, isDesktop]);
+
   return (
     <Box
       component="nav"
@@ -979,6 +1072,8 @@ const AppMenu = () => {
 
       {/* Início fora dos acordeões: acesso direto */}
       <NavItem to="/" primaryText={translate('menu.home', { _: 'Início' })} icon={<HomeOutlinedIcon />} tile />
+
+      <MenuSectionLabel>Saúde</MenuSectionLabel>
 
       {/* Grupo 1: Meus Exames */}
       <MenuSectionAccordion
@@ -1033,8 +1128,8 @@ const AppMenu = () => {
         <NavItem to="/emergencia" primaryText="Cartão de emergência" icon={<EmergencyOutlinedIcon />} badge="SOS" />
       </MenuSectionAccordion>
 
-      {/* Grupo 4: Família e Dependentes */}
-      <NavItem to="/familia" primaryText="Família e dependentes" icon={<Diversity3OutlinedIcon />} tile />
+      {/* Grupo 4: Família e Dependentes — pílula roxa (mock-nav-menu-redesign ③) */}
+      <FamilyMenuPill />
 
       {/* Grupo 5: Conta & Configurações */}
       <MenuSectionAccordion
@@ -1048,11 +1143,10 @@ const AppMenu = () => {
         <NavItem to="/seguranca" primaryText={translate('menu.security_pwd', { _: 'Segurança e senha' })} icon={<LockOutlinedIcon />} />
         <NavItem to="/privacidade" primaryText={translate('menu.privacy', { _: 'Privacidade (LGPD)' })} icon={<HealthAndSafetyOutlinedIcon />} />
         <NavItem to="/planos" primaryText={translate('menu.plans', { _: 'Planos' })} icon={<WorkspacePremiumOutlinedIcon />} />
-        {isAdmin && <NavItem to="/admin" primaryText={translate('menu.admin', { _: 'Painel Admin' })} icon={<AdminPanelSettingsOutlinedIcon />} />}
+        {isAdmin && <NavItem to="/admin" primaryText={translate('menu.admin', { _: 'Painel Admin' })} icon={<AdminPanelSettingsOutlinedIcon />} badge={onlineNow !== null ? `🟢 ${onlineNow} online` : undefined} />}
       </MenuSectionAccordion>
 
-      {/* Divisor suave */}
-      <Box sx={{ mx: 2, my: 1, height: '1px', background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)' }} />
+      <MenuSectionLabel>Suporte</MenuSectionLabel>
 
       <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<HelpOutlineOutlinedIcon />} tile />
       <MenuItem onClick={() => setAboutOpen(true)} sx={{ m: '3px 8px', borderRadius: '16px', py: 0.6, minHeight: 48, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.9)' : '#1f2d2d', '&:hover': { bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.7)', boxShadow: (t) => glassRim(t.palette.mode === 'dark') } }}>
