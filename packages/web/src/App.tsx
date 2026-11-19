@@ -74,7 +74,6 @@ import { ExamList } from './resources/Exams/ExamList';
 import { ExamShow } from './resources/Exams/ExamShow';
 import { ExamCreate } from './resources/Exams/ExamCreate';
 import { PatientList, PatientEdit, PatientCreate } from './resources/Patients/Patients';
-import { TrendsPage } from './pages/Trends';
 import { hapticLight, hapticNav } from './utils/haptic';
 // Code splitting — páginas pesadas carregam sob demanda (bundle inicial menor)
 const ChatPage = lazy(() => import('./pages/Chat').then(m => ({ default: m.ChatPage })));
@@ -101,7 +100,6 @@ const FaqPage = lazy(() => import('./pages/Faq').then(m => ({ default: m.FaqPage
 // Showcase ReUI × Dr. Exame (04/11): maquete interativa dos padrões ReUI portados a MUI.
 // Rota pública (noLayout) + item de menu — dados 100% fictícios, sem API.
 const HowWeValidatePage = lazy(() => import('./pages/HowWeValidate').then(m => ({ default: m.HowWeValidatePage })));
-import { MeasurementsPage } from './pages/Measurements';
 const BodyCompositionPage = lazy(() => import('./pages/BodyComposition').then(m => ({ default: m.BodyCompositionPage })));
 const FoodGuidePage = lazy(() => import('./pages/FoodGuide').then(m => ({ default: m.FoodGuidePage })));
 const MedicationsPage = lazy(() => import('./pages/Medications').then(m => ({ default: m.MedicationsPage })));
@@ -111,18 +109,6 @@ const SinaisPage = lazy(() => import('./pages/Sinais').then(m => ({ default: m.S
 const RadarHormonalPage = lazy(() => import('./pages/RadarHormonal'));
 // Teleconsulta LiveKit (F2) — página imersiva (fora do AppLayout, sem bottom-nav).
 const TeleconsultaPage = lazy(() => import('./pages/Teleconsulta').then(m => ({ default: m.TeleconsultaPage })));
-import { VaccinesPage } from './pages/Vaccines';
-import { EmergencyCardPage } from './pages/EmergencyCard';
-import { TimelinePage } from './pages/Timeline';
-import { ExpensesPage } from './pages/Expenses';
-import { EvolutionPage } from './pages/Evolution';
-import { FamilyPage } from './pages/Family';
-import { ConsolidatedReportPage } from './pages/ConsolidatedReport';
-import { ValoresAlteradosPage } from './pages/ValoresAlterados';
-import { ProfilePage } from './pages/Profile';
-import { SecurityPage } from './pages/Security';
-import { PrivacyPage } from './pages/Privacy';
-import { AdminPage } from './pages/admin';
 import { NotFoundPage } from './pages/NotFound';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
 import { InviteLandingPage } from './pages/InviteLanding';
@@ -159,13 +145,46 @@ import { CreditRewardFx } from './components/CreditRewardFx';
 import { CelebrateFx } from './components/CelebrateFx';
 import { useCredits } from './hooks/useCredits';
 import { InsufficientCreditsDialog } from './components/InsufficientCreditsDialog';
-import { NotificationsPage } from './pages/Notifications';
 import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
-import { MedicosPage } from './pages/Medicos';
-import { SupportPage } from './pages/Support';
-import { ApiPanelPage } from './pages/ApiPanel';
 const ApiDocsPage = lazy(() => import('./pages/ApiDocs').then(m => ({ default: m.ApiDocsPage })));
-import { ConquistasPage } from './pages/Conquistas';
+
+const TrendsPage = lazy(() => import('./pages/Trends').then(m => ({ default: m.TrendsPage })));
+
+const MeasurementsPage = lazy(() => import('./pages/Measurements').then(m => ({ default: m.MeasurementsPage })));
+
+const VaccinesPage = lazy(() => import('./pages/Vaccines').then(m => ({ default: m.VaccinesPage })));
+
+const EmergencyCardPage = lazy(() => import('./pages/EmergencyCard').then(m => ({ default: m.EmergencyCardPage })));
+
+const TimelinePage = lazy(() => import('./pages/Timeline').then(m => ({ default: m.TimelinePage })));
+
+const ExpensesPage = lazy(() => import('./pages/Expenses').then(m => ({ default: m.ExpensesPage })));
+
+const EvolutionPage = lazy(() => import('./pages/Evolution').then(m => ({ default: m.EvolutionPage })));
+
+const FamilyPage = lazy(() => import('./pages/Family').then(m => ({ default: m.FamilyPage })));
+
+const ConsolidatedReportPage = lazy(() => import('./pages/ConsolidatedReport').then(m => ({ default: m.ConsolidatedReportPage })));
+
+const ValoresAlteradosPage = lazy(() => import('./pages/ValoresAlterados').then(m => ({ default: m.ValoresAlteradosPage })));
+
+const ProfilePage = lazy(() => import('./pages/Profile').then(m => ({ default: m.ProfilePage })));
+
+const SecurityPage = lazy(() => import('./pages/Security').then(m => ({ default: m.SecurityPage })));
+
+const PrivacyPage = lazy(() => import('./pages/Privacy').then(m => ({ default: m.PrivacyPage })));
+
+const NotificationsPage = lazy(() => import('./pages/Notifications').then(m => ({ default: m.NotificationsPage })));
+
+const MedicosPage = lazy(() => import('./pages/Medicos').then(m => ({ default: m.MedicosPage })));
+
+const SupportPage = lazy(() => import('./pages/Support').then(m => ({ default: m.SupportPage })));
+
+const ApiPanelPage = lazy(() => import('./pages/ApiPanel').then(m => ({ default: m.ApiPanelPage })));
+
+const ConquistasPage = lazy(() => import('./pages/Conquistas').then(m => ({ default: m.ConquistasPage })));
+
+const AdminPage = lazy(() => import('./pages/admin').then(m => ({ default: m.AdminPage })));
 import { initPush } from './push';
 import { syncCreditCosts } from './components/CreditBadge';
 
@@ -1817,7 +1836,7 @@ export const App = () => {
           {/* Teleconsulta in-app (LiveKit): imersiva, SEM layout/menu/bottom-nav. Paciente e médico. */}
           <Route path="/teleconsulta/:id" element={<Suspense fallback={<PageSkeleton />}><TeleconsultaPage /></Suspense>} />
           {/* Backoffice ISOLADO do app do paciente: shell próprio (sem AppLayout/BottomNav/FloatingChat/menu de saúde). */}
-          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin" element={<Suspense fallback={<PageSkeleton />}><AdminPage /></Suspense>} />
         </CustomRoutes>
 
         <Resource name="exams" list={ExamList} show={ExamShow} create={ExamCreate} options={{ label: 'Exames' }} icon={FactCheckOutlinedIcon} />
@@ -1828,25 +1847,25 @@ export const App = () => {
         <Resource name="analyses" options={{ label: 'Análises' }} />
 
         <CustomRoutes>
-          <Route path="/perfil" element={<ProfilePage />} />
+          <Route path="/perfil" element={<Suspense fallback={<PageSkeleton />}><ProfilePage /></Suspense>} />
           <Route path="/carteira" element={<Suspense fallback={<PageSkeleton />}><WalletPage /></Suspense>} />
           <Route path="/indique" element={<Suspense fallback={<PageSkeleton />}><InvitePage /></Suspense>} />
           <Route path="/perguntas" element={<Suspense fallback={<PageSkeleton />}><QuestionsPage /></Suspense>} />
-          <Route path="/seguranca" element={<SecurityPage />} />
-          <Route path="/privacidade" element={<PrivacyPage />} />
+          <Route path="/seguranca" element={<Suspense fallback={<PageSkeleton />}><SecurityPage /></Suspense>} />
+          <Route path="/privacidade" element={<Suspense fallback={<PageSkeleton />}><PrivacyPage /></Suspense>} />
           {/* FAQ dentro do layout (era noLayout = "tela solta": sem voltar/menu/rodapé, e o link
           "voltar" jogava pra /landing). Agora é tela do app, com CTA de suporte in-app. */}
           <Route path="/faq" element={<Suspense fallback={<PageSkeleton />}><FaqPage /></Suspense>} />
           <Route path="*" element={<NotFoundPage />} />
-          <Route path="/evolucao" element={<EvolutionPage />} />
-          <Route path="/familia" element={<FamilyPage />} />
-          <Route path="/tendencias" element={<TrendsPage />} />
-          <Route path="/linha-do-tempo" element={<TimelinePage />} />
-          <Route path="/relatorio" element={<ConsolidatedReportPage />} />
-          <Route path="/alterados" element={<ValoresAlteradosPage />} />
+          <Route path="/evolucao" element={<Suspense fallback={<PageSkeleton />}><EvolutionPage /></Suspense>} />
+          <Route path="/familia" element={<Suspense fallback={<PageSkeleton />}><FamilyPage /></Suspense>} />
+          <Route path="/tendencias" element={<Suspense fallback={<PageSkeleton />}><TrendsPage /></Suspense>} />
+          <Route path="/linha-do-tempo" element={<Suspense fallback={<PageSkeleton />}><TimelinePage /></Suspense>} />
+          <Route path="/relatorio" element={<Suspense fallback={<PageSkeleton />}><ConsolidatedReportPage /></Suspense>} />
+          <Route path="/alterados" element={<Suspense fallback={<PageSkeleton />}><ValoresAlteradosPage /></Suspense>} />
           <Route path="/lembretes" element={<Suspense fallback={<PageSkeleton />}><RemindersPage /></Suspense>} />
           <Route path="/consultas" element={<Suspense fallback={<PageSkeleton />}><MinhasConsultasPage /></Suspense>} />
-          <Route path="/medicoes" element={<MeasurementsPage />} />
+          <Route path="/medicoes" element={<Suspense fallback={<PageSkeleton />}><MeasurementsPage /></Suspense>} />
           {/* Histórico por métrica — detalhe da central de sinais (sub-rota: back-gesture
           Android funciona nativo; gráfico+períodos+tabela não cabem em dialog 360px). */}
           <Route path="/medicoes/historico/:type" element={<Suspense fallback={<PageSkeleton />}><MeasurementHistoryPage /></Suspense>} />
@@ -1859,18 +1878,18 @@ export const App = () => {
           <Route path="/alimentacao" element={<Suspense fallback={<PageSkeleton />}><FoodGuidePage /></Suspense>} />
           <Route path="/medicamentos" element={<MedicationsPage />} />
           <Route path="/radar-hormonal" element={<Suspense fallback={<PageSkeleton />}><RadarHormonalPage /></Suspense>} />
-          <Route path="/vacinas" element={<VaccinesPage />} />
-          <Route path="/despesas" element={<ExpensesPage />} />
-          <Route path="/emergencia" element={<EmergencyCardPage />} />
+          <Route path="/vacinas" element={<Suspense fallback={<PageSkeleton />}><VaccinesPage /></Suspense>} />
+          <Route path="/despesas" element={<Suspense fallback={<PageSkeleton />}><ExpensesPage /></Suspense>} />
+          <Route path="/emergencia" element={<Suspense fallback={<PageSkeleton />}><EmergencyCardPage /></Suspense>} />
           <Route path="/chat" element={<Suspense fallback={<PageSkeleton />}><ChatPage /></Suspense>} />
-          <Route path="/notificacoes" element={<NotificationsPage />} />
+          <Route path="/notificacoes" element={<Suspense fallback={<PageSkeleton />}><NotificationsPage /></Suspense>} />
           <Route path="/planos" element={<Suspense fallback={<PageSkeleton />}><PlansPage /></Suspense>} />
-          <Route path="/medicos" element={<MedicosPage />} />
+          <Route path="/medicos" element={<Suspense fallback={<PageSkeleton />}><MedicosPage /></Suspense>} />
           <Route path="/encontrar" element={<Suspense fallback={<PageSkeleton />}><EncontrarEspecialistasPage /></Suspense>} />
-          <Route path="/conquistas" element={<ConquistasPage />} />
-          <Route path="/suporte" element={<SupportPage />} />
-          <Route path="/suporte/:id" element={<SupportPage />} />
-          <Route path="/api" element={<ApiPanelPage />} />
+          <Route path="/conquistas" element={<Suspense fallback={<PageSkeleton />}><ConquistasPage /></Suspense>} />
+          <Route path="/suporte" element={<Suspense fallback={<PageSkeleton />}><SupportPage /></Suspense>} />
+          <Route path="/suporte/:id" element={<Suspense fallback={<PageSkeleton />}><SupportPage /></Suspense>} />
+          <Route path="/api" element={<Suspense fallback={<PageSkeleton />}><ApiPanelPage /></Suspense>} />
         </CustomRoutes>
       </Admin>
     </>
