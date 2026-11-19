@@ -23,6 +23,7 @@
  */
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { RangeBar } from '../components/motion/RangeBar';
 import { RingGauge } from '../components/motion/RingGauge';
 import { CountUp } from '../components/motion/CountUp';
@@ -336,17 +337,27 @@ function QuickPlateFrame({ values, guideFor }: { values: PatientValue[]; guideFo
 
   const shareWhatsApp = async () => {
     const text = buildText();
-    try {
-      const { Share } = await import('@capacitor/share');
-      if ((await Share.canShare?.())?.value) {
-        await Share.share({
-          title: 'Minha alimentação · Dr. Exame',
-          text,
-          dialogTitle: 'Compartilhar no WhatsApp',
-        });
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { Share } = await import('@capacitor/share');
+        if ((await Share.canShare?.())?.value) {
+          await Share.share({
+            title: 'Minha alimentação · Dr. Exame',
+            text,
+            dialogTitle: 'Compartilhar no WhatsApp',
+          });
+          return;
+        }
+      } catch { /* fallback abaixo */ }
+
+      // No Android WebView, aciona o app do WhatsApp direto via intent (evita crash de wa.me na WebView)
+      try {
+        window.location.href = `whatsapp://send?text=${encodeURIComponent(text)}`;
         return;
-      }
-    } catch { /* fallback */ }
+      } catch { /* fallback */ }
+    }
+
+    // Web / navegador desktop
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
   };
 

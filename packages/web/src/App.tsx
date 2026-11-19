@@ -513,12 +513,18 @@ const NavItem = ({
   const navigate = useNavigate();
   const active = to === '/' ? pathname === '/' : pathname.startsWith(to);
 
+  const go = () => {
+    hapticNav();
+    window.dispatchEvent(new CustomEvent('app:closeDrawer'));
+    navigate(to);
+  };
+
   if (isSos) {
     // Cartão SOS (mock A): gradiente vermelho suave com aro interno e tile do ícone em relevo —
     // para de competir com a lista e lê como "cartão de emergência" de verdade.
     return (
       <ListItemButton
-        onClick={() => { hapticNav(); navigate(to); }}
+        onClick={go}
         selected={active}
         sx={{
           borderRadius: '18px',
@@ -566,7 +572,7 @@ const NavItem = ({
     // com aro de luz (o aro + tile em gradiente marcam o ativo — sem barra lateral aqui).
     return (
       <ListItemButton
-        onClick={() => { hapticNav(); navigate(to); }}
+        onClick={go}
         selected={active}
         sx={{
           borderRadius: '16px',
@@ -636,7 +642,7 @@ const NavItem = ({
 
   return (
     <ListItemButton
-      onClick={() => { hapticNav(); navigate(to); }}
+      onClick={go}
       selected={active}
       sx={{
         borderRadius: '12px',
@@ -742,6 +748,7 @@ const MenuSectionLabel = ({ children }: { children: React.ReactNode }) => (
       fontSize: 11, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase',
       color: (t) => (t.palette.mode === 'dark' ? 'rgba(241,245,249,0.5)' : '#64748b'),
       userSelect: 'none',
+      pointerEvents: 'none',
     }}
   >
     {children}
@@ -756,9 +763,14 @@ const FamilyMenuPill = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const active = pathname.startsWith('/familia');
+  const go = (target = '/familia') => {
+    hapticNav();
+    window.dispatchEvent(new CustomEvent('app:closeDrawer'));
+    navigate(target);
+  };
   return (
     <ListItemButton
-      onClick={() => { hapticNav(); navigate('/familia'); }}
+      onClick={() => go('/familia')}
       selected={active}
       sx={{
         m: '4px 8px', px: 1.25, py: 0.75, minHeight: 52, borderRadius: '16px', gap: 1.25,
@@ -792,8 +804,8 @@ const FamilyMenuPill = () => {
         role="button"
         tabIndex={0}
         aria-label="Adicionar dependente"
-        onClick={(e: React.MouseEvent) => { e.stopPropagation(); hapticNav(); navigate('/familia?novo=1'); }}
-        onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); navigate('/familia?novo=1'); } }}
+        onClick={(e: React.MouseEvent) => { e.stopPropagation(); go('/familia?novo=1'); }}
+        onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); go('/familia?novo=1'); } }}
         sx={{
           flexShrink: 0, display: 'inline-flex', alignItems: 'center', minHeight: 30, px: 1.25, borderRadius: 99,
           fontSize: 11.5, fontWeight: 700, whiteSpace: 'nowrap', cursor: 'pointer',
@@ -1041,8 +1053,8 @@ const AppMenu = () => {
         maxWidth: '100%',
         containerType: 'inline-size',
         overflowX: 'hidden',
-        overflowY: 'auto',
-        maxHeight: '100dvh',
+        overflowY: isDesktop ? 'auto' : 'visible',
+        maxHeight: isDesktop ? '100dvh' : 'none',
         color: (t) => t.palette.mode === 'dark' ? '#f1f5f9' : '#0f172a',
         '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' },
       }}
@@ -1115,13 +1127,13 @@ const AppMenu = () => {
         icon={<MonitorHeartOutlinedIcon />}
         routes={['/medicamentos', '/radar-hormonal', '/sinais', '/medicoes', '/composicao', '/alimentacao', '/saude-mental', '/vacinas', '/despesas', '/conquistas', '/emergencia']}
       >
-        <NavItem to="/medicamentos" primaryText="Medicamentos e receitas" icon={<MedicationOutlinedIcon />} highlight />
+        <NavItem to="/alimentacao" primaryText="Alimentação e exames" icon={<RestaurantOutlinedIcon />} badge="Novo" highlight />
+        <NavItem to="/saude-mental" primaryText="Saúde Mental & Humor" icon={<PsychologyOutlinedIcon />} highlight />
+        <NavItem to="/medicamentos" primaryText="Medicamentos e receitas" icon={<MedicationOutlinedIcon />} />
         <NavItem to="/radar-hormonal" primaryText="Radar Hormonal" icon={<HormoneRadarIcon size={20} />} badge="Novo" />
         <NavItem to="/sinais" primaryText="Sinais Vitais" icon={<MonitorHeartOutlinedIcon />} />
         <NavItem to="/medicoes" primaryText={translate('menu.measurements', { _: 'Medições corporais' })} icon={<MonitorHeartOutlinedIcon />} />
         <NavItem to="/composicao" primaryText="Composição corporal" icon={<AccessibilityNewOutlinedIcon />} />
-        <NavItem to="/alimentacao" primaryText="Alimentação e exames" icon={<RestaurantOutlinedIcon />} badge="Novo" />
-        <NavItem to="/saude-mental" primaryText="Saúde Mental & Humor" icon={<PsychologyOutlinedIcon />} />
         <NavItem to="/vacinas" primaryText={translate('menu.vaccines', { _: 'Vacinas' })} icon={<VaccinesOutlinedIcon />} />
         <NavItem to="/despesas" primaryText={translate('menu.expenses', { _: 'Despesas médicas' })} icon={<AccountBalanceWalletOutlinedIcon />} />
         <NavItem to="/conquistas" primaryText={translate('menu.achievements', { _: 'Conquistas' })} icon={<EmojiEventsOutlinedIcon />} />
@@ -1298,7 +1310,7 @@ const AppDrawer = () => {
   }, [open, closeDrawer]);
 
   return (
-    <SwipeableDrawer anchor="left" open={open} onClose={closeDrawer} onOpen={() => {}} disableSwipeToOpen disableDiscovery keepMounted={false}
+    <SwipeableDrawer anchor="left" open={open} onClose={closeDrawer} onOpen={() => {}} disableSwipeToOpen disableDiscovery keepMounted
       slotProps={{ backdrop: { sx: { bgcolor: (t: any) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.45)' : 'rgba(10,32,32,0.30)' } } }}
       PaperProps={{
         sx: {

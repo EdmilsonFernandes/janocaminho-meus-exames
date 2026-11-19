@@ -871,7 +871,7 @@ export const PortalTeleconsultas = ({
             <>
               {tc.linkUrl && (
                 <MenuItem onClick={() => {
-                  navigator.clipboard.writeText(tc.linkUrl);
+                  void copyText(tc.linkUrl);
                   snackbar({ message: 'Link da teleconsulta copiado!', severity: 'info' });
                   setTeleMenu(null);
                 }}>

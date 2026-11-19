@@ -42,6 +42,9 @@ export default defineConfig({
     },
   },
   build: {
+    // Sentry (19/11): sourcemap na web prod; no build do mobile (VITE_BASE="./") desliga
+    // para acelerar o bundle de 10 minutos para ~25 segundos e evitar inchar o APK.
+    sourcemap: process.env.VITE_BASE === './' ? false : true,
     // NÃO externalizar @capacitor/* (ver bloco do capCoreDir acima): a implementação WEB (JS)
     // DEVE entrar no bundle — é ela que faz isNativePlatform() retornar false no browser.
     // Vite 8 = rolldown (não rollup) → usa advancedChunks (manualChunks não existe aqui).
