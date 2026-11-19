@@ -39,6 +39,14 @@ void loadBlockedDomains();
 // usa o .env (fallback). initLlm é tolerante a DB indisponível.
 void initLlm();
 
+// RUÍDO imapflow (Sentry 19/11): a lib rejeita internamente ('Connection not available')
+// quando o IMAP cai — não é erro do app (o job tem catch próprio e retenta no próximo tick).
+process.on('unhandledRejection', (reason) => {
+  const msg = String((reason as Error)?.message ?? reason);
+  if (/Connection not available|NoConnection/i.test(msg)) { console.warn('[imapflow] conexão caiu — próximo tick retenta'); return; }
+  console.error('[unhandledRejection]', msg);
+});
+
 const server = app.listen(config.port, () => {
   console.log(`[server] rodando em http://localhost:${config.port} (env=${config.nodeEnv})`);
   // Identifica qual build está no ar (vai pro log do container no EC2 — rastreio de deploy).

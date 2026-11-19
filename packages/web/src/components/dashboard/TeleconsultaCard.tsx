@@ -26,6 +26,7 @@ import { doctorPhotoUrl } from '../../config';
 import { safeAvatar } from '../../utils/safeAvatar';
 import { AppCard } from '../AppCard';
 import { tealText } from '../../theme';
+import { copyText } from '../../utils/copyText';
 
 export const TeleconsultaCard: React.FC = () => {
   const theme = useTheme();
@@ -55,7 +56,7 @@ export const TeleconsultaCard: React.FC = () => {
   const handleCopyCode = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (tele.roomCode) {
-      navigator.clipboard?.writeText(tele.roomCode);
+      void copyText(tele.roomCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }

@@ -40,6 +40,7 @@ export const PlansPage = () => {
   const navigate = useNavigate();
   const notify = useNotify();
   const [params] = useSearchParams();
+  const [loadError, setLoadError] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
   const [plans, setPlans] = useState<PlanInfo | null>(null);
   // Preço/perks dinâmicos (admin edita live). planInfo nulo = API indisponível → fallback visual.
@@ -100,12 +101,19 @@ export const PlansPage = () => {
 
   const load = async () => {
     const h = { Authorization: `Bearer ${token()}` };
-    const [s, p] = await Promise.all([
-      fetch(`${API_URL}/billing/status`, { headers: h }),
-      fetch(`${API_URL}/billing/plans`),
-    ]);
-    if (s.ok) setStatus(await s.json());
-    if (p.ok) setPlans(await p.json());
+    setLoadError(false);
+    try {
+      const [s, p] = await Promise.all([
+        fetch(`${API_URL}/billing/status`, { headers: h }),
+        fetch(`${API_URL}/billing/plans`),
+      ]);
+      if (s.ok) setStatus(await s.json());
+      if (p.ok) setPlans(await p.json());
+    } catch {
+      // Sentry 19/11: 'Failed to fetch' no Android (rede oscilou entre 200s) virava
+      // unhandled + tela morta. Agora: aviso + tentar de novo (defaults seguem válidos).
+      setLoadError(true);
+    }
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
@@ -145,6 +153,13 @@ export const PlansPage = () => {
     <PageContainer width={860} sx={{ pb: { xs: 10, sm: 5 } }}>
       <PageHeader icon={<DiamondIcon />} title={translate('page.plans')}
         subtitle={<>Use à vontade: assine o <strong>mensal</strong> ({monthlyReads} leituras por mês) ou compre <strong>leituras avulsas</strong> via PIX.</>} />
+
+      {loadError && (
+        <Alert severity="warning" icon={false} sx={{ mb: 2, borderRadius: '16px' }}>
+          Sem conexão agora — confira sua internet e tente de novo.
+          <Button size="small" onClick={() => { void load(); }} sx={{ ml: 1.5, textTransform: 'none', fontWeight: 700 }}>Tentar novamente</Button>
+        </Alert>
+      )}
 
       {/* PIX PENDENTE (padrão gateway): banner discreto que retoma o mesmo QR/timer.
           Só aparece se o usuário gerou um PIX e saiu sem pagar — SEM criar ordem nova. */}

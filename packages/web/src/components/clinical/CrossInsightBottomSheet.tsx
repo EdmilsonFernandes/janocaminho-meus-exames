@@ -8,6 +8,7 @@ import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
 import MonitorHeartRoundedIcon from '@mui/icons-material/MonitorHeartRounded';
 import LocalHospitalRoundedIcon from '@mui/icons-material/LocalHospitalRounded';
 import { useReuiThemeSync } from '@/components/reui/useReuiThemeSync';
+import { copyText } from '../../utils/copyText';
 
 export interface MetricChipData {
   key: string;
@@ -89,7 +90,7 @@ export const CrossInsightBottomSheet: React.FC<CrossInsightBottomSheetProps> = (
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(insight.doctor_question);
+      await copyText(insight.doctor_question);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
       if (onAddQuestion) {
