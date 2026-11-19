@@ -42,11 +42,52 @@ router.post('/openpix', async (req, res) => {
     }
 
     // DR. EXAME PRO (médico premium) — correlationID: doctor_sub_<doctorId>[_<timestamp>]
+    // 🔒 FIX CRITICAL (audit manual 19/11): antes ativava premium SEM nenhuma verificação —
+    // um POST forjado com "doctor_sub_<id>" dava 30 dias grátis a qualquer médico.
+    // Agora exige as MESMAS 4 travas do caminho normal: subscription PENDING + valor +
+    // verificação server-side no provider (charge REAL tem que existir no OpenPix).
     if (correlationID.startsWith('doctor_sub_')) {
       const doctorId = correlationID.replace('doctor_sub_', '').split('_')[0];
+      // 1. Subscription PENDING precisa existir pro médico
+      const docSub = await prisma.subscription.findFirst({
+        where: { mpPaymentId: correlationID, status: 'PENDING' },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, userId: true, amount: true },
+      });
+      if (!docSub) {
+        console.warn(`[openpix-webhook] doctor_sub sem subscription PENDING — RECUSADO (${correlationID})`);
+        res.status(200).json({ ok: true, ignored: 'doctor_sub sem subscription' });
+        return;
+      }
+      // 2. Valor confere
+      const docExpectedCents = Math.round(Number(docSub.amount) * 100);
+      if (valueCents !== docExpectedCents) {
+        console.warn(`[openpix-webhook] doctor_sub valor divergente — RECUSADO (${valueCents} ≠ ${docExpectedCents})`);
+        res.status(200).json({ ok: true, ignored: 'valor divergente' });
+        return;
+      }
+      // 3. Verificação server-side no OpenPix (charge real existe e está COMPLETED)
+      if (!hasOpenPix()) {
+        console.warn('[openpix-webhook] OPENPIX_APP_ID ausente — impossível verificar doctor_sub, RECUSADO.');
+        res.status(400).json({ error: 'Cobrança não confirmada no provider.' });
+        return;
+      }
+      try {
+        const vr = await fetch(`${config.openPixApiBaseUrl}/api/v1/charge/${encodeURIComponent(correlationID)}`, {
+          headers: { Authorization: config.openPixAppId },
+        });
+        const vc = vr.ok ? ((await vr.json().catch(() => null)) as { charge?: { status?: string } } | null) : null;
+        if (String(vc?.charge?.status ?? '') !== 'COMPLETED') {
+          console.warn(`[openpix-webhook] doctor_sub NÃO confirmado no provider — RECUSADO (${correlationID})`);
+          res.status(400).json({ error: 'Cobrança não confirmada no provider.' });
+          return;
+        }
+      } catch { /* provider fora → fail closed */ }
+      // 4. Aprovado: ativa premium + marca subscription
       const expires = new Date(Date.now() + 30 * 86400000);
       await prisma.doctor.update({ where: { id: doctorId }, data: { plan: 'premium', planExpiresAt: expires } }).catch(() => {});
-      console.log(`[openpix-webhook] Dr. Exame Pro ativado — doctor ${doctorId}, +30d`);
+      await prisma.subscription.update({ where: { id: docSub.id }, data: { status: 'APPROVED' } }).catch(() => {});
+      console.log(`[openpix-webhook] Dr. Exame Pro VERIFICADO e ativado — doctor ${doctorId}, +30d`);
       res.status(200).json({ ok: true, doctorId });
       return;
     }
