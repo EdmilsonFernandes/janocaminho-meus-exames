@@ -435,7 +435,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
             {exam.performedAt ? (
               <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.3, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.10)' }}>
                 <CalendarMonthIcon sx={{ fontSize: 16, color: 'primary.main' }} />
-                <Typography component="span" sx={{ fontWeight: 700, color: 'primary.dark', fontSize: '0.9rem', lineHeight: 1 }}>{fmtDateShort(exam.performedAt)}</Typography>
+                <Typography component="span" sx={{ fontWeight: 700, color: (t) => tealText(t.palette.mode), fontSize: '0.9rem', lineHeight: 1 }}>{fmtDateShort(exam.performedAt)}</Typography>
               </Box>
             ) : (
               <Typography component="span" sx={{ fontWeight: 700, color: 'warning.main', fontSize: '0.85rem' }}>Data não identificada</Typography>

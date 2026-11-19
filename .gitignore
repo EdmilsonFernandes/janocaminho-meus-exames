@@ -93,3 +93,6 @@ releases/
 
 # Fotos de exame REAIS para testes locais de OCR/vision (PII — NUNCA commitar; repo público)
 packages/server/test/fixtures-local/
+
+# Auditoria visual 8K: prints + report são artefatos locais (reabrir com visual-audit-8k.mjs)
+packages/web/e2e/audit-8k/

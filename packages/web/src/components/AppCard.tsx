@@ -56,14 +56,16 @@ export const AppCard = ({ kind = 'default', tone = 'primary', tone2, glow, sx, c
 
   switch (kind) {
     case 'elevated':
-      extra = { boxShadow: theme.shadows[6], border: 'none' };
+      // Hairline-first (8K 19/11): repouso = borda; o LIFT fica para hover/press.
+      extra = { boxShadow: 'none', border: '1px solid', borderColor: 'divider' };
       break;
     case 'interactive':
       extra = {
-        cursor: 'pointer', border: 'none', boxShadow: theme.shadows[3],
-        transition: 'transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease',
+        cursor: 'pointer', border: '1px solid', borderColor: 'divider', boxShadow: 'none',
+        transition: 'transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease, border-color .2s ease',
         '&:hover': {
           transform: 'translateY(-3px)',
+          borderColor: `${alpha(theme.palette.primary.main, 0.55)}`,
           boxShadow: `0 4px 12px rgba(0,0,0,.06), 0 12px 28px ${alpha(theme.palette.primary.main, 0.12)}`,
         },
         // press tátil: cancela o lift do hover E escala (mesmo .98 do useCardPress)

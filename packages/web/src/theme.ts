@@ -27,10 +27,13 @@ const DARK_PALETTE = {
 const BRAND = {
   primary: { main: '#20b2aa', dark: '#178f89', light: '#5fc9c3', contrastText: '#fff' },
   secondary: { main: '#d4a574', dark: '#b88a54', light: '#e0bc97', contrastText: '#fff' },
-  success: { main: '#059669', contrastText: '#fff' },
-  warning: { main: '#f59e0b', contrastText: '#fff' },
-  error: { main: '#ef4444', contrastText: '#fff' },
-  info: { main: '#0ea5e9' },
+  // AA (auditoria 8K 19/11): -500 com branco dava 3.6–3.9:1 ("Pronto", botões de erro).
+  // Agora -700 — pares DOS MESMOS tons que SEM.ok/warn/bad/info.light e dangerText:
+  // contained (bg+branco) E outlined (texto sobre papel claro) passam em 4.5:1.
+  success: { main: '#047857', contrastText: '#fff' },
+  warning: { main: '#b45309', contrastText: '#fff' },
+  error: { main: '#dc2626', contrastText: '#fff' },
+  info: { main: '#0369a1', contrastText: '#fff' },
   // Premium (Dr. Exame Pro / acentos "especiais") — indigo. Antes espalhado como #6366f1/#4f46e5
   // em vários componentes (BiologicalAge, DoctorPortal, NextBestAction). Centralizado p/ consistência.
   premium: { main: '#6366f1', dark: '#4f46e5', light: '#818cf8', contrastText: '#fff' },
@@ -68,8 +71,8 @@ const TYPOGRAPHY = {
   h2: { fontFamily: FONT_HEAD, fontWeight: 800, fontSize: 'clamp(1.6rem, 4vw, 2.25rem)', letterSpacing: '-0.02em' },
   h3: { fontFamily: FONT_HEAD, fontWeight: 800, fontSize: 'clamp(1.3rem, 3vw, 1.75rem)', letterSpacing: '-0.01em' },
   h4: { fontFamily: FONT_HEAD, fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em' },
-  h5: { fontFamily: FONT_HEAD, fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.01em' },
-  h6: { fontFamily: FONT_HEAD, fontSize: '1.1rem', fontWeight: 700 },
+  h5: { fontFamily: FONT_HEAD, fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.02em' },
+  h6: { fontFamily: FONT_HEAD, fontSize: '1.1rem', fontWeight: 700, letterSpacing: '-0.02em' },
   subtitle1: { fontFamily: FONT_HEAD, fontWeight: 600 },
   subtitle2: { fontFamily: FONT_HEAD, fontWeight: 600 },
   fontSize: 14,
@@ -174,6 +177,10 @@ export const buildTheme = (mode: ThemeMode, textScale: TextScale = 'normal'): Th
     components: {
       MuiCssBaseline: {
         styleOverrides: {
+          // DADOS CLÍNICOS (auditoria 8K 19/11: tabular-nums 0/27 no laudo — colunas de
+          // valores desalinhadas). Dígito tabular GERAL: exames, datas e contagens alinham
+          // em qualquer contexto, herança global pela body.
+          body: { fontVariantNumeric: 'tabular-nums', WebkitFontSmoothing: 'antialiased' },
           // Transição suave ao trocar de modo (apenas cores — sem afetar layout/scroll).
           '*': { transition: 'background-color 180ms ease, border-color 180ms ease, color 120ms ease' },
           // Focus ring teal global (a11y WCAG 2.4.7) — antes: zero focus rings visíveis (MUI default é azul).
@@ -237,11 +244,10 @@ export const buildTheme = (mode: ThemeMode, textScale: TextScale = 'normal'): Th
         styleOverrides: {
           root: {
             borderRadius: '20px',
-            // Polish v2: DUAS camadas suaves com tom teal-escuro (15,61,58 = #0f3d3a)
-            // — profundidade sem sujeira visual. Dark mantém sombra profunda própria.
-            boxShadow: isDark
-              ? '0 2px 8px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.05)'
-              : '0 1px 4px rgba(15,61,58,.03), 0 4px 16px rgba(15,61,58,.02)',
+            // HAIRLINE-FIRST (auditoria 8K 19/11 + craft-floor: elevação declarada UMA vez —
+            // borda OU sombra, nunca as duas = "ghost card"). Superfície em REPOUSO = borda
+            // 1px; sombra fica para flutuantes (dialog/menu) e para o press (abaixo).
+            boxShadow: 'none',
             border: `1px solid ${isDark ? '#2a3636' : '#d8ece9'}`,
             // Press state (feel nativo): card 'respira' leve ao toque E a sombra afunda junto
             // (0 2px 12px → 0 1px 6px) — o par transform+shadow vende a sensação de profundidade.
@@ -262,7 +268,17 @@ export const buildTheme = (mode: ThemeMode, textScale: TextScale = 'normal'): Th
       },
       MuiButton: {
         styleOverrides: {
-          root: { borderRadius: '12px', padding: '10px 20px', fontWeight: 700, fontFamily: FONT_HEAD },
+          root: {
+            borderRadius: '12px', padding: '10px 20px', fontWeight: 700, fontFamily: FONT_HEAD,
+            // DARK: mains agora -700 (AA no contained); o TEXTO dos outlined clareia para o
+            // par SEM.dark — legível sobre paper escuro sem abdicar do AA no contained.
+            ...(isDark ? {
+              '&.MuiButton-outlinedError': { color: '#f87171', borderColor: 'rgba(248,113,113,.5)' },
+              '&.MuiButton-outlinedSuccess': { color: '#34d399', borderColor: 'rgba(52,211,153,.5)' },
+              '&.MuiButton-outlinedWarning': { color: '#fbbf24', borderColor: 'rgba(251,191,36,.5)' },
+              '&.MuiButton-outlinedInfo': { color: '#38bdf8', borderColor: 'rgba(56,189,248,.5)' },
+            } : {}),
+          },
           containedPrimary: {
             background: 'linear-gradient(135deg, #20b2aa, #178f89)',
             boxShadow: '0 4px 12px rgba(32,178,170,0.30)',
@@ -372,6 +388,10 @@ export const buildTheme = (mode: ThemeMode, textScale: TextScale = 'normal'): Th
       MuiIconButton: {
         styleOverrides: {
           root: {
+            // ALVO DE TOQUE 44px (auditoria 8K 19/11: ~8 alvos <44 por tela, majoritariamente
+            // IconButton 40px). min* não encolhe os maiores, só ergue os pequenos ao piso WCAG.
+            minWidth: 44,
+            minHeight: 44,
             '@media (hover: none)': {
               '&.MuiIconButton-sizeSmall': {
                 position: 'relative',

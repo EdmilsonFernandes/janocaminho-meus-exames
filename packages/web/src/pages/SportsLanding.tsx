@@ -13,6 +13,8 @@ import { DrExame } from '../components/DrExame';
 import { SportsLandingHero, useSportsLandingVariant } from '../components/landing/SportsLandingHero';
 
 const TEAL_DARK = '#178f89';
+/** Texto teal AA sobre fundo claro (auditoria 8K 19/11: #178f89 dava 3,8:1). */
+const TEAL_TEXT_AA = '#0f766e';
 const INK = '#0f5f5a';
 
 // O que o app faz por quem usa hormônio (seção "Para quem usa hormônio"). Só promessas que
@@ -148,7 +150,7 @@ export const SportsLandingPage: React.FC = () => {
             <DrExame size={36} sx={{ borderRadius: '14%' }} />
             <Box>
               <Typography sx={{ fontWeight: 800, fontSize: 18, color: 'text.primary', lineHeight: 1.1 }}>Dr. Exame</Typography>
-              <Typography sx={{ fontSize: 12, fontWeight: 700, color: TEAL_DARK, letterSpacing: '0.04em' }}>MODO SAÚDE ESPORTIVA</Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 700, color: TEAL_TEXT_AA, letterSpacing: '0.04em' }}>MODO SAÚDE ESPORTIVA</Typography>
             </Box>
           </Stack>
 
@@ -179,7 +181,7 @@ export const SportsLandingPage: React.FC = () => {
       <Box id="simulador" sx={{ py: { xs: 8, md: 11 }, bgcolor: '#ffffff' }}>
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'center', mb: 6 }}>
-            <Chip label="Demonstração Prática" sx={{ bgcolor: 'rgba(32,178,170,0.1)', color: TEAL_DARK, fontWeight: 700, mb: 1.5, fontSize: 12 }} />
+            <Chip label="Demonstração Prática" sx={{ bgcolor: 'rgba(32,178,170,0.1)', color: TEAL_TEXT_AA, fontWeight: 700, mb: 1.5, fontSize: 12 }} />
             <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.5rem' }, fontWeight: 800, mb: 1.5, letterSpacing: '-0.02em' }}>
               Veja como o Dr. Exame interpreta o exame de um atleta
             </Typography>
@@ -212,7 +214,7 @@ export const SportsLandingPage: React.FC = () => {
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Box sx={{
                   width: 42, height: 42, borderRadius: '12px',
-                  bgcolor: TEAL_DARK, color: '#fff',
+                  bgcolor: TEAL_TEXT_AA, color: '#fff',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontWeight: 800, fontSize: 16
                 }}>
@@ -221,7 +223,7 @@ export const SportsLandingPage: React.FC = () => {
                 <Box>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Typography sx={{ fontWeight: 800, fontSize: 16 }}>Rodrigo Silva, 31 anos</Typography>
-                    <Chip label="Atleta Ativo" size="small" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.15)', color: TEAL_DARK }} />
+                    <Chip label="Atleta Ativo" size="small" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.15)', color: TEAL_TEXT_AA }} />
                   </Stack>
                   <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Fisiculturismo Classic / Treinos de Alta Intensidade</Typography>
                 </Box>
@@ -229,7 +231,7 @@ export const SportsLandingPage: React.FC = () => {
               <Chip
                 icon={<AutoAwesomeIcon sx={{ fontSize: 14 }} />}
                 label="Modo Saúde Esportiva Ativo"
-                sx={{ height: 26, fontSize: 12, fontWeight: 700, bgcolor: '#ffffff', color: TEAL_DARK, border: '1px solid rgba(13,148,136,0.3)' }}
+                sx={{ height: 26, fontSize: 12, fontWeight: 700, bgcolor: '#ffffff', color: TEAL_TEXT_AA, border: '1px solid rgba(13,148,136,0.3)' }}
               />
             </Box>
 
@@ -344,8 +346,8 @@ export const SportsLandingPage: React.FC = () => {
                       <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#b88a54' }}>Meta do seu médico</Typography>
                     </Stack>
                     <Stack direction="row" spacing={0.5} alignItems="center">
-                      <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: TEAL_DARK }} />
-                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: TEAL_DARK }}>Seu Laudo</Typography>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: TEAL_TEXT_AA }} />
+                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: TEAL_TEXT_AA }}>Seu Laudo</Typography>
                     </Stack>
                   </Stack>
                 </Stack>
@@ -353,7 +355,7 @@ export const SportsLandingPage: React.FC = () => {
                 <Box sx={{ position: 'relative', height: 12, bgcolor: '#e2e8f0', borderRadius: '999px', my: 1.5 }}>
                   <Box sx={{ position: 'absolute', top: 0, bottom: 0, left: scenario.rulerLabLeft, width: scenario.rulerLabWidth, bgcolor: '#94a3b8', opacity: 0.65, borderRadius: '999px' }} />
                   <Box sx={{ position: 'absolute', top: -2, bottom: -2, left: scenario.rulerTargetLeft, width: scenario.rulerTargetWidth, border: '1.5px solid #b88a54', bgcolor: 'rgba(212,165,116,0.16)', borderRadius: '999px' }} />
-                  <Box sx={{ position: 'absolute', top: -5, left: scenario.rulerPinLeft, width: 6, height: 22, bgcolor: TEAL_DARK, borderRadius: '3px', transform: 'translateX(-50%)', boxShadow: '0 2px 6px rgba(0,0,0,0.3)', transition: 'left 0.3s ease' }} />
+                  <Box sx={{ position: 'absolute', top: -5, left: scenario.rulerPinLeft, width: 6, height: 22, bgcolor: TEAL_TEXT_AA, borderRadius: '3px', transform: 'translateX(-50%)', boxShadow: '0 2px 6px rgba(0,0,0,0.3)', transition: 'left 0.3s ease' }} />
                 </Box>
 
                 <Stack direction="row" justifyContent="space-between" sx={{ fontSize: 12, color: 'text.secondary', mt: 0.5 }}>
@@ -365,8 +367,8 @@ export const SportsLandingPage: React.FC = () => {
               {/* Explicação da IA */}
               <Box sx={{ bgcolor: 'rgba(13,148,136,0.06)', border: '1px solid rgba(13,148,136,0.2)', borderRadius: '12px', p: { xs: 1.75, sm: 2 }, mb: 2 }}>
                 <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mb: 0.75 }}>
-                  <AutoAwesomeIcon sx={{ fontSize: 16, color: TEAL_DARK, mt: 0.2 }} />
-                  <Typography sx={{ fontWeight: 800, fontSize: 13, color: TEAL_DARK }}>Interpretação do Dr. Exame:</Typography>
+                  <AutoAwesomeIcon sx={{ fontSize: 16, color: TEAL_TEXT_AA, mt: 0.2 }} />
+                  <Typography sx={{ fontWeight: 800, fontSize: 13, color: TEAL_TEXT_AA }}>Interpretação do Dr. Exame:</Typography>
                 </Stack>
                 <Typography sx={{ fontSize: 13.5, color: 'text.primary', lineHeight: 1.6 }}>{scenario.explanation}</Typography>
               </Box>
@@ -568,7 +570,7 @@ export const SportsLandingPage: React.FC = () => {
               { num: '03', title: 'Receba seu painel com a régua de 4 camadas', desc: 'Veja cada marcador desmistificado, entenda o que é resposta fisiológica do treino e leve uma lista de perguntas inteligentes para sua consulta médica.' }
             ].map((step, idx) => (
               <Box key={idx} sx={{ p: 2.5, bgcolor: '#fbfcfd', borderRadius: '14px', border: '1px solid #eef2f6', display: 'flex', gap: 2.5, alignItems: 'flex-start' }}>
-                <Box sx={{ width: 44, height: 44, borderRadius: '12px', bgcolor: 'rgba(13,148,136,0.1)', color: TEAL_DARK, fontWeight: 900, fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Box sx={{ width: 44, height: 44, borderRadius: '12px', bgcolor: 'rgba(13,148,136,0.1)', color: TEAL_TEXT_AA, fontWeight: 900, fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   {step.num}
                 </Box>
                 <Box>
@@ -592,7 +594,7 @@ export const SportsLandingPage: React.FC = () => {
               size="large"
               onClick={() => navigate('/registrar')}
               sx={{
-                bgcolor: TEAL_DARK,
+                bgcolor: TEAL_TEXT_AA,
                 borderRadius: '999px',
                 px: 4.5, py: 1.6,
                 fontWeight: 800, fontSize: 16,
