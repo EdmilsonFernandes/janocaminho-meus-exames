@@ -32,6 +32,7 @@ import openpixWebhookRoutes from './routes/openpix-webhook.routes';
 import asaasWebhookRoutes from './routes/asaas-webhook.routes';
 import labsRoutes from './routes/labs.routes';
 import measurementRoutes from './routes/measurement.routes';
+import dailyLogRoutes from './routes/daily-log.routes';
 import bodyCompositionRoutes from './routes/body-composition.routes';
 import hormoneDoseRoutes from './routes/hormone-dose.routes';
 import { getPublicCompoundExplanation } from './analysis/compound-explain';
@@ -39,6 +40,7 @@ import { applyPublicSeo, publicSeoFor } from './utils/publicSeo';
 import medicationRoutes from './routes/medication.routes';
 import publicApiRoutes from './routes/public-api.routes';
 import decifreRoutes from './routes/decifre.routes';
+import { emergencyRouter, emergencyPublicRouter } from './routes/emergency.routes';
 import leadRoutes from './routes/lead.routes';
 import { publicPrivacyHtml } from './utils/publicPages';
 import swaggerUi from 'swagger-ui-express';
@@ -157,8 +159,12 @@ const kycStartSkip = (req: { method: string }) => req.method !== 'POST' || skipD
 const kycStartLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, skip: kycStartSkip as any, message: { code: 'RATE_LIMITED', error: 'Muitas tentativas de verificação deste local. Tente novamente mais tarde.' } });
 // PIN de share (rota pública /api/public/shared/:token) — anti brute-force do PIN de 6 dígitos.
 const shareLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitas tentativas de PIN. Aguarde 15 minutos.' } });
+// Cartão de emergência público (GET /api/public/emergency/:token) — token de 48 hex é
+// unguessable, mas rate-limit barato por IP evita varredura em escala (estudo Guava gap #3).
+const emergencyLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitas consultas ao cartão. Aguarde alguns minutos.' } });
 app.use('/api/auth/register', signupLimiter);
 app.use('/api/doctor/crm', signupLimiter); // busca pública de CRM (consultaCRM) no cadastro do médico — limita consumo da cota
+app.use('/api/public/emergency', emergencyLimiter, emergencyPublicRouter); // cartão QR do socorrista — token opaco + rate-limit (estudo Guava gap #3)
 app.use('/api/doctor/register', doctorRegisterLimiter); // cadastro do médico: cada conta descartável gasta cota paga (consultaCRM, depois sessão UaiID) — revisão final I5
 app.use('/api/public/doctor-invite/:token/register', inviteRegisterLimiter);
 app.use('/api/doctor/verification', kycStartLimiter);
@@ -430,6 +436,8 @@ app.use('/api/webhooks', openpixWebhookRoutes);
 app.use('/api/webhooks', asaasWebhookRoutes);
 app.use('/api/labs', labsRoutes);
 app.use('/api/measurements', measurementRoutes);
+app.use('/api/daily-logs', dailyLogRoutes);
+app.use('/api/emergency', emergencyRouter);
 app.use('/api/body-composition', bodyCompositionRoutes);
 app.use('/api/hormone-doses', hormoneDoseRoutes);
 app.use('/api/medications', medicationRoutes);

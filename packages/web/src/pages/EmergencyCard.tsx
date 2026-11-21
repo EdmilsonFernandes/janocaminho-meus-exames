@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Button, Skeleton, Stack } from '@mui/material';
+import QRCode from 'qrcode';
+import { Box, Button, Skeleton, Stack } from '@mui/material';
+import QrCode2OutlinedIcon from '@mui/icons-material/QrCode2Outlined';
 import MedicationIcon from '@mui/icons-material/Medication';
 import CallIcon from '@mui/icons-material/Call';
 import PrintIcon from '@mui/icons-material/Print';
@@ -42,6 +44,11 @@ export const EmergencyCardPage = () => {
   const [pid] = useSelectedPatient();
   const [patient, setPatient] = useState<any>(null);
   const [meds, setMeds] = useState<ActiveMed[]>([]);
+  // Cartão QR público (estudo Guava gap #3): token opaco → QR impresso →
+  // socorrista lê SEM login. Sempre na URL WEB (capacitor:// não abre em outro celular).
+  const [qrToken, setQrToken] = useState<string | null>(null);
+  const [qrImg, setQrImg] = useState<string | null>(null);
+  const [qrBusy, setQrBusy] = useState(false);
 
   useEffect(() => {
     if (!pid) return;
@@ -68,6 +75,39 @@ export const EmergencyCardPage = () => {
       })
       .catch(() => {});
   }, [pid]);
+
+  /** Gera (ou reaproveita) o token e desenha o QR apontando para a página pública WEB. */
+  const makeQr = async () => {
+    if (!pid || qrBusy) return;
+    setQrBusy(true);
+    try {
+      const r = await fetch(`${API_URL}/emergency/token`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token()}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patientId: pid }),
+      });
+      if (!r.ok) return;
+      const { token: tok } = await r.json();
+      setQrToken(tok);
+      // URL WEB (não a do APK): quem escaneia é OUTRO celular. API_URL termina em /api.
+      const webBase = API_URL.replace(/\/api\/?$/, '');
+      const url = `${webBase}/#/emergencia/${tok}`;
+      setQrImg(await QRCode.toDataURL(url, { width: 320, margin: 1, errorCorrectionLevel: 'M' }));
+    } catch { /* silencioso: botão continua disponível */ } finally { setQrBusy(false); }
+  };
+
+  const revokeQr = async () => {
+    if (!pid) return;
+    setQrBusy(true);
+    try {
+      await fetch(`${API_URL}/emergency/token?patientId=${pid}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token()}` },
+      });
+      setQrToken(null);
+      setQrImg(null);
+    } finally { setQrBusy(false); }
+  };
 
   const age = patient?.dateOfBirth
     ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 3600 * 1000))
@@ -336,6 +376,84 @@ export const EmergencyCardPage = () => {
               Imprimir carteirinha
             </Button>
           </FrameFooter>
+        </Frame>
+
+        {/* CARTÃO QR PARA SOCORRISTAS (estudo Guava gap #3): imprime o QR, o
+            socorrista escaneia com QUALQUER celular e lê alergias/condições/meds
+            SEM login. Revogável — o QR impresso antigo para de funcionar na hora. */}
+        <Frame>
+          <FrameHeader>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <IconTile variant="soft" size="default" className="text-teal-600 dark:text-teal-400">
+                  <QrCode2OutlinedIcon sx={{ fontSize: 20 }} />
+                </IconTile>
+                <div>
+                  <FrameTitle>Cartão com QR para socorristas</FrameTitle>
+                  <FrameDescription>
+                    Quem escanear lê seus dados essenciais em qualquer celular — sem instalar nada.
+                  </FrameDescription>
+                </div>
+              </div>
+              <ReuiBadge variant="success-light" size="sm">Novo</ReuiBadge>
+            </div>
+          </FrameHeader>
+          <FramePanel className="p-4">
+            {!qrImg ? (
+              <div className="flex flex-col items-center gap-2.5 py-2 text-center">
+                <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 420 }}>
+                  Gere um QR para imprimir ou salvar na carteira. Ele mostra só o essencial:
+                  nome, idade, alergias, condições e medicamentos ativos.
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={makeQr}
+                  disabled={qrBusy || !pid}
+                  sx={{ minHeight: 44, borderRadius: '12px', px: 3 }}
+                >
+                  {qrBusy ? 'Gerando…' : 'Gerar cartão com QR'}
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3">
+                <Box
+                  component="img"
+                  src={qrImg}
+                  alt="QR do cartão de emergência"
+                  sx={{ width: 190, height: 190, borderRadius: '12px', border: '1px solid', borderColor: 'divider', p: 0.5 }}
+                />
+                <Typography variant="caption" sx={{ color: 'text.secondary', textAlign: 'center' }}>
+                  Imprima junto da carteirinha. Quem escanear vê: nome, idade, alergias, condições e remédios ativos.
+                </Typography>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => printPage('Cartão de Emergência')}
+                    startIcon={<PrintIcon />}
+                    sx={{ minHeight: 40, borderRadius: '10px' }}
+                  >
+                    Imprimir
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    onClick={revokeQr}
+                    disabled={qrBusy}
+                    sx={{ minHeight: 40, borderRadius: '10px' }}
+                  >
+                    Desativar QR
+                  </Button>
+                </div>
+                {qrToken && (
+                  <Typography variant="caption" sx={{ color: 'text.disabled', wordBreak: 'break-all', textAlign: 'center' }}>
+                    {qrToken.slice(0, 12)}…
+                  </Typography>
+                )}
+              </div>
+            )}
+          </FramePanel>
         </Frame>
       </div>
     </PageContainer>

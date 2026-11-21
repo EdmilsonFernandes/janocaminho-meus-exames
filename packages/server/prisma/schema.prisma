@@ -283,6 +283,9 @@ model Patient {
   cpfIv        String?
   cpfHash      String?   @unique // HMAC-SHA256 do CPF normalizado para busca/duplicidade sem expor CPF
   cpfLast4     String?   // apenas para máscara de UI/suporte; CPF completo fica cifrado
+  // Cartão de emergência público (estudo Guava gap #3): token opaco do QR impresso.
+  // NULL = paciente nunca gerou o cartão (endpoint público responde 404 silencioso).
+  emergencyToken     String?  @unique
   identityLockedAt DateTime? // após e-mail + CPF verificados, nome/CPF não mudam por self-service
   // Perfil clínico livre (condições, medicações, histórico) — alimenta a IA de saúde.
   // Ex.: "Sem tireoide; usa levotiroxina (Levoid); usa testosterona; usa tirzepatida (Mounjaro)."
@@ -302,6 +305,8 @@ model Patient {
   reminders    Reminder[]
   queueEntries TeleconsultaQueue[]
   measurements Measurement[]
+  // Diário de saúde (estudo Guava 21/11 — gap #1): sintomas + humor + energia.
+  dailyLogs   DailyLog[]
   bodyCompositions BodyComposition[]
   hormoneDoses HormoneDose[]
   foodSummary  FoodSummary?
@@ -1031,6 +1036,27 @@ model Measurement {
 
   @@index([patientId, type, measuredAt])
   @@map("measurements")
+}
+
+// Diário de saúde diário (estudo Guava 21/11 — gap #1): UMA linha por paciente+dia
+// (upsert). Alimenta correlações com IA (gap #2: sintoma×sono/atividade/labs).
+// Sintomas são chips normalizados (mesma filosofia do normalizeKey) — a lista
+// canônica vive em daily-log.routes.ts (SYMTOM catalog) e o front envia as keys.
+model DailyLog {
+  id        String   @id @default(cuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  symptoms  String[] @default([])
+  mood      Int?     // 1-5 (1=péssimo, 5=ótimo)
+  energy    Int?     // 1-5
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([patientId, date])
+  @@index([patientId, date])
+  @@map("daily_logs")
 }
 
 // Avaliação de composição corporal (bioimpedância). UMA linha = UM exame do aparelho:

@@ -26,6 +26,7 @@ import RestaurantOutlinedIcon from '@mui/icons-material/RestaurantOutlined';
 import MedicationOutlinedIcon from '@mui/icons-material/MedicationOutlined';
 import VaccinesOutlinedIcon from '@mui/icons-material/VaccinesOutlined';
 import PsychologyOutlinedIcon from '@mui/icons-material/PsychologyOutlined';
+import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
 import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
 import EmergencyOutlinedIcon from '@mui/icons-material/EmergencyOutlined';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
@@ -155,6 +156,8 @@ const MeasurementsPage = lazy(() => import('./pages/Measurements').then(m => ({ 
 const VaccinesPage = lazy(() => import('./pages/Vaccines').then(m => ({ default: m.VaccinesPage })));
 
 const EmergencyCardPage = lazy(() => import('./pages/EmergencyCard').then(m => ({ default: m.EmergencyCardPage })));
+const DiarioPage = lazy(() => import('./pages/Diario').then(m => ({ default: m.DiarioPage })));
+const EmergencyPublicPage = lazy(() => import('./pages/EmergencyPublic').then(m => ({ default: m.EmergencyPublicPage })));
 
 const TimelinePage = lazy(() => import('./pages/Timeline').then(m => ({ default: m.TimelinePage })));
 
@@ -1163,6 +1166,7 @@ const AppMenu = () => {
       >
         <NavItem to="/alimentacao" primaryText="Alimentação e exames" icon={<RestaurantOutlinedIcon />} badge="Novo" highlight />
         <NavItem to="/saude-mental" primaryText="Saúde Mental & Humor" icon={<PsychologyOutlinedIcon />} highlight />
+        <NavItem to="/diario" primaryText="Diário de Saúde" icon={<FavoriteBorderOutlinedIcon />} badge="Novo" highlight />
         <NavItem to="/medicamentos" primaryText="Medicamentos e receitas" icon={<MedicationOutlinedIcon />} />
         <NavItem to="/radar-hormonal" primaryText="Radar Hormonal" icon={<HormoneRadarIcon size={20} />} badge="Novo" />
         <NavItem to="/sinais" primaryText="Sinais Vitais" icon={<MonitorHeartOutlinedIcon />} />
@@ -1823,6 +1827,9 @@ export const App = () => {
           <Route path="/dr/vinculo" element={<DoctorInviteLandingPage />} />
           <Route path="/doctor/vincular" element={<DoctorInviteLandingPage />} />
           <Route path="/termos" element={<TermsPage />} />
+          {/* Cartão de emergência PÚBLICO (socorrista sem login): lê o QR impresso do paciente.
+              Estudo Guava gap #3 — payload mínimo via /api/public/emergency/:token. */}
+          <Route path="/emergencia/:token" element={<Suspense fallback={<PageSkeleton />}><EmergencyPublicPage /></Suspense>} />
           <Route path="/faq" element={<Suspense fallback={<PageSkeleton />}><FaqPage /></Suspense>} />
           <Route path="/como-validamos" element={<Suspense fallback={<PageSkeleton />}><HowWeValidatePage /></Suspense>} />
           {/* Portal de documentação da API: PÚBLICO (prospects leem antes de solicitar) — fora do shell autenticado. */}
@@ -1881,6 +1888,7 @@ export const App = () => {
           <Route path="/vacinas" element={<Suspense fallback={<PageSkeleton />}><VaccinesPage /></Suspense>} />
           <Route path="/despesas" element={<Suspense fallback={<PageSkeleton />}><ExpensesPage /></Suspense>} />
           <Route path="/emergencia" element={<Suspense fallback={<PageSkeleton />}><EmergencyCardPage /></Suspense>} />
+          <Route path="/diario" element={<Suspense fallback={<PageSkeleton />}><DiarioPage /></Suspense>} />
           <Route path="/chat" element={<Suspense fallback={<PageSkeleton />}><ChatPage /></Suspense>} />
           <Route path="/notificacoes" element={<Suspense fallback={<PageSkeleton />}><NotificationsPage /></Suspense>} />
           <Route path="/planos" element={<Suspense fallback={<PageSkeleton />}><PlansPage /></Suspense>} />
