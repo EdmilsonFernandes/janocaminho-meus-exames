@@ -821,6 +821,21 @@ const ExamCards = () => {
         {(r.status === 'EXTRACTING' || r.status === 'UPLOADED') && <LinearProgress sx={{ height: 3 }} />}
         {r.status === 'FAILED' && (
           <Box onClick={(e) => e.stopPropagation()} sx={{ px: 1.5, pb: 1.25 }}>
+            {/* PREVIEW do arquivo enviado (dono 21/11: "ver o que mandou" no erro) —
+                miniatura com auth, o usuário vê sozinho se mandou a foto errada */}
+            {r.filePath && /\.(jpg|jpeg|png|webp)$/i.test(r.filePath) && (
+              <Box
+                component="img"
+                src={`${API_URL}/exams/${r.id}/file?token=${encodeURIComponent(token() || '')}`}
+                alt="Foto enviada"
+                sx={{
+                  width: 80, height: 80, objectFit: 'cover', borderRadius: '10px',
+                  border: '1px solid', borderColor: 'divider', mb: 0.75, cursor: 'pointer',
+                  '&:hover': { opacity: 0.8 },
+                }}
+                onClick={(e) => { e.stopPropagation(); window.open(`${API_URL}/exams/${r.id}/file?token=${encodeURIComponent(token() || '')}`, '_blank'); }}
+              />
+            )}
             <Typography variant="caption" sx={{ color: 'error.main', display: 'block', lineHeight: 1.35 }}>
               ⚠️ {(r.extractionError || 'Falha na leitura do documento').slice(0, 140)}
             </Typography>
