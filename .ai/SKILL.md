@@ -57,6 +57,7 @@ cd android
 ./gradlew assembleDebug   # APK (sideload rápido p/ teste)
 ```
 - **versionCode +1 SEMPRE** antes de AAB (Play Store rejeita duplicado). Editar `app/build.gradle`.
+- **Release note OBRIGATÓRIA junto do AAB** (regra dono 21/11/26): o Play Console mostra "o que há de novo" ao usuário — sem texto, ele não sabe que ganhou feature. Limite: **500 caracteres por idioma** → ser MUITO objetivo. Formato: `• Feature (benefício em 5-8 palavras)` — máx 4-5 bullets, sem termo técnico, e SÓ o que está de fato no bundle (`www` buildado). Guardar em `packages/mobile/release-notes/<versionCode>.txt` e colar no Play Console (Nova versão → Notas da versão).
 - **VITE_BASE './'** (relativa) — imune ao MSYS path-mangling (`/` → `/Program Files/Git/` no Windows). Diagnosticar: grep "Program Files" em www/index.html.
 - **Push no APK**: precisa `google-services.json` + `VITE_PUSH_ENABLED=true`. Sem isso, `PushNotifications.register()` crasha o app nativo.
 - **navigate(0)/location.reload()** CRASHA o APK (recarrega WebView). Usar `useRefresh()` do react-admin.

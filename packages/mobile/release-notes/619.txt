@@ -1,0 +1,3 @@
+• Quando a leitura de um exame falha, agora você vê a foto que enviou direto no aviso — dá pra conferir sozinho se a imagem saiu borrada ou se foi o arquivo errado.
+
+O que mudou por dentro: melhorias de estabilidade e velocidade no app.
