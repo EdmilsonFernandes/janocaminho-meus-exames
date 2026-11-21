@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
-import { Box, Button, Skeleton, Stack } from '@mui/material';
+import { Box, Button, Skeleton, Stack, Typography } from '@mui/material';
 import QrCode2OutlinedIcon from '@mui/icons-material/QrCode2Outlined';
 import MedicationIcon from '@mui/icons-material/Medication';
 import CallIcon from '@mui/icons-material/Call';
