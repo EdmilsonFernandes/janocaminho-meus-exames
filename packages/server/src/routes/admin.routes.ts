@@ -768,7 +768,7 @@ router.get('/feature-usage', async (_req, res, next) => {
       prisma.$queryRaw<{ total: number; voltou: number }[]>`
         SELECT COUNT(*)::int AS total,
                COUNT(*) FILTER (WHERE EXISTS (
-                 SELECT 1 FROM "AuditLog" a
+                 SELECT 1 FROM audit_logs a
                  WHERE a.action = 'LOGIN_SUCCESS' AND a."actorId" = u.id
                    AND a."createdAt" BETWEEN u."createdAt" + interval '20 hours' AND u."createdAt" + interval '48 hours'
                ))::int AS voltou
@@ -778,7 +778,7 @@ router.get('/feature-usage', async (_req, res, next) => {
       prisma.$queryRaw<{ total: number; voltou: number }[]>`
         SELECT COUNT(*)::int AS total,
                COUNT(*) FILTER (WHERE EXISTS (
-                 SELECT 1 FROM "AuditLog" a
+                 SELECT 1 FROM audit_logs a
                  WHERE a.action = 'LOGIN_SUCCESS' AND a."actorId" = u.id
                    AND a."createdAt" BETWEEN u."createdAt" + interval '24 hours' AND u."createdAt" + interval '8 days'
                ))::int AS voltou
