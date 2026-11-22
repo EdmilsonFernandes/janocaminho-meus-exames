@@ -42,6 +42,10 @@ android {
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
+            // Símbolos nativos no próprio AAB — mata o aviso do Play Console
+            // "você não fez upload dos símbolos de depuração" (ANR/crash nativos
+            // legíveis). Só simboliza ponte Capacitor (pouco custo de tamanho).
+            ndk { debugSymbolLevel 'SYMBOL_TABLE' }
         }
     }
 }
