@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, type ReactNode } from 'react';
 import { plural } from '../../utils/format';
 import { List, useListContext, useRefresh, useNotify, useTranslate } from 'react-admin';
 import { track } from '../../utils/analytics';
@@ -48,6 +48,7 @@ import { ChangesSinceExam, type Marker } from '../../components/dashboard/Change
 import { ExamShow } from './ExamShow';
 import { cleanExtractedLabel } from '../../utils/examDisplay';
 import { openExamFile } from '../../utils/examFile';
+import { ExamFilePreview } from '../../components/ExamFilePreview';
 import { RADIUS, SEM, tealText } from '../../theme';
 import { Timeline, TimelineItem, TimelineSeparator, TimelineIndicator, TimelineHeader, TimelineTitle, TimelineDate, TimelineContent } from '@/components/reui/timeline';
 
@@ -260,19 +261,8 @@ const ExamFilterToolbar = ({
         </ToggleButtonGroup>
       </Stack>
 
-      {/* Linha Única de Chips (Filtros Rápidos + Categorias de Saúde) */}
-      <Stack
-        direction="row"
-        spacing={0.75}
-        sx={{
-          overflowX: 'auto',
-          flexWrap: 'nowrap',
-          py: 0.25,
-          mx: -0.25,
-          px: 0.25,
-          '&::-webkit-scrollbar': { display: 'none' },
-        }}
-      >
+      {/* Régua de chips de filtro (filtros rápidos + categorias) */}
+      <FilterChipRow>
         {/* Todos — inativo mode-aware (lavagem teal + texto AA por modo); ativo = sólido. */}
         <Chip
           size="small"
@@ -360,7 +350,55 @@ const ExamFilterToolbar = ({
             />
           );
         })}
-      </Stack>
+      </FilterChipRow>
+    </Stack>
+  );
+};
+
+/**
+ * Régua de chips de filtro da tela Exames.
+ *
+ * No celular é UMA linha que rola de lado com a barra escondida — e o chip da borda aparecia
+ * CORTADO no meio do rótulo, sem sinal de que havia mais (dono 23/11: "o label aparece cortado").
+ * Agora um degradê na borda direita (por mask, então vale no claro e no escuro) mostra a
+ * continuação, e some quando a régua chega ao fim.
+ *
+ * No desktop (md+) o mouse não arrasta essa rolagem: os chips depois da borda ficavam cortados
+ * E inalcançáveis. Lá a régua quebra linha — nenhum chip cortado, nenhum perdido.
+ */
+const FilterChipRow = ({ children }: { children: ReactNode }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const update = () => setMore(el.scrollWidth - el.scrollLeft - el.clientWidth > 4);
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(update) : null;
+    ro?.observe(el);
+    return () => { el.removeEventListener('scroll', update); ro?.disconnect(); };
+  }, []);
+  return (
+    <Stack
+      ref={ref}
+      direction="row"
+      spacing={0.75}
+      sx={{
+        overflowX: { xs: 'auto', md: 'visible' },
+        flexWrap: { xs: 'nowrap', md: 'wrap' },
+        rowGap: 0.75,
+        py: 0.25,
+        mx: -0.25,
+        px: 0.25,
+        '&::-webkit-scrollbar': { display: 'none' },
+        ...(more ? {
+          WebkitMaskImage: 'linear-gradient(to right, #000 calc(100% - 44px), transparent)',
+          maskImage: 'linear-gradient(to right, #000 calc(100% - 44px), transparent)',
+        } : {}),
+      }}
+    >
+      {children}
     </Stack>
   );
 };
@@ -821,21 +859,10 @@ const ExamCards = () => {
         {(r.status === 'EXTRACTING' || r.status === 'UPLOADED') && <LinearProgress sx={{ height: 3 }} />}
         {r.status === 'FAILED' && (
           <Box onClick={(e) => e.stopPropagation()} sx={{ px: 1.5, pb: 1.25 }}>
-            {/* PREVIEW do arquivo enviado (dono 21/11: "ver o que mandou" no erro) —
-                miniatura com auth, o usuário vê sozinho se mandou a foto errada */}
-            {r.filePath && /\.(jpg|jpeg|png|webp)$/i.test(r.filePath) && (
-              <Box
-                component="img"
-                src={`${API_URL}/exams/${r.id}/file?token=${encodeURIComponent(token() || '')}`}
-                alt="Foto enviada"
-                sx={{
-                  width: 80, height: 80, objectFit: 'cover', borderRadius: '10px',
-                  border: '1px solid', borderColor: 'divider', mb: 0.75, cursor: 'pointer',
-                  '&:hover': { opacity: 0.8 },
-                }}
-                onClick={(e) => { e.stopPropagation(); window.open(`${API_URL}/exams/${r.id}/file?token=${encodeURIComponent(token() || '')}`, '_blank'); }}
-              />
-            )}
+            {/* PREVIEW do arquivo enviado (dono 21/11: "ver o que mandou" no erro). A 1ª versão
+                dependia de `filePath` (que a API nunca manda) e punha o token na URL do <img>
+                (401) → nunca apareceu. Agora: a API diz `fileKind` e a foto baixa com header. */}
+            {r.fileKind === 'image' && <ExamFilePreview examId={r.id} sx={{ mb: 0.75 }} />}
             <Typography variant="caption" sx={{ color: 'error.main', display: 'block', lineHeight: 1.35 }}>
               ⚠️ {(r.extractionError || 'Falha na leitura do documento').slice(0, 140)}
             </Typography>

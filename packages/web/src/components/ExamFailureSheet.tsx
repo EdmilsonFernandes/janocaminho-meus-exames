@@ -6,6 +6,7 @@ import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SupportAgentOutlinedIcon from '@mui/icons-material/SupportAgentOutlined';
 import { DrExame } from './DrExame';
+import { ExamFilePreview } from './ExamFilePreview';
 import { RADIUS, tealText } from '../theme';
 
 /**
@@ -33,7 +34,7 @@ const META: Record<FailKind, { title: string; hint: string }> = {
 };
 
 export const ExamFailureSheet = ({ exam, onRetry, open, onOpenChange }: {
-  exam: { id: string; title?: string | null; extractionError?: string | null; failureKind?: string | null };
+  exam: { id: string; title?: string | null; extractionError?: string | null; failureKind?: string | null; fileKind?: 'image' | 'pdf' };
   onRetry?: () => void;
   /** Controlado pelo pai (botão "Entender o que houve"); o auto-open 1× continua aqui dentro. */
   open?: boolean;
@@ -78,6 +79,13 @@ export const ExamFailureSheet = ({ exam, onRetry, open, onOpenChange }: {
         </Box>
       </Stack>
       <DialogContent sx={{ px: 2, pb: 1.5 }}>
+        {/* Quando o envio foi uma FOTO, mostra a própria foto: é a prova de "foi isto que você mandou"
+            ao lado da explicação (foto tremida, pedido em vez do resultado...). Toque amplia. */}
+        {exam.fileKind === 'image' && (
+          <Box sx={{ mb: 1.25, display: 'flex', justifyContent: 'center' }}>
+            <ExamFilePreview examId={exam.id} size={120} sx={{ borderRadius: '12px' }} />
+          </Box>
+        )}
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.65 }}>{meta.hint}</Typography>
         {exam.extractionError && kind !== 'generic' && (
           <Box sx={{ mt: 1.25, p: 1.25, borderRadius: RADIUS.md || 12, bgcolor: (th) => alpha(th.palette.mode === 'dark' ? '#fff' : '#000', 0.04) }}>

@@ -7,7 +7,7 @@ import { synthesizeExamTitle } from '../utils/examIdentity';
 import { upload } from '../middleware/upload';
 import { sha256Buffer } from '../utils/crypto';
 import { isAllowedUpload } from '../utils/fileMagic';
-import { saveExamFile, resolveExamFile, deleteExamFile, patientSlug } from '../utils/storage';
+import { saveExamFile, resolveExamFile, deleteExamFile, patientSlug, mediaTypeFromRef } from '../utils/storage';
 import { parseListParams, setListHeaders } from '../utils/list';
 import { audit } from '../utils/audit';
 import { sendNudgeEmail } from '../utils/nudgeMail';
@@ -427,7 +427,9 @@ router.get('/:id/file', async (req: AuthedRequest, res, next) => {
     if (r.kind === 'url') {
       res.redirect(302, r.url as string);
     } else {
-      res.setHeader('Content-Type', 'application/pdf');
+      // Foto enviada como exame (modo disco local) chegava como application/pdf → a miniatura do
+      // card de falha não renderizava. Em prod o S3 já manda o tipo gravado no upload.
+      res.setHeader('Content-Type', mediaTypeFromRef(exam.filePath));
       // AUD-001: arquivo órfão (sumiu do disco pós-upload) derrubava o processo inteiro —
       // stream sem error handler = uncaught exception em produção. 404 limpo no lugar.
       const stream = fs.createReadStream(r.file as string);

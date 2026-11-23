@@ -32,6 +32,7 @@ import { tealText, RADIUS, SEM } from '../../theme';
 import { WhatIsThis } from '../../components/WhatIsThis';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
 import { ExamFailureSheet } from '../../components/ExamFailureSheet';
+import { ExamFilePreview } from '../../components/ExamFilePreview';
 import { AnalysisScan } from '../../components/AnalysisScan';
 import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
 import { notifyInsufficientCredits } from '../../utils/credits-events';
@@ -480,6 +481,16 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
 
           {exam.status === 'FAILED' && (
             <Alert severity="error" sx={{ mt: 2 }}>
+              {/* A foto que ele enviou, logo acima do erro: dá pra ver sozinho se foi foto torta ou
+                  o documento errado. Só quando o arquivo é imagem (a API manda exam.fileKind). */}
+              {exam.fileKind === 'image' && (
+                <Box sx={{ mb: 1.25 }}>
+                  <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 700, mb: 0.5 }}>
+                    Foto que você enviou · toque para ampliar
+                  </Typography>
+                  <ExamFilePreview examId={exam.id} size={{ xs: 132, sm: 168 }} sx={{ borderRadius: '12px' }} />
+                </Box>
+              )}
               A extração falhou: {exam.extractionError}
               <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 <Button size="small" variant="outlined" onClick={reextract} disabled={reExtracting}>Re-extrair</Button>

@@ -1,6 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { api, authHeader, resetDb, createUser, createExam } from './helpers';
 import { prisma } from '../src/prisma';
+import { resolveExamFile } from '../src/utils/storage';
 
 const PDF = Buffer.from('%PDF-1.4 mock exam content');
 
@@ -89,5 +93,40 @@ describe('exames: upload, escopo, delete, duplicatas', () => {
     const r = await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id });
     expect(r.status).toBe(403);
     expect(r.body.error).toBe('cpf_mismatch');
+  });
+
+  it('a API nunca expõe filePath, mas diz se o arquivo é foto (fileKind) — e /file serve a foto com o tipo certo', async () => {
+    const { patient, token } = await createUser();
+    const pdfExam = await createExam(patient.id, { title: 'Em PDF' });
+    const foto = await createExam(patient.id, { title: 'Foto que falhou', status: 'FAILED' });
+    // Arquivo REAL em disco (modo local do storage), com a assinatura de um JPEG.
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'exams-file-'));
+    const file = path.join(dir, 'foto.jpg');
+    fs.writeFileSync(file, Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x00, 0x00, 0x00]));
+    await prisma.exam.update({ where: { id: foto.id }, data: { filePath: file } });
+
+    // Regressão (21/11): a miniatura do card de falha dependia de `filePath`, que a resposta nunca trouxe.
+    const list = await api().get('/api/exams').set(authHeader(token));
+    expect(list.status).toBe(200);
+    expect(list.body.every((e: any) => !('filePath' in e))).toBe(true); // caminho/chave nunca sai
+    expect(list.body.find((e: any) => e.id === foto.id).fileKind).toBe('image');
+    expect(list.body.find((e: any) => e.id === pdfExam.id).fileKind).toBe('pdf');
+
+    const one = await api().get(`/api/exams/${foto.id}`).set(authHeader(token));
+    expect(one.body.fileKind).toBe('image');
+    expect(one.body.filePath).toBeUndefined();
+
+    // Antes: Content-Type fixo em application/pdf para qualquer arquivo → a <img> não renderizava no modo disco.
+    // O setup global mocka resolveExamFile com um "test.pdf" que não existe: aponta 1x para o arquivo real acima.
+    vi.mocked(resolveExamFile).mockResolvedValueOnce({ kind: 'file', file });
+    const served = await api().get(`/api/exams/${foto.id}/file`).set(authHeader(token));
+    expect(served.status).toBe(200);
+    expect(served.headers['content-type']).toContain('image/jpeg');
+
+    // Sem o header (é o que um <img src> faz) continua fechado: o download é só por fetch com Bearer.
+    const anon = await api().get(`/api/exams/${foto.id}/file`);
+    expect(anon.status).toBe(401);
+
+    fs.rmSync(dir, { recursive: true, force: true });
   });
 });

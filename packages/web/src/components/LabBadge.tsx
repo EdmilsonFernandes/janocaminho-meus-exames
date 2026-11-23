@@ -28,9 +28,11 @@ export const LabBadge = ({ raw, size = 'sm', showUnit = false }: { raw?: string 
       )}
       {/* minWidth:0 + ellipsis: lab cru NÃO cadastrado (ex.: "VOLPI ara Vol! Jnir BIANCARDI…")
           já estourou 113px pra fora do card e foi cortado pelo overflow do AppCard (fix 2026-09-07).
-          Tooltip carrega o nome completo. */}
+          Tooltip carrega o nome completo.
+          lineHeight 1.25 (era 1.1): com o overflow hidden da própria caixa, 1.1 raspava o topo das
+          letras altas e dos acentos do nome do laboratório (ascendente do Inter ≈ 1,21em). */}
       <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
-        <Typography component="span" sx={{ display: 'block', fontSize: fs, fontWeight: 800, color: brand ? color : 'text.primary', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</Typography>
+        <Typography component="span" sx={{ display: 'block', fontSize: fs, fontWeight: 800, color: brand ? color : 'text.primary', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</Typography>
         {showUnit && unit && <Typography component="span" sx={{ fontSize: fs * 0.85, color: 'text.secondary', ml: 0.5, whiteSpace: 'nowrap' }}>: {unit}</Typography>}
       </Box>
     </Box>
