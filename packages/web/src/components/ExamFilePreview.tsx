@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Box, CircularProgress, Dialog } from '@mui/material';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import { API_URL, token } from '../config';
 import { chipA11y } from '../utils/chipA11y';
+import { usePrivacyMode } from '../hooks/usePrivacyMode';
 import { RADIUS } from '../theme';
 
 /**
@@ -14,6 +16,8 @@ import { RADIUS } from '../theme';
  * Aqui o arquivo baixa por fetch (com header, posse validada no server) e vira object URL.
  *
  * Requisitos: `exam.fileKind === 'image'` (a API manda 'image' | 'pdf'); PDF não tem miniatura.
+ * Respeita o modo privacidade (o mesmo que borra o nome do exame): com o modo ligado a foto fica
+ * OCULTA até o toque — laudo tem nome e CPF no cabeçalho, borrado ainda vazaria o layout.
  */
 const cache = new Map<string, Promise<Blob | null>>();
 
@@ -54,6 +58,12 @@ export const ExamFilePreview = ({
   const [url, setUrl] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
   const [zoom, setZoom] = useState(false);
+  // Modo privacidade (mesmo do PrivacyText): a foto de um exame tem nome/CPF no cabeçalho do
+  // laudo — com o modo ligado ela fica OCULTA (não só borrada) até o toque; revela por 5s.
+  const { privacyOn } = usePrivacyMode();
+  const [revealed, setRevealed] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
   useEffect(() => {
     let active = true;
@@ -70,11 +80,33 @@ export const ExamFilePreview = ({
   }, [examId]);
 
   // Todos os hooks já rodaram acima (React #310: nada de hook depois de return).
+  const reveal = (e: React.SyntheticEvent) => {
+    e.stopPropagation(); // não abre o exame — o toque aqui é só pra VER
+    setRevealed(true);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setRevealed(false), 5000);
+  };
   if (failed) return null; // sem rede/arquivo: o card de falha segue utilizável, só sem a foto
   if (!url) {
     return (
       <Box aria-label="Carregando a foto enviada" role="img" sx={{ width: size, height: size, flexShrink: 0, borderRadius: '10px', bgcolor: 'action.hover', display: 'grid', placeItems: 'center', ...sx }}>
         <CircularProgress size={18} color="inherit" />
+      </Box>
+    );
+  }
+  if (privacyOn && !revealed) {
+    return (
+      <Box
+        {...chipA11y()}
+        aria-label="Foto oculta pelo modo privacidade. Toque para revelar por 5 segundos"
+        title="Toque para revelar por 5 segundos"
+        onClick={reveal}
+        sx={{
+          width: size, height: size, flexShrink: 0, borderRadius: '10px', display: 'grid', placeItems: 'center',
+          border: '1px dashed', borderColor: 'divider', bgcolor: 'action.hover', color: 'text.secondary', cursor: 'pointer', ...sx,
+        }}
+      >
+        <VisibilityOffOutlinedIcon />
       </Box>
     );
   }
