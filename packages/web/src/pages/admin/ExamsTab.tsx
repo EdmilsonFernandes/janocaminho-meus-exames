@@ -823,8 +823,8 @@ export const ExamsTab = () => {
                 </Paper>
               </Box>
 
-              {/* Classificação do Motivo */}
-              <FormControl fullWidth size="small">
+              {/* Classificação do Motivo — o motivo selecionado quebra linha: em 390px ele saía cortado com "…" dentro do campo. */}
+              <FormControl fullWidth size="small" sx={{ '& .MuiSelect-select': { whiteSpace: 'normal', lineHeight: 1.3, py: 0.75, paddingRight: '34px' } }}>
                 <InputLabel id="failure-reason-label">Causa Principal da Falha</InputLabel>
                 <Select
                   labelId="failure-reason-label"
@@ -840,14 +840,16 @@ export const ExamsTab = () => {
                 </Select>
               </FormControl>
 
-              {/* Notas do Administrador / Engenharia */}
+              {/* Notas do Administrador / Engenharia — rótulo curto de propósito: o rótulo antigo ("Como o sistema deve
+                  melhorar neste caso? (Notas para engenharia/IA)") não cabia em 390px e era cortado com "…";
+                  a pergunta foi para o placeholder. */}
               <TextField
                 fullWidth
                 multiline
                 rows={3}
                 size="small"
-                label="Como o sistema deve melhorar neste caso? (Notas para engenharia/IA)"
-                placeholder="Ex: O laboratório usa fonte muito fina; treinar modelo para esse layout de hemograma; ignorar carimbo médico..."
+                label="Notas para engenharia/IA"
+                placeholder="Como o sistema deve melhorar neste caso? Ex.: o laboratório usa fonte muito fina; ignorar carimbo médico..."
                 value={adminNotes}
                 onChange={(e) => setAdminNotes(e.target.value)}
               />
@@ -865,7 +867,8 @@ export const ExamsTab = () => {
           )}
         </DialogContent>
 
-        <DialogActions sx={{ p: 2, justifyContent: 'space-between' }}>
+        {/* Rodapé quebra em 2 linhas no celular: antes os 3 botões espremiam "Reprocessar Exame" num botão mais estreito que o texto. */}
+        <DialogActions sx={{ p: 2, justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, '& .MuiButton-root': { whiteSpace: 'nowrap' } }}>
           <Button
             color="warning"
             variant="text"
@@ -877,7 +880,8 @@ export const ExamsTab = () => {
             Reprocessar Exame
           </Button>
 
-          <Stack direction="row" spacing={1}>
+          {/* marginLeft auto: quando o grupo quebra para a 2ª linha no celular, ele fica alinhado à direita como no desktop. */}
+          <Stack direction="row" spacing={1} sx={{ marginLeft: 'auto' }}>
             <Button onClick={() => setDiagExam(null)} sx={{ textTransform: 'none', fontWeight: 600 }}>
               Cancelar
             </Button>
