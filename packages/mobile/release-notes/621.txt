@@ -1,0 +1,3 @@
+• Exames que falharam agora mostram a foto que você enviou: fica fácil ver se a imagem saiu tremida ou se foi o arquivo errado.
+• Na tela de exames, os filtros por categoria não aparecem mais cortados na borda.
+• Nome do laboratório não fica mais cortado em cima.
