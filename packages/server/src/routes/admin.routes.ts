@@ -8,7 +8,8 @@ import { config, hasAsaas } from '../config';
 import { postRefundExecuted, postEntries } from '../finance/ledger';
 import { notifyTeleconsultaRefunded } from '../utils/teleconsultaNotify';
 import { getSettings, saveSettings, getMonthlyPlan, getDoctorKycConfig, type SettingCategory } from '../utils/settings';
-import { deleteExamFile, saveExamFile, resolveExamFile, saveLabLogo } from '../utils/storage';
+import { deleteExamFile, saveExamFile, resolveExamFile, saveLabLogo, mediaTypeFromRef } from '../utils/storage';
+import { examFileKind } from '../utils/serialize';
 import { invalidateLabsCache, slugify } from './labs.routes';
 import { listBlockedDomains, addBlockedDomain, removeBlockedDomain, syncBlockedDomains } from '../utils/blockedDomains';
 import { sendPushToUser, PUSH_TOPIC } from '../utils/push';
@@ -1596,7 +1597,7 @@ router.get('/exams', async (req, res, next) => {
       ];
     }
 
-    const [exams, byStatus, recentFailed] = await Promise.all([
+    const [examRows, byStatus, recentFailed] = await Promise.all([
       prisma.exam.findMany({
         where,
         orderBy: { createdAt: 'desc' },
@@ -1606,6 +1607,8 @@ router.get('/exams', async (req, res, next) => {
           title: true,
           kind: true,
           status: true,
+          // Caminho/chave do arquivo NUNCA sai na resposta: vira `fileKind` ('image' | 'pdf') lá embaixo.
+          filePath: true,
           performedAt: true,
           createdAt: true,
           extractionError: true,
@@ -1646,7 +1649,40 @@ router.get('/exams', async (req, res, next) => {
         },
       }),
     ]);
+    const exams = examRows.map(({ filePath, ...rest }) => ({ ...rest, fileKind: examFileKind(filePath) ?? null }));
     res.json({ exams, byStatus, recentFailed });
+  } catch (e) { next(e); }
+});
+
+// ADMIN: arquivo de um exame. Para diagnosticar uma falha de extração o admin precisa VER o que o
+// paciente enviou (foto torta, pedido médico em vez do resultado, PDF sem camada de texto...).
+// Dono 24/11: "não sei como ver o preview do exame rejeitado no admin" — não existia rota para isso.
+// Mesmo fluxo do GET /api/exams/:id/file do paciente (S3 pré-assinado em prod, disco em dev), sem
+// checagem de posse: o acesso vem de requireAdmin (no router) e fica AUDITADO — laudo é dado sensível (LGPD).
+router.get('/exams/:id/file', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const exam = await prisma.exam.findUnique({ where: { id }, select: { id: true, filePath: true } });
+    if (!exam || !exam.filePath) {
+      res.status(404).json({ error: 'Arquivo não encontrado' });
+      return;
+    }
+    await audit('VIEW_EXAM_FILE', req, { targetType: 'EXAM', targetId: id });
+    const r = await resolveExamFile(exam.filePath);
+    if (r.kind === 'url') {
+      res.redirect(302, r.url as string);
+      return;
+    }
+    res.setHeader('Content-Type', mediaTypeFromRef(exam.filePath));
+    // Arquivo órfão (sumiu do disco depois do upload) → 404 limpo; stream sem error handler derruba o processo.
+    const stream = fs.createReadStream(r.file as string);
+    stream.on('error', () => {
+      if (!res.headersSent) {
+        res.setHeader('Content-Type', 'application/json');
+        res.status(404).json({ error: 'Arquivo não encontrado' });
+      } else res.end();
+    });
+    stream.pipe(res);
   } catch (e) { next(e); }
 });
 
