@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { Box, CircularProgress, Dialog } from '@mui/material';
+import { Box, Button, CircularProgress, Dialog } from '@mui/material';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
-import { API_URL, token } from '../config';
+import { API_URL } from '../config';
 import { chipA11y } from '../utils/chipA11y';
+import { fetchExamFileBlob } from '../utils/examFile';
 import { usePrivacyMode } from '../hooks/usePrivacyMode';
 import { RADIUS } from '../theme';
 
 /**
  * ExamFilePreview — miniatura do arquivo que o paciente enviou num exame que FALHOU
- * ("o que foi que eu mandou?": foto torta, documento errado, pedido em vez do resultado).
+ * ("o que foi que eu mandei?": foto torta, documento errado, pedido em vez do resultado).
  *
  * Por que não é um <img src="/exams/:id/file?...">: a rota do arquivo só aceita
  * `Authorization: Bearer` e <img> não envia header. A 1ª versão (21/11) passava o token na URL
@@ -18,46 +19,49 @@ import { RADIUS } from '../theme';
  * Requisitos: `exam.fileKind === 'image'` (a API manda 'image' | 'pdf'); PDF não tem miniatura.
  * Respeita o modo privacidade (o mesmo que borra o nome do exame): com o modo ligado a foto fica
  * OCULTA até o toque — laudo tem nome e CPF no cabeçalho, borrado ainda vazaria o layout.
+ *
+ * ADMIN (dono 24/11: "não sei como ver o preview do exame rejeitado no admin"): a mesma miniatura,
+ * com `fileUrl` apontando para a rota do admin, `privacy={false}` (o painel admin não tem modo
+ * privacidade) e `unavailableText` (lá a foto sumir em silêncio é exatamente a confusão a evitar).
  */
 const cache = new Map<string, Promise<Blob | null>>();
 
-/** Baixa o arquivo do exame com header de auth. Cacheia por exame; falha NÃO fica em cache. */
-export function loadExamFileBlob(examId: string): Promise<Blob | null> {
-  let pending = cache.get(examId);
+/** Baixa o arquivo com header de auth. Cacheia por URL; falha NÃO fica em cache (dá para tentar de novo). */
+export function loadExamFileBlob(examId: string, fileUrl: string = `${API_URL}/exams/${examId}/file`): Promise<Blob | null> {
+  let pending = cache.get(fileUrl);
   if (!pending) {
-    pending = (async () => {
-      try {
-        const r = await fetch(`${API_URL}/exams/${examId}/file`, { headers: { Authorization: `Bearer ${token()}` } });
-        if (!r.ok) return null;
-        // Offline, o fetch-cache devolve 200 com um JSON vazio: não é imagem, então não mostra nada.
-        if (r.headers.get('X-Offline-Empty')) return null;
-        const blob = await r.blob();
-        return blob.size > 0 && blob.type.startsWith('image/') ? blob : null;
-      } catch {
-        return null;
-      }
-    })();
-    pending.then((b) => { if (!b) cache.delete(examId); });
-    cache.set(examId, pending);
+    pending = fetchExamFileBlob(fileUrl).then((blob) => (blob && blob.type.startsWith('image/') ? blob : null));
+    pending.then((b) => { if (!b) cache.delete(fileUrl); });
+    cache.set(fileUrl, pending);
   }
   return pending;
 }
 
 export const ExamFilePreview = ({
   examId,
+  fileUrl,
   size = 80,
   alt = 'Foto enviada',
+  privacy = true,
+  unavailableText,
   sx,
 }: {
   examId: string;
+  /** Rota de onde baixar o arquivo. Padrão: a do paciente (/exams/:id/file). Admin: `adminExamFileUrl(id)`. */
+  fileUrl?: string;
   /** Lado da miniatura em px (aceita responsivo, ex.: { xs: 120, sm: 160 }). */
   size?: number | Record<string, number>;
   alt?: string;
+  /** Respeita o modo privacidade (padrão). O admin passa `false`. */
+  privacy?: boolean;
+  /** Passado, uma falha de download mostra este texto com "Tentar de novo" em vez de não renderizar nada. */
+  unavailableText?: string;
   sx?: any;
 }) => {
   const [url, setUrl] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
   const [zoom, setZoom] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   // Modo privacidade (mesmo do PrivacyText): a foto de um exame tem nome/CPF no cabeçalho do
   // laudo — com o modo ligado ela fica OCULTA (não só borrada) até o toque; revela por 5s.
   const { privacyOn } = usePrivacyMode();
@@ -65,19 +69,20 @@ export const ExamFilePreview = ({
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
+  const src = fileUrl ?? `${API_URL}/exams/${examId}/file`;
   useEffect(() => {
     let active = true;
     let objectUrl: string | null = null;
     setUrl(null);
     setFailed(false);
-    loadExamFileBlob(examId).then((blob) => {
+    loadExamFileBlob(examId, src).then((blob) => {
       if (!active) return;
       if (!blob) { setFailed(true); return; }
       objectUrl = URL.createObjectURL(blob);
       setUrl(objectUrl);
     });
     return () => { active = false; if (objectUrl) URL.revokeObjectURL(objectUrl); };
-  }, [examId]);
+  }, [examId, src, attempt]);
 
   // Todos os hooks já rodaram acima (React #310: nada de hook depois de return).
   const reveal = (e: React.SyntheticEvent) => {
@@ -86,7 +91,16 @@ export const ExamFilePreview = ({
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setRevealed(false), 5000);
   };
-  if (failed) return null; // sem rede/arquivo: o card de falha segue utilizável, só sem a foto
+  if (failed) {
+    // Paciente: sem rede/arquivo o card de falha segue utilizável, só sem a foto. Admin: explica e deixa tentar de novo.
+    if (!unavailableText) return null;
+    return (
+      <Box role="status" sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, p: 1.25, borderRadius: '12px', border: '1px dashed', borderColor: 'divider', bgcolor: 'action.hover', ...sx }}>
+        <Box component="span" sx={{ fontSize: 13, color: 'text.secondary' }}>{unavailableText}</Box>
+        <Button size="small" onClick={(e) => { e.stopPropagation(); setAttempt((n) => n + 1); }} sx={{ textTransform: 'none', fontWeight: 700 }}>Tentar de novo</Button>
+      </Box>
+    );
+  }
   if (!url) {
     return (
       <Box aria-label="Carregando a foto enviada" role="img" sx={{ width: size, height: size, flexShrink: 0, borderRadius: '10px', bgcolor: 'action.hover', display: 'grid', placeItems: 'center', ...sx }}>
@@ -94,7 +108,7 @@ export const ExamFilePreview = ({
       </Box>
     );
   }
-  if (privacyOn && !revealed) {
+  if (privacy && privacyOn && !revealed) {
     return (
       <Box
         {...chipA11y()}

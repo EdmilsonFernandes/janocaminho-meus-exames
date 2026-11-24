@@ -38,11 +38,15 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
+import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import { API_URL, token, photoUrlFor } from '../../config';
 import { TabLoader, SectionError } from './parts';
 import { snackbar } from '../../components/ConfirmDialog';
 import { ListEmpty } from '@/components/reui/list-empty';
 import { tealText } from '../../theme';
+import { ExamFilePreview } from '../../components/ExamFilePreview';
+import { adminExamFileUrl, fetchExamFileBlob, openExamFileBlob } from '../../utils/examFile';
 
 const initials = (name?: string | null): string => {
   if (!name) return '?';
@@ -99,6 +103,8 @@ interface ExamItemData {
   patientId?: string;
   pageCount?: number;
   fileSizeBytes?: number;
+  /** 'image' | 'pdf' quando o exame tem arquivo (o caminho do arquivo nunca sai do servidor); null se não tem. */
+  fileKind?: 'image' | 'pdf' | null;
   _count?: { items: number };
   patient?: {
     id?: string;
@@ -108,6 +114,65 @@ interface ExamItemData {
     owner?: { id?: string; email?: string; phone?: string } | null;
   } | null;
 }
+
+/**
+ * Arquivo que o paciente enviou, para o admin diagnosticar uma falha de extração:
+ * foto → a imagem inteira (toque amplia); PDF → botão que abre em outra aba.
+ * Dono 24/11 ("não sei como ver o preview do exame rejeitado no admin"): não existia. Agora aparece
+ * no diálogo de diagnóstico e pelo botão "Ver arquivo" das duas listas.
+ */
+const AdminExamFile = ({ exam, height = { xs: 220, sm: 300 } }: { exam: ExamItemData; height?: number | Record<string, number> }) => {
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfErr, setPdfErr] = useState(false);
+  const openPdf = async () => {
+    setPdfBusy(true);
+    setPdfErr(false);
+    const blob = await fetchExamFileBlob(adminExamFileUrl(exam.id));
+    const ok = blob ? await openExamFileBlob(blob, `exame-${exam.id}.pdf`) : false;
+    setPdfBusy(false);
+    setPdfErr(!ok);
+  };
+  // Todos os hooks já rodaram acima (React #310: nada de hook depois dos returns abaixo).
+  if (!exam.fileKind) {
+    return <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Este exame não tem arquivo guardado.</Typography>;
+  }
+  if (exam.fileKind === 'image') {
+    // Imagem inteira (contain, não recorte): para diagnosticar, o admin precisa ver a foto como veio.
+    return (
+      <ExamFilePreview
+        examId={exam.id}
+        fileUrl={adminExamFileUrl(exam.id)}
+        size={height}
+        alt="Arquivo enviado pelo paciente"
+        privacy={false}
+        unavailableText="Não consegui carregar a foto enviada."
+        sx={{ width: '100%', objectFit: 'contain', bgcolor: 'action.hover', borderRadius: '12px' }}
+      />
+    );
+  }
+  return (
+    <Box>
+      <Button variant="outlined" startIcon={<PictureAsPdfOutlinedIcon />} disabled={pdfBusy} onClick={() => void openPdf()} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '10px' }}>
+        {pdfBusy ? 'Abrindo…' : 'Abrir o PDF enviado'}
+      </Button>
+      {pdfErr ? <Typography sx={{ fontSize: 12, color: 'error.main', mt: 0.75 }}>Não consegui abrir o PDF. Tente de novo.</Typography> : null}
+    </Box>
+  );
+};
+
+/** Botão compacto "Ver arquivo" das linhas de exame (área de toque de ~44px sem ficar maior que os botões vizinhos). */
+const ViewFileButton = ({ exam, onClick }: { exam: ExamItemData; onClick: () => void }) => (
+  <Tooltip title={exam.fileKind === 'pdf' ? 'Ver o PDF enviado' : 'Ver a foto enviada'}>
+    <IconButton
+      size="small"
+      aria-label="Ver arquivo enviado"
+      onClick={onClick}
+      sx={{ position: 'relative', color: 'text.secondary', border: '1px solid', borderColor: 'divider', borderRadius: '8px', '&::after': { content: '""', position: 'absolute', inset: -9 } }}
+    >
+      {exam.fileKind === 'pdf' ? <PictureAsPdfOutlinedIcon sx={{ fontSize: 16 }} /> : <ImageOutlinedIcon sx={{ fontSize: 16 }} />}
+    </IconButton>
+  </Tooltip>
+);
 
 export const ExamsTab = () => {
   const [d, setD] = useState<{ exams: ExamItemData[]; byStatus: { status: string; _count: number }[]; recentFailed: any[] } | null>(null);
@@ -125,6 +190,8 @@ export const ExamsTab = () => {
   const [reprocessBusy, setReprocessBusy] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [copiedError, setCopiedError] = useState(false);
+  // Arquivo do exame (foto/PDF) aberto pelo botão "Ver arquivo" das listas.
+  const [fileExam, setFileExam] = useState<ExamItemData | null>(null);
 
   const load = () => {
     setErr(false);
@@ -649,6 +716,7 @@ export const ExamsTab = () => {
 
                               {/* Ações do Exame */}
                               <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                                {e.fileKind ? <ViewFileButton exam={e} onClick={() => setFileExam(e)} /> : null}
                                 {e.status === 'FAILED' && (
                                   <Button
                                     size="small"
@@ -726,6 +794,7 @@ export const ExamsTab = () => {
                   </Typography>
 
                   <Stack direction="row" spacing={1}>
+                    {e.fileKind ? <ViewFileButton exam={e} onClick={() => setFileExam(e)} /> : null}
                     {e.status === 'FAILED' && (
                       <Button
                         size="small"
@@ -788,6 +857,17 @@ export const ExamsTab = () => {
                 </Typography>
               </Box>
 
+              {/* Dono 24/11: sem VER o que o paciente enviou não dá para escolher o motivo da falha. */}
+              <Box>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', mb: 0.75, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Arquivo enviado
+                </Typography>
+                <AdminExamFile exam={diagExam} />
+                {diagExam.fileKind === 'image' ? (
+                  <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.5 }}>Toque na imagem para ampliar.</Typography>
+                ) : null}
+              </Box>
+
               {/* Log do erro com botão de cópia */}
               <Box>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.5 }}>
@@ -832,8 +912,9 @@ export const ExamsTab = () => {
                   value={failureReason}
                   onChange={(e) => setFailureReason(e.target.value)}
                 >
+                  {/* Os motivos são frases: em 390px 4 das 8 opções saíam cortadas na borda da lista. */}
                   {FAILURE_REASONS.map((r) => (
-                    <MenuItem key={r.id} value={r.id}>
+                    <MenuItem key={r.id} value={r.id} sx={{ whiteSpace: 'normal', lineHeight: 1.35, py: 1 }}>
                       {r.label}
                     </MenuItem>
                   ))}
@@ -895,6 +976,22 @@ export const ExamsTab = () => {
               Salvar Diagnóstico
             </Button>
           </Stack>
+        </DialogActions>
+      </Dialog>
+
+      {/* ARQUIVO DO EXAME — o que o paciente enviou (foto ampliável ou PDF), aberto pelo botão "Ver arquivo" */}
+      <Dialog open={Boolean(fileExam)} onClose={() => setFileExam(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px' } }}>
+        <DialogTitle sx={{ fontWeight: 800, fontSize: 18, pb: 1 }}>
+          {fileExam?.title || 'Sem título'}
+          <Typography component="span" sx={{ display: 'block', fontSize: 12, fontWeight: 500, color: 'text.secondary', mt: 0.5 }}>
+            Paciente: <strong>{fileExam?.patient?.fullName || '—'}</strong> · ID: {fileExam?.id}
+          </Typography>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 2.5 }}>
+          {fileExam ? <AdminExamFile exam={fileExam} height={{ xs: 300, sm: 440 }} /> : null}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setFileExam(null)} sx={{ textTransform: 'none', fontWeight: 600 }}>Fechar</Button>
         </DialogActions>
       </Dialog>
     </Box>
