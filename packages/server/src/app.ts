@@ -34,10 +34,11 @@ import labsRoutes from './routes/labs.routes';
 import measurementRoutes from './routes/measurement.routes';
 import dailyLogRoutes from './routes/daily-log.routes';
 import usageRoutes from './routes/usage.routes';
+import retestRoutes from './routes/retest.routes';
 import bodyCompositionRoutes from './routes/body-composition.routes';
 import hormoneDoseRoutes from './routes/hormone-dose.routes';
 import { getPublicCompoundExplanation } from './analysis/compound-explain';
-import { applyPublicSeo, publicSeoFor } from './utils/publicSeo';
+import { applyPublicSeo, publicSeoFor, isKnownPath, sitemapXml } from './utils/publicSeo';
 import medicationRoutes from './routes/medication.routes';
 import publicApiRoutes from './routes/public-api.routes';
 import decifreRoutes from './routes/decifre.routes';
@@ -250,75 +251,8 @@ Sitemap: https://drexame.janocaminho.com.br/sitemap.xml
 });
 
 app.get('/sitemap.xml', (_req, res) => {
-  res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://drexame.janocaminho.com.br/</loc>
-    <lastmod>2026-10-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://drexame.janocaminho.com.br/saude-esportiva</loc>
-    <lastmod>2026-10-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://drexame.janocaminho.com.br/simulador-hormonal</loc>
-    <lastmod>2026-11-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://drexame.janocaminho.com.br/exames-para-atletas</loc>
-    <lastmod>2026-10-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://drexame.janocaminho.com.br/como-funciona</loc>
-    <lastmod>2026-10-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://drexame.janocaminho.com.br/entender-exames-de-sangue</loc>
-    <lastmod>2026-10-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://drexame.janocaminho.com.br/para-medicos</loc>
-    <lastmod>2026-10-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://drexame.janocaminho.com.br/como-validamos</loc>
-    <lastmod>2026-10-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://drexame.janocaminho.com.br/faq</loc>
-    <lastmod>2026-10-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://drexame.janocaminho.com.br/termos</loc>
-    <lastmod>2026-10-07</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://drexame.janocaminho.com.br/privacidade</loc>
-    <lastmod>2026-10-07</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-</urlset>`);
+  // Só páginas com conteúdo próprio (as que repetem a mesma tela ficam fora — ver utils/publicSeo.ts).
+  res.type('application/xml').send(sitemapXml());
 });
 // URL LIMPA do portal de docs: quem digita/compartilha sem a # cai aqui — manda pro hash
 // do SPA (o portal vive em /#/api-docs). O console swagger segue em /api/docs.
@@ -439,6 +373,7 @@ app.use('/api/labs', labsRoutes);
 app.use('/api/measurements', measurementRoutes);
 app.use('/api/daily-logs', dailyLogRoutes);
 app.use('/api/usage', usageRoutes); // medidor de telas (painel Adoção do admin)
+app.use('/api/retest', retestRoutes); // "próximo exame" do paciente (cartão da Home)
 app.use('/api/emergency', emergencyRouter);
 app.use('/api/body-composition', bodyCompositionRoutes);
 app.use('/api/hormone-doses', hormoneDoseRoutes);
@@ -893,6 +828,9 @@ if (config.isProd) {
       if (seo) {
         try { res.type('html').send(applyPublicSeo(fs.readFileSync(path.join(webDist, 'index.html'), 'utf8'), seo)); return; } catch { /* cai no index padrão */ }
       }
+      // Caminho que não é página pública nem rota do app → 404 de verdade (antes respondia 200 com a
+      // home: o Google via "página duplicada"). O HTML do app vai junto, então nada deixa de abrir.
+      if (!isKnownPath(req.path)) res.status(404);
       res.sendFile(path.join(webDist, 'index.html'));
     });
   } else {

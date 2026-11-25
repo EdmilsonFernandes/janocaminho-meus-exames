@@ -12,6 +12,7 @@ import { startPixExpiryJob, startStalePendingPixSweep } from './jobs/pix-expiry'
 import { startAuditRetentionJob } from './jobs/auditRetention';
 import { startPushCampaignScheduler } from './jobs/pushCampaigns';
 import { startActivityNudgeJob } from './jobs/activityNudges';
+import { startRetestReminderJob } from './jobs/retestReminder';
 import { startEmailIngestJob } from './jobs/emailIngest';
 import { startTranscriptionQueueJob } from './jobs/transcriptionQueue';
 import { startReconciliationJob } from './jobs/reconciliation';
@@ -60,6 +61,7 @@ const server = app.listen(config.port, () => {
   startStalePendingPixSweep(); // PIX: auto-cancel global de pendentes >24h (boot + 1h)
   startPushCampaignScheduler(); // campanhas de push AGENDADAS pelo admin (audienceFilter, 5 min)
   startActivityNudgeJob(); // triggers de atividade/engajamento (meta 8k, streak, queda, reativação)
+  startRetestReminderJob(); // "faz N meses do seu exame": um aviso por exame quando o prazo chega (10h BRT)
   startEmailIngestJob(); // ingestão de exame por e-mail (código EX-XXXX no assunto; IMAP_ENABLED)
   startTranscriptionQueueJob(); // F3: transcrições de teleconsulta pendentes (STT off/falha → job finaliza)
   startReconciliationJob(); // §15.2 spec gaps teleconsulta: conciliação pago×consulta/encerrada×resumo (10 min)
