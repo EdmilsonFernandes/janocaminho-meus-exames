@@ -229,3 +229,39 @@ describe('MÉDICO agenda teleconsulta (POST /doctor/patients/:id/teleconsulta)',
     }
   });
 });
+
+/**
+ * Regressão 24/11/26: as telas do app chamam GET /reminders SEM paginação. O default (25,
+ * ordem dueDate ASC) devolvia só os 25 MAIS ANTIGOS — quem tinha mais lembretes perdia os
+ * PRÓXIMOS (home, agenda e até a próxima teleconsulta sumiam).
+ */
+describe('GET /reminders sem paginação devolve a lista inteira', () => {
+  beforeEach(async () => { await resetDb(); });
+
+  it('30 lembretes antigos + 1 futuro → o futuro VEM na resposta', async () => {
+    const { token, user, patient } = await createUser();
+    await prisma.reminder.createMany({
+      data: Array.from({ length: 30 }, (_, i) => ({
+        ownerId: user.id, patientId: patient.id, title: `Antigo ${i}`, dueDate: new Date(Date.now() - (i + 2) * DAY),
+      })),
+    });
+    await prisma.reminder.create({
+      data: { ownerId: user.id, patientId: patient.id, title: 'Próximo', dueDate: new Date(Date.now() + 2 * DAY) },
+    });
+    const r = await api().get(`/api/reminders?patientId=${patient.id}`).set(H(token));
+    expect(r.status).toBe(200);
+    expect(r.body).toHaveLength(31);
+    expect(r.body.some((x: any) => x.title === 'Próximo')).toBe(true);
+  });
+
+  it('paginação explícita (react-admin) continua respeitada', async () => {
+    const { token, user, patient } = await createUser();
+    await prisma.reminder.createMany({
+      data: Array.from({ length: 12 }, (_, i) => ({
+        ownerId: user.id, patientId: patient.id, title: `L${i}`, dueDate: new Date(Date.now() + (i + 1) * DAY),
+      })),
+    });
+    const r = await api().get(`/api/reminders?patientId=${patient.id}&_start=0&_end=5`).set(H(token));
+    expect(r.body).toHaveLength(5);
+  });
+});

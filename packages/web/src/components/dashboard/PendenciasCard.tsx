@@ -43,6 +43,13 @@ const whenChip = (iso: string): { text: string; overdue: boolean } => {
 };
 
 const MAX_ROWS = 4;
+/** Vencido há mais que isto deixa de ser "pendência" na home: lembrete antigo nunca marcado
+ *  ficava para sempre no topo (do mais velho pro mais novo) e tomava as vagas do que vem pela
+ *  frente — falsa urgência (dono 24/11: "tem lembrete que já foi, aí queima"). Continua na
+ *  agenda, em "Atrasados". */
+const STALE_MS = 7 * 86_400_000;
+/** Teleconsulta aberta que já passou há mais que isto não é mais "próxima" (mesma janela da agenda). */
+const TELE_GRACE_MS = 2 * 60 * 60_000;
 
 export const PendenciasCard = () => {
   const [pid] = useSelectedPatient();
@@ -70,7 +77,7 @@ export const PendenciasCard = () => {
       const routine = (r: any) => !!r.recurrence; // remédio/rotina diária tem app próprio — não é "pendência"
 
       // 1. Próxima teleconsulta aberta (a mais próxima).
-      const teles = reminders.filter((r) => isTele(r) && isOpen(r))
+      const teles = reminders.filter((r) => isTele(r) && isOpen(r) && new Date(r.dueDate).getTime() >= now - TELE_GRACE_MS)
         .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
       const teleRows: Row[] = teles.slice(0, 2).map((r) => {
         const w = whenChip(r.dueDate);
@@ -87,10 +94,19 @@ export const PendenciasCard = () => {
 
       // 2. Lembretes vencidos (não-recorrentes) e próximos 7 dias.
       const pending = reminders.filter((r) => !isTele(r) && isOpen(r) && !routine(r) && r.dueDate);
-      const overdue = pending
-        .filter((r) => new Date(r.dueDate).getTime() < now)
-        .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-        .map<Row>((r) => ({ key: `od-${r.id}`, icon: <AlarmOnRoundedIcon fontSize="small" />, label: r.title || 'Lembrete', chip: whenChip(r.dueDate).text, tone: 'warning', to: '/lembretes' }));
+      // Só vencido RECENTE, do mais novo pro mais velho, e no máximo UMA linha (agregada se houver
+      // mais) — atrasado nunca ocupa a lista inteira no lugar do que ainda vai acontecer.
+      const overdueList = pending
+        .filter((r) => { const t = new Date(r.dueDate).getTime(); return t < now && t >= now - STALE_MS; })
+        .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+      const overdue: Row[] = overdueList.length === 0 ? [] : [{
+        key: `od-${overdueList[0].id}`,
+        icon: <AlarmOnRoundedIcon fontSize="small" />,
+        label: overdueList.length === 1 ? (overdueList[0].title || 'Lembrete') : `${overdueList.length} lembretes atrasados`,
+        chip: overdueList.length === 1 ? whenChip(overdueList[0].dueDate).text : 'ver agenda',
+        tone: 'warning',
+        to: '/lembretes',
+      }];
       const soon = pending
         .filter((r) => { const t = new Date(r.dueDate).getTime(); return t >= now && t < now + 7 * 86_400_000; })
         .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())

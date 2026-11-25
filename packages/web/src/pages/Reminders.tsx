@@ -83,12 +83,13 @@ const recurLabel = (v?: string | null) => RECUR.find((r) => r.v === v)?.l ?? nul
 // Consulta particular (23/10): centavos → "R$ X,XX" (pt-BR, sem módulo de moeda).
 const fmtBrl = (c: number) => (c / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const groupOf = (due: string): 'today' | 'week' | 'later' => {
+const groupOf = (due: string): 'today' | 'tomorrow' | 'week' | 'later' => {
   const d = new Date(due);
   const now = new Date();
   const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const ms = d.getTime();
   if (ms < startToday + 86400000) return 'today';
+  if (ms < startToday + 2 * 86400000) return 'tomorrow';
   if (ms < startToday + 7 * 86400000) return 'week';
   return 'later';
 };
@@ -130,7 +131,9 @@ export const RemindersPage = () => {
 
   const load = async () => {
     if (!pid) return;
-    const r = await fetch(`${API_URL}/reminders?patientId=${pid}`, { headers: { Authorization: `Bearer ${token()}` } });
+    // _end explícito: sem ele o servidor devolve só os 25 MAIS ANTIGOS (ordem dueDate asc) — quem
+    // tinha mais de 25 lembretes perdia justamente os PRÓXIMOS (bug achado no redesign do radar, 24/11).
+    const r = await fetch(`${API_URL}/reminders?patientId=${pid}&_start=0&_end=500`, { headers: { Authorization: `Bearer ${token()}` } });
     if (r.ok) setItems(await r.json());
   };
 
@@ -268,14 +271,27 @@ export const RemindersPage = () => {
     return due >= now.getTime() && due <= now.getTime() + 5 * 60 * 1000;
   });
 
-  const upcomingRoutine = routineList.filter((r) => new Date(r.dueDate) >= now).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-  const pastRoutine = routineList.filter((r) => new Date(r.dueDate) < now).sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+  // Agenda por SITUAÇÃO, não só por data (24/11): antes, tudo que já tinha passado caía em
+  // "Lembretes concluídos" mesmo SEM estar concluído — o atrasado ficava escondido como se
+  // estivesse feito. Agora: atrasado (passou e não foi feito) sobe pro topo; concluído = `done`.
+  const byDueAsc = (a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+  const byDueDesc = (a: any, b: any) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
+  const openRoutine = routineList.filter((r) => !r.done);
+  const overdueRoutine = openRoutine.filter((r) => new Date(r.dueDate) < now).sort(byDueDesc);
+  const upcomingRoutine = openRoutine.filter((r) => new Date(r.dueDate) >= now).sort(byDueAsc);
+  const doneRoutine = routineList.filter((r) => r.done).sort(byDueDesc);
 
   const groups = [
+    { key: 'overdue', label: 'Atrasados', list: overdueRoutine },
     { key: 'today', label: 'Hoje', list: upcomingRoutine.filter((r) => groupOf(r.dueDate) === 'today') },
+    { key: 'tomorrow', label: 'Amanhã', list: upcomingRoutine.filter((r) => groupOf(r.dueDate) === 'tomorrow') },
     { key: 'week', label: 'Próximos 7 dias', list: upcomingRoutine.filter((r) => groupOf(r.dueDate) === 'week') },
     { key: 'later', label: 'Depois', list: upcomingRoutine.filter((r) => groupOf(r.dueDate) === 'later') },
   ].filter((g) => g.list.length > 0);
+
+  // Remédios (inclui os lembretes de aplicação do Radar Hormonal): pendentes primeiro, na ordem
+  // em que vencem; tomados no fim. Antes vinham na ordem crua do servidor (mais antigo no topo).
+  const medicationsSorted = [...medications.filter((r) => !r.done).sort(byDueAsc), ...medications.filter((r) => r.done).sort(byDueDesc)];
 
   // Poll doctorInRoom (5s) — espelha o poll do Teleconsulta.tsx para o paciente
   // que está em OUTRA página: só teleconsultas não-done na janela da consulta
@@ -1594,7 +1610,7 @@ export const RemindersPage = () => {
             </Card>
           ) : (
             <Stack spacing={1.5} sx={{ mb: 3 }}>
-              {medications.map((r) => renderMedicationCard(r))}
+              {medicationsSorted.map((r) => renderMedicationCard(r))}
             </Stack>
           )}
         </Box>
@@ -1618,7 +1634,7 @@ export const RemindersPage = () => {
             </Button>
           </Stack>
 
-          {upcomingRoutine.length === 0 ? (
+          {groups.length === 0 ? (
             <Card variant="outlined" sx={{ borderRadius: '20px', mb: 3, borderStyle: 'dashed', textAlign: 'center', py: 4 }}>
               <CardContent>
                 <Box sx={{ fontSize: 44, mb: 1, opacity: 0.6 }}>📋</Box>
@@ -1641,7 +1657,7 @@ export const RemindersPage = () => {
               {groups.map((g) => (
                 <Box key={g.key}>
                   <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 1 }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary' }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em', color: g.key === 'overdue' ? 'error.main' : 'text.secondary' }}>
                       {g.label}
                     </Typography>
                     <Chip size="small" label={g.list.length} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
@@ -1655,19 +1671,19 @@ export const RemindersPage = () => {
             </Stack>
           )}
 
-          {pastRoutine.length > 0 && (
+          {doneRoutine.length > 0 && (
             <Accordion elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '16px !important', '&:before': { display: 'none' } }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <HistoryIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
                   <Typography sx={{ fontWeight: 800, fontSize: 14 }}>
-                    Lembretes concluídos ({pastRoutine.length})
+                    Lembretes concluídos ({doneRoutine.length})
                   </Typography>
                 </Stack>
               </AccordionSummary>
               <AccordionDetails sx={{ pt: 0 }}>
                 <Stack spacing={1}>
-                  {pastRoutine.map((r) => renderRoutineCard(r))}
+                  {doneRoutine.map((r) => renderRoutineCard(r))}
                 </Stack>
               </AccordionDetails>
             </Accordion>

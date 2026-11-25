@@ -39,8 +39,14 @@ router.use(requireAuth);
 router.get('/', async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
-    const { start, take } = parseListParams(req);
     const q = req.query as Record<string, string | undefined>;
+    // As telas do app (home, agenda, consultas, teleconsulta…) chamam /reminders SEM paginação.
+    // O default do parseListParams é 25 e a ordem é dueDate ASC → quem tinha mais de 25 lembretes
+    // recebia só os 25 MAIS ANTIGOS e perdia justamente os PRÓXIMOS, inclusive a próxima
+    // teleconsulta (24/11). Sem paginação explícita = lista inteira (teto de segurança 500).
+    // react-admin (manda _start/_end ou Range) segue paginando como antes.
+    const explicitPage = q._start != null || q._end != null || typeof req.headers['range'] === 'string';
+    const { start, take } = explicitPage ? parseListParams(req) : { start: 0, take: 500 };
     const where: any = { ownerId: req.userId, patientId: { in: pids } };
     if (q.patientId && pids.includes(q.patientId)) where.patientId = q.patientId;
     if (q.done !== undefined) where.done = q.done === 'true';
