@@ -1,0 +1,6 @@
+• Radar Hormonal: placar do dia no topo (última aplicação, próxima prevista e estimativa) e registro logo abaixo.
+• Agenda: nova aba "Hoje" reúne consultas, remédios e lembretes do dia.
+• Tela inicial: marque um lembrete como feito sem sair dela.
+• Chat mostra quando a resposta veio dos seus exames e deixa gerar outra.
+• Gráficos indicam de quando é o último resultado.
+• Menos janelas abrindo sozinhas ao entrar no app.
