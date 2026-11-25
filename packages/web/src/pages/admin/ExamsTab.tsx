@@ -174,6 +174,38 @@ const ViewFileButton = ({ exam, onClick }: { exam: ExamItemData; onClick: () => 
   </Tooltip>
 );
 
+/**
+ * Motivo da falha de extração. O texto vem do servidor e pode ser longo (mensagem do provedor de
+ * IA, caminho de arquivo, JSON sem espaços): quebra em qualquer ponto para nunca alargar o card e
+ * fica em 3 linhas, com "Ver tudo" — no celular a descrição inteira empurrava a lista para baixo.
+ */
+const FailureReasonText = ({ text, dense }: { text: string; dense?: boolean }) => {
+  const [open, setOpen] = useState(false);
+  const long = text.length > 140;
+  return (
+    <Box sx={{ minWidth: 0 }}>
+      <Typography
+        sx={{
+          fontSize: 12, color: 'error.main', fontWeight: dense ? 500 : 600, overflowWrap: 'anywhere', wordBreak: 'break-word',
+          ...(long && !open ? { display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' } : {}),
+        }}
+      >
+        ⚠️ {text}
+      </Typography>
+      {long ? (
+        <Button
+          size="small"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          sx={{ mt: 0.25, minHeight: 32, px: 0.5, fontSize: 12, fontWeight: 700, textTransform: 'none', color: 'error.main' }}
+        >
+          {open ? 'Ver menos' : 'Ver tudo'}
+        </Button>
+      ) : null}
+    </Box>
+  );
+};
+
 export const ExamsTab = () => {
   const [d, setD] = useState<{ exams: ExamItemData[]; byStatus: { status: string; _count: number }[]; recentFailed: any[] } | null>(null);
   const [err, setErr] = useState(false);
@@ -581,6 +613,17 @@ export const ExamsTab = () => {
               const isExpanded = !!expandedPatients[group.patientKey];
               const extractedCount = group.counts.EXTRACTED || 0;
               const failCount = group.counts.FAILED || 0;
+              // Etiquetas "N ok / N com falha": ao lado do nome a partir de sm; no celular, embaixo dele.
+              const statusBadges = (
+                <>
+                  {extractedCount > 0 && (
+                    <Chip size="small" color="success" label={`${extractedCount} ok`} sx={{ height: 22, fontSize: 12, fontWeight: 700 }} />
+                  )}
+                  {failCount > 0 && (
+                    <Chip size="small" color="error" label={`${failCount} com falha`} sx={{ height: 22, fontSize: 12, fontWeight: 800 }} />
+                  )}
+                </>
+              );
 
               return (
                 <Card
@@ -622,11 +665,11 @@ export const ExamsTab = () => {
 
                         <Box sx={{ minWidth: 0, flex: 1 }}>
                           <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
-                            <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>
+                            <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', minWidth: 0, overflowWrap: 'anywhere' }}>
                               {group.patientName}
                             </Typography>
                             {group.ownerEmail && (
-                              <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+                              <Typography sx={{ fontSize: 12, color: 'text.secondary', minWidth: 0, overflowWrap: 'anywhere' }}>
                                 ({group.ownerEmail})
                               </Typography>
                             )}
@@ -635,28 +678,16 @@ export const ExamsTab = () => {
                           <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>
                             Último envio: {new Date(group.latestDate).toLocaleDateString('pt-BR')} {new Date(group.latestDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} · {group.exams.length} exame(s)
                           </Typography>
+                          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', flexWrap: 'wrap', gap: 0.75, mt: 0.75 }}>{statusBadges}</Box>
                         </Box>
                       </Stack>
 
                       {/* Badges de Status do Paciente */}
                       <Stack direction="row" alignItems="center" spacing={1} sx={{ flexShrink: 0, ml: 1 }}>
-                        {extractedCount > 0 && (
-                          <Chip
-                            size="small"
-                            color="success"
-                            label={`${extractedCount} ok`}
-                            sx={{ height: 22, fontSize: 12, fontWeight: 700 }}
-                          />
-                        )}
-                        {failCount > 0 && (
-                          <Chip
-                            size="small"
-                            color="error"
-                            label={`${failCount} com falha`}
-                            sx={{ height: 22, fontSize: 12, fontWeight: 800 }}
-                          />
-                        )}
-                        <IconButton size="small" sx={{ color: 'text.secondary' }}>
+                        {/* No celular as etiquetas vão para baixo do nome (ver statusBadges acima):
+                            aqui ao lado elas espremiam o nome numa coluna de poucas letras. */}
+                        <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1 }}>{statusBadges}</Box>
+                        <IconButton size="small" aria-label={isExpanded ? 'Recolher exames' : 'Ver exames'} sx={{ color: 'text.secondary' }}>
                           {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                         </IconButton>
                       </Stack>
@@ -677,7 +708,10 @@ export const ExamsTab = () => {
                               borderColor: e.status === 'FAILED' ? 'rgba(239,68,68,0.3)' : 'divider',
                             }}
                           >
-                            <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
+                            {/* No celular as ações (até 3 botões que não encolhem) deixavam ~40px para o texto,
+                                que quebrava LETRA POR LETRA e virava uma coluna comprida (dono 25/11). Em xs:
+                                texto em cima ocupando a largura toda, ações embaixo; a partir de sm, lado a lado. */}
+                            <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'flex-start' }} justifyContent="space-between" spacing={1}>
                               <Box sx={{ flex: 1, minWidth: 0 }}>
                                 <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" sx={{ mb: 0.5 }}>
                                   <Chip
@@ -686,7 +720,7 @@ export const ExamsTab = () => {
                                     label={statusLabel(e.status)}
                                     sx={{ height: 20, fontSize: 12, fontWeight: 800 }}
                                   />
-                                  <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: 'text.primary' }}>
+                                  <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: 'text.primary', minWidth: 0, overflowWrap: 'anywhere' }}>
                                     {e.title || 'Sem título'}
                                   </Typography>
                                   <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
@@ -701,11 +735,9 @@ export const ExamsTab = () => {
                                 {/* Se houve erro na extração */}
                                 {e.status === 'FAILED' && (
                                   <Box sx={{ mt: 1, p: 1, borderRadius: '8px', bgcolor: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                                    <Typography sx={{ fontSize: 12, color: 'error.main', fontWeight: 600, wordBreak: 'break-word' }}>
-                                      ⚠️ {e.extractionError || 'Erro desconhecido durante o processamento do documento.'}
-                                    </Typography>
+                                    <FailureReasonText text={e.extractionError || 'Erro desconhecido durante o processamento do documento.'} />
                                     {e.rawExtraction?.adminReview && (
-                                      <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.5 }}>
+                                      <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.5, overflowWrap: 'anywhere' }}>
                                         🔍 Diagnóstico Salvo: <strong>{e.rawExtraction.adminReview.failureReason}</strong>
                                         {e.rawExtraction.adminReview.adminNotes ? ` — "${e.rawExtraction.adminReview.adminNotes}"` : ''}
                                       </Typography>
@@ -715,7 +747,7 @@ export const ExamsTab = () => {
                               </Box>
 
                               {/* Ações do Exame */}
-                              <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                              <Stack direction="row" sx={{ flexShrink: 0, flexWrap: 'wrap', gap: 0.75, '& .MuiButton-root': { height: { xs: 36, sm: 30 } } }}>
                                 {e.fileKind ? <ViewFileButton exam={e} onClick={() => setFileExam(e)} /> : null}
                                 {e.status === 'FAILED' && (
                                   <Button
@@ -821,9 +853,7 @@ export const ExamsTab = () => {
 
                 {e.extractionError && (
                   <Box sx={{ mt: 1, p: 0.75, borderRadius: '6px', bgcolor: 'rgba(239,68,68,0.06)' }}>
-                    <Typography variant="caption" sx={{ color: 'error.main', display: 'block' }}>
-                      ⚠️ {e.extractionError}
-                    </Typography>
+                    <FailureReasonText text={e.extractionError} dense />
                   </Box>
                 )}
               </CardContent>
