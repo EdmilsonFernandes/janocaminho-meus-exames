@@ -24,6 +24,16 @@ export interface RetestPlan {
   status: 'longe' | 'chegando' | 'chegou';
 }
 
+/** Laudos trazem o nome em MAIÚSCULAS ("COLESTEROL HDL"). No aviso vira "Colesterol HDL": siglas de
+ *  até 4 letras (HDL, TSH, TGO, CK) ficam como estão; o resto fica em minúsculas com a 1ª letra maiúscula. */
+const SMALL_WORDS = new Set(['DE', 'DA', 'DO', 'DAS', 'DOS', 'E', 'EM', 'NO', 'NA', 'POR', 'COM']);
+export function prettyMarker(name: string): string {
+  const t = name.trim().replace(/\s+/g, ' ');
+  if (!t || t !== t.toUpperCase()) return t; // já veio com caixa própria
+  const out = t.split(' ').map((w) => (w.length <= 4 && /^[A-Z0-9-]+$/.test(w) && !SMALL_WORDS.has(w) ? w : w.toLowerCase())).join(' ');
+  return out.charAt(0).toUpperCase() + out.slice(1);
+}
+
 function addMonths(d: Date, months: number): Date {
   const out = new Date(d.getTime());
   const day = out.getUTCDate();
@@ -37,7 +47,16 @@ export function planRetest(
   exam: { id: string; date: Date; abnormal: string[] },
   now: Date = new Date(),
 ): RetestPlan {
-  const markers = [...new Set(exam.abnormal.map((n) => n.trim()).filter(Boolean))].slice(0, 3);
+  const seen = new Set<string>();
+  const markers: string[] = [];
+  for (const n of exam.abnormal) {
+    const pretty = prettyMarker(n);
+    const key = pretty.toLowerCase();
+    if (!pretty || seen.has(key)) continue; // "COLESTEROL HDL" e "colesterol hdl" são o mesmo exame
+    seen.add(key);
+    markers.push(pretty);
+    if (markers.length === 3) break;
+  }
   const reason: RetestPlan['reason'] = markers.length ? 'alterado' : 'rotina';
   const months = reason === 'alterado' ? RETEST_MONTHS_ABNORMAL : RETEST_MONTHS_ROUTINE;
   const due = addMonths(exam.date, months);

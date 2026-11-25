@@ -310,6 +310,7 @@ model Patient {
   dailyLogs   DailyLog[]
   bodyCompositions BodyComposition[]
   hormoneDoses HormoneDose[]
+  hormoneProtocol HormoneProtocol?
   foodSummary  FoodSummary?
   vaccines     Vaccine[]
   expenses     Expense[]
@@ -2099,4 +2100,19 @@ model ScreenView {
   @@index([day])
   @@index([screen, day])
   @@map("screen_views")
+}
+
+// Protocolo do Radar Hormonal (25/11/26): o que a pessoa cadastrou (compostos, intervalo, data de
+// início). Antes vivia só no localStorage do aparelho → app e web mostravam protocolos diferentes.
+// É o cadastro DELA; o servidor só guarda e devolve — não calcula nem sugere esquema.
+model HormoneProtocol {
+  id        String   @id @default(cuid())
+  patientId String   @unique
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  ownerId   String
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@map("hormone_protocols")
 }

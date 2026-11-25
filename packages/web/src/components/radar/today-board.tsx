@@ -50,8 +50,11 @@ function Cell({ label, children, divided }: { label: string; children: React.Rea
 }
 
 export function TodayBoard({
-  now, loading, last, lastName, next, nextName, estimateMg, avgMg, estimateState, summed, onInformStart,
+  now, loading, last, lastName, next, nextName, estimateMg, avgMg, estimateState, summed, onInformStart, perCompound,
 }: {
+  /** Com 2+ compostos: última e próxima prevista de CADA um (o resumo de cima mostra só o mais recente
+   *  e o mais próximo — sem esta lista, o outro composto some do placar). */
+  perCompound?: Array<{ name: string; last: number | null; next: number | null; lateDays: number }>;
   now: number;
   /** Ainda buscando os registros. */
   loading: boolean;
@@ -120,6 +123,27 @@ export function TodayBoard({
           )}
         </Cell>
       </dl>
+
+      {!loading && perCompound && perCompound.length > 1 ? (
+        <div className="flex flex-col" data-board-per-compound>
+          <div className="mb-1 text-xs font-medium text-muted-foreground">Por composto</div>
+          <ul className="m-0 flex list-none flex-col p-0">
+            {perCompound.map((c, i) => (
+              <li key={c.name} className={cn('grid grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,1fr)] items-baseline gap-x-2 py-1.5', i > 0 && 'border-0 border-t border-solid border-border')}>
+                <span className="truncate text-sm font-semibold text-foreground">{c.name}</span>
+                <span className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
+                  <span className="sr-only">Última aplicação: </span>
+                  {c.last == null ? 'sem registro' : `${cap(lastDoseLabel(c.last, now))} · ${dateLabel(c.last)}`}
+                </span>
+                <span className={cn('text-xs [overflow-wrap:anywhere]', c.lateDays > 0 ? 'font-medium text-warning-foreground dark:text-warning' : 'text-muted-foreground')}>
+                  <span className="sr-only">Próxima prevista: </span>
+                  {c.next == null ? 'depois do 1º registro' : `${cap(nextDoseLabel(c.next, now))} · ${dateLabel(c.next)}`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       {estimateState === 'sem-inicio' ? (
         <Button variant="outline" size="lg" className="h-11 w-full px-3" onClick={onInformStart}>

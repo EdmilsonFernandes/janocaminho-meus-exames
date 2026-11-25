@@ -12,7 +12,7 @@
  * Educativo: mostra tendência e o que costuma mexer em quais exames. Não sugere dose,
  * não diagnostica — quem ajusta protocolo é o médico.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotify } from 'react-admin';
 import {
@@ -45,7 +45,7 @@ import { ProtocolItem } from '@/components/radar/protocol-item';
 import { RadarChart, radarDash } from '@/components/radar/radar-chart';
 import { TodayBoard } from '@/components/radar/today-board';
 import {
-  RADAR_FAMILIES, RADAR_FREQUENCIES, calibrationRange, compoundById, computeRadarSeries, computeRadarStats, doctorQuestions, doseBoard, examAlerts, familyTotal, findMarker, getDoseMg,
+  RADAR_FAMILIES, RADAR_FREQUENCIES, calibrationRange, compoundById, computeRadarSeries, computeRadarStats, doctorQuestions, doseBoard, doseBoardRows, examAlerts, familyTotal, findMarker, getDoseMg,
   markersForProtocol, nextComparableDraws, positionInSwing, staleMarkers, type EvolutionRow, type LoggedDose, type RadarProtocolItem,
 } from '@/utils/hormoneRadar';
 
@@ -77,7 +77,12 @@ interface Saved {
   weeks: number;
   startDate: string;
   variationPct: number;
+  /** Quando ESTE aparelho alterou o protocolo pela última vez (ms). Ausente = salvo antes da sincronização. */
+  savedAt?: number;
 }
+/** Só o conteúdo (sem savedAt), para comparar aparelho × conta. */
+const contentOf = (x: Pick<Saved, 'protocol' | 'weeks' | 'startDate' | 'variationPct'>) =>
+  JSON.stringify({ protocol: x.protocol, weeks: x.weeks, startDate: x.startDate, variationPct: x.variationPct });
 
 const DEFAULT_PROTOCOL: RadarProtocolItem[] = [
   { uid: '1', compoundId: 'test_cyp', unit: 'ml', amount: 1, conc: 200, freqDays: 7, startWeek: 1, endWeek: 12 },
@@ -139,21 +144,98 @@ export default function RadarHormonal() {
   /** "Ajustar meu protocolo": recolhido só para quem JÁ tem protocolo salvo; na 1ª vez abre (senão não dá para saber de onde vêm os números). */
   const [configOpen, setConfigOpen] = useState(() => !loadSaved(pid));
 
-  // Protocolo fica salvo no aparelho, por paciente (a 1ª versão perdia tudo ao sair da tela).
+  // Protocolo: salvo no aparelho (abre na hora, funciona sem rede) E na conta (25/11/26 — antes só
+  // no aparelho: o que se montava no app não aparecia na web). Regras de quem vence:
+  //  · conta vazia → o deste aparelho sobe;
+  //  · aparelho sem nada → adota o da conta;
+  //  · os dois têm e são diferentes → vence o mais recente; se o deste aparelho é de ANTES da
+  //    sincronização (sem data), NÃO decide sozinho: pergunta qual manter (remoteOffer).
+  const pushedRef = useRef(''); // conteúdo que a conta já tem
+  const loadContentRef = useRef(''); // conteúdo logo após carregar (para saber se a pessoa mexeu)
+  const hadSavedRef = useRef(false);
+  const [syncKey, setSyncKey] = useState<string | null>(null); // chave liberada para enviar à conta
+  const [remoteOffer, setRemoteOffer] = useState<{ data: Saved; at: number } | null>(null);
+  const applySaved = (x: Saved) => {
+    setProtocol(x.protocol);
+    setWeeks(x.weeks && WEEK_OPTIONS.includes(x.weeks) ? x.weeks : 12);
+    setStartDate(x.startDate ?? '');
+    setVariationPct(x.variationPct ?? 0);
+  };
   useEffect(() => {
     const saved = loadSaved(pid);
-    setProtocol(saved?.protocol ?? DEFAULT_PROTOCOL);
-    setWeeks(saved?.weeks && WEEK_OPTIONS.includes(saved.weeks) ? saved.weeks : 12);
-    setStartDate(saved?.startDate ?? '');
-    setVariationPct(saved?.variationPct ?? 0);
+    const initial: Saved = { protocol: saved?.protocol ?? DEFAULT_PROTOCOL, weeks: saved?.weeks && WEEK_OPTIONS.includes(saved.weeks) ? saved.weeks : 12, startDate: saved?.startDate ?? '', variationPct: saved?.variationPct ?? 0 };
+    applySaved(initial);
     setHidden(new Set());
     setConfigOpen(!saved);
     setLoadedKey(storageKey(pid));
-  }, [pid]);
+    setRemoteOffer(null);
+    setSyncKey(null);
+    pushedRef.current = '';
+    loadContentRef.current = contentOf(initial);
+    hadSavedRef.current = !!saved;
+    if (!pid) return;
+    let alive = true;
+    fetch(`${API_URL}/hormone-doses/protocol?patientId=${encodeURIComponent(pid)}`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((d: { data: Saved | null; updatedAt: string | null }) => {
+        if (!alive) return;
+        const remote = d.data && Array.isArray(d.data.protocol) && d.data.protocol.length ? d.data : null;
+        const remoteAt = d.updatedAt ? new Date(d.updatedAt).getTime() : 0;
+        if (remote) {
+          const same = contentOf(remote) === contentOf(initial);
+          if (same) pushedRef.current = contentOf(remote);
+          else if (!saved || (saved.savedAt != null && remoteAt > saved.savedAt)) {
+            pushedRef.current = contentOf(remote);
+            applySaved(remote);
+            setConfigOpen(false);
+          } else if (saved.savedAt == null) {
+            setRemoteOffer({ data: remote, at: remoteAt }); // aparelho antigo × conta: a pessoa escolhe
+            return; // não libera o envio até ela decidir
+          }
+        }
+        setSyncKey(storageKey(pid));
+      })
+      .catch(() => { /* sem rede ou servidor antigo: segue só com o do aparelho, sem enviar */ });
+    return () => { alive = false; };
+  }, [pid]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (loadedKey !== storageKey(pid)) return;
-    try { localStorage.setItem(loadedKey, JSON.stringify({ protocol, weeks, startDate, variationPct } satisfies Saved)); } catch { /* cota cheia: segue sem salvar */ }
-  }, [protocol, weeks, startDate, variationPct, pid, loadedKey]);
+    const current = { protocol, weeks, startDate, variationPct };
+    const content = contentOf(current);
+    try {
+      const raw = localStorage.getItem(loadedKey);
+      const stored = raw ? (JSON.parse(raw) as Saved) : null;
+      // savedAt só anda quando o CONTEÚDO muda (abrir a tela não pode fazer este aparelho parecer "o mais recente")
+      if (!stored || !Array.isArray(stored.protocol) || contentOf(stored) !== content) {
+        localStorage.setItem(loadedKey, JSON.stringify({ ...current, savedAt: Date.now() } satisfies Saved));
+      }
+    } catch { /* cota cheia: segue sem salvar */ }
+    // Envia à conta: só com a chave liberada, se mudou em relação ao que a conta tem, e nunca o
+    // protocolo-padrão intocado de quem só abriu a tela.
+    if (!pid || syncKey !== loadedKey || content === pushedRef.current) return;
+    if (!hadSavedRef.current && content === loadContentRef.current) return;
+    const t = setTimeout(() => {
+      fetch(`${API_URL}/hormone-doses/protocol`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({ patientId: pid, data: current }),
+      }).then((r) => { if (r.ok) pushedRef.current = content; }).catch(() => { /* tenta de novo na próxima mudança */ });
+    }, 800);
+    return () => clearTimeout(t);
+  }, [protocol, weeks, startDate, variationPct, pid, loadedKey, syncKey]);
+  /** Resposta ao aviso "há outro protocolo na sua conta". */
+  const resolveOffer = (useAccount: boolean) => {
+    if (!remoteOffer) return;
+    if (useAccount) {
+      pushedRef.current = contentOf(remoteOffer.data);
+      applySaved(remoteOffer.data);
+      setConfigOpen(false);
+    } else {
+      hadSavedRef.current = true; // manter o deste aparelho = enviar para a conta
+    }
+    setRemoteOffer(null);
+    setSyncKey(storageKey(pid));
+  };
 
   // Exames reais do paciente (último valor de cada analito, com a faixa do próprio laudo).
   useEffect(() => {
@@ -383,6 +465,11 @@ export default function RadarHormonal() {
     boardNow,
   );
   const boardMulti = boardItems.length > 1;
+  // Uma linha por composto (dono 25/11: Durateston + Masteron mostrava só um no topo).
+  const boardRows = doseBoardRows(
+    boardItems.map((p) => ({ name: compoundById(p.compoundId).short, freqDays: p.freqDays, takenAtMs: doses.filter((d) => d.compoundId === p.compoundId).map((d) => new Date(d.takenAt).getTime()) })),
+    boardNow,
+  );
   const boardLastName = boardMulti && board.lastIndex >= 0 ? compoundById(boardItems[board.lastIndex].compoundId).short : null;
   const boardNextName = boardMulti && board.nextIndex >= 0 ? compoundById(boardItems[board.nextIndex].compoundId).short : null;
   // Estimativa de HOJE: o mesmo ponto da linha "hoje" do gráfico. Sem data de início não existe "hoje" na curva.
@@ -445,6 +532,27 @@ export default function RadarHormonal() {
       />
 
       <div className="dx-island flex flex-col gap-4 [&_button]:font-[inherit]">
+        {/* Aparelho × conta com protocolos diferentes: a pessoa escolhe (nunca sobrescreve em silêncio). */}
+        {remoteOffer ? (
+          <Frame>
+            <FramePanel className="flex flex-col gap-3" data-radar-offer>
+              <div className="flex flex-col gap-1">
+                <h2 className="m-0 text-sm font-semibold text-foreground">Há outro protocolo salvo na sua conta</h2>
+                <p className="m-0 text-sm text-muted-foreground">
+                  Na conta: <strong className="font-semibold text-foreground">{remoteOffer.data.protocol.map((p) => compoundById(p.compoundId).short).join(' + ')}</strong>
+                  {remoteOffer.at ? ` (salvo em ${shortDate(new Date(remoteOffer.at))})` : ''}. Neste aparelho:{' '}
+                  <strong className="font-semibold text-foreground">{protocol.map((p) => compoundById(p.compoundId).short).join(' + ')}</strong>. Qual você quer usar?
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button size="lg" className="h-11 px-4" onClick={() => resolveOffer(true)}>Usar o da conta</Button>
+                <Button variant="outline" size="lg" className="h-11 px-4" onClick={() => resolveOffer(false)}>Manter o deste aparelho</Button>
+              </div>
+              <p className="m-0 text-xs text-muted-foreground">O que você escolher passa a valer no app e na web.</p>
+            </FramePanel>
+          </Frame>
+        ) : null}
+
         {/* ───────── Placar de hoje: três números antes de qualquer texto ───────── */}
         <Frame>
           <TodayBoard
@@ -455,6 +563,7 @@ export default function RadarHormonal() {
             estimateMg={estimateToday} avgMg={stats.avgDailyMg}
             estimateState={!startDate ? 'sem-inicio' : estimateToday == null ? 'fora-do-periodo' : 'ok'}
             summed={series.seriesPerItem.length > 1}
+            perCompound={boardRows}
             onInformStart={informStart}
           />
         </Frame>

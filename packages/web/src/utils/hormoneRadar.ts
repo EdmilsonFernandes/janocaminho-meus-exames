@@ -507,6 +507,21 @@ export function doseBoard(
   return { last, lastIndex, next, nextIndex, lateDays: next == null ? 0 : Math.max(0, -calendarDayDiff(next, now)) };
 }
 
+/**
+ * Placar POR COMPOSTO (dono 25/11: com Durateston + Masteron o topo mostrava só um — o resumo
+ * escondia o outro). Uma linha por composto, na ordem do protocolo: última registrada, próxima
+ * prevista pelo intervalo DAQUELE composto e quantos dias de calendário passou da data.
+ */
+export function doseBoardRows(
+  entries: Array<{ name: string; freqDays: number; takenAtMs: number[] }>,
+  now = Date.now(),
+): Array<{ name: string; last: number | null; next: number | null; lateDays: number }> {
+  return entries.map((e) => {
+    const st = doseStatus(e.freqDays, e.takenAtMs, now);
+    return { name: e.name, last: st.last, next: st.next, lateDays: st.next == null ? 0 : Math.max(0, -calendarDayDiff(st.next, now)) };
+  });
+}
+
 /** Título do lembrete de aplicação de um composto (o mesmo ao criar e ao procurar). */
 export const doseReminderTitle = (compoundShort: string): string => `Aplicação: ${compoundShort}`;
 

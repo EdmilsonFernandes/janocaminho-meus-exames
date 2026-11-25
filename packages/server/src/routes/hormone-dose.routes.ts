@@ -28,6 +28,61 @@ async function resolvePatient(req: AuthedRequest, raw: unknown): Promise<string 
   return pids[0] ?? null;
 }
 
+// ── Protocolo cadastrado pela pessoa (25/11/26) ─────────────────────────────────────────────────
+// Antes ficava só no localStorage do aparelho: o que se montava no app não aparecia na web.
+// O servidor só GUARDA e DEVOLVE o cadastro dela — não calcula, não sugere esquema.
+const MAX_PROTOCOL_ITEMS = 12;
+const num = (v: unknown, min: number, max: number): number | null => {
+  const n = Number(v);
+  return Number.isFinite(n) && n >= min && n <= max ? n : null;
+};
+
+/** Valida e normaliza o protocolo vindo do app. null = formato inválido. */
+export function cleanProtocol(raw: unknown): { protocol: unknown[]; weeks: number; startDate: string; variationPct: number } | null {
+  const b = raw as { protocol?: unknown; weeks?: unknown; startDate?: unknown; variationPct?: unknown } | null;
+  if (!b || !Array.isArray(b.protocol) || b.protocol.length < 1 || b.protocol.length > MAX_PROTOCOL_ITEMS) return null;
+  const items: unknown[] = [];
+  for (const it of b.protocol as Array<Record<string, unknown>>) {
+    const compoundId = String(it?.compoundId ?? '');
+    if (!Object.prototype.hasOwnProperty.call(COMPOUND_CATALOG, compoundId)) return null;
+    const unit = it.unit === 'mg' ? 'mg' : it.unit === 'ml' ? 'ml' : null;
+    const amount = num(it.amount, 0, 5000);
+    const conc = num(it.conc, 0, 5000);
+    const freqDays = num(it.freqDays, 0.5, 365);
+    const startWeek = num(it.startWeek, 1, 104);
+    const endWeek = num(it.endWeek, 1, 104);
+    if (!unit || amount == null || conc == null || freqDays == null || startWeek == null || endWeek == null) return null;
+    items.push({ uid: String(it.uid ?? items.length + 1).slice(0, 40), compoundId, unit, amount, conc, freqDays, startWeek, endWeek });
+  }
+  const startDate = typeof b.startDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(b.startDate) ? b.startDate : '';
+  return { protocol: items, weeks: num(b.weeks, 1, 104) ?? 12, startDate, variationPct: num(b.variationPct, 0, 100) ?? 0 };
+}
+
+router.get('/protocol', async (req: AuthedRequest, res, next) => {
+  try {
+    const pid = await resolvePatient(req, req.query.patientId);
+    if (!pid) { res.status(404).json({ error: 'Paciente não encontrado.' }); return; }
+    const row = await prisma.hormoneProtocol.findUnique({ where: { patientId: pid }, select: { data: true, updatedAt: true } });
+    res.json({ patientId: pid, data: row?.data ?? null, updatedAt: row?.updatedAt ?? null });
+  } catch (e) { next(e); }
+});
+
+router.put('/protocol', async (req: AuthedRequest, res, next) => {
+  try {
+    const pid = await resolvePatient(req, req.body?.patientId);
+    if (!pid) { res.status(404).json({ error: 'Paciente não encontrado.' }); return; }
+    const data = cleanProtocol(req.body?.data);
+    if (!data) { res.status(400).json({ error: 'Protocolo inválido.' }); return; }
+    const row = await prisma.hormoneProtocol.upsert({
+      where: { patientId: pid },
+      create: { patientId: pid, ownerId: req.userId!, data: data as object },
+      update: { data: data as object },
+      select: { updatedAt: true },
+    });
+    res.json({ patientId: pid, data, updatedAt: row.updatedAt });
+  } catch (e) { next(e); }
+});
+
 router.get('/', async (req: AuthedRequest, res, next) => {
   try {
     const pid = await resolvePatient(req, req.query.patientId);

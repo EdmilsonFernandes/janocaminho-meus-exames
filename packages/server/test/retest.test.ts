@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { prisma } from '../src/prisma';
 import { createUser, createExam, createItem, api, authHeader, resetDb } from './helpers';
-import { planRetest, retestMessage } from '../src/analysis/retest';
+import { planRetest, retestMessage, prettyMarker } from '../src/analysis/retest';
 import { runRetestReminders } from '../src/jobs/retestReminder';
 
 const day = 86400000;
@@ -48,6 +48,22 @@ describe('planRetest — prazo por exame', () => {
     expect(um.body).toContain('TSH saiu da faixa');
     const rotina = retestMessage('João', planRetest({ id: 'e2', date: new Date('2025-11-20T12:00:00Z'), abnormal: [] }, now));
     expect(rotina.title).toBe('João, faz 1 ano do seu último exame');
+  });
+});
+
+describe('prettyMarker — nome do laudo em maiúsculas vira texto legível', () => {
+  it('mantém siglas, baixa o resto e não mexe no que já tem caixa própria', () => {
+    expect(prettyMarker('COLESTEROL HDL')).toBe('Colesterol HDL');
+    expect(prettyMarker('HEMATOCRITO')).toBe('Hematocrito');
+    expect(prettyMarker('TSH')).toBe('TSH');
+    expect(prettyMarker('VITAMINA D 25 OH')).toBe('Vitamina D 25 OH');
+    expect(prettyMarker('HEMOGLOBINA GLICADA  DE ROTINA')).toBe('Hemoglobina glicada de rotina');
+    expect(prettyMarker('Colesterol LDL')).toBe('Colesterol LDL');
+    expect(prettyMarker('  ')).toBe('');
+  });
+  it('o plano já sai com os nomes legíveis e sem repetir o mesmo exame', () => {
+    const p = planRetest({ id: 'e', date: new Date('2026-08-25T12:00:00Z'), abnormal: ['HEMATOCRITO', 'COLESTEROL HDL', 'colesterol hdl', 'TSH'] }, new Date('2026-11-25T12:00:00Z'));
+    expect(p.markers).toEqual(['Hematocrito', 'Colesterol HDL', 'TSH']);
   });
 });
 

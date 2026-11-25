@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { calendarDayDiff, doseBoard, doseReminderTitle, lastDoseLabel, nextDoseLabel, pickDoseReminder, reminderDueAt } from './hormoneRadar';
+import { calendarDayDiff, doseBoard, doseBoardRows, doseReminderTitle, lastDoseLabel, nextDoseLabel, pickDoseReminder, reminderDueAt } from './hormoneRadar';
 
 // Datas em hora LOCAL (construtor de componentes), para o teste não depender do fuso da máquina.
 const at = (day: number, hour = 12, minute = 0) => new Date(2026, 10, day, hour, minute).getTime();
@@ -77,5 +77,32 @@ describe('lembrete que acompanha o registro', () => {
     expect(pickDoseReminder(list, title, 'p3')).toBeNull();
     expect(pickDoseReminder(list, title, null)).toBeNull();
     expect(pickDoseReminder([], title, 'p1')).toBeNull();
+  });
+});
+
+describe('doseBoardRows — uma linha por composto (Durateston + Masteron)', () => {
+  const now = new Date(2026, 10, 25, 12, 0, 0).getTime();
+  const d = (daysAgo: number) => now - daysAgo * 86_400_000;
+
+  it('cada composto tem a SUA última aplicação e a SUA próxima prevista, na ordem do protocolo', () => {
+    const rows = doseBoardRows([
+      { name: 'Durateston', freqDays: 7, takenAtMs: [d(10), d(3)] },
+      { name: 'Masteron', freqDays: 3.5, takenAtMs: [d(1)] },
+    ], now);
+    expect(rows.map((r) => r.name)).toEqual(['Durateston', 'Masteron']);
+    expect(rows[0].last).toBe(d(3));
+    expect(rows[0].next).toBe(d(3) + 7 * 86_400_000);
+    expect(rows[0].lateDays).toBe(0);
+    expect(rows[1].last).toBe(d(1));
+    expect(rows[1].next).toBe(d(1) + 3.5 * 86_400_000);
+  });
+
+  it('composto sem registro aparece vazio; composto com a data passada mostra os dias de atraso', () => {
+    const rows = doseBoardRows([
+      { name: 'Durateston', freqDays: 7, takenAtMs: [d(10)] },
+      { name: 'Masteron', freqDays: 7, takenAtMs: [] },
+    ], now);
+    expect(rows[0].lateDays).toBe(3);
+    expect(rows[1]).toEqual({ name: 'Masteron', last: null, next: null, lateDays: 0 });
   });
 });

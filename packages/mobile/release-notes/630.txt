@@ -1,0 +1,5 @@
+• Radar Hormonal: última e próxima aplicação de cada composto, e o mesmo protocolo no app e na web.
+• Tela inicial mais limpa, com aviso de quando rever um exame.
+• Depois de enviar um exame, o app já abre o resultado dele.
+• Mostra há quanto tempo foi o seu último exame.
+• Textos maiores e botões mais fáceis de tocar.

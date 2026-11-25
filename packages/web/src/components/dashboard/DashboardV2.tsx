@@ -18,6 +18,7 @@ import { FailedExamsAlert } from './FailedExamsAlert';
 import { RejectedExamsAlert } from './RejectedExamsAlert';
 import { NextStepsCard } from './NextStepsCard';
 import { PendenciasCard } from './PendenciasCard';
+import { NextExamCard } from './NextExamCard';
 import { AiCard } from './AiCard';
 import { AiTip } from './AiTip';
 import { speakText, stopSpeakText } from '../../utils/nativeDoc';
@@ -1620,6 +1621,13 @@ const DashboardV2Inner = () => {
       {!demo && d.processing && d.processing.count > 0 && (
         <ProcessingStrip count={d.processing.count} oldestAt={d.processing.oldestAt} onClick={() => navigate('/exams')} />
       )}
+
+      {/* PRÓXIMO EXAME (25/11/26) — só aparece com o prazo chegando (≤30 dias) ou já chegou;
+          fora disso resolve para nada. É o chamado natural para voltar ao app.
+          Quando o herói já avisa que os exames estão antigos (homeExamRecency.due, 180 dias),
+          este card NÃO aparece: um assunto, um aviso. Na prática ele cobre a janela anterior —
+          exame com valor fora da faixa entre ~2 e 6 meses. */}
+      {!demo && !homeExamRecency(d.lastExam).due && <NextExamCard />}
 
       {/* MODO EXEMPLO — banner sempre visível: dado fictício nunca pode passar por seu. */}
       {demo && (
