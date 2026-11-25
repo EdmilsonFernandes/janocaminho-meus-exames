@@ -71,6 +71,7 @@ model User {
   deviceClaims DeviceClaim[] @relation("DeviceClaims")
   achievementGrants AchievementGrant[]
   creditTransactions CreditTransaction[]
+  screenViews ScreenView[]
   quizParticipations QuizParticipation[]
   acceptedInvites PatientInvite[]
   apiKeys      ApiKey[]
@@ -2079,4 +2080,23 @@ model FoodSummary {
   updatedAt DateTime @updatedAt
 
   @@map("food_summaries")
+}
+
+// Medidor de telas (25/11/26): UMA linha por conta+tela+dia, com o total de aberturas no dia.
+// `screen` é só o caminho da rota com ids trocados por ":id" — nunca dado clínico.
+model ScreenView {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  screen   String
+  day      String   // YYYY-MM-DD no fuso de São Paulo
+  views    Int      @default(1)
+  platform String?  // android | ios | web
+  firstAt  DateTime @default(now())
+  lastAt   DateTime @default(now())
+
+  @@unique([userId, screen, day])
+  @@index([day])
+  @@index([screen, day])
+  @@map("screen_views")
 }

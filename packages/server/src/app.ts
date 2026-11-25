@@ -33,6 +33,7 @@ import asaasWebhookRoutes from './routes/asaas-webhook.routes';
 import labsRoutes from './routes/labs.routes';
 import measurementRoutes from './routes/measurement.routes';
 import dailyLogRoutes from './routes/daily-log.routes';
+import usageRoutes from './routes/usage.routes';
 import bodyCompositionRoutes from './routes/body-composition.routes';
 import hormoneDoseRoutes from './routes/hormone-dose.routes';
 import { getPublicCompoundExplanation } from './analysis/compound-explain';
@@ -437,6 +438,7 @@ app.use('/api/webhooks', asaasWebhookRoutes);
 app.use('/api/labs', labsRoutes);
 app.use('/api/measurements', measurementRoutes);
 app.use('/api/daily-logs', dailyLogRoutes);
+app.use('/api/usage', usageRoutes); // medidor de telas (painel Adoção do admin)
 app.use('/api/emergency', emergencyRouter);
 app.use('/api/body-composition', bodyCompositionRoutes);
 app.use('/api/hormone-doses', hormoneDoseRoutes);

@@ -1,0 +1,2 @@
+• Ajustes de estabilidade e desempenho.
+• Correção na conexão com a inteligência artificial para resumos e análises.

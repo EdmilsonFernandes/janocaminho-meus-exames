@@ -52,6 +52,7 @@ import { DrExame } from './components/DrExame';
 import { MascotPulse } from './components/MascotPulse';
 import { dataProvider } from './dataProvider';
 import { API_URL, token, photoUrlFor } from './config';
+import { trackScreen } from './utils/screenTracker';
 import { authProvider } from './authProvider';
 import { useUpcomingTeleconsulta } from './hooks/useUpcomingTeleconsulta';
 import { openTelemedicinaRoom } from './utils/telemedicina';
@@ -1533,6 +1534,10 @@ const AppLayout = (props: any) => {
   // e o menu lateral sumia (5ª vez). Força aberta no desktop; no mobile o menu é o AppDrawer (☰), não esta Sidebar.
   const [sidebarOpen, setSidebarOpen] = useSidebarState();
   useEffect(() => { if (isDesktop && !sidebarOpen) setSidebarOpen(true); }, [isDesktop]); // eslint-disable-line react-hooks/exhaustive-deps
+  // MEDIDOR DE TELAS (25/11): conta a tela aberta a cada troca de rota — só o caminho, ids viram ":id".
+  // Hook ANTES do return do guard abaixo (regra de hooks); sem token o trackScreen não faz nada.
+  const { pathname: trackedPath } = useLocation();
+  useEffect(() => { trackScreen(trackedPath); }, [trackedPath]);
   // GUARD (bug do dono: deslogado entrava na área do usuário e via telas vazias): sem token,
   // nenhuma tela autenticada renderiza — vai pro login (que volta pro destino via dxAfterLogin).
   // Rotas públicas vivem no CustomRoutes noLayout (fora deste shell).

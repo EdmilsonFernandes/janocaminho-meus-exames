@@ -16,6 +16,7 @@ import { API_URL, token } from '../../config';
 import '../../doctor-v2/tw.css';
 import { ListEmpty } from '@/components/reui/list-empty';
 import { tealText } from '../../theme';
+import { ScreenUsagePanel } from './ScreenUsagePanel';
 
 type Category = 'clinico' | 'ia' | 'rotina' | 'conta';
 interface RecentUser { email: string; name: string; at: string | null }
@@ -269,6 +270,13 @@ export const UsabilityTab = () => {
           Exportar Relatório CSV
         </Button>
       </Box>
+
+      {/* TELAS ABERTAS (25/11) — o que as pessoas ABREM; o resto desta aba mostra o que elas GRAVAM. */}
+      <Card variant="outlined" sx={{ borderRadius: '16px' }}>
+        <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+          <ScreenUsagePanel />
+        </CardContent>
+      </Card>
 
       {/* FUNIL DE ATIVAÇÃO */}
       <Card variant="outlined" sx={{ borderRadius: '16px' }}>

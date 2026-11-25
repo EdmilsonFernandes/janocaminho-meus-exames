@@ -807,6 +807,60 @@ router.get('/feature-usage', async (_req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// MEDIDOR DE TELAS (25/11/26) — quais telas as contas reais abrem. Fonte: screen_views (uma linha por
+// conta+tela+dia). ?days=7|30|90. Tabela ausente/sem dado → resposta vazia, nunca 500.
+router.get('/screen-usage', async (req, res, next) => {
+  try {
+    const days = [7, 30, 90].includes(Number(req.query.days)) ? Number(req.query.days) : 30;
+    const fmtDay = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(d);
+    const today = new Date();
+    const since = fmtDay(new Date(today.getTime() - (days - 1) * 86400000));
+    const since7 = fmtDay(new Date(today.getTime() - 6 * 86400000));
+    const REAL = Prisma.sql`u."role" = 'OWNER' AND COALESCE(u."isTest", false) = false`;
+    type ScreenRow = { screen: string; users: number; users7: number; views: number; lastDay: string; android: number; web: number };
+    type DayRow = { day: string; users: number; views: number };
+    const empty = { screens: [] as ScreenRow[], daily: [] as DayRow[], tot: [{ users: 0, views: 0 }], first: [{ day: null as string | null }] };
+    const data = await Promise.all([
+      prisma.$queryRaw<ScreenRow[]>`
+        SELECT s."screen",
+               COUNT(DISTINCT s."userId")::int AS users,
+               COUNT(DISTINCT s."userId") FILTER (WHERE s."day" >= ${since7})::int AS users7,
+               SUM(s."views")::int AS views,
+               MAX(s."day") AS "lastDay",
+               COUNT(DISTINCT s."userId") FILTER (WHERE s."platform" = 'android')::int AS android,
+               COUNT(DISTINCT s."userId") FILTER (WHERE s."platform" = 'web')::int AS web
+        FROM screen_views s JOIN users u ON u.id = s."userId"
+        WHERE ${REAL} AND s."day" >= ${since}
+        GROUP BY s."screen" ORDER BY users DESC, views DESC LIMIT 200`,
+      prisma.$queryRaw<DayRow[]>`
+        SELECT s."day", COUNT(DISTINCT s."userId")::int AS users, SUM(s."views")::int AS views
+        FROM screen_views s JOIN users u ON u.id = s."userId"
+        WHERE ${REAL} AND s."day" >= ${since}
+        GROUP BY s."day" ORDER BY s."day"`,
+      prisma.$queryRaw<{ users: number; views: number }[]>`
+        SELECT COUNT(DISTINCT s."userId")::int AS users, COALESCE(SUM(s."views"), 0)::int AS views
+        FROM screen_views s JOIN users u ON u.id = s."userId"
+        WHERE ${REAL} AND s."day" >= ${since}`,
+      prisma.$queryRaw<{ day: string | null }[]>`SELECT MIN("day") AS day FROM screen_views`,
+    ]).then(([screens, daily, tot, first]) => ({ screens, daily, tot, first })).catch(() => empty);
+
+    // série contínua: dia sem abertura aparece como zero (senão o gráfico "pula" dias)
+    const byDay = new Map(data.daily.map((d) => [d.day, d]));
+    const daily: DayRow[] = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const day = fmtDay(new Date(today.getTime() - i * 86400000));
+      daily.push({ day, users: Number(byDay.get(day)?.users ?? 0), views: Number(byDay.get(day)?.views ?? 0) });
+    }
+    res.json({
+      days, since,
+      trackingSince: data.first[0]?.day ?? null,
+      totals: { users: Number(data.tot[0]?.users ?? 0), views: Number(data.tot[0]?.views ?? 0), screens: data.screens.length },
+      daily,
+      screens: data.screens.map((s) => ({ ...s, users: Number(s.users), users7: Number(s.users7), views: Number(s.views), android: Number(s.android), web: Number(s.web) })),
+    });
+  } catch (e) { next(e); }
+});
+
 // PRESENÇA LEVE (19/11) — só os contadores p/ o chip "🟢 N online" do topbar (mobile+web).
 // Separado do /feature-usage (pesado) p/ poder fazer polling a cada 60s sem custo.
 router.get('/presence', async (_req, res, next) => {
