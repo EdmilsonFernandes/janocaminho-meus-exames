@@ -1453,9 +1453,11 @@ const DashboardV2Inner = () => {
   const outOfSub = outOfBase <= 0 ? ''
     : d.markerCount <= 0 ? `de ${outOfBase} resultados no seu histórico`
     : d.stats.abnormal === 0 ? `de ${outOfBase} marcadores`
-    : outAttention > 0 && outSmall > 0 ? `${outAttention} ${outAttention === 1 ? 'pede' : 'pedem'} atenção · ${outSmall} com desvio pequeno`
-    : outAttention > 0 ? `${outAttention === 1 ? 'pede' : 'pedem'} atenção · de ${outOfBase} marcadores`
-    : `com desvio pequeno · de ${outOfBase} marcadores`;
+    // "em destaque acima" aponta para as pílulas do herói SEM dar outro nome à gravidade: o herói
+    // chama a moderada de "Leve", e escrever aqui "pede atenção" contradizia o tom dele.
+    : outAttention > 0 && outSmall > 0 ? `${outAttention} em destaque acima · ${outSmall} com desvio menor`
+    : outAttention > 0 ? `em destaque acima · de ${outOfBase} marcadores`
+    : `com desvio menor · de ${outOfBase} marcadores`;
   const cardioLevel: string = d.cardioRisk?.level ?? '';
   const cardioFactors: number = Array.isArray(d.cardioRisk?.factors) ? d.cardioRisk.factors.filter((f: any) => f.risk).length : 0;
 
