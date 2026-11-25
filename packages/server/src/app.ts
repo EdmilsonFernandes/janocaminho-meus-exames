@@ -814,6 +814,9 @@ if (config.isProd) {
     // index.html NUNCA cacheia (no-store) → após cada deploy o browser pega o index fresco com os hashes novos.
     // ANTES era max-age=0 (default) → browser/CDN podiam servir index stale → entry velho → asset que sumiu → MIME error.
     app.use(express.static(webDist, {
+      // index:false → a raiz "/" NÃO é respondida daqui com o index.html cru: cai no fallback abaixo,
+      // que aplica o título/descrição da home (sem isto a home ficava com as tags genéricas do arquivo).
+      index: false,
       setHeaders: (res, filepath) => {
         if (filepath.includes(`${path.sep}assets${path.sep}`)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
         else res.setHeader('Cache-Control', 'no-store');
