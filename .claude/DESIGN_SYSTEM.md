@@ -16,6 +16,15 @@
 - **Sem competição visual:** uma ação primária por tela; ações secundárias discretas.
 - Robô + estrelinha = vibe "assistente inteligente, amigável, clínico".
 
+## Regras de composição (25/11/26 — valem para tela nova e para tela mexida)
+- **Resumo primeiro.** Tela de dado de saúde abre com o que a pessoa veio ver (número, placar, anel) e a AÇÃO do dia; configuração feita uma vez fica recolhida abaixo. Avisos de segurança ("é simulação", "não substitui médico") ficam sempre visíveis.
+- **Profundidade — uma regra só:** borda sutil = conteúdo (cards, listas); sombra = só o que FLUTUA (barra inferior, FAB, modal, toast); fundo tingido = só ESTADO (sucesso, aviso, erro, informação). Não combinar borda + sombra no mesmo card, nem usar fundo tingido como decoração. No máximo dois níveis de caixa aninhada (card → painel); lista dentro de painel usa divisória, não borda própria.
+- **Alvo de toque ≥ 44px** em todo controle (botão, chip clicável, seletor, ícone). `size="sm"` só para o que NÃO é tocável.
+- **Desabilitado é neutro:** superfície cinza clara e texto cinza legível, sem gradiente da marca — nunca parecer o botão principal.
+- **A linha do "hoje":** todo gráfico com eixo de tempo real marca o dia de hoje (linha vertical teal + rótulo "hoje"); onde o eixo não é tempo real, o gráfico diz de quando é o último dado ("Último resultado: há 3 meses"). Nenhum dado de saúde aparece sem dizer se é de hoje ou de quando.
+- **Modal automático:** no máximo um por sessão, só na Home, nunca por cima da tela que a pessoa abriu. Prioridade: alerta de saúde > comemoração > cadastro. Alerta de saúde nunca se perde — sem modal, vira faixa visível na Home.
+- **Origem da resposta:** quando o app responde sem IA (dados dos exames, resposta reaproveitada), ele diz isso com um selo discreto.
+
 ## Tokens reais (`packages/web/src/theme.ts`)
 - **Modos:** `lightTheme` e `darkTheme` (`buildTheme('light'|'dark')`). Toggle no AppBar (persistido em `localStorage` via `useStore('theme')`). Superfícies mudam; **cores de marca (teal/cobre, gradientes) idênticas nos dois modos**.
 - **Light:** bg `#eef7f6` / paper `#ffffff` / text `#2d3748`.
