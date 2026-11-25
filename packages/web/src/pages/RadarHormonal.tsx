@@ -222,9 +222,6 @@ export default function RadarHormonal() {
   const lastShot = Math.max(-1, ...series.seriesPerItem.filter((s) => s.comp.family === 'testosterona').flatMap((s) => s.injectionDays.filter((d) => d <= examDay + 1e-6)));
   const daysAfterShot = lastShot >= 0 ? Math.round(examDay - lastShot) : null;
 
-  // Hoje no ciclo (linha "hoje" do gráfico). Sem data de início não há como posicionar.
-  const todayDay = start ? (Date.now() - start.getTime()) / DAY_MS : null;
-
   const dayLabel = (day: number) => {
     const week = Math.floor(day / 7) + 1;
     if (!start) return `Dia ${Math.floor(day) + 1} · semana ${week}`;
