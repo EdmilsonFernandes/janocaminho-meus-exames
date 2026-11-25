@@ -1,0 +1,5 @@
+• Radar Hormonal: cada aplicação que você registra aparece em destaque no gráfico, com a marca de "hoje".
+• Registrar aplicação ficou mais claro e avisa quando você já registrou no dia.
+• Histórico de aplicações aberto em cada hormônio.
+• Agenda: lembretes atrasados no topo, separados dos concluídos.
+• Tela inicial mostra só o que ainda está por fazer.
