@@ -362,7 +362,9 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
       const endpoint = isDoctor ? `${API_URL}/doctor/google` : `${API_URL}/auth/google`;
       const r = await fetch(endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential: idToken }),
+        // origem do cadastro também no Google (antes só o formulário mandava → quem entrava
+        // pelo Google ficava sem origem no admin)
+        body: JSON.stringify({ credential: idToken, source: signupSource() || undefined }),
       });
       const d = await r.json();
       if (d.token) {

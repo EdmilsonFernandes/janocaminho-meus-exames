@@ -11,6 +11,12 @@ export function signupSource(): string {
   try {
     const p = new URLSearchParams(window.location.search);
     let src = [p.get('utm_source'), p.get('utm_campaign')].filter(Boolean).join('/');
+    // O app usa rotas com "#": um link "…/#/landing?utm_source=instagram" deixa a UTM DENTRO do hash,
+    // onde location.search não enxerga. Sem isto, link divulgado nesse formato perdia a origem.
+    if (!src) {
+      const q = window.location.hash.split('?')[1];
+      if (q) { const h = new URLSearchParams(q); src = [h.get('utm_source'), h.get('utm_campaign')].filter(Boolean).join('/'); }
+    }
     if (!src) src = localStorage.getItem('signup_source') || '';
     if (!src && document.referrer) {
       try { src = new URL(document.referrer).hostname.replace(/^www\./, ''); } catch { src = ''; }

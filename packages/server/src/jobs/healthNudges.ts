@@ -23,8 +23,10 @@ import { buildTipPrompt, curatedFallback, pickTipTheme, tipScreenFor, classifySe
 const COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000; // 3 dias (só p/ alerta)
 const RECENT_MS = 30 * 24 * 60 * 60 * 1000;  // 30 dias
 const NUDGE_UTC_HOUR = 11; // 08h BRT = 11h UTC (Brasil sem DST desde 2019 → UTC-3 o ano todo)
-// Dias de DICA (sem alerta): terça(2) e sexta(5). Alerta pode vir qualquer dia.
-const TIP_DAYS = new Set([2, 5]);
+// Dia de DICA (sem alerta): só terça(2). Alerta pode vir qualquer dia.
+// Era terça e sexta; com alerta + avisos, cada conta recebia 2-3 pushes por semana, a faixa em que
+// as pessoas desligam notificação (estudo 25/11/26: ~10 por conta/mês, 70% genéricas). Agora 1 dica/semana.
+const TIP_DAYS = new Set([2]);
 
 /** Milissegundos até o próximo instante em que a hora UTC == targetHour (00h00min). */
 function msUntilNextUtcHour(targetHour: number): number {
@@ -224,7 +226,7 @@ async function maybeNudgeForPatient(patient: { id: string; fullName: string; own
     }
   }
 
-  // 2) Sem alerta hoje → DICA INTELIGENTE por paciente, SÓ 2x/semana (ter/sex).
+  // 2) Sem alerta hoje → DICA INTELIGENTE por paciente, SÓ 1x/semana (terça).
   //    Nos outros dias, não incomoda. Tema gira com memória (nunca 2 dicas seguidas iguais).
   if (!type) {
     const dow = new Date().getUTCDay();

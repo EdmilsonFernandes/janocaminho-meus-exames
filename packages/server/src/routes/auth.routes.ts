@@ -211,7 +211,8 @@ router.post('/google', async (req, res, next) => {
     }
     const user = await prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
-        data: { email: mail, name: String(name), passwordHash: 'google-oauth', credits: 0, emailVerified: true, referralCode, termsAcceptedAt: new Date(), termsVersion: TERMS_VERSION, termsUrl: TERMS_URL },
+        // acquisitionSource: mesma origem do /register (antes o cadastro pelo Google ficava sem origem)
+        data: { email: mail, name: String(name), passwordHash: 'google-oauth', credits: 0, emailVerified: true, referralCode, termsAcceptedAt: new Date(), termsVersion: TERMS_VERSION, termsUrl: TERMS_URL, acquisitionSource: String(req.body?.source ?? '').replace(/[^\w\-./:?=&%]/g, '').slice(0, 120) || null },
       });
       await tx.patient.create({ data: { ownerId: created.id, fullName: String(name), relationship: 'Titular', photoUrl: null } });
       return created;

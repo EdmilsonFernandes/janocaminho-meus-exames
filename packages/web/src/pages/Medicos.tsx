@@ -41,6 +41,7 @@ import {
 import { IconTile } from '@/components/reui/patterns';
 import { InputGroup, InputGroupInput } from '@/components/reui/form-controls';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
+import { PLAY_STORE_URL } from '../utils/playStore';
 
 const SCOPE_META = [
   { key: 'exams', label: 'Exames', short: 'Exames', icon: '📋' },
@@ -1157,7 +1158,7 @@ export const MedicosPage = () => {
               `Sou seu(sua) paciente e acabei de autorizar o seu acesso aos meus exames e histórico de saúde pela plataforma Dr. Exame.\n\n` +
               `Você pode visualizar meus laudos, gráficos de evolução e resumos clínicos organizados por IA através do nosso portal médico gratuito:\n\n` +
               `🌐 Portal Web: https://drexame.com.br\n` +
-              `📱 App Dr. Exame na Google Play: https://play.google.com/store/apps/details?id=br.com.drexame.app\n\n` +
+              `📱 App Dr. Exame na Google Play: ${PLAY_STORE_URL}\n\n` +
               `Seu CRM ${crmFormatted} já está habilitado. O acesso é 100% gratuito para médicos e segue todas as normas de segurança do CFM e LGPD.`;
 
             const cleanPhone = inviteData.phone ? inviteData.phone.replace(/\D/g, '') : '';

@@ -80,4 +80,16 @@ describe('POST /api/auth/google', () => {
     expect(ok.status).toBe(201);
     expect(ok.body.isNew).toBe(true);
   });
+
+  it('grava a origem do cadastro (antes só o formulário gravava) e limpa caracteres estranhos', async () => {
+    const r = await api().post('/api/auth/google').send({ credential: googleCredential({ email: 'maria.origem@gmail.com', name: 'Maria Origem' }), source: 'instagram/bio <script>' });
+    expect(r.status).toBe(201);
+    const u = await prisma.user.findUnique({ where: { email: 'maria.origem@gmail.com' }, select: { acquisitionSource: true } });
+    expect(u?.acquisitionSource).toBe('instagram/bioscript');
+
+    const semOrigem = await api().post('/api/auth/google').send({ credential: googleCredential({ email: 'jose.direto@gmail.com', name: 'Jose Direto' }) });
+    expect(semOrigem.status).toBe(201);
+    const d = await prisma.user.findUnique({ where: { email: 'jose.direto@gmail.com' }, select: { acquisitionSource: true } });
+    expect(d?.acquisitionSource).toBeNull();
+  });
 });

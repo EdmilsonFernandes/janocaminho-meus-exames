@@ -358,8 +358,10 @@ export const ExamCreate = () => {
       const blob = await (await fetch(photo.dataUrl!)).blob();
       const res: any = await uploadWaitingWelcome(blob, `foto-${Date.now()}.jpg`, pid, title || 'Foto do exame', setWelcomeWait);
       if (res?.duplicate) { refresh(); setDupInfo({ dups: ['Foto capturada'], elsewhere: [], sent: 0 }); return; }
-      notify('Foto enviada! Extraindo…', { type: 'success' });
-      redirect('list', 'exams');
+      // Um exame só → abre DIRETO o exame (ele mostra "lendo…" e vira o resultado sozinho).
+      // Antes ia para a lista e a pessoa precisava achar e abrir o próprio exame (estudo 25/11).
+      notify('Foto enviada! Lendo seu exame…', { type: 'success' });
+      if (res?.id) redirect('show', 'exams', res.id); else redirect('list', 'exams');
     } catch (e: any) {
       if (e?.authExpired) { notify(e.message || 'Sua sessão expirou. Faça login novamente.', { type: 'warning' }); logout(); return; }
       // 402 de upload abre o MESMO dialog de oferta das features de IA (pack mais barato em
@@ -383,12 +385,14 @@ export const ExamCreate = () => {
       setProgress({ done: 0, total: imgs.length, errors: [] });
       const errors: string[] = [];
       const dups: string[] = [];
+      const createdIds: string[] = [];
       for (let i = 0; i < imgs.length; i++) {
         try {
           const blob = await fetchScannedBlob(imgs[i]);
           const name = imgs.length > 1 ? (title || 'Exame escaneado') + ` (${i + 1}/${imgs.length})` : (title || 'Exame escaneado');
           const res: any = await uploadWaitingWelcome(blob, `scan-${Date.now()}-${i + 1}.jpg`, pid, name, setWelcomeWait);
           if (res?.duplicate) dups.push(name);
+          else if (res?.id) createdIds.push(res.id);
           setProgress({ done: i + 1, total: imgs.length, errors });
         } catch (err: any) {
           if (err?.authExpired) { notify(err.message || 'Sua sessão expirou. Faça login novamente.', { type: 'warning' }); logout(); setBusy(false); return; }
@@ -403,6 +407,7 @@ export const ExamCreate = () => {
       const sent = imgs.length - errors.length - dups.length;
       refresh();
       if (dups.length) setDupInfo({ dups, elsewhere: [], sent });
+      else if (createdIds.length === 1) { notify('Exame enviado! Lendo agora…', { type: 'success' }); redirect('show', 'exams', createdIds[0]); }
       else { notify(`${imgs.length - errors.length} de ${imgs.length} página(s) enviada(s) e extraindo.`, { type: 'success' }); redirect('list', 'exams'); }
     } catch (e: any) {
       if (e?.message && /cancel/i.test(e.message)) return; // usuário cancelou o scanner
@@ -436,11 +441,13 @@ export const ExamCreate = () => {
     const errors: string[] = [];
     const dups: string[] = [];
     const elsewhere: string[] = [];
+    const createdIds: string[] = [];
     for (let i = 0; i < files.length; i++) {
       try {
         const res: any = await uploadWaitingWelcome(files[i], files[i].name, pid, title || files[i].name.replace(/\.pdf$/i, ''), setWelcomeWait);
         if (res?.duplicate) dups.push(files[i].name);
         else if (res?.duplicateElsewhere) elsewhere.push(files[i].name);
+        if (!res?.duplicate && res?.id) createdIds.push(res.id);
         setProgress({ done: i + 1, total: files.length, errors });
       } catch (err: any) {
         if (err?.authExpired) {
@@ -470,6 +477,10 @@ export const ExamCreate = () => {
     if (dups.length || elsewhere.length) {
       // Duplicata → dialog "de cara" em vez do sucesso enganoso ("X enviados e extraindo"). Não redireciona.
       setDupInfo({ dups, elsewhere, sent });
+    } else if (createdIds.length === 1) {
+      // Um exame só → abre direto nele (mostra "lendo…" e vira o resultado sozinho).
+      notify('Exame enviado! Lendo agora…', { type: 'success' });
+      redirect('show', 'exams', createdIds[0]);
     } else {
       notify(`${sent} de ${plural(files.length, 'exame')} enviados e extraindo.`, { type: 'success' });
       redirect('list', 'exams');
