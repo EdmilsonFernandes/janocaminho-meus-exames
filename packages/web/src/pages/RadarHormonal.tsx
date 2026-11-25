@@ -222,6 +222,9 @@ export default function RadarHormonal() {
   const lastShot = Math.max(-1, ...series.seriesPerItem.filter((s) => s.comp.family === 'testosterona').flatMap((s) => s.injectionDays.filter((d) => d <= examDay + 1e-6)));
   const daysAfterShot = lastShot >= 0 ? Math.round(examDay - lastShot) : null;
 
+  // Hoje no ciclo (linha "hoje" do gráfico). Sem data de início não há como posicionar.
+  const todayDay = start ? (Date.now() - start.getTime()) / DAY_MS : null;
+
   const dayLabel = (day: number) => {
     const week = Math.floor(day / 7) + 1;
     if (!start) return `Dia ${Math.floor(day) + 1} · semana ${week}`;
@@ -571,7 +574,7 @@ export default function RadarHormonal() {
                 </button>
               ) : null}
             </div>
-            <RadarChart series={series} compare={compare} stats={stats} weeks={weeks} examDay={testoInProtocol && testoRow ? examDay : null} hidden={hidden} dayLabel={dayLabel} />
+            <RadarChart series={series} compare={compare} stats={stats} weeks={weeks} examDay={testoInProtocol && testoRow ? examDay : null} hidden={hidden} dayLabel={dayLabel} todayDay={todayDay} />
             <p className="m-0 flex items-start gap-1.5 rounded-lg bg-muted/60 px-3 py-2 text-xs text-foreground">
               <Info aria-hidden="true" className="mt-px size-3.5 shrink-0 text-muted-foreground" />
               <span><strong className="font-semibold">Este gráfico é uma simulação.</strong> Depois de cada aplicação a estimativa sobe e depois diminui. Ela vem de médias de estudos, e o seu organismo pode responder de forma diferente. O resultado do exame de sangue é medido separadamente e tem outra unidade.</span>

@@ -7,7 +7,11 @@
  *
  *  - faixa sombreada = o período usado no cálculo de pico/vale/oscilação;
  *  - "pico" e "vale" marcados na própria curva, dentro desse período;
- *  - risquinhos embaixo = cada aplicação, na cor do composto;
+ *  - risquinhos embaixo = cada aplicação PREVISTA, na cor do composto;
+ *  - bolinha grande NA CURVA = aplicação que a pessoa REGISTROU (dono 24/11: "vejo o traço mas
+ *    não fica claro quando apliquei" — no celular o SVG de 820px encolhe ~2,6x, então tudo que
+ *    marca data precisa ser grande no viewBox);
+ *  - linha vertical "hoje" = onde a pessoa está no ciclo;
  *  - linha pontilhada = média diária, a régua para enxergar a oscilação;
  *  - cada composto tem cor E tipo de traço (não depender só de cor);
  *  - funciona no TOQUE (arrastar o dedo), não só com mouse.
@@ -29,7 +33,7 @@ export const radarDash = (index: number): string => DASHES[index % DASHES.length
 const fmt = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 export function RadarChart({
-  series, compare, stats, weeks, examDay, hidden, dayLabel,
+  series, compare, stats, weeks, examDay, hidden, dayLabel, todayDay = null,
 }: {
   series: RadarSeriesResult;
   /** Mesma dose dividida em 2x/semana (linha tracejada), ou null. */
@@ -42,6 +46,8 @@ export function RadarChart({
   hidden: Set<string>;
   /** Transforma "dia N" numa data real quando o início do ciclo é conhecido. */
   dayLabel: (day: number) => string;
+  /** Dia de hoje a partir do início (null sem data de início). Fora do período = não desenha. */
+  todayDay?: number | null;
 }) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const ref = useRef<SVGSVGElement>(null);
@@ -88,6 +94,11 @@ export function RadarChart({
   // O dia tocado tem aplicação? É o dia do exame?
   const shotsToday = day == null ? [] : shown.filter((s) => s.injectionDays.some((d) => Math.abs(d - day) < 0.5)).map((s) => s.comp.short);
   const isExamDay = day != null && examDay != null && Math.abs(examDay - day) < 0.5;
+  const loggedToday = day == null ? [] : shown.filter((s) => s.loggedDays.some((d) => Math.abs(d - day) < 0.5)).map((s) => s.comp.short);
+  const plannedToday = shotsToday.filter((n) => !loggedToday.includes(n));
+  const hasLogged = shown.some((s) => s.loggedDays.length > 0);
+  const todayStep = todayDay != null && todayDay >= 0 && todayDay <= series.totalDays ? Math.round(todayDay * series.stepsPerDay) : null;
+  const isToday = day != null && todayDay != null && Math.floor(day) === Math.floor(todayDay);
 
   return (
     <div className="flex flex-col gap-3">
@@ -156,14 +167,17 @@ export function RadarChart({
           <line
             key={`${s.item.uid}-${d}`} aria-hidden="true"
             x1={x(d * series.stepsPerDay)} x2={x(d * series.stepsPerDay)}
-            y1={PAD.top + CH + 3 + row * 6} y2={PAD.top + CH + 9 + row * 6}
-            stroke={s.comp.color} strokeWidth={2.5} strokeLinecap="round"
+            y1={PAD.top + CH + 4 + row * 9} y2={PAD.top + CH + 14 + row * 9}
+            stroke={s.comp.color} strokeWidth={4} strokeLinecap="round"
           />
         )))}
-        {/* Aplicações que o paciente REGISTROU: bolinha no topo do risco (o resto é previsão) */}
-        {shown.map((s, row) => s.loggedDays.map((d) => (
-          <circle key={`log-${s.item.uid}-${d}`} aria-hidden="true" cx={x(d * series.stepsPerDay)} cy={PAD.top + CH + 3 + row * 6} r={3.6} fill={s.comp.color} className="stroke-card" strokeWidth={1.2} />
-        )))}
+        {/* Hoje: onde a pessoa está no ciclo */}
+        {todayStep != null ? (
+          <g aria-hidden="true">
+            <line x1={x(todayStep)} x2={x(todayStep)} y1={PAD.top} y2={PAD.top + CH} className="stroke-primary" strokeWidth={3} />
+            <text x={x(todayStep)} y={PAD.top - 4} textAnchor={anchor(todayStep)} className="fill-primary font-semibold">hoje</text>
+          </g>
+        ) : null}
 
         {/* Pico e vale no período usado no cálculo */}
         {showExtremes ? (
@@ -174,6 +188,19 @@ export function RadarChart({
             <text x={x(troughStep)} y={y(series.total[troughStep] ?? 0) + 11} dominantBaseline="hanging" textAnchor={anchor(troughStep)} className="fill-foreground font-semibold">vale</text>
           </g>
         ) : null}
+
+        {/* Aplicações que o paciente REGISTROU: bolinha grande NA CURVA do composto + haste até o eixo
+            (no celular r=11 vira ~4px de raio — dá para ver e tocar). O resto é previsão (risquinhos). */}
+        {shown.map((s) => s.loggedDays.filter((d) => d >= 0 && d <= series.totalDays).map((d) => {
+          const st = Math.round(d * series.stepsPerDay);
+          const cy = y((many ? series.total[st] : s.values[st]) ?? 0);
+          return (
+            <g key={`log-${s.item.uid}-${d}`} aria-hidden="true">
+              <line x1={x(st)} x2={x(st)} y1={cy} y2={PAD.top + CH} stroke={s.comp.color} strokeWidth={2} strokeDasharray="4 4" opacity={0.6} />
+              <circle cx={x(st)} cy={cy} r={11} fill={s.comp.color} className="stroke-card" strokeWidth={3.5} />
+            </g>
+          );
+        }))}
 
         {/* Dia do exame de sangue: só a DATA (o resultado tem outra unidade e fica fora desta escala) */}
         {examStep != null ? (
@@ -192,6 +219,15 @@ export function RadarChart({
         ) : null}
       </svg>
 
+      {/* Legenda das marcas de data (cor + forma, nunca só cor) */}
+      <div aria-hidden="true" className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+        {hasLogged ? (
+          <span className="flex items-center gap-1.5"><span className="size-3 rounded-full border-2 border-card bg-foreground shadow-[0_0_0_1px_var(--border)]" />Aplicação registrada</span>
+        ) : null}
+        <span className="flex items-center gap-1.5"><span className="h-3 w-1 rounded-full bg-muted-foreground" />Aplicação prevista</span>
+        {todayStep != null ? <span className="flex items-center gap-1.5"><span className="h-3.5 w-0.5 bg-primary" />Hoje</span> : null}
+      </div>
+
       <div aria-live="polite" className={cn('flex min-h-9 flex-col gap-1.5 rounded-lg bg-muted/60 px-3 py-2 text-xs', step == null && 'justify-center text-muted-foreground')}>
         {step == null || day == null ? (
           <span>Toque ou passe o dedo no gráfico para ver a estimativa de um dia.</span>
@@ -199,7 +235,9 @@ export function RadarChart({
           <>
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
               <span className="text-sm font-semibold text-foreground">{dayLabel(day)}</span>
-              {shotsToday.length ? <span className="font-medium text-foreground">Dia de aplicação: {shotsToday.join(', ')}</span> : null}
+              {isToday ? <span className="font-medium text-primary">Hoje</span> : null}
+              {loggedToday.length ? <span className="font-medium text-foreground">Você aplicou: {loggedToday.join(', ')}</span> : null}
+              {plannedToday.length ? <span className="text-muted-foreground">Aplicação prevista: {plannedToday.join(', ')}</span> : null}
               {isExamDay ? <span className="font-medium text-destructive">Dia do exame de sangue</span> : null}
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
