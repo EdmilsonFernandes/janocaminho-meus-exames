@@ -11,6 +11,7 @@ import { autoModalQueue } from '../utils/autoModalQueue';
 import { celebrateCredits } from './CreditRewardFx';
 import { API_URL, token } from '../config';
 import { tealText } from '../theme';
+import { SecondaryButton } from './SecondaryButton';
 
 /** Quiz-first onboarding (licença Mito): "o que você quer entender?" ANTES do upload —
  *  personaliza a primeira experiência com valor instantâneo. 1x por dispositivo.
@@ -282,7 +283,7 @@ export const GoalQuizCard = () => {
 
   return (
     <>
-      <Card elevation={0} sx={{ mt: 2, borderRadius: '16px', border: '1px solid', borderColor: 'divider', background: 'rgba(32,178,170,0.05)' }}>
+      <Card elevation={0} sx={{ mt: 2, borderRadius: '16px', border: '1px solid', borderColor: 'divider' }}>
         <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
             <DrExame size={44} sx={{ borderRadius: '28%' }} />
@@ -306,13 +307,15 @@ export const GoalQuizCard = () => {
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>{pct}% completo · {QUIZ_QUESTION_COUNT - state.currentIndex} falta{QUIZ_QUESTION_COUNT - state.currentIndex > 1 ? 'm' : ''}</Typography>
             </Box>
           )}
-          <Button
-            fullWidth variant="contained" endIcon={<ArrowForwardIcon />}
+          {/* Botão secundário: na Home o único com cara de primário é o do herói. Largura natural
+              a partir de sm (fullWidth esticava o "Começar" a 910px no desktop). */}
+          <SecondaryButton
+            endIcon={<ArrowForwardIcon />}
             onClick={() => setOpen(true)}
-            sx={{ mt: 1.5, borderRadius: '12px', textTransform: 'none', fontWeight: 800, background: 'linear-gradient(135deg,#20b2aa,#178f89)' }}
+            sx={{ mt: 1.5, width: { xs: '100%', sm: 'auto' } }}
           >
             {resuming ? `Continuar (${state.currentIndex}/${QUIZ_QUESTION_COUNT})` : 'Começar'}
-          </Button>
+          </SecondaryButton>
         </CardContent>
       </Card>
       {open && (

@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from 'react';
 import { Box, Card, CardContent, Typography } from '@mui/material';
 import { UploadSimple, ChartLineUp, UsersThree, FileText } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +17,14 @@ const ACTIONS = [
 
 export const QuickActions = () => {
   const navigate = useNavigate();
+  // Teclado e leitor de tela (25/11/26): os tiles eram <Card onClick> sem role, sem tabIndex e
+  // sem foco visível — não davam para abrir sem mouse.
+  const onKey = (to: string) => (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      navigate(to);
+    }
+  };
   return (
     // Container query (não breakpoint de viewport): as colunas respondem à LARGURA DA COLUNA
     // do app (shell centraliza em ~360px). Com Grid xs/sm por viewport, janelas de 600-900px
@@ -34,14 +43,18 @@ export const QuickActions = () => {
         <Box key={a.label} sx={{ height: '100%', display: 'flex' }}>
           <Card
             variant="outlined"
+            role="button"
+            tabIndex={0}
+            aria-label={`Abrir ${a.label}`}
             onClick={() => navigate(a.to)}
+            onKeyDown={onKey(a.to)}
             sx={{
               width: '100%',
               height: '100%',
               cursor: 'pointer',
               textAlign: 'center',
               borderRadius: RADIUS.card,
-              transition: 'transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease',
+              transition: 'transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s ease',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
@@ -51,6 +64,7 @@ export const QuickActions = () => {
                 '& .action-icon-box': { transform: 'scale(1.12)' },
               },
               '&:active': { transform: 'scale(.96)' },
+              '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
               border: a.primary ? '1.5px solid' : '1px solid',
               borderColor: a.primary ? 'rgba(32,178,170,.45)' : 'divider',
               bgcolor: (t) => (a.primary && t.palette.mode === 'dark') ? 'rgba(32,178,170,.08)' : 'background.paper',
@@ -66,7 +80,7 @@ export const QuickActions = () => {
                 border: `1px solid ${a.color}25`,
                 transition: 'background-color .2s, transform .2s ease',
               }}>{a.icon}</Box>
-              <Typography variant="caption" sx={{ fontWeight: a.primary ? 800 : 700, color: a.primary ? (t) => tealText(t.palette.mode) : 'text.primary' }}>{a.label}</Typography>
+              <Typography sx={{ fontSize: 13.5, lineHeight: 1.3, fontWeight: a.primary ? 800 : 700, color: a.primary ? (t) => tealText(t.palette.mode) : 'text.primary' }}>{a.label}</Typography>
             </CardContent>
           </Card>
         </Box>

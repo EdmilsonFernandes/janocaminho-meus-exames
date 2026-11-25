@@ -53,12 +53,14 @@ export const PersonaSwitcher = ({ active }: { active: boolean }) => {
       <Box
         component="button"
         onClick={() => void handleToggle(false)}
+        aria-pressed={!active}
         sx={{
           flex: 1,
-          py: 0.9,
+          minHeight: 44,
+          py: 1,
           px: { xs: 1, sm: 2 },
           borderRadius: '8px',
-          border: 'none',
+          border: !active ? '1px solid' : 'none',
           cursor: 'pointer',
           fontFamily: 'inherit',
           display: 'flex',
@@ -66,8 +68,10 @@ export const PersonaSwitcher = ({ active }: { active: boolean }) => {
           justifyContent: 'center',
           gap: 0.75,
           transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-          bgcolor: !active ? 'background.paper' : 'transparent',
-          boxShadow: !active ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+          // No dark o polegar era paper sobre paper (invisível): clareia e ganha hairline teal.
+          bgcolor: !active ? (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'background.paper') : 'transparent',
+          borderColor: !active ? (t) => (t.palette.mode === 'dark' ? 'rgba(95,201,195,0.45)' : 'divider') : 'none',
+          boxShadow: (t) => (!active && t.palette.mode !== 'dark' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none'),
           color: !active ? 'text.primary' : 'text.secondary',
           '&:hover': {
             color: 'text.primary',
@@ -75,7 +79,7 @@ export const PersonaSwitcher = ({ active }: { active: boolean }) => {
         }}
       >
         <SpaIcon sx={{ fontSize: 16 }} />
-        <Typography sx={{ fontSize: { xs: 12, sm: 13 }, fontWeight: !active ? 800 : 600, color: 'inherit' }}>
+        <Typography sx={{ fontSize: 13, fontWeight: !active ? 800 : 600, color: 'inherit' }}>
           Saúde Geral
         </Typography>
       </Box>
@@ -84,9 +88,11 @@ export const PersonaSwitcher = ({ active }: { active: boolean }) => {
       <Box
         component="button"
         onClick={() => void handleToggle(true)}
+        aria-pressed={active}
         sx={{
           flex: 1,
-          py: 0.9,
+          minHeight: 44,
+          py: 1,
           px: { xs: 1, sm: 2 },
           borderRadius: '8px',
           border: 'none',
@@ -109,7 +115,7 @@ export const PersonaSwitcher = ({ active }: { active: boolean }) => {
         }}
       >
         <BoltIcon sx={{ fontSize: 16 }} />
-        <Typography sx={{ fontSize: { xs: 12, sm: 13 }, fontWeight: active ? 800 : 600, color: 'inherit' }}>
+        <Typography sx={{ fontSize: 13, fontWeight: active ? 800 : 600, color: 'inherit' }}>
           Lente Esportiva
         </Typography>
       </Box>

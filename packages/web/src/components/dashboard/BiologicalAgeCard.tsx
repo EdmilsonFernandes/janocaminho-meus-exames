@@ -100,44 +100,49 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
         kind="interactive"
         onClick={() => setExplain(true)}
         sx={{
-          p: 2,
+          p: { xs: 1.75, sm: 2 },
           height: '100%',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          transition: 'transform .18s ease, box-shadow .18s ease',
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
+          gap: 1,
+          transition: 'transform .25s cubic-bezier(.16,1,.3,1), border-color .2s ease',
           // Mesmo spring escalonado dos IndicatorTiles (idx=2 → 3º da linha de KPI).
-          animation: REDUCED_MOTION ? 'none' : `dxTileSpring .45s cubic-bezier(.34,1.56,.64,1) ${idx * 0.08}s both`,
+          animation: REDUCED_MOTION ? 'none' : `dxTileSpring .45s cubic-bezier(.16,1,.3,1) ${idx * 0.08}s both`,
           '@keyframes dxTileSpring': {
             from: { opacity: 0, transform: 'translateY(14px) scale(.96)' },
             to: { opacity: 1, transform: 'translateY(0) scale(1)' },
           },
           '&:hover': {
-            boxShadow: '0 4px 16px rgba(0,0,0,.06)',
+            borderColor: (t) => t.palette.primary.main,
             transform: 'translateY(-2px)',
           },
           '&:active': { transform: 'scale(.98)' },
         }}
       >
-        <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
-          <Typography sx={{ fontSize: 12, lineHeight: 1.25, color: 'text.secondary', fontWeight: 700, textWrap: 'balance' }}>
+        {/* Mesmo desenho dos IndicatorTiles (25/11/26): rótulo + ícone na primeira linha e valor
+            na largura inteira — os quatro tiles da grade ficam alinhados entre si. */}
+        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+          <Typography sx={{ fontSize: 13, lineHeight: 1.25, color: 'text.secondary', fontWeight: 700, textWrap: 'balance' }}>
             Idade do corpo
           </Typography>
-          <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5vw, 1.375rem)', sm: 22 }, color: 'text.primary', lineHeight: 1.2, mt: 0.25, fontVariantNumeric: 'tabular-nums' }}>
+          <Box className="dx-tile-icon" sx={{
+            width: 38, height: 38, borderRadius: '12px',
+            display: 'grid', placeItems: 'center', flexShrink: 0,
+            bgcolor: 'rgba(16, 185, 129, 0.12)', color: accent,
+          }}>
+            <Dna size={22} weight="duotone" />
+          </Box>
+        </Stack>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5vw, 1.375rem)', sm: 22 }, color: 'text.primary', lineHeight: 1.2, fontVariantNumeric: 'tabular-nums' }}>
             {value}
           </Typography>
           {sub && (
-            <Typography sx={{ fontSize: 12, lineHeight: 1.3, color: subColor, fontWeight: 600, mt: 0.25 }}>
+            <Typography sx={{ fontSize: 13, lineHeight: 1.35, color: subColor, fontWeight: 600, mt: 0.5 }}>
               {sub}
             </Typography>
           )}
-        </Box>
-        <Box sx={{
-          width: 42, height: 42, borderRadius: '12px',
-          display: 'grid', placeItems: 'center', flexShrink: 0,
-          bgcolor: 'rgba(16, 185, 129, 0.12)', color: accent,
-        }}>
-          <Dna size={22} weight="duotone" />
         </Box>
       </AppCard>
 

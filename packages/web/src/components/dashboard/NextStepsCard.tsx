@@ -7,14 +7,15 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { AppCard } from '../AppCard';
-import { GradientButton } from '../GradientButton';
+import { SecondaryButton } from '../SecondaryButton';
 import { tealText } from '../../theme';
 import { pendingItems } from '../../utils/profilePending';
 
 /**
  * "Próximos passos" — onboarding progressivo do Dashboard p/ usuário novo (ou antigo com perfil
- * incompleto). 2 passos máximos (perfil → 1º exame), UMA ação primária por vez (regra do design
- * system), e o card DESAPARECE quando o básico está pronto — nada de checklist permanente.
+ * incompleto). 2 passos máximos (perfil → 1º exame), UMA ação por vez, e o card DESAPARECE quando
+ * o básico está pronto — nada de checklist permanente. O botão é secundário (SecondaryButton):
+ * na Home o único botão com cara de primário é o do herói (25/11/26).
  * Completude vem do SERVER (GET /patients/:id → profileCompleteness), não de localStorage:
  * trocar de aparelho não "perde" o progresso.
  */
@@ -57,9 +58,9 @@ export const NextStepsCard = ({ exams }: { exams: number }) => {
   const doneCount = steps.filter((s) => s.done).length;
 
   return (
-    <AppCard kind="tinted" tone="primary" tone2="secondary" sx={{ mt: 2, p: { xs: 2.25, md: 2.75 } }}>
+    <AppCard sx={{ p: { xs: 2.25, md: 2.75 } }}>
       <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mb: 0.25 }}>
-        <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 18, color: 'text.primary' }}>
+        <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 16, color: 'text.primary' }}>
           {doneCount === 0 ? 'Vamos preparar o Dr. Exame' : 'Quase lá'}
         </Typography>
         {!profileDone && (
@@ -86,7 +87,7 @@ export const NextStepsCard = ({ exams }: { exams: number }) => {
       {/* O QUE falta para 100%: cada item leva direto ao lugar de preencher. */}
       {!profileDone && pending.length > 0 && (
         <Box sx={{ mb: 1.75 }}>
-          <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.secondary', mb: 0.75 }}>
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.secondary', mb: 0.75 }}>
             {pending.length === 1 ? 'Falta só 1 dado para 100%:' : `Faltam ${pending.length} dados para 100%:`}
           </Typography>
           <Stack spacing={0.75}>
@@ -112,13 +113,13 @@ export const NextStepsCard = ({ exams }: { exams: number }) => {
           </Stack>
         </Box>
       )}
-      <GradientButton
+      <SecondaryButton
         onClick={() => navigate(next.key === 'profile' ? (onlyWeight ? '/medicoes' : '/perfil') : '/exams/create')}
         endIcon={<ArrowForwardIcon />}
         sx={{ width: { xs: '100%', sm: 'auto' } }}
       >
         {next.key === 'profile' ? (onlyWeight ? 'Registrar peso' : 'Completar perfil') : 'Enviar primeiro exame'}
-      </GradientButton>
+      </SecondaryButton>
     </AppCard>
   );
 };

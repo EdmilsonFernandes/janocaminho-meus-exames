@@ -68,15 +68,15 @@ export const ClinicalActionsCard = ({ actions, loaded }: { actions: ClinicalActi
         alignItems="center"
         spacing={1}
         onClick={() => setOpen((o) => !o)}
-        sx={{ cursor: 'pointer', userSelect: 'none', py: 0.25, '&:focus-visible': { outline: '2px solid rgba(32,178,170,.7)', outlineOffset: 4 }, borderRadius: '8px' }}
+        sx={{ cursor: 'pointer', userSelect: 'none', minHeight: 44, px: 0.5, py: 0.25, '&:focus-visible': { outline: '2px solid rgba(32,178,170,.7)', outlineOffset: 2 }, borderRadius: '8px' }}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen((o) => !o); } }}
         aria-expanded={open}
       >
-        <Typography sx={{ fontWeight: 800, fontSize: 15, flex: 1, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+        <Typography sx={{ fontWeight: 800, fontSize: 16, flex: 1, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
           <QuestionAnswerIcon sx={{ fontSize: 18, color: 'primary.main' }} /> Perguntas pro médico
-          <Box component="span" sx={{ fontWeight: 700, fontSize: 12.5, color: 'text.secondary' }}>
+          <Box component="span" sx={{ fontWeight: 700, fontSize: 13, color: 'text.secondary' }}>
             ({loaded ? `${list.length} sugerida${list.length === 1 ? '' : 's'}` : '…'})
           </Box>
         </Typography>

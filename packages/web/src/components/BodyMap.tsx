@@ -391,6 +391,7 @@ export const BodyMap = ({
   }, [safeList, selectedKey]);
 
   const detailPanelRef = useRef<HTMLDivElement>(null);
+  const chipsRowRef = useRef<HTMLDivElement>(null);
   const [panelFlash, setPanelFlash] = useState(false);
   const [showAllMarkers, setShowAllMarkers] = useState(false);
   const [expandedMarker, setExpandedMarker] = useState<string | null>(null);
@@ -400,6 +401,17 @@ export const BodyMap = ({
     setShowAllMarkers(false);
     setExpandedMarker(null);
   }, [selectedKey]);
+
+  // O chip da região selecionada precisa estar visível: a fileira rola na horizontal e, no
+  // celular, a seleção padrão ficava fora da tela (parecia que nada estava selecionado).
+  // Só a fileira rola — nunca a página.
+  useEffect(() => {
+    const row = chipsRowRef.current;
+    const chip = row?.querySelector<HTMLElement>('[aria-pressed="true"]');
+    if (!row || !chip) return;
+    const left = chip.getBoundingClientRect().left - row.getBoundingClientRect().left + row.scrollLeft;
+    row.scrollTo({ left: left - (row.clientWidth - chip.offsetWidth) / 2 });
+  }, [selectedKey, safeList.length]);
 
   // Ordenação inteligente: marcadores fora da referência/atenção vêm no topo
   const sortedMarkers = useMemo(() => {
@@ -542,8 +554,10 @@ export const BodyMap = ({
         .organ-ring-ping {
           animation: organRingPing 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
         }
+        /* 25/11/26: UMA passagem ao entrar na tela (antes era infinito — o feixe varria o corpo
+           para sempre, contra a dieta de movimento do app: infinito só em live/processing/play). */
         .bio-scan-laser-beam {
-          animation: bioScanLaser 4.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+          animation: bioScanLaser 4.5s cubic-bezier(0.45, 0, 0.55, 1) 1 both;
         }
         .panel-flash-glow {
           animation: panelGlowFlash 0.5s ease-out;
@@ -674,12 +688,13 @@ export const BodyMap = ({
             bottom: 0,
             width: 32,
             background: (t) =>
-              `linear-gradient(90deg, transparent, ${t.palette.mode === 'dark' ? '#0f172a' : '#ffffff'})`,
+              `linear-gradient(90deg, transparent, ${t.palette.background.paper})`,
             pointerEvents: 'none',
           },
         }}
       >
         <Box
+          ref={chipsRowRef}
           sx={{
             display: 'flex',
             gap: 0.75,
@@ -702,6 +717,7 @@ export const BodyMap = ({
                 key={reg.key}
                 component="button"
                 type="button"
+                aria-pressed={isSelected}
                 onClick={() => handleSelect(reg.key, true)}
                 sx={{
                   flexShrink: 0,
@@ -724,11 +740,15 @@ export const BodyMap = ({
                     : (reg.level === 'sem_dados' ? 'text.secondary' : 'text.primary'),
                   fontFamily: 'Inter, sans-serif',
                   fontWeight: isSelected ? 700 : 600,
-                  fontSize: 12.5,
+                  fontSize: 13,
                   lineHeight: 1,
                   boxShadow: isSelected ? '0 2px 8px rgba(15,23,42,0.25)' : 'none',
                   transition: 'all 0.15s ease',
-                  outline: 'none',
+                  position: 'relative',
+                  // Foco de teclado visível e alvo de toque de ~44px sem inflar o chip (faixa
+                  // invisível ao redor).
+                  '&::before': { content: '""', position: 'absolute', inset: '-9px -2px' },
+                  '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
                   '&:hover': {
                     borderColor: isSelected ? undefined : (dark ? 'rgba(255,255,255,0.25)' : '#cbd5e1'),
                   },
@@ -774,7 +794,7 @@ export const BodyMap = ({
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: 'minmax(260px, 310px) 1fr' },
+          gridTemplateColumns: { xs: '1fr', md: 'minmax(220px, 270px) 1fr' },
           gap: { xs: 2, md: 3 },
           alignItems: 'start',
         }}
@@ -785,11 +805,11 @@ export const BodyMap = ({
           flexDirection: 'column',
           alignItems: 'center',
           p: { xs: 1.5, sm: 2 },
-          borderRadius: '24px',
+          borderRadius: '16px',
           bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(4,16,31,0.6)' : '#f1f7f6',
-          border: '1.5px solid',
+          border: '1px solid',
           borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(95,201,195,0.2)' : 'rgba(15,95,90,0.15)',
-          boxShadow: (t) => t.palette.mode === 'dark' ? 'none' : 'inset 0 1px 4px rgba(15,95,90,0.04), 0 4px 16px rgba(15,95,90,0.05)',
+          boxShadow: 'none',
         }}>
           <Box
             sx={{
@@ -797,10 +817,10 @@ export const BodyMap = ({
               width: '100%',
               maxWidth: { xs: 240, sm: 275 },
               aspectRatio: '720/964',
-              borderRadius: '20px',
+              borderRadius: '14px',
               overflow: 'hidden',
               background: '#04101f',
-              boxShadow: '0 14px 34px rgba(4,16,31,0.45), 0 0 0 2px rgba(32,178,170,0.35)',
+              boxShadow: '0 0 0 1px rgba(32,178,170,0.35)',
               userSelect: 'none',
               touchAction: 'manipulation',
             }}
@@ -831,6 +851,8 @@ export const BodyMap = ({
                 pointerEvents: 'none',
                 zIndex: 6,
                 willChange: 'transform',
+                // Invisível fora da única passagem do feixe (a animação controla a opacidade).
+                opacity: 0,
                 '&::before': {
                   content: '""',
                   position: 'absolute',
@@ -889,6 +911,8 @@ export const BodyMap = ({
                       p: 0,
                       cursor: 'pointer',
                       zIndex: isSelected ? 12 : 5,
+                      // Alvo de toque de 44px sem aumentar o pino (área invisível ao redor).
+                      '&::before': { content: '""', position: 'absolute', inset: -6 },
                       display: 'grid',
                       placeItems: 'center',
                       transition: 'transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -1013,7 +1037,7 @@ export const BodyMap = ({
             <Box
               className={panelFlash ? 'panel-flash-glow' : undefined}
               sx={{
-                borderRadius: '18px',
+                borderRadius: '16px',
                 p: { xs: 2, sm: 2.5 },
                 bgcolor: (t) =>
                   t.palette.mode === 'dark'
@@ -1025,13 +1049,13 @@ export const BodyMap = ({
                     : activeRegion.level === 'ok'
                     ? '#f4fbf8'
                     : '#f8fafc',
-                border: '1.5px solid',
+                border: '1px solid',
                 borderColor: (t) =>
                   alpha(
                     activeColor,
                     t.palette.mode === 'dark' ? 0.45 : activeRegion.level === 'alterado' ? 0.35 : 0.25
                   ),
-                boxShadow: (t) => `0 4px 18px ${alpha(activeColor, t.palette.mode === 'dark' ? 0.15 : 0.06)}`,
+                boxShadow: 'none',
                 transition: 'all 0.2s ease',
               }}
             >
@@ -1062,10 +1086,10 @@ export const BodyMap = ({
                     <Typography sx={{ fontWeight: 800, fontSize: 16.5, lineHeight: 1.2 }}>
                       {activeRegion.label}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 13 }}>
                       {activeRegion.markers.length > 0
-                        ? `${activeRegion.markers.length} exame${activeRegion.markers.length > 1 ? 's' : ''} mapeado${activeRegion.markers.length > 1 ? 's' : ''}`
-                        : 'Nenhum exame vinculado no momento'}
+                        ? `${activeRegion.markers.length} marcador${activeRegion.markers.length > 1 ? 'es' : ''} mapeado${activeRegion.markers.length > 1 ? 's' : ''}`
+                        : 'Nenhum marcador vinculado no momento'}
                     </Typography>
                   </Box>
                 </Stack>
@@ -1097,9 +1121,8 @@ export const BodyMap = ({
                         sx={{
                           fontFamily: 'Inter, sans-serif',
                           fontWeight: 700,
-                          fontSize: 12,
-                          letterSpacing: '0.08em',
-                          textTransform: 'uppercase',
+                          fontSize: 13,
+                          lineHeight: 1.3,
                           color: 'text.secondary',
                           mb: 1,
                           px: 0.5,
@@ -1107,7 +1130,7 @@ export const BodyMap = ({
                       >
                         Precisa de atenção · {attentionMarkers.length}
                       </Typography>
-                      <Stack spacing={1}>
+                      <Stack spacing={0}>
                         {attentionMarkers.map((m) => {
                           const mCol = getLevelColor(m.level);
                           const examDate = formatDate(m.performedAt);
@@ -1118,16 +1141,15 @@ export const BodyMap = ({
                             <Box
                               key={mKey}
                               sx={{
-                                borderRadius: '12px',
-                                bgcolor: (t) => (t.palette.mode === 'dark' ? '#141e28' : '#ffffff'),
-                                border: '1px solid',
-                                borderColor: isExpanded ? alpha(activeColor, 0.55) : alpha(mCol, 0.35),
-                                borderLeft: `4px solid ${mCol}`,
-                                boxShadow: isExpanded
-                                  ? `0 4px 14px ${alpha(activeColor, 0.16)}`
-                                  : '0 1px 3px rgba(0,0,0,0.03)',
-                                transition: 'all 0.18s ease',
+                                // Linha de lista dentro do painel: divisória em vez de caixa com faixa
+                                // lateral (regra de profundidade do DS, 25/11/26). A cor do nível fica
+                                // no ponto antes do nome e no valor.
+                                borderBottom: '1px solid',
+                                borderColor: 'divider',
+                                bgcolor: isExpanded ? (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.08 : 0.05) : 'transparent',
+                                transition: 'background-color 0.18s ease',
                                 overflow: 'hidden',
+                                '&:last-child': { borderBottom: 'none' },
                               }}
                             >
                               <Box
@@ -1140,28 +1162,39 @@ export const BodyMap = ({
                                   justifyContent: 'space-between',
                                   p: { xs: '10px 12px', sm: '11px 14px' },
                                   cursor: 'pointer',
+                                  // Sem espaço para nome + valor na mesma linha (painel estreito do
+                                  // desktop), o valor desce para a linha de baixo em vez de espremer
+                                  // o nome até "HE…".
+                                  flexWrap: 'wrap',
+                                  rowGap: 0.5,
                                   gap: 1.25,
                                   '&:hover': {
                                     bgcolor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.08 : 0.04),
                                   },
                                 }}
                               >
+                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: mCol, flexShrink: 0 }} aria-hidden="true" />
                                 <Typography
                                   sx={{
                                     fontWeight: 700,
-                                    fontSize: { xs: 13, sm: 13.5 },
+                                    fontSize: 13.5,
+                                    lineHeight: 1.3,
                                     color: 'text.primary',
+                                    // Nome inteiro em até 2 linhas: no desktop o painel é estreito e
+                                    // "HEMATÓCRITO"/"HEMOGLOBINA" saíam como "HEMATO…"/"HE…".
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
                                     overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                    minWidth: 0,
-                                    flex: 1,
+                                    overflowWrap: 'anywhere',
+                                    minWidth: 108,
+                                    flex: '1 1 108px',
                                   }}
                                 >
                                   {m.name}
                                 </Typography>
 
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0, ml: 'auto' }}>
                                   <Typography
                                     sx={{
                                       fontWeight: 800,
@@ -1304,7 +1337,7 @@ export const BodyMap = ({
                                           color: 'text.secondary',
                                           py: 0.25,
                                           px: 1,
-                                          minHeight: 28,
+                                          minHeight: 44,
                                           '&:hover': { color: 'text.primary' },
                                         }}
                                       >
@@ -1323,7 +1356,7 @@ export const BodyMap = ({
                                         color: 'primary.main',
                                         py: 0.25,
                                         px: 1,
-                                        minHeight: 28,
+                                        minHeight: 44,
                                       }}
                                     >
                                       Ver evolução
@@ -1345,9 +1378,8 @@ export const BodyMap = ({
                         sx={{
                           fontFamily: 'Inter, sans-serif',
                           fontWeight: 700,
-                          fontSize: 12,
-                          letterSpacing: '0.08em',
-                          textTransform: 'uppercase',
+                          fontSize: 13,
+                          lineHeight: 1.3,
                           color: 'text.secondary',
                           mb: 1,
                           px: 0.5,
@@ -1355,7 +1387,7 @@ export const BodyMap = ({
                       >
                         Dentro da faixa · {normalMarkers.length}
                       </Typography>
-                      <Stack spacing={1}>
+                      <Stack spacing={0}>
                         {visibleNormalMarkers.map((m) => {
                           const mCol = getLevelColor(m.level);
                           const examDate = formatDate(m.performedAt);
@@ -1366,16 +1398,13 @@ export const BodyMap = ({
                             <Box
                               key={mKey}
                               sx={{
-                                borderRadius: '12px',
-                                bgcolor: (t) => (t.palette.mode === 'dark' ? '#141e28' : '#ffffff'),
-                                border: '1px solid',
-                                borderColor: isExpanded ? alpha(activeColor, 0.55) : 'divider',
-                                borderLeft: `4px solid ${mCol}`,
-                                boxShadow: isExpanded
-                                  ? `0 4px 14px ${alpha(activeColor, 0.16)}`
-                                  : '0 1px 3px rgba(0,0,0,0.03)',
-                                transition: 'all 0.18s ease',
+                                // Mesma lista de divisórias do bloco "Precisa de atenção".
+                                borderBottom: '1px solid',
+                                borderColor: 'divider',
+                                bgcolor: isExpanded ? (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.08 : 0.05) : 'transparent',
+                                transition: 'background-color 0.18s ease',
                                 overflow: 'hidden',
+                                '&:last-child': { borderBottom: 'none' },
                               }}
                             >
                               <Box
@@ -1388,28 +1417,37 @@ export const BodyMap = ({
                                   justifyContent: 'space-between',
                                   p: { xs: '10px 12px', sm: '11px 14px' },
                                   cursor: 'pointer',
+                                  // Sem espaço para nome + valor na mesma linha (painel estreito do
+                                  // desktop), o valor desce para a linha de baixo em vez de espremer
+                                  // o nome até "HE…".
+                                  flexWrap: 'wrap',
+                                  rowGap: 0.5,
                                   gap: 1.25,
                                   '&:hover': {
                                     bgcolor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.08 : 0.04),
                                   },
                                 }}
                               >
+                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: mCol, flexShrink: 0 }} aria-hidden="true" />
                                 <Typography
                                   sx={{
                                     fontWeight: 600,
-                                    fontSize: { xs: 13, sm: 13.5 },
+                                    fontSize: 13.5,
+                                    lineHeight: 1.3,
                                     color: 'text.primary',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
                                     overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                    minWidth: 0,
-                                    flex: 1,
+                                    overflowWrap: 'anywhere',
+                                    minWidth: 108,
+                                    flex: '1 1 108px',
                                   }}
                                 >
                                   {m.name}
                                 </Typography>
 
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0, ml: 'auto' }}>
                                   <Typography
                                     sx={{
                                       fontWeight: 700,
@@ -1552,7 +1590,7 @@ export const BodyMap = ({
                                           color: 'text.secondary',
                                           py: 0.25,
                                           px: 1,
-                                          minHeight: 28,
+                                          minHeight: 44,
                                           '&:hover': { color: 'text.primary' },
                                         }}
                                       >
@@ -1571,7 +1609,7 @@ export const BodyMap = ({
                                         color: 'primary.main',
                                         py: 0.25,
                                         px: 1,
-                                        minHeight: 28,
+                                        minHeight: 44,
                                       }}
                                     >
                                       Ver evolução
