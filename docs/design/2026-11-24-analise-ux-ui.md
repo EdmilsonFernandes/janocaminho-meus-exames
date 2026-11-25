@@ -143,3 +143,34 @@ estado (sucesso/aviso). Vale escrever em `.claude/DESIGN_SYSTEM.md` como regra.
 2. Botão desabilitado (item 2) e alvos de toque restantes (item 4) — uma tarde.
 3. Placar no topo do Radar + registro acima da configuração (item 3).
 4. Aba "Hoje" na Agenda (item 8) e lembrete que segue o registro (item 7).
+
+---
+
+## Estado em 25/11/2026 — o que foi implementado (AAB 624, commits `9e6634ef` e `a4c762b1`)
+
+| Item | Estado | Observação |
+|---|---|---|
+| 1. Fila de modais | Feito | `utils/autoModalQueue.ts`: só na Home, um por sessão, saúde > comemoração > cadastro. Alerta de saúde vira faixa na Home quando não abre. **Fora da fila:** novidades (WhatsNew), recado do dia (Motd) e patrocinador — dividem a mesma vaga de sessão, mas sem prioridade nem "só na Home". |
+| 2. Botão desabilitado | Feito | No tema (`theme.ts`), vale para o app todo. |
+| 3. Radar: ação no topo | Feito | Placar "Seu dia" → Suas aplicações → gráfico → leitura → "Ajustar meu protocolo" (recolhido a partir da 2ª visita). |
+| 4. Alvos de 44px no Radar | Feito | Verificado por roteiro: nenhum controle visível abaixo de 44px. |
+| 5. Previsão no gráfico | Feito | Triângulo vazado + rótulo "próxima"; legenda com as mesmas formas. |
+| 6. Diário enxuto | Feito | Lista só com divisórias; descrição em uma linha. |
+| 7. Lembrete segue o registro | Feito | Ao registrar, move o lembrete aberto do composto para a nova prevista. Só atualiza, nunca cria. |
+| 8. Aba "Hoje" na Agenda | Feito | Consulta em andamento → Atrasados (até 7 dias) → Hoje. Remédios ganhou grupos. |
+| 9. Resolver na Home | Feito | "Marcar como feito" com Desfazer; atalho "Aplicação prevista" só para quem usa o diário. |
+| 10. Origem da resposta no chat | Feito | Selo + "Gerar de novo · N créditos". |
+| 11. Linha do "hoje" | Parcial | Linha em Composição corporal e Tendências; rótulo "Último resultado: há N" em Evolução e Histórico de medição. Medições (miniaturas) e curva de crescimento infantil não foram tocadas. |
+| 12. Profundidade | Regra escrita | Em `.claude/DESIGN_SYSTEM.md` ("Regras de composição"). Telas existentes NÃO foram refeitas para segui-la. |
+
+### Da auditoria de 29/10
+- **Contagens divergentes:** o bloco "Fora da faixa" da Home passou a usar a mesma régua do herói, com rótulo de escopo; Evolução ganhou legenda do escopo dela. O donut "Seus Marcadores" continua contando o histórico bruto e chamando LOW de "Leve" — **não corrigido**.
+- **"Fora da referência" + "sem faixa":** corrigido para faixa de um lado só (painel esportivo) e explicado no mapa do corpo.
+- **React #310:** o do mapa do corpo já estava corrigido; havia outro no painel esportivo (2 hooks depois de `return`) — corrigido.
+- **Lista de alterados:** passou a ignorar exame com CPF divergente.
+
+### Ficou em aberto (decisão do dono)
+- A comemoração do primeiro exame pode ser adiada para a sessão seguinte quando outro modal já usou a vaga; com 2+ exames na sessão seguinte, ela se perde.
+- O card "O que fazer: dividir em 2 aplicações por semana" do Radar sugere mudança de esquema de aplicação. Já existia; vale revisão clínica (o app não deveria sugerir conduta).
+- Não há ESLint com `react-hooks/rules-of-hooks` no repositório — é por isso que hook fora de ordem chega à produção. Recomendado adicionar ao CI.
+- `DashboardErrorBoundary` só faz `console.error`: erro de tela provavelmente não chega ao Sentry.
