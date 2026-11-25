@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { DrExame } from './DrExame';
 import { tealText } from '../theme';
 import { API_URL, token } from '../config';
-import { claimColdDialog } from '../utils/coldDialog';
+import { autoModalQueue } from '../utils/autoModalQueue';
 
 const SLIDES = [
   { emoji: '📄', title: 'Envie seu exame', desc: 'Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.' },
@@ -18,8 +18,8 @@ const SLIDES = [
  * Regras de abertura (júri de design E4+):
  *  - SÓ para quem tem ZERO exames (stats.exams===0): quem já tem painel não aprende
  *    nada com o tour do upload — sela e nunca mais pergunta;
- *  - NUNCA empilha: entra na bateria do claimColdDialog (máx 1 diálogo de cold-load
- *    por sessão) e espera modais já abertos fecharem;
+ *  - NUNCA empilha: passa pela fila única (autoModalQueue — máx 1 modal automático por
+ *    sessão, só na Home, atrás do alerta de saúde) e espera modais já abertos fecharem;
  *  - NUNCA fora do dashboard: o coach-mark aponta pro CTA de upload — se o usuário
  *    caiu noutra rota (ex.: navegação interna pro Perfil), a âncora está fora da
  *    viewport e abrir ali só atrapalha (não sela: abre no próximo boot no dashboard).
@@ -33,18 +33,23 @@ export const Onboarding = () => {
 
   useEffect(() => {
     let done = false;
+    let unmounted = false;
     let iv: number | undefined;
     let kill: number | undefined;
     try { if (localStorage.getItem('onboarded')) return; } catch { return; }
+    const QUEUE_ID = 'onboarding';
+    autoModalQueue.announce(QUEUE_ID, 'signup');
+    const giveUp = () => autoModalQueue.withdraw(QUEUE_ID);
     // Zero exames? 1 GET leve (máx 1 row) decide — o tour é do PRIMEIRO exame.
     fetch(`${API_URL}/exams?_start=0&_end=1`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => (r.ok ? r.json() : null))
       .then((rows: unknown) => {
         if (done) return;
-        if (!Array.isArray(rows)) return; // resposta inesperada → não decide (não sela)
+        if (!Array.isArray(rows)) { giveUp(); return; } // resposta inesperada → não decide (não sela)
         if (rows.length > 0) {
           // Já tem exame → o coach-mark "Envie seu exame" não ensina nada. Sela em silêncio.
           try { localStorage.setItem('onboarded', '1'); } catch { /* storage off */ }
+          giveUp();
           return;
         }
         // Fora do dashboard (ex.: veio por navegação interna pro /perfil) → a âncora do
@@ -52,21 +57,22 @@ export const Onboarding = () => {
         // dashboard ainda mostra (usuário novo não perde o tour por causa de um redirect).
         const hash = window.location.hash ? window.location.hash.replace(/^#/, '') : '';
         const path = (hash || window.location.pathname || '/').split('?')[0];
-        if (path !== '/' && path !== '') return;
+        if (path !== '/' && path !== '') { giveUp(); return; }
         // Anti-empilhamento: espera dialogs de cold-load fecharem (WhatsNew/MOTD/quiz…);
         // se em 30s não deu, desiste SEM selar (pergunta no próximo boot). Depois disputa
-        // o slot ÚNICO da sessão — nunca 2 modais de boot (guard global claimColdDialog).
+        // o slot ÚNICO da sessão — nunca 2 modais automáticos (fila única autoModalQueue;
+        // perdeu a vez = não sela: o próximo boot na Home ainda mostra).
         iv = window.setInterval(() => {
           if (done) return;
           if (document.querySelector('.MuiDialog-root')) return;
           done = true;
           window.clearInterval(iv);
-          if (claimColdDialog('onboarding')) setShow(true);
+          autoModalQueue.request(QUEUE_ID, 'signup', () => { if (!unmounted) setShow(true); });
         }, 1200);
-        kill = window.setTimeout(() => { done = true; if (iv) window.clearInterval(iv); }, 30000);
+        kill = window.setTimeout(() => { if (!done) { done = true; if (iv) window.clearInterval(iv); giveUp(); } }, 30000);
       })
-      .catch(() => { /* offline → sem certeza sobre exames: não abre nem sela */ });
-    return () => { done = true; if (iv) window.clearInterval(iv); if (kill) window.clearTimeout(kill); };
+      .catch(() => { giveUp(); /* offline → sem certeza sobre exames: não abre nem sela */ });
+    return () => { done = true; unmounted = true; if (iv) window.clearInterval(iv); if (kill) window.clearTimeout(kill); giveUp(); };
   }, []);
   if (!show) return null;
 

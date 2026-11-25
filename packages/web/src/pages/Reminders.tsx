@@ -31,6 +31,7 @@ import PaymentsIcon from '@mui/icons-material/Payments';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import TodayIcon from '@mui/icons-material/Today';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API_URL, APP_WEB_URL, token, doctorPhotoUrl } from '../config';
 import { hapticSuccess, hapticError, hapticLight } from '../utils/haptic';
@@ -100,13 +101,18 @@ export const RemindersPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Abas de separação clínica: Consultas | Medicamentos | Lembretes de Rotina
-  const tabParam = searchParams.get('tab') as 'consultas' | 'medicamentos' | 'lembretes' | null;
-  const setTab = (tab: 'consultas' | 'medicamentos' | 'lembretes') => {
+  // 25/11: aba "Hoje" (1ª) reúne o que vence hoje ou está atrasado, de qualquer tipo.
+  const tabParam = searchParams.get('tab') as 'hoje' | 'consultas' | 'medicamentos' | 'lembretes' | null;
+  const setTab = (tab: 'hoje' | 'consultas' | 'medicamentos' | 'lembretes') => {
     setSearchParams({ tab });
+    if (tab === 'hoje') return; // "Hoje" não tem formulário próprio — não mexe na categoria
     if (tab === 'consultas') setRtype('consulta');
     else if (tab === 'medicamentos') setRtype('medicamento');
     else setRtype('exame');
   };
+  // Sem ?tab= a tela abre em "Hoje" quando há item; este ref segura a aba depois que o
+  // usuário resolve o último item (senão a tela pularia sozinha pra outra aba no meio do uso).
+  const landedHojeRef = useRef<any>(null);
 
   const [items, setItems] = useState<any[]>([]);
   const [title, setTitle] = useState('');
@@ -239,10 +245,6 @@ export const RemindersPage = () => {
   const medications = items.filter(isMedication);
   const routineList = items.filter(isRoutineReminder);
 
-  // Se o usuário não especificou ?tab= na URL, prioriza a aba com conteúdo real ativo
-  const currentTab: 'consultas' | 'medicamentos' | 'lembretes' =
-    tabParam || (consultations.length > 0 ? 'consultas' : routineList.length > 0 ? 'lembretes' : medications.length > 0 ? 'medicamentos' : 'consultas');
-
   // F4 pós-consulta: teleconsulta ENCERRADA (endedAt) sai das agendadas e vai direto
   // pro "Histórico de consultas" — nunca mistura com consulta futura nem mostra "Entrar".
   // G1 (spec §19, 24/10): consulta ATIVA/PRÓXIMA pinada no TOPO da aba — nunca mais
@@ -289,9 +291,94 @@ export const RemindersPage = () => {
     { key: 'later', label: 'Depois', list: upcomingRoutine.filter((r) => groupOf(r.dueDate) === 'later') },
   ].filter((g) => g.list.length > 0);
 
-  // Remédios (inclui os lembretes de aplicação do Radar Hormonal): pendentes primeiro, na ordem
-  // em que vencem; tomados no fim. Antes vinham na ordem crua do servidor (mais antigo no topo).
-  const medicationsSorted = [...medications.filter((r) => !r.done).sort(byDueAsc), ...medications.filter((r) => r.done).sort(byDueDesc)];
+  // Remédios (inclui os lembretes de aplicação do Radar Hormonal) nos MESMOS grupos por situação
+  // dos Lembretes (25/11): Atrasados / Hoje / Próximos + "Remédios tomados" recolhido.
+  const dueMs = (r: any) => new Date(r.dueDate).getTime();
+  const nowMs = now.getTime();
+  const startTodayMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const startTomorrowMs = startTodayMs + 86400000;
+  const openMeds = medications.filter((r) => !r.done);
+  const overdueMeds = openMeds.filter((r) => dueMs(r) < nowMs).sort(byDueDesc);
+  const todayMeds = openMeds.filter((r) => dueMs(r) >= nowMs && dueMs(r) < startTomorrowMs).sort(byDueAsc);
+  const upcomingMeds = openMeds.filter((r) => !(dueMs(r) < startTomorrowMs)).sort(byDueAsc);
+  const takenMeds = medications.filter((r) => r.done).sort(byDueDesc);
+  const medGroups = [
+    { key: 'overdue', label: 'Atrasados', list: overdueMeds },
+    { key: 'today', label: 'Hoje', list: todayMeds },
+    { key: 'upcoming', label: 'Próximos', list: upcomingMeds },
+  ].filter((g) => g.list.length > 0);
+
+  // ── ABA "HOJE" (25/11): tudo que vence hoje ou está atrasado e NÃO foi resolvido, de
+  // qualquer tipo, numa lista só. Regras:
+  //  • Consulta: a MESMA janela de "ativa" da aba Consultas (activeConsultations), cortada
+  //    em hoje — a ativa de amanhã (≤24h) fica fora: nunca chamar de "hoje" o que não é.
+  //  • Remédio / lembrete: pendente (!done) com hora até o fim de hoje.
+  //  • Atrasado antigo não domina: vencido há mais de 7 dias fica só na aba de origem.
+  type HojeItem = { kind: 'consulta' | 'remedio' | 'lembrete'; r: any };
+  const HOJE_OVERDUE_WINDOW_MS = 7 * 86400000;
+  const isRecentOverdue = (r: any) => dueMs(r) >= nowMs - HOJE_OVERDUE_WINDOW_MS;
+  const hojeConsults = activeConsultations.filter((r) => dueMs(r) < startTomorrowMs);
+  // Consulta cuja hora JÁ CHEGOU (ainda na janela de "ativa") é o que não pode esperar: vai num
+  // bloco próprio ANTES dos atrasados — um remédio de ontem não pode empurrar para baixo a
+  // consulta que está acontecendo agora. Não é "atrasada": pode estar em andamento.
+  const hojeNow: HojeItem[] = hojeConsults
+    .filter((r) => dueMs(r) <= nowMs)
+    .map((r): HojeItem => ({ kind: 'consulta', r }))
+    .sort((a, b) => byDueDesc(a.r, b.r));
+  const hojeOverdue: HojeItem[] = [
+    ...overdueMeds.filter(isRecentOverdue).map((r): HojeItem => ({ kind: 'remedio', r })),
+    ...overdueRoutine.filter(isRecentOverdue).map((r): HojeItem => ({ kind: 'lembrete', r })),
+  ].sort((a, b) => byDueDesc(a.r, b.r)); // o mais recente no topo
+  const hojeToday: HojeItem[] = [
+    ...hojeConsults.filter((r) => dueMs(r) > nowMs).map((r): HojeItem => ({ kind: 'consulta', r })),
+    ...todayMeds.map((r): HojeItem => ({ kind: 'remedio', r })),
+    ...upcomingRoutine.filter((r) => groupOf(r.dueDate) === 'today').map((r): HojeItem => ({ kind: 'lembrete', r })),
+  ].sort((a, b) => byDueAsc(a.r, b.r)); // em ordem de horário
+  const hojeGroups = [
+    { key: 'now', label: 'Consulta', list: hojeNow },
+    { key: 'overdue', label: 'Atrasados', list: hojeOverdue },
+    { key: 'today', label: 'Hoje', list: hojeToday },
+  ].filter((g) => g.list.length > 0);
+  const hojeCount = hojeNow.length + hojeOverdue.length + hojeToday.length;
+  // Pendências antigas (fora da janela de 7 dias): não entram em "Hoje", mas o vazio avisa
+  // que existem — "Nada para hoje" não pode virar falsa calma.
+  const oldOverdueMedsCount = overdueMeds.filter((r) => !isRecentOverdue(r)).length;
+  const oldOverdueRoutineCount = overdueRoutine.filter((r) => !isRecentOverdue(r)).length;
+  // Próximo compromisso futuro (linha do estado vazio), de qualquer tipo.
+  const nextUpList: HojeItem[] = [
+    ...consultations.filter((r) => !r.endedAt && !r.done && dueMs(r) >= nowMs).map((r): HojeItem => ({ kind: 'consulta', r })),
+    ...openMeds.filter((r) => dueMs(r) >= nowMs).map((r): HojeItem => ({ kind: 'remedio', r })),
+    ...upcomingRoutine.map((r): HojeItem => ({ kind: 'lembrete', r })),
+  ].sort((a, b) => byDueAsc(a.r, b.r));
+  const nextUp: HojeItem | null = nextUpList.length > 0 ? nextUpList[0] : null;
+  const nextUpTab: 'consultas' | 'medicamentos' | 'lembretes' | null =
+    nextUp ? (nextUp.kind === 'consulta' ? 'consultas' : nextUp.kind === 'remedio' ? 'medicamentos' : 'lembretes') : null;
+  const nextUpTitle = nextUp
+    ? String((nextUp.kind === 'consulta' && nextUp.r.doctor?.name) ? `Consulta com ${nextUp.r.doctor.name}` : (nextUp.r.title || 'Compromisso'))
+    : '';
+  const fmtNextWhen = (d: string) => {
+    const dt = new Date(d);
+    const hm = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    if (dt.getTime() < startTomorrowMs) return `hoje às ${hm}`;
+    if (dt.getTime() < startTomorrowMs + 86400000) return `amanhã às ${hm}`;
+    return `${dt.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' })} às ${hm}`;
+  };
+
+  // Aba padrão. Com ?tab= na URL: respeita SEMPRE (push e outras telas abrem ?tab=consultas|
+  // medicamentos|lembretes). Sem ?tab=: "Hoje" se houver item nela; senão a regra antiga
+  // (prioriza a aba com conteúdo real).
+  if (!tabParam && hojeCount > 0) landedHojeRef.current = pid;
+  const currentTab: 'hoje' | 'consultas' | 'medicamentos' | 'lembretes' =
+    tabParam || ((hojeCount > 0 || (landedHojeRef.current != null && landedHojeRef.current === pid)) ? 'hoje'
+      : consultations.length > 0 ? 'consultas' : routineList.length > 0 ? 'lembretes' : medications.length > 0 ? 'medicamentos' : 'consultas');
+
+  // Com 4 abas a barra rola por dentro em 390px. Sem isto, quem chega por `?tab=lembretes`
+  // (notificação) via a aba ATIVA cortada na borda. Mexe só no scroll da barra, nunca no da página.
+  useEffect(() => {
+    const bar = document.querySelector<HTMLElement>('[data-agenda-tabs]');
+    const el = bar?.children[['hoje', 'consultas', 'medicamentos', 'lembretes'].indexOf(currentTab)] as HTMLElement | undefined;
+    if (bar && el) bar.scrollLeft = el.offsetLeft - (bar.clientWidth - el.offsetWidth) / 2;
+  }, [currentTab]);
 
   // Poll doctorInRoom (5s) — espelha o poll do Teleconsulta.tsx para o paciente
   // que está em OUTRA página: só teleconsultas não-done na janela da consulta
@@ -1207,6 +1294,22 @@ export const RemindersPage = () => {
     );
   };
 
+  // Rótulo de grupo por situação — mesmo visual dos grupos da aba Lembretes.
+  const renderGroupLabel = (label: string, count: number, danger: boolean) => (
+    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 1 }}>
+      <Typography sx={{ fontWeight: 800, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em', color: danger ? 'error.main' : 'text.secondary' }}>
+        {label}
+      </Typography>
+      <Chip size="small" label={count} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
+      <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
+    </Stack>
+  );
+  // Linha da aba "Hoje": o renderizador que JÁ existe pra cada tipo (a ação certa aparece).
+  const renderHojeItem = (it: HojeItem) =>
+    it.kind === 'consulta' ? renderActiveConsultationHero(it.r)
+      : it.kind === 'remedio' ? renderMedicationCard(it.r)
+        : renderRoutineCard(it.r);
+
   return (
     <PageContainer width="content" sx={{ pb: { xs: 10, sm: 5 } }}>
       <PageHeader
@@ -1217,6 +1320,7 @@ export const RemindersPage = () => {
 
       {/* ABAS SEGMENTADAS DE CLASSE MÉDICA (Consultas vs Medicamentos vs Lembretes) */}
       <Box
+        data-agenda-tabs=""
         sx={{
           mb: 3,
           p: 0.5,
@@ -1225,14 +1329,44 @@ export const RemindersPage = () => {
           border: '1px solid',
           borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
           display: 'flex',
-          gap: 0.75,
+          gap: { xs: 0.5, sm: 0.75 },
+          // 4 abas em 390px: se não couberem, rola SÓ a barra (nunca a página).
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': { display: 'none' },
         }}
       >
         <Button
-          fullWidth
+          onClick={() => setTab('hoje')}
+          startIcon={<TodayIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+          sx={{
+            flex: '1 0 auto',
+            minHeight: 44,
+            py: 1,
+            px: { xs: 1, sm: 1.5 },
+            borderRadius: '12px',
+            textTransform: 'none',
+            fontWeight: 800,
+            fontSize: { xs: 12, sm: 13.5 },
+            whiteSpace: 'nowrap',
+            minWidth: 0,
+            bgcolor: currentTab === 'hoje' ? '#0f766e' : 'transparent',
+            color: currentTab === 'hoje' ? '#fff' : 'text.secondary',
+            boxShadow: currentTab === 'hoje' ? '0 4px 14px rgba(15,118,110,.3)' : 'none',
+            '&:hover': {
+              bgcolor: currentTab === 'hoje' ? '#115e59' : 'action.hover',
+            },
+          }}
+        >
+          Hoje ({hojeCount})
+        </Button>
+
+        <Button
           onClick={() => setTab('consultas')}
           startIcon={<VideocamIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
           sx={{
+            flex: '1 0 auto',
+            minHeight: 44,
             py: 1,
             px: { xs: 0.75, sm: 1.5 },
             borderRadius: '12px',
@@ -1253,10 +1387,11 @@ export const RemindersPage = () => {
         </Button>
 
         <Button
-          fullWidth
           onClick={() => setTab('medicamentos')}
           startIcon={<MedicationIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
           sx={{
+            flex: '1 0 auto',
+            minHeight: 44,
             py: 1,
             px: { xs: 0.75, sm: 1.5 },
             borderRadius: '12px',
@@ -1282,10 +1417,11 @@ export const RemindersPage = () => {
         </Button>
 
         <Button
-          fullWidth
           onClick={() => setTab('lembretes')}
           startIcon={<BellIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
           sx={{
+            flex: '1 0 auto',
+            minHeight: 44,
             py: 1,
             px: { xs: 0.75, sm: 1.5 },
             borderRadius: '12px',
@@ -1332,6 +1468,92 @@ export const RemindersPage = () => {
             Sua teleconsulta{startingSoon.doctor?.name ? ` com ${startingSoon.doctor.name}` : ''} começa em {Math.max(1, Math.ceil((new Date(startingSoon.dueDate).getTime() - now.getTime()) / 60000))} min
           </Typography>
         </Alert>
+      )}
+
+      {/* CONTEÚDO DA ABA 0: HOJE — atrasados + o que é de hoje, de qualquer tipo */}
+      {currentTab === 'hoje' && (
+        <Box>
+          <Box sx={{ mb: 2 }}>
+            <Typography sx={{ fontWeight: 800, fontSize: 17, fontFamily: 'Poppins, sans-serif', lineHeight: 1.2 }}>
+              Para hoje
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.35, mt: 0.25 }}>
+              {now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })} · consultas, remédios e lembretes
+            </Typography>
+          </Box>
+
+          {hojeGroups.length === 0 ? (
+            <Frame className="mb-6 w-full">
+              <FramePanel className="flex flex-col items-center py-7 text-center">
+                <IconTile tone="primary" size="lg" className="mb-3">
+                  <CheckCircleOutlineIcon sx={{ fontSize: 24 }} />
+                </IconTile>
+                <Typography sx={{ fontWeight: 800, fontSize: 16.5, mb: 0.5, fontFamily: 'Poppins, sans-serif' }}>
+                  Nada para hoje.
+                </Typography>
+                <Typography color="text.secondary" sx={{ mb: 2, maxWidth: 380, mx: 'auto', fontSize: 13.5, lineHeight: 1.5 }}>
+                  Sem consultas, remédios ou lembretes pendentes para hoje.
+                </Typography>
+                <Stack spacing={1} alignItems="center" sx={{ width: '100%' }}>
+                  {nextUp && nextUpTab && (
+                    <Button
+                      variant="outlined"
+                      onClick={() => { hapticLight(); setTab(nextUpTab); }}
+                      endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
+                      sx={{
+                        minHeight: 44,
+                        maxWidth: '100%',
+                        borderRadius: '12px',
+                        textTransform: 'none',
+                        fontWeight: 700,
+                        fontSize: 13,
+                        lineHeight: 1.35,
+                        textAlign: 'left',
+                        px: 2,
+                        borderColor: 'rgba(32,178,170,0.4)',
+                        color: (t) => tealText(t.palette.mode),
+                        '&:hover': { bgcolor: 'rgba(32,178,170,0.06)', borderColor: '#20b2aa' },
+                      }}
+                    >
+                      <Box component="span" sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+                        Próximo: {nextUpTitle} — {fmtNextWhen(nextUp.r.dueDate)}
+                      </Box>
+                    </Button>
+                  )}
+                  {oldOverdueRoutineCount > 0 && (
+                    <Button
+                      size="small"
+                      onClick={() => { hapticLight(); setTab('lembretes'); }}
+                      sx={{ minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: 12.5, color: 'text.secondary' }}
+                    >
+                      {oldOverdueRoutineCount === 1 ? '1 lembrete atrasado há mais de 7 dias' : `${oldOverdueRoutineCount} lembretes atrasados há mais de 7 dias`}
+                    </Button>
+                  )}
+                  {oldOverdueMedsCount > 0 && (
+                    <Button
+                      size="small"
+                      onClick={() => { hapticLight(); setTab('medicamentos'); }}
+                      sx={{ minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: 12.5, color: 'text.secondary' }}
+                    >
+                      {oldOverdueMedsCount === 1 ? '1 remédio atrasado há mais de 7 dias' : `${oldOverdueMedsCount} remédios atrasados há mais de 7 dias`}
+                    </Button>
+                  )}
+                </Stack>
+              </FramePanel>
+            </Frame>
+          ) : (
+            <Stack spacing={2} sx={{ mb: 3 }}>
+              {hojeGroups.map((g) => (
+                <Box key={g.key}>
+                  {renderGroupLabel(g.label, g.list.length, g.key === 'overdue')}
+                  <Stack spacing={1.25}>
+                    {g.list.map((it) => renderHojeItem(it))}
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
+          )}
+        </Box>
       )}
 
       {/* CONTEÚDO DA ABA 1: CONSULTAS & TELEMEDICINA */}
@@ -1609,9 +1831,37 @@ export const RemindersPage = () => {
               </CardContent>
             </Card>
           ) : (
-            <Stack spacing={1.5} sx={{ mb: 3 }}>
-              {medicationsSorted.map((r) => renderMedicationCard(r))}
-            </Stack>
+            <>
+              {medGroups.length > 0 && (
+                <Stack spacing={2} sx={{ mb: 3 }}>
+                  {medGroups.map((g) => (
+                    <Box key={g.key}>
+                      {renderGroupLabel(g.label, g.list.length, g.key === 'overdue')}
+                      <Stack spacing={1.25}>
+                        {g.list.map((r) => renderMedicationCard(r))}
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              )}
+              {takenMeds.length > 0 && (
+                <Accordion elevation={0} sx={{ mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: '16px !important', '&:before': { display: 'none' } }}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <HistoryIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                      <Typography sx={{ fontWeight: 800, fontSize: 14 }}>
+                        Remédios tomados ({takenMeds.length})
+                      </Typography>
+                    </Stack>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ pt: 0 }}>
+                    <Stack spacing={1}>
+                      {takenMeds.map((r) => renderMedicationCard(r))}
+                    </Stack>
+                  </AccordionDetails>
+                </Accordion>
+              )}
+            </>
           )}
         </Box>
       )}
@@ -1692,7 +1942,7 @@ export const RemindersPage = () => {
       )}
 
       {/* FORMULÁRIO DE CADASTRO ADAPTADO — exclusivo para medicamentos e lembretes de exames */}
-      {currentTab !== 'consultas' && (
+      {currentTab !== 'consultas' && currentTab !== 'hoje' && (
         <Card
           sx={{
             mt: 3,

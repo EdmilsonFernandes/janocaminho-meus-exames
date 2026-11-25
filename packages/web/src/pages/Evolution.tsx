@@ -32,6 +32,8 @@ import { useClinicalGoals } from '../hooks/useClinicalGoals';
 import { goalFor, goalRangeText, withinGoal, withinRef, dualStatusText, hasMixedMethods, lineBreakFlags } from '../utils/clinicalGoals';
 import { prettyName } from '../utils/prettyName';
 import { ListEmpty } from '@/components/reui/list-empty';
+import { LastDataLabel } from '@/components/charts/LastDataLabel';
+import { LAB_STALE_AFTER_DAYS } from '@/components/charts/recency';
 
 /** Chip "🎯 Meta clínica" (E2.4 — camada 2): SEMPRE além do badge da régua do lab; nunca
  *  o substitui. Tooltip mostra justificativa + fonte + autor (transparência clínica). */
@@ -199,6 +201,12 @@ export const EvolutionPage = () => {
                 );
               })}
             </Box>
+            {/* Escopo da contagem (auditoria 25/11): estes números olham TODO o histórico, pelo último
+                valor de cada marcador — a Home conta só o que foi medido nos últimos 12 meses.
+                Dizer isso evita o "aqui diz 9, lá diz 7". */}
+            <Typography variant="caption" sx={{ display: 'block', mt: -1, mb: 2, color: 'text.secondary', fontSize: 12 }}>
+              Contagem pelo último valor de cada marcador, em todo o seu histórico.
+            </Typography>
           </ScrollReveal>
 
           {/* Busca premium — pill com hover glow */}
@@ -460,6 +468,14 @@ const EvoRow = ({ it, defaultExpanded, idx = 0, goal }: { it: EvoItem; defaultEx
               </LineChart>
             </ResponsiveContainer>
           </Box>
+        )}
+        {/* De QUANDO é o último ponto. O mini-gráfico tem um ponto por exame, com espaçamento
+            igual (não é eixo de tempo): uma linha "hoje" mentiria — a recência vai em texto,
+            com aviso quando o exame tem mais de 12 meses. */}
+        {it.lastDate && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+            <LastDataLabel date={it.lastDate} staleAfterDays={LAB_STALE_AFTER_DAYS} />
+          </Typography>
         )}
         <Typography variant="body2" color="text.secondary">
           {st === 'stable' ? 'Estável' : up ? 'Subindo' : 'Caindo'} em {it.count} {it.count === 1 ? 'medição' : 'medições'}.

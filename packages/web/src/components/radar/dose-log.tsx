@@ -15,6 +15,11 @@
  * Redesign 24/11 (feedback do dono): "Apliquei hoje" em verde parecia STATUS e não ação, não mudava
  * depois do toque e permitia dose dupla; 3 botões de 40px não cabiam em 316px; histórico ficava
  * escondido no fim. Agora: ação no infinitivo, confirmação visível, histórico aberto por composto.
+ *
+ * 25/11: (1) lista sem borda própria (eram três caixas aninhadas), só divisórias; (2) datas em
+ * dias de CALENDÁRIO (quem aplicou ontem à noite não aplicou "hoje"); (3) ao registrar, o lembrete
+ * ABERTO "Aplicação: <composto>" — se existir — anda para a nova próxima prevista (08:00). Nunca
+ * cria lembrete sozinho, e falha nessa etapa é silenciosa (o registro já deu certo).
  */
 import { useState } from 'react';
 import { useNotify } from 'react-admin';
@@ -27,7 +32,10 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CompoundIcon } from '@/components/radar/compound-picker';
-import { compoundById, doseStatus, getDoseMg, type RadarProtocolItem } from '@/utils/hormoneRadar';
+import {
+  calendarDayDiff, compoundById, doseReminderTitle, doseStatus, getDoseMg, lastDoseLabel, pickDoseReminder, reminderDueAt,
+  type DoseReminderLike, type RadarProtocolItem,
+} from '@/utils/hormoneRadar';
 
 export interface HormoneDose {
   id: string;
@@ -36,7 +44,6 @@ export interface HormoneDose {
   takenAt: string;
 }
 
-const DAY_MS = 86_400_000;
 const dayLabel = (ms: number) => new Date(ms).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).split('.').join('').replace(' de ', ' ');
 const n0 = (v: number) => Math.round(v).toLocaleString('pt-BR');
 const todayIso = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
@@ -46,11 +53,7 @@ const hhmm = (ms: number) => new Date(ms).toLocaleTimeString('pt-BR', { hour: '2
 /** Quantas aplicações aparecem abertas por composto antes do "ver todas". */
 const HISTORY_OPEN = 4;
 
-function ago(ms: number, now: number): string {
-  const days = Math.floor((now - ms) / DAY_MS);
-  if (days <= 0) return 'hoje';
-  return days === 1 ? 'ontem' : `há ${days} dias`;
-}
+const authHeaders = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` });
 
 export function DoseLog({
   pid, protocol, doses, loading, failed, hasStartDate, onReload, onChange,
@@ -77,6 +80,30 @@ export function DoseLog({
   // Um painel por composto (se o mesmo composto aparece duas vezes no protocolo, vale o primeiro).
   const items = protocol.filter((p, i) => protocol.findIndex((q) => q.compoundId === p.compoundId) === i);
 
+  /** Lembrete ABERTO de aplicação deste composto, se houver (lista do próprio paciente). */
+  const findReminder = async (title: string): Promise<DoseReminderLike | null> => {
+    if (!pid) return null;
+    const r = await fetch(`${API_URL}/reminders?patientId=${encodeURIComponent(pid)}`, { headers: { Authorization: `Bearer ${token()}` } });
+    if (!r.ok) return null;
+    const data: unknown = await r.json();
+    const list = Array.isArray(data) ? data : Array.isArray((data as { items?: unknown } | null)?.items) ? (data as { items: unknown[] }).items : [];
+    return pickDoseReminder(list as DoseReminderLike[], title, pid);
+  };
+
+  /**
+   * Depois de registrar: se a pessoa JÁ tem um lembrete aberto deste composto, ele anda para a nova
+   * próxima prevista. Só atualiza (nunca cria) e nunca mostra erro: o registro em si já foi salvo.
+   */
+  const realignReminder = async (title: string, nextMs: number) => {
+    try {
+      const existing = await findReminder(title);
+      if (!existing) return;
+      const due = reminderDueAt(nextMs);
+      if (existing.dueDate && new Date(existing.dueDate).getTime() === due) return;
+      await fetch(`${API_URL}/reminders/${existing.id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ dueDate: new Date(due).toISOString() }) });
+    } catch { /* silencioso de propósito */ }
+  };
+
   const register = async (item: RadarProtocolItem, dateIso?: string) => {
     if (busy) return;
     const comp = compoundById(item.compoundId);
@@ -91,10 +118,14 @@ export function DoseLog({
       });
       if (!r.ok) throw new Error(String(r.status));
       const created = (await r.json()) as HormoneDose;
-      onChange([created, ...doses].sort((a, b) => new Date(b.takenAt).getTime() - new Date(a.takenAt).getTime()));
+      const nextDoses = [created, ...doses].sort((a, b) => new Date(b.takenAt).getTime() - new Date(a.takenAt).getTime());
+      onChange(nextDoses);
       setOtherDate(null);
       setExtraDose(null);
       notify(`Aplicação de ${comp.short} registrada.`, { type: 'success' });
+      // A próxima prevista sai de TODAS as aplicações do composto (registrar uma data antiga não puxa o lembrete para trás).
+      const after = doseStatus(item.freqDays, nextDoses.filter((d) => d.compoundId === item.compoundId).map((d) => new Date(d.takenAt).getTime()));
+      if (after.next != null) void realignReminder(doseReminderTitle(comp.short), after.next);
     } catch {
       notify('Não foi possível registrar. Tente de novo.', { type: 'error' });
     } finally {
@@ -109,13 +140,23 @@ export function DoseLog({
     try {
       const due = new Date(Math.max(nextMs, now + 60 * 60 * 1000));
       if (nextMs > now) due.setHours(8, 0, 0, 0);
+      // Já existe lembrete aberto deste composto? Move a data em vez de criar outro (dois lembretes
+      // iguais = um deles parado em "Atrasados").
+      const title = doseReminderTitle(comp.short);
+      const existing = await findReminder(title).catch(() => null);
+      if (existing) {
+        const up = await fetch(`${API_URL}/reminders/${existing.id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ dueDate: due.toISOString() }) });
+        if (!up.ok) throw new Error(String(up.status));
+        notify(`Lembrete atualizado para ${dayLabel(due.getTime())}.`, { type: 'success' });
+        return;
+      }
       const r = await fetch(`${API_URL}/reminders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        headers: authHeaders(),
         // Repetição quando o intervalo do protocolo bate com uma recorrência que o servidor conhece:
         // sem isso o lembrete nascia avulso e ficava parado/vencido na agenda depois da 1ª data.
         // Intervalos sem equivalente (ex.: a cada 3,5 ou 14 dias) seguem avulsos = "só a próxima".
-        body: JSON.stringify({ patientId: pid, title: `Aplicação: ${comp.short}`, dueDate: due.toISOString(), type: 'medicamento', recurrence: item.freqDays === 1 ? 'diario' : item.freqDays === 7 ? 'semanal' : item.freqDays === 30 ? 'mensal' : null, note: 'Data prevista pelo intervalo que você cadastrou no Radar Hormonal.' }),
+        body: JSON.stringify({ patientId: pid, title, dueDate: due.toISOString(), type: 'medicamento', recurrence: item.freqDays === 1 ? 'diario' : item.freqDays === 7 ? 'semanal' : item.freqDays === 30 ? 'mensal' : null, note: 'Data prevista pelo intervalo que você cadastrou no Radar Hormonal.' }),
       });
       if (!r.ok) throw new Error(String(r.status));
       notify(`Lembrete criado para ${dayLabel(due.getTime())}.`, { type: 'success' });
@@ -148,7 +189,7 @@ export function DoseLog({
         <IconTile variant="frame" size="sm" aria-hidden="true"><Syringe aria-hidden="true" /></IconTile>
         <div className="flex min-w-0 flex-col gap-px">
           <FrameTitle role="heading" aria-level={2}>Suas aplicações</FrameTitle>
-          <FrameDescription>Registre quando aplicar. O gráfico passa a usar as datas reais, não o calendário ideal.</FrameDescription>
+          <FrameDescription>Registre quando aplicar — o gráfico usa suas datas reais.</FrameDescription>
         </div>
       </FrameHeader>
 
@@ -159,7 +200,7 @@ export function DoseLog({
             <AlertTitle>Não consegui buscar seus registros agora</AlertTitle>
             <AlertDescription>
               <p className="m-0">O gráfico está usando o calendário do protocolo.</p>
-              <Button variant="outline" size="sm" className="mt-2" onClick={onReload}>Tentar de novo</Button>
+              <Button variant="outline" size="lg" className="mt-2 h-11 px-4" onClick={onReload}>Tentar de novo</Button>
             </AlertDescription>
           </Alert>
         </FramePanel>
@@ -170,7 +211,9 @@ export function DoseLog({
         const mine = doses.filter((d) => d.compoundId === item.compoundId);
         const st = doseStatus(item.freqDays, mine.map((d) => new Date(d.takenAt).getTime()), now);
         const isBusy = busy === item.compoundId;
-        const dueToday = st.next != null && st.lateDays === 0 && st.next - now < DAY_MS && st.next >= now - DAY_MS;
+        // Dias de calendário até a próxima prevista (negativo = a data já passou).
+        const nextIn = st.next != null ? calendarDayDiff(st.next, now) : null;
+        const lateDays = nextIn != null && nextIn < 0 ? -nextIn : 0;
         const picking = otherDate?.compoundId === item.compoundId;
         const registeredToday = mine.find((d) => sameDay(new Date(d.takenAt).getTime(), now));
         return (
@@ -185,7 +228,7 @@ export function DoseLog({
                   <span className="text-xs text-muted-foreground">Nenhuma aplicação registrada ainda.</span>
                 ) : (
                   // Datas ficam SÓ na lista abaixo (próxima prevista + aplicadas) — repetir aqui era ler duas vezes.
-                  <span className="text-xs text-muted-foreground">{mine.length} {mine.length === 1 ? 'aplicação registrada' : 'aplicações registradas'} · última {ago(st.last, now)}</span>
+                  <span className="text-xs text-muted-foreground">{mine.length} {mine.length === 1 ? 'aplicação registrada' : 'aplicações registradas'} · última {lastDoseLabel(st.last, now)}</span>
                 )}
               </div>
             </div>
@@ -243,31 +286,35 @@ export function DoseLog({
 
             {/* Histórico deste composto, ABERTO: ponto cheio = aplicou (registrado); vazio = previsão. */}
             {!loading && (mine.length > 0 || st.next != null) ? (
-              <ul aria-label={`Aplicações de ${comp.short}`} className="m-0 flex list-none flex-col rounded-lg border border-border p-0">
+              <ul aria-label={`Aplicações de ${comp.short}`} className="m-0 flex list-none flex-col p-0">
                 {st.next != null ? (
-                  <li className="flex min-h-11 items-center gap-3 border-b border-border px-3 py-2 last:border-b-0">
-                    <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full border-2 bg-transparent" style={{ borderColor: comp.color }} />
+                  <li className="flex min-h-11 items-center gap-3 border-0 border-b border-solid border-border py-2 last:border-b-0">
+                    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" className="shrink-0">
+                      <path d="M7,2L12.5,12H1.5Z" fill="none" stroke={comp.color} strokeWidth="1.75" strokeLinejoin="round" />
+                    </svg>
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span className="text-sm text-foreground">{dayLabel(st.next)}</span>
                       <span className="text-xs text-muted-foreground">Próxima prevista</span>
                     </span>
-                    {st.lateDays > 0 ? <Badge variant="warning-light">Passou {st.lateDays} {st.lateDays === 1 ? 'dia' : 'dias'}</Badge> : dueToday ? <Badge variant="info-light">É hoje</Badge> : null}
+                    {lateDays > 0 ? <Badge variant="warning-light">Passou {lateDays} {lateDays === 1 ? 'dia' : 'dias'}</Badge> : nextIn === 0 ? <Badge variant="info-light">É hoje</Badge> : null}
                   </li>
                 ) : null}
                 {(expanded.has(item.compoundId) ? mine.slice(0, 60) : mine.slice(0, HISTORY_OPEN)).map((d) => {
                   const asking = confirmDelete === d.id;
                   const when = new Date(d.takenAt).getTime();
                   return (
-                    <li key={d.id} className="flex min-h-11 items-center gap-3 border-b border-border px-3 py-1.5 last:border-b-0">
-                      <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: comp.color }} />
+                    <li key={d.id} className="flex min-h-11 items-center gap-3 border-0 border-b border-solid border-border py-1.5 last:border-b-0">
+                      <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" className="shrink-0">
+                        <circle cx="7" cy="7" r="5.5" fill={comp.color} />
+                      </svg>
                       <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="text-sm text-foreground">{dayLabel(when)} · {ago(when, now)}</span>
+                        <span className="text-sm text-foreground">{dayLabel(when)} · {lastDoseLabel(when, now)}</span>
                         <span className="text-xs text-muted-foreground tabular-nums">Aplicou {n0(d.doseMg)} mg</span>
                       </span>
                       {asking ? (
                         <span className="flex shrink-0 items-center gap-1.5">
-                          <Button variant="destructive" size="sm" disabled={busy === `d-${d.id}`} onClick={() => void remove(d.id)}>Apagar</Button>
-                          <Button variant="ghost" size="icon-sm" className="bg-transparent" aria-label="Cancelar" onClick={() => setConfirmDelete(null)}><X aria-hidden="true" /></Button>
+                          <Button variant="destructive" size="lg" className="h-11 px-3" disabled={busy === `d-${d.id}`} onClick={() => void remove(d.id)}>Apagar</Button>
+                          <Button variant="ghost" size="icon-lg" className="size-11 bg-transparent" aria-label="Cancelar" onClick={() => setConfirmDelete(null)}><X aria-hidden="true" /></Button>
                         </span>
                       ) : (
                         <Button variant="ghost" size="icon-lg" className="size-11 shrink-0 bg-transparent text-muted-foreground" aria-label={`Apagar registro de ${comp.short} de ${dayLabel(when)}`} onClick={() => setConfirmDelete(d.id)}>
@@ -278,7 +325,7 @@ export function DoseLog({
                   );
                 })}
                 {mine.length > HISTORY_OPEN ? (
-                  <li className="px-3">
+                  <li>
                     <button
                       type="button"
                       className="min-h-11 w-full cursor-pointer border-0 bg-transparent text-sm font-medium text-primary"
@@ -296,7 +343,7 @@ export function DoseLog({
 
       {!loading && !failed && doses.length > 0 && !hasStartDate ? (
         <FramePanel>
-          <p className="m-0 text-xs text-muted-foreground">Informe "Quando começou?" no bloco acima para o gráfico encaixar estas aplicações nos dias certos.</p>
+          <p className="m-0 text-xs text-muted-foreground">Informe "Quando começou?" em "Ajustar meu protocolo", mais abaixo, para o gráfico encaixar estas aplicações nos dias certos.</p>
         </FramePanel>
       ) : null}
 

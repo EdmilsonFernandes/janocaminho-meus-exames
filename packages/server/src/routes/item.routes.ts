@@ -478,8 +478,18 @@ router.get('/abnormal', async (req: AuthedRequest, res, next) => {
       select: { id: true, name: true, nameCanonical: true, valueText: true, valueNumeric: true, unit: true, flag: true, refText: true, refLow: true, refHigh: true, isAbnormal: true, examId: true, exam: { select: { title: true, performedAt: true } } },
     });
     type Row = (typeof allItems)[number];
+    // Exame com CPF DIVERGENTE (de outra pessoa) fica fora do estado atual — a lista `items` acima
+    // e os contadores da Home já filtravam; aqui não, então um exame de terceiro podia entrar em
+    // "valores alterados" (auditoria 25/11). Busca os ids uma vez (o rawExtraction é grande para
+    // vir repetido em cada item).
+    const mismatchExamIds = new Set(
+      (await prisma.exam.findMany({ where: { patientId: scope, status: 'EXTRACTED' }, select: { id: true, rawExtraction: true } }))
+        .filter((e) => isCpfMismatch(e.rawExtraction as any))
+        .map((e) => e.id),
+    );
     const byCanonical = new Map<string, Row[]>();
     for (const r of allItems) {
+      if (mismatchExamIds.has(r.examId)) continue;
       const k = (r.nameCanonical || '').toUpperCase().trim();
       if (!k) continue;
       if (!byCanonical.has(k)) byCanonical.set(k, []);

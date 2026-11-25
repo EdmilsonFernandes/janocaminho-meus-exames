@@ -1,15 +1,23 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Stack, Box } from '@mui/material';
+import { Alert, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Stack, Box } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material/styles';
 import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
+import NotificationsActiveRoundedIcon from '@mui/icons-material/NotificationsActiveRounded';
 import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../config';
 import { DrExame } from './DrExame';
 import { notifRoute } from '../utils/notifRoute';
-import { claimColdDialog } from '../utils/coldDialog';
+import { autoModalQueue } from '../utils/autoModalQueue';
+import { setPendingAlert, usePendingAlert } from '../utils/pendingAlert';
+
+/** Id deste modal na fila única de modais automáticos (prioridade máxima: 'health'). */
+const QUEUE_ID = 'notif';
 
 export const NotificationPopup = () => {
   const [open, setOpen] = useState(false);
-  const [notif, setNotif] = useState<{ id?: string; title: string; body: string; data?: any } | null>(null);
+  // `srcType` = tipo da notificação no servidor (só dá o tom da faixa; NÃO entra no notifRoute).
+  const [notif, setNotif] = useState<{ id?: string; title: string; body: string; data?: any; srcType?: string } | null>(null);
   const navigate = useNavigate();
 
   // ── Ligação recebida (dono 30/10: "não emite som quando liga") ──────────────
@@ -69,23 +77,28 @@ export const NotificationPopup = () => {
     if (!t) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let dead = false;
+    // FILA ÚNICA (25/11/26): avisa já no mount que este alerta PODE querer abrir — comemoração
+    // e modais de cadastro esperam esta decisão (prioridade saúde > comemoração > cadastro).
+    autoModalQueue.announce(QUEUE_ID, 'health');
     fetch(`${API_URL}/notifications`, { headers: { Authorization: `Bearer ${t}` } })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (dead) return;
+        let pending = false;
         if (d && d.unread > 0 && d.items && d.items.length > 0) {
           // Não surfar notificação VELHA: nudges de engajamento antigos (ex.: "envie seu 1º exame"
           // numa conta que JÁ tem exames) pipocavam como dialog na entrada, meses depois, em estado
           // mentiroso. Só notificação recente (<7d) e que não seja nudge de 1º exame vira popup.
           const FRESH_MS = 7 * 24 * 60 * 60 * 1000;
           const item = d.items.find((n: any) => n.type !== 'first_exam' && Date.now() - new Date(n.createdAt).getTime() < FRESH_MS);
-          if (!item) return;
+          if (!item) { autoModalQueue.withdraw(QUEUE_ID); return; }
           // Não reabre notificação já dispensada: o "Depois" persiste o id. Sem isto, todo boot
           // com unread>0 reinterpõe o modal (irritante — sempre há não-lidas no app de saúde).
           let dismissedId: string | null = null;
           try { dismissedId = localStorage.getItem('meDismissedNotif'); } catch { /* ignore */ }
-          if (dismissedId != null && String(item.id) === String(dismissedId)) return;
-          setNotif({ id: item.id, title: item.title, body: item.body });
+          if (dismissedId != null && String(item.id) === String(dismissedId)) { autoModalQueue.withdraw(QUEUE_ID); return; }
+          pending = true;
+          setNotif({ id: item.id, title: item.title, body: item.body, srcType: item.type });
           // Só abre se o app tá visível — evita dialog fantasma pipocando depois
           // de voltar do background (parecia "app travado" após ocioso).
           // + Máx 1 diálogo de cold-load por SESSÃO (P1 bateria 2026-09): se WhatsNew/GoalQuiz
@@ -93,12 +106,23 @@ export const NotificationPopup = () => {
           // + SÓ NA HOME (auditoria UX 29/10/26): em deep link (push → tela específica,
           // /medicamentos, /exams…) o modal cobria o conteúdo que o usuário já estava
           // lendo, ~3s depois do boot. Fora da home a notificação fica no sininho.
-          const atHome = () => { try { const h = window.location.hash.replace(/^#/, '').split('?')[0]; return h === '/' || h === ''; } catch { return false; } };
-          timer = setTimeout(() => { if (!document.hidden && atHome() && claimColdDialog('notif')) setOpen(true); }, 2500);
+          // + NUNCA SE PERDE (25/11/26, segurança do paciente): quando NÃO pode abrir como modal
+          // (outra rota, vaga da sessão já usada, app em segundo plano) o aviso vira a faixa
+          // não bloqueante no topo da Home (NotificationBanner) — trocar modal por nada seria
+          // "falsa calma". A fila decide a vaga (1 modal automático por sessão, só na Home).
+          const asBanner = () => {
+            if (dead) return;
+            setPendingAlert({ id: String(item.id), title: String(item.title ?? ''), body: String(item.body ?? ''), urgent: item.type === 'alert' });
+          };
+          timer = setTimeout(() => {
+            if (document.hidden) { autoModalQueue.withdraw(QUEUE_ID); asBanner(); return; }
+            autoModalQueue.request(QUEUE_ID, 'health', () => { if (!dead) setOpen(true); }, asBanner);
+          }, 2500);
         }
+        if (!pending) autoModalQueue.withdraw(QUEUE_ID);
       })
-      .catch(() => {});
-    return () => { dead = true; if (timer) clearTimeout(timer); };
+      .catch(() => { autoModalQueue.withdraw(QUEUE_ID); });
+    return () => { dead = true; if (timer) clearTimeout(timer); autoModalQueue.withdraw(QUEUE_ID); };
   }, []);
 
   useEffect(() => {
@@ -138,12 +162,20 @@ export const NotificationPopup = () => {
   const isCall = notif.data?.type === 'teleconsulta' && !!notif.data?.reminderId;
   const callRoute = isCall ? (notifRoute(notif) || `/teleconsulta/${notif.data.reminderId}`) : null;
 
-  const closePopup = () => { stopRing(); setOpen(false); };
+  // `answered` = a pessoa respondeu ("Ver depois" / "Ver agora"). Fechar SEM responder (toque
+  // fora, Esc, voltar) não é reconhecimento: o aviso continua na faixa da Home nesta sessão.
+  const closePopup = (answered = false) => {
+    stopRing();
+    setOpen(false);
+    if (!answered && !isCall && notif.id != null) {
+      setPendingAlert({ id: String(notif.id), title: notif.title, body: notif.body, urgent: notif.srcType === 'alert' });
+    }
+  };
 
   return (
     <Dialog
       open={open}
-      onClose={closePopup}
+      onClose={() => closePopup()}
       slotProps={{
         backdrop: {
           sx: {
@@ -227,7 +259,7 @@ export const NotificationPopup = () => {
           variant="outlined"
           onClick={() => {
             try { if (!isCall && notif?.id != null) localStorage.setItem('meDismissedNotif', String(notif.id)); } catch { /* ignore */ }
-            closePopup();
+            closePopup(true);
           }}
           sx={{
             borderRadius: '999px',
@@ -254,7 +286,7 @@ export const NotificationPopup = () => {
               fetch(`${API_URL}/notifications/${notif.id}/read`, { method: 'PATCH', headers: { Authorization: `Bearer ${token()}` } }).catch(() => {});
               window.dispatchEvent(new Event('notificationsRead'));
             }
-            closePopup();
+            closePopup(true);
             navigate((isCall ? callRoute : notifRoute(notif)) || '/notificacoes');
           }}
           sx={{
@@ -275,5 +307,81 @@ export const NotificationPopup = () => {
         </Button>
       </DialogActions>
     </Dialog>
+  );
+};
+
+/**
+ * FAIXA DO AVISO NA HOME — o mesmo aviso do NotificationPopup quando ele não pôde abrir como
+ * modal (ou foi fechado sem resposta). Não bloqueia a tela e não some sozinha: sai quando a
+ * pessoa toca em "Ver agora" (marca lida, igual ao modal) ou em "Já vi" (mesmo registro do
+ * "Ver depois" do modal). Conteúdo e critérios são os do popup — aqui só muda a forma.
+ * Aviso nunca só por cor: ícone + título + texto + ação.
+ */
+export const NotificationBanner = ({ sx }: { sx?: SxProps<Theme> }) => {
+  const alert = usePendingAlert();
+  const navigate = useNavigate();
+
+  // Leu pelo sininho/tela de notificações → a faixa não tem mais o que lembrar.
+  useEffect(() => {
+    const clear = () => setPendingAlert(null);
+    window.addEventListener('notificationsRead', clear);
+    return () => window.removeEventListener('notificationsRead', clear);
+  }, []);
+
+  if (!alert) return null;
+
+  const seeNow = () => {
+    fetch(`${API_URL}/notifications/${alert.id}/read`, { method: 'PATCH', headers: { Authorization: `Bearer ${token()}` } }).catch(() => {});
+    window.dispatchEvent(new Event('notificationsRead')); // também limpa a faixa (listener acima)
+    setPendingAlert(null);
+    // Mesmo destino do modal (que roteia só por id/título/texto).
+    navigate(notifRoute({ id: alert.id, title: alert.title, body: alert.body }) || '/notificacoes');
+  };
+  const acknowledge = () => {
+    try { localStorage.setItem('meDismissedNotif', alert.id); } catch { /* ignore */ }
+    setPendingAlert(null);
+  };
+
+  return (
+    <Alert
+      severity={alert.urgent ? 'warning' : 'info'}
+      role={alert.urgent ? 'alert' : 'status'}
+      icon={alert.urgent ? <WarningAmberRoundedIcon fontSize="inherit" /> : <NotificationsActiveRoundedIcon fontSize="inherit" />}
+      sx={[
+        {
+          mt: 1.5, mb: 1, borderRadius: '14px', alignItems: 'flex-start',
+          border: '1px solid', borderColor: alert.urgent ? 'warning.main' : 'info.main',
+          '& .MuiAlert-message': { flex: 1, minWidth: 0, py: 0.75 },
+          '& .MuiAlert-icon': { fontSize: 24, pt: 1 },
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
+    >
+      <Typography component="p" sx={{ fontWeight: 800, fontSize: 15, lineHeight: 1.3, fontFamily: '"Poppins",sans-serif', overflowWrap: 'anywhere' }}>
+        {alert.title}
+      </Typography>
+      {alert.body && (
+        <Typography component="p" sx={{
+          mt: 0.25, fontSize: 13.5, lineHeight: 1.45, overflowWrap: 'anywhere',
+          display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+        }}>
+          {alert.body}
+        </Typography>
+      )}
+      <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+        <Button
+          onClick={seeNow} variant="outlined" color="inherit"
+          sx={{ minHeight: 44, borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 2.5 }}
+        >
+          Ver agora
+        </Button>
+        <Button
+          onClick={acknowledge} variant="text" color="inherit"
+          sx={{ minHeight: 44, borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 2 }}
+        >
+          Já vi
+        </Button>
+      </Stack>
+    </Alert>
   );
 };

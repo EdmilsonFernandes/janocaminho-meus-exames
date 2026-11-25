@@ -459,6 +459,85 @@ export function doseStatus(freqDays: number, takenAtMs: number[], now = Date.now
   return { last, next, lateDays: Math.max(0, Math.floor((now - next) / DAY)) };
 }
 
+/**
+ * Distância em DIAS DE CALENDÁRIO (hora local) entre uma data e agora: 0 = hoje, −1 = ontem,
+ * +1 = amanhã. Conta pela data, não por blocos de 24 h: quem aplicou ontem às 23h não aplicou "hoje".
+ */
+export function calendarDayDiff(ms: number, now = Date.now()): number {
+  const a = new Date(ms);
+  const b = new Date(now);
+  return Math.round((Date.UTC(a.getFullYear(), a.getMonth(), a.getDate()) - Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())) / DAY);
+}
+
+/** Última aplicação em palavras: "hoje" · "ontem" · "há 3 dias" · "—" (sem registro). */
+export function lastDoseLabel(ms: number | null, now = Date.now()): string {
+  if (ms == null) return '—';
+  const diff = calendarDayDiff(ms, now);
+  if (diff >= 0) return 'hoje';
+  return diff === -1 ? 'ontem' : `há ${-diff} dias`;
+}
+
+/** Próxima PREVISTA em palavras: "hoje" · "amanhã" · "em 4 dias" · "passou 2 dias" · "—". Descreve a data, nunca manda aplicar. */
+export function nextDoseLabel(ms: number | null, now = Date.now()): string {
+  if (ms == null) return '—';
+  const diff = calendarDayDiff(ms, now);
+  if (diff === 0) return 'hoje';
+  if (diff > 0) return diff === 1 ? 'amanhã' : `em ${diff} dias`;
+  return diff === -1 ? 'passou 1 dia' : `passou ${-diff} dias`;
+}
+
+/**
+ * Placar do conjunto (um item por composto): a aplicação MAIS RECENTE entre todos e a próxima
+ * prevista MAIS PRÓXIMA (a de data mais cedo). `lastIndex`/`nextIndex` dizem de qual composto veio
+ * (−1 = nenhum). `lateDays` em dias de calendário.
+ */
+export function doseBoard(
+  entries: Array<{ freqDays: number; takenAtMs: number[] }>,
+  now = Date.now(),
+): { last: number | null; lastIndex: number; next: number | null; nextIndex: number; lateDays: number } {
+  let last: number | null = null;
+  let lastIndex = -1;
+  let next: number | null = null;
+  let nextIndex = -1;
+  for (let i = 0; i < entries.length; i++) {
+    const st = doseStatus(entries[i].freqDays, entries[i].takenAtMs, now);
+    if (st.last != null && (last == null || st.last > last)) { last = st.last; lastIndex = i; }
+    if (st.next != null && (next == null || st.next < next)) { next = st.next; nextIndex = i; }
+  }
+  return { last, lastIndex, next, nextIndex, lateDays: next == null ? 0 : Math.max(0, -calendarDayDiff(next, now)) };
+}
+
+/** Título do lembrete de aplicação de um composto (o mesmo ao criar e ao procurar). */
+export const doseReminderTitle = (compoundShort: string): string => `Aplicação: ${compoundShort}`;
+
+/** Horário do lembrete para uma data prevista: 08:00 (hora local) daquele dia. */
+export function reminderDueAt(nextMs: number): number {
+  const d = new Date(nextMs);
+  d.setHours(8, 0, 0, 0);
+  return d.getTime();
+}
+
+export interface DoseReminderLike {
+  id: string;
+  title?: string | null;
+  type?: string | null;
+  done?: boolean | null;
+  dueDate?: string | null;
+  patientId?: string | null;
+}
+
+/**
+ * Lembrete ABERTO de aplicação deste paciente com este título (tipo "medicamento"), ou null.
+ * Havendo mais de um, vale o de data mais cedo. Só serve para ATUALIZAR: quem chama nunca cria.
+ */
+export function pickDoseReminder<T extends DoseReminderLike>(list: T[], title: string, patientId: string | null | undefined): T | null {
+  if (!patientId) return null;
+  const open = list.filter((r) => !!r && typeof r.id === 'string' && !r.done && r.type === 'medicamento' && r.title === title && r.patientId === patientId);
+  if (!open.length) return null;
+  const at = (r: T) => { const t = r.dueDate ? new Date(r.dueDate).getTime() : NaN; return Number.isFinite(t) ? t : Infinity; };
+  return open.slice().sort((a, b) => at(a) - at(b))[0];
+}
+
 // ───────────────────────── Pontos de atenção nos exames ─────────────────────────
 
 export interface ExamAlert {

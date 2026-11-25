@@ -47,6 +47,7 @@ import {
   FrameTitle,
 } from '@/components/reui/frame';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
+import { LastDataLabel } from '@/components/charts/LastDataLabel';
 
 /**
  * Histórico por métrica (/medicoes/historico/:type) — detalhe da "central de sinais"
@@ -201,6 +202,14 @@ export const MeasurementHistoryPage = () => {
       </PageContainer>
     );
   }
+
+  // Registro mais recente de TODOS (não só do período) — para dizer de quando é o último dado.
+  const lastRow: { measuredAt?: string } | null =
+    rows && rows.length
+      ? rows.reduce((a, b) =>
+          new Date(b.measuredAt).getTime() > new Date(a.measuredAt).getTime() ? b : a
+        )
+      : null;
 
   return (
     <PageContainer width="content" sx={{ pb: { xs: 10, sm: 5 } }}>
@@ -542,6 +551,13 @@ export const MeasurementHistoryPage = () => {
                     </ComposedChart>
                   </ResponsiveContainer>
                 </Box>
+                {/* De QUANDO é o último ponto: o eixo tem um ponto por dia COM medição
+                    (espaçamento igual, não é eixo de tempo) — a recência vai em texto. */}
+                {tableRows[0]?.measuredAt ? (
+                  <p className="text-muted-foreground m-0 mt-2 text-xs">
+                    <LastDataLabel date={tableRows[0].measuredAt} noun="Último registro" />
+                  </p>
+                ) : null}
               </FramePanel>
 
               {avgCur != null && (
@@ -559,6 +575,13 @@ export const MeasurementHistoryPage = () => {
               )}
             </Frame>
           )}
+
+          {/* Período sem nenhum registro: diz de quando é o dado mais recente que existe. */}
+          {cur.length === 0 && lastRow?.measuredAt ? (
+            <p className="text-muted-foreground m-0 text-sm">
+              <LastDataLabel date={lastRow.measuredAt} noun="Último registro" />
+            </p>
+          ) : null}
 
           {/* Tabela diária de leituras em ReUI Frame */}
           <Frame>

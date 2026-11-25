@@ -1200,7 +1200,7 @@ export const BodyMap = ({
                                 >
                                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: 1.5, rowGap: 0.25 }}>
                                     <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, minWidth: 0 }}>
-                                      <strong>Referência:</strong> {m.refText || 'Não informada pelo laboratório'}
+                                      <strong>Referência:</strong> {m.refText || (m.level === 'alterado' ? 'não informada — o laudo marcou este resultado como alterado' : 'Não informada pelo laboratório')}
                                     </Typography>
                                     {examDate && (
                                       <Typography variant="caption" sx={{ color: 'text.secondary', opacity: 0.85, whiteSpace: 'nowrap' }}>
@@ -1448,7 +1448,7 @@ export const BodyMap = ({
                                 >
                                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: 1.5, rowGap: 0.25 }}>
                                     <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, minWidth: 0 }}>
-                                      <strong>Referência:</strong> {m.refText || 'Não informada pelo laboratório'}
+                                      <strong>Referência:</strong> {m.refText || (m.level === 'alterado' ? 'não informada — o laudo marcou este resultado como alterado' : 'Não informada pelo laboratório')}
                                     </Typography>
                                     {examDate && (
                                       <Typography variant="caption" sx={{ color: 'text.secondary', opacity: 0.85, whiteSpace: 'nowrap' }}>

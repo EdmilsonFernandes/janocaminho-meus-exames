@@ -90,13 +90,19 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx, showLegend = false
   const goal = goalFor(goals, it.nameCanonical, patientId);
   const value = it.lastValue;
   const inRef = withinRef(value, it.refLow, it.refHigh);
-  const out = value != null && it.refLow != null && it.refHigh != null && (value > it.refHigh || value < it.refLow);
-  // Sem faixa no laudo NÃO se afirma "fora da referência" (contradição com o rodapé
-  // "sem faixa informada" — falsa urgência). O flag do laudo vira "Alterado no laudo".
-  const noRef = it.refLow == null || it.refHigh == null;
+  // Faixa de UM lado só (LDL "até 130", HDL "a partir de 40") é faixa: antes era tratada como
+  // "sem referência" — o cartão dizia "Sem referência" para um valor ACIMA do limite informado
+  // (alerta escondido) e, com meta clínica, "fora da referência" + "faixa não informada" juntos
+  // (auditoria 25/11). `withinRef` já entende limite único; a régua visual continua exigindo os dois.
+  const out = value != null && inRef === false;
+  // Sem NENHUM limite no laudo não se afirma "fora da referência" (falsa urgência): o flag do
+  // laudo vira "Alterado no laudo".
+  const noRef = it.refLow == null && it.refHigh == null;
   const statusText = value == null ? 'Sem valor numérico'
     : !noRef
-      ? (value > it.refHigh! ? '↑ Acima da referência' : value < it.refLow! ? '↓ Abaixo da referência' : 'Na referência')
+      ? (it.refHigh != null && value > it.refHigh ? '↑ Acima da referência'
+        : it.refLow != null && value < it.refLow ? '↓ Abaixo da referência'
+        : 'Na referência')
       : (it.abnormal ? 'Alterado no laudo' : 'Sem referência');
   const statusColor = out ? SEM.bad[theme.palette.mode]
     : (noRef && it.abnormal) || inRef === false ? SEM.warn[theme.palette.mode]
@@ -319,9 +325,15 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx, showLegend = false
         </Box>
       ) : (
         <Typography variant="caption" sx={{ display: 'block', mt: 1, color: out ? statusColor : 'text.secondary', fontWeight: out ? 700 : 500, fontSize: 12 }}>
-          {it.abnormal
-            ? 'Marcado como alterado no laudo — faixa de referência não informada pelo laboratório.'
-            : 'Sem faixa de referência informada pelo laboratório.'}
+          {it.refHigh != null && it.refLow == null
+            ? `Referência do laboratório: até ${fmtNum(it.refHigh)}.`
+            : it.refLow != null && it.refHigh == null
+              ? `Referência do laboratório: a partir de ${fmtNum(it.refLow)}.`
+              : !noRef
+                ? `Referência do laboratório: ${fmtNum(it.refLow)} a ${fmtNum(it.refHigh)}.`
+                : it.abnormal
+                  ? 'Marcado como alterado no laudo — faixa de referência não informada pelo laboratório.'
+                  : 'Sem faixa de referência informada pelo laboratório.'}
         </Typography>
       )}
 

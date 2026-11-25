@@ -87,10 +87,10 @@ export function ProtocolItem({
           </span>
         </div>
         <div className="ms-auto flex shrink-0 items-center gap-1.5">
-          <Button variant="outline" size="icon-lg" className="size-10" aria-label={`O que é ${comp.short}? Abrir explicação`} title="O que é isso?" onClick={onExplain}>
+          <Button variant="outline" size="icon-lg" className="size-11" aria-label={`O que é ${comp.short}? Abrir explicação`} title="O que é isso?" onClick={onExplain}>
             <CircleHelp aria-hidden="true" />
           </Button>
-          <Button variant="outline" size="lg" className="h-10" aria-label={`Editar ${comp.short}`} onClick={onEdit}>
+          <Button variant="outline" size="lg" className="h-11 px-3" aria-label={`Editar ${comp.short}`} onClick={onEdit}>
             <Pencil aria-hidden="true" />
             Editar
           </Button>
@@ -111,7 +111,7 @@ export function ProtocolItem({
               <div className="min-w-0 flex-1">
                 <CompoundPicker value={item.compoundId} onChange={onChangeCompound} />
               </div>
-              <Button variant="outline" size="icon-lg" className="size-10 shrink-0" aria-label={`O que é ${comp.short}? Abrir explicação`} title="O que é isso?" onClick={onExplain}>
+              <Button variant="outline" size="icon-lg" className="size-11 shrink-0" aria-label={`O que é ${comp.short}? Abrir explicação`} title="O que é isso?" onClick={onExplain}>
                 <CircleHelp aria-hidden="true" />
               </Button>
             </div>
@@ -164,7 +164,7 @@ export function ProtocolItem({
               variant="outline" size="sm" spacing={1.5} aria-label="Frequência" className="w-full flex-wrap"
             >
               {RADAR_FREQUENCIES.map((f) => (
-                <ToggleGroupItem key={f.days} value={String(f.days)} className="h-9 rounded-full px-3 text-xs">{FREQ_SHORT[f.days] ?? f.label}</ToggleGroupItem>
+                <ToggleGroupItem key={f.days} value={String(f.days)} className="h-11 rounded-full px-3.5 text-xs">{FREQ_SHORT[f.days] ?? f.label}</ToggleGroupItem>
               ))}
             </ToggleGroup>
           </div>
@@ -184,11 +184,11 @@ export function ProtocolItem({
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2 border-0 border-t border-solid border-border pt-3">
-            <Button variant="ghost" size="lg" className="h-10 bg-transparent text-destructive" disabled={!canRemove} onClick={onRemove}>
+            <Button variant="ghost" size="lg" className="h-11 bg-transparent px-3 text-destructive" disabled={!canRemove} onClick={onRemove}>
               <Trash2 aria-hidden="true" />
               Remover
             </Button>
-            <Button size="lg" className="h-10" onClick={onDone}>
+            <Button size="lg" className="h-11 px-4" onClick={onDone}>
               <Check aria-hidden="true" />
               Concluir
             </Button>

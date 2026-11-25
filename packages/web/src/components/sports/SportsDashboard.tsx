@@ -502,6 +502,13 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
 
   const totalMarkers = items?.length ?? 0;
 
+  // Aba ativa no mobile (Marcadores, Linha do Tempo, Preparação/Substâncias).
+  // ANTES do return do estado vazio: estes dois hooks ficavam depois dele (auditoria 25/11) —
+  // com lente esportiva e 0 exames, o 1º render (loaded=false) chamava os hooks e o 2º
+  // (loaded=true) retornava antes → React #300/#310 e o painel caía no card de erro em loop.
+  const [mobileTab, setMobileTab] = useState<'marcadores' | 'timeline' | 'prep'>('marcadores');
+  const [showRulerGuide, setShowRulerGuide] = useState(false);
+
   // Estado vazio GLOBAL: sem exames nenhum → onboarding honesto (não inventa painel).
   if (d.loaded && d.stats.exams === 0 && (items ?? []).length === 0) {
     return (
@@ -613,9 +620,6 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
     </AppCard>
   );
 
-  // Aba ativa no mobile (Marcadores, Linha do Tempo, Preparação/Substâncias)
-  const [mobileTab, setMobileTab] = useState<'marcadores' | 'timeline' | 'prep'>('marcadores');
-  const [showRulerGuide, setShowRulerGuide] = useState(false);
 
   // ── Ações do sheet de declaração (corrige A1: NUNCA mais navigate('/perfil')) ──
   const bumpReload = () => setReloadKey((k) => k + 1);

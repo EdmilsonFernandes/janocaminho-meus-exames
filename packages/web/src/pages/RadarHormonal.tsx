@@ -1,9 +1,11 @@
 /**
  * Radar Hormonal — /radar-hormonal (2ª versão, 13/11/26).
  *
- * Plano ReUI: superfície operacional · arquétipo "Frame stack" · família Frame · regiões:
- * resumo em português claro → curva → protocolo → seus exames × protocolo → como calculamos.
- * Sem animação de entrada.
+ * Plano ReUI: superfície operacional · arquétipo "Frame stack" · família Frame · regiões (25/11):
+ * placar de hoje → suas aplicações (registrar) → curva → leitura em português claro →
+ * "Ajustar meu protocolo" (recolhido para quem já tem protocolo salvo) → seus exames × protocolo →
+ * para a consulta → como calculamos. O que se faz toda semana (registrar) vem antes do que se faz
+ * uma vez (configurar). Sem animação de entrada.
  *
  * Olhar de paciente: cada número vem com o que ele significa; o gráfico diz de onde saem
  * pico e vale; os exames são os DELE (GET /items/evolution), com a faixa do próprio laudo.
@@ -30,7 +32,6 @@ import { IconTile } from '@/components/reui/icon-tile';
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 import { CountUp } from '../components/motion/CountUp';
-import { GlassGlow } from '../components/motion/GlassGlow';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
@@ -42,12 +43,20 @@ import { DoseLog, type HormoneDose } from '@/components/radar/dose-log';
 import { MarkerSpark } from '@/components/radar/marker-spark';
 import { ProtocolItem } from '@/components/radar/protocol-item';
 import { RadarChart, radarDash } from '@/components/radar/radar-chart';
+import { TodayBoard } from '@/components/radar/today-board';
 import {
-  RADAR_FAMILIES, RADAR_FREQUENCIES, calibrationRange, compoundById, computeRadarSeries, computeRadarStats, doctorQuestions, examAlerts, familyTotal, findMarker, getDoseMg,
+  RADAR_FAMILIES, RADAR_FREQUENCIES, calibrationRange, compoundById, computeRadarSeries, computeRadarStats, doctorQuestions, doseBoard, examAlerts, familyTotal, findMarker, getDoseMg,
   markersForProtocol, nextComparableDraws, positionInSwing, staleMarkers, type EvolutionRow, type LoggedDose, type RadarProtocolItem,
 } from '@/utils/hormoneRadar';
 
 const WEEK_OPTIONS = [8, 12, 16, 24];
+const PRESETS = [
+  { kind: 'trt1', label: 'Reposição 1x/sem' },
+  { kind: 'trt2', label: 'Reposição 2x/sem' },
+  { kind: 'dura', label: 'Durateston + Masteron' },
+] as const;
+/** id do campo "Quando começou?" (o convite do placar abre a seção e leva o foco até ele). */
+const START_DATE_ID = 'radar-start-date';
 const DAY_MS = 86_400_000;
 const n1 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const n0 = (v: number) => Math.round(v).toLocaleString('pt-BR');
@@ -127,6 +136,8 @@ export default function RadarHormonal() {
   const [dosesLoading, setDosesLoading] = useState(true);
   const [dosesFailed, setDosesFailed] = useState(false);
   const [dosesTick, setDosesTick] = useState(0);
+  /** "Ajustar meu protocolo": recolhido só para quem JÁ tem protocolo salvo; na 1ª vez abre (senão não dá para saber de onde vêm os números). */
+  const [configOpen, setConfigOpen] = useState(() => !loadSaved(pid));
 
   // Protocolo fica salvo no aparelho, por paciente (a 1ª versão perdia tudo ao sair da tela).
   useEffect(() => {
@@ -136,6 +147,7 @@ export default function RadarHormonal() {
     setStartDate(saved?.startDate ?? '');
     setVariationPct(saved?.variationPct ?? 0);
     setHidden(new Set());
+    setConfigOpen(!saved);
     setLoadedKey(storageKey(pid));
   }, [pid]);
   useEffect(() => {
@@ -363,6 +375,37 @@ export default function RadarHormonal() {
     void printDocument('Resumo para a consulta', html);
   };
 
+  // ── Placar de hoje: resume o conjunto (um item por composto, como no diário). ──
+  const boardNow = Date.now();
+  const boardItems = protocol.filter((p, i) => protocol.findIndex((q) => q.compoundId === p.compoundId) === i);
+  const board = doseBoard(
+    boardItems.map((p) => ({ freqDays: p.freqDays, takenAtMs: doses.filter((d) => d.compoundId === p.compoundId).map((d) => new Date(d.takenAt).getTime()) })),
+    boardNow,
+  );
+  const boardMulti = boardItems.length > 1;
+  const boardLastName = boardMulti && board.lastIndex >= 0 ? compoundById(boardItems[board.lastIndex].compoundId).short : null;
+  const boardNextName = boardMulti && board.nextIndex >= 0 ? compoundById(boardItems[board.nextIndex].compoundId).short : null;
+  // Estimativa de HOJE: o mesmo ponto da linha "hoje" do gráfico. Sem data de início não existe "hoje" na curva.
+  const todayInPeriod = todayDay != null && todayDay >= 0 && todayDay <= totalDays;
+  const estimateToday = todayInPeriod && todayDay != null ? series.total[Math.round(todayDay * series.stepsPerDay)] ?? null : null;
+  const activePreset =
+    protocol.length === 1 && protocol[0].compoundId === 'test_cyp' && protocol[0].freqDays === 7
+      ? 'trt1'
+      : protocol.length === 1 && protocol[0].compoundId === 'test_cyp' && protocol[0].freqDays === 3.5
+        ? 'trt2'
+        : protocol.length === 2 && protocol[0].compoundId === 'sustanon' && protocol[1].compoundId === 'mast_prop'
+          ? 'dura'
+          : null;
+  /** Convite do placar: abre a configuração e leva até "Quando começou?". */
+  const informStart = () => {
+    setConfigOpen(true);
+    window.setTimeout(() => {
+      const el = document.getElementById(START_DATE_ID);
+      el?.scrollIntoView({ block: 'center' });
+      el?.focus({ preventScroll: true });
+    }, 80);
+  };
+
   const stab = STABILITY[stats.stability];
   const settleWeek = Math.ceil(stats.settleDay / 7);
   const testoInProtocol = !!testoValues;
@@ -402,10 +445,130 @@ export default function RadarHormonal() {
       />
 
       <div className="dx-island flex flex-col gap-4 [&_button]:font-[inherit]">
-        {/* ───────── 1) O que uso → 2) Como se comporta → 3) O que fazer → 4) Ligação com o exame ───────── */}
+        {/* ───────── Placar de hoje: três números antes de qualquer texto ───────── */}
         <Frame>
-          <FramePanel className="dx-glass flex flex-col gap-4">
-            <GlassGlow />
+          <TodayBoard
+            now={boardNow}
+            loading={dosesLoading}
+            last={board.last} lastName={boardLastName}
+            next={board.next} nextName={boardNextName}
+            estimateMg={estimateToday} avgMg={stats.avgDailyMg}
+            estimateState={!startDate ? 'sem-inicio' : estimateToday == null ? 'fora-do-periodo' : 'ok'}
+            summed={series.seriesPerItem.length > 1}
+            onInformStart={informStart}
+          />
+        </Frame>
+
+        {/* ───────── Suas aplicações (diário): a ação de toda semana, logo abaixo do placar ───────── */}
+        <DoseLog
+          pid={pid} protocol={protocol} doses={doses} loading={dosesLoading} failed={dosesFailed} hasStartDate={!!startDate}
+          onReload={() => setDosesTick((n) => n + 1)} onChange={setDoses}
+        />
+
+        {/* ───────── Curva ───────── */}
+        <Frame>
+          <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
+              <IconTile variant="soft" size="sm" className="text-primary" aria-hidden="true"><Waves aria-hidden="true" /></IconTile>
+              <div className="flex min-w-0 flex-col gap-px">
+                <FrameTitle role="heading" aria-level={2}>Seu hormônio ao longo das semanas</FrameTitle>
+                <FrameDescription>Quanto hormônio o depósito da injeção libera por dia (mg/dia). É uma simulação, não é o nível no sangue.</FrameDescription>
+              </div>
+            </div>
+            <ToggleGroup value={[String(weeks)]} onValueChange={(next) => { if (next[0]) setWeeks(Number(next[0])); }} variant="outline" size="lg" spacing={0} aria-label="Período mostrado" className="w-full sm:w-fit">
+              {WEEK_OPTIONS.map((w) => <ToggleGroupItem key={w} value={String(w)} className="h-11 min-w-11 flex-1 px-3 sm:flex-none">{w} sem</ToggleGroupItem>)}
+            </ToggleGroup>
+          </FrameHeader>
+          <FramePanel className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              {series.seriesPerItem.map((s, index) => {
+                const off = hidden.has(s.item.uid);
+                const dashed = series.seriesPerItem.length > 1 ? radarDash(index) : '';
+                return (
+                  <button
+                    key={s.item.uid}
+                    type="button"
+                    aria-pressed={!off}
+                    title={off ? 'Mostrar no gráfico' : 'Esconder do gráfico'}
+                    onClick={() => setHidden((prev) => { const next = new Set(prev); if (off) next.delete(s.item.uid); else next.add(s.item.uid); return next; })}
+                    className={cn('flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-transparent px-3.5 text-xs text-foreground transition-colors hover:bg-muted', off && 'text-muted-foreground line-through')}
+                  >
+                    <svg aria-hidden="true" width="20" height="6" viewBox="0 0 20 6" className={cn('shrink-0', off && 'opacity-30')}>
+                      <line x1="1" x2="19" y1="3" y2="3" stroke={s.comp.color} strokeWidth="2.5" strokeLinecap="round" strokeDasharray={dashed ? dashed.split(' ').map((n) => Number(n) / 2.2).join(' ') : undefined} />
+                    </svg>
+                    {s.comp.short}
+                  </button>
+                );
+              })}
+              {series.seriesPerItem.length > 1 ? (
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden="true" className="h-0.5 w-4 rounded-full bg-foreground" />Total dos compostos</span>
+              ) : null}
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden="true" className="h-0 w-4 border-t border-dotted border-foreground/60" />Média por dia</span>
+              {canSplit ? (
+                <button
+                  type="button"
+                  aria-pressed={compare2x}
+                  onClick={() => setCompare2x((v) => !v)}
+                  className={cn('ms-auto flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-transparent px-3.5 text-xs text-foreground transition-colors hover:bg-muted', compare2x && 'border-warning/50 bg-warning/10')}
+                >
+                  <span aria-hidden="true" className="h-0 w-4 border-t-2 border-dashed border-warning" />
+                  Ver 2x por semana
+                </button>
+              ) : null}
+            </div>
+            <RadarChart series={series} compare={compare} stats={stats} weeks={weeks} examDay={testoInProtocol && testoRow ? examDay : null} hidden={hidden} dayLabel={dayLabel} todayDay={todayDay} />
+            <p className="m-0 flex items-start gap-1.5 rounded-lg bg-muted/60 px-3 py-2 text-xs text-foreground">
+              <Info aria-hidden="true" className="mt-px size-3.5 shrink-0 text-muted-foreground" />
+              <span><strong className="font-semibold">Este gráfico é uma simulação.</strong> Depois de cada aplicação a estimativa sobe e depois diminui. Ela vem de médias de estudos, e o seu organismo pode responder de forma diferente. O resultado do exame de sangue é medido separadamente e tem outra unidade.</span>
+            </p>
+            {compareStats ? (
+              <div className="flex flex-col gap-2 rounded-lg border border-warning/40 bg-warning/5 px-3 py-2.5 text-xs">
+                <strong className="text-sm font-semibold text-foreground">Mesma dose na semana, dividida em 2 aplicações</strong>
+                <div className="grid grid-cols-[auto_1fr_1fr] items-baseline gap-x-4 gap-y-1 tabular-nums">
+                  <span />
+                  <span className="text-muted-foreground">Como está</span>
+                  <span className="text-muted-foreground">Dividido em 2x</span>
+                  <span className="text-muted-foreground">Pico</span><span>{n1(stats.peakMg)} mg/dia</span><span>{n1(compareStats.peakMg)} mg/dia</span>
+                  <span className="text-muted-foreground">Vale</span><span>{n1(stats.troughMg)} mg/dia</span><span>{n1(compareStats.troughMg)} mg/dia</span>
+                  <span className="text-muted-foreground">Sobe e desce</span><span>{n0(stats.swingPct)}%</span><span className="font-semibold text-foreground">{n0(compareStats.swingPct)}%</span>
+                  <span className="text-muted-foreground">Média</span><span>{n1(stats.avgDailyMg)} mg/dia</span><span>{n1(compareStats.avgDailyMg)} mg/dia</span>
+                </div>
+                <span className="text-muted-foreground">A quantidade total não muda, só a divisão. É uma simulação: converse com o seu médico antes de mudar a forma de aplicar.</span>
+              </div>
+            ) : null}
+            <details className="group rounded-lg border border-border">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
+                Como ler este gráfico
+                <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-open:rotate-180 motion-reduce:transition-none" />
+              </summary>
+            <ul className="m-0 grid list-none gap-x-5 gap-y-1.5 px-3 pt-1 pb-3 text-xs text-muted-foreground sm:grid-cols-2">
+              <li className="flex items-start gap-2">
+                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" className="mt-0.5 shrink-0 text-foreground"><path d="M7,2L12.5,12H1.5Z" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" /></svg>
+                <span><strong className="font-medium text-foreground">Aplicação prevista:</strong> cada triângulo vazado embaixo do gráfico, na cor do composto. É a data calculada pelo intervalo que você cadastrou.{start ? ' A primeira depois de hoje vem marcada como "próxima".' : ''}</span>
+              </li>
+              {usingLog ? (
+                <li className="flex items-start gap-2">
+                  <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" className="mt-0.5 shrink-0 text-foreground"><circle cx="7" cy="7" r="5.5" fill="currentColor" /></svg>
+                  <span><strong className="font-medium text-foreground">Aplicação registrada:</strong> a bolinha cheia em cima da curva, no dia que você anotou no diário.</span>
+                </li>
+              ) : null}
+              <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 size-3 shrink-0 rounded-full border-2 border-foreground" /><span><strong className="font-medium text-foreground">Pico:</strong> ponto mais alto estimado depois da aplicação. <strong className="font-medium text-foreground">Vale:</strong> ponto mais baixo estimado antes da próxima.</span></li>
+              <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 size-3 shrink-0 rounded-sm bg-muted-foreground/25" /><span><strong className="font-medium text-foreground">Período usado no cálculo:</strong> a faixa cinza, de onde saem o pico, o vale e a média mostrados acima.</span></li>
+              {testoInProtocol && testoRow ? (
+                <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 size-2.5 shrink-0 rotate-45 bg-destructive" /><span><strong className="font-medium text-foreground">Dia do exame:</strong> a linha vermelha marca só a data da coleta de testosterona, não o resultado.</span></li>
+              ) : null}
+              {series.seriesPerItem.length > 1 ? (
+                <li className="flex items-start gap-2 sm:col-span-2"><span aria-hidden="true" className="mt-1.5 h-0.5 w-3 shrink-0 rounded-full bg-foreground" /><span><strong className="font-medium text-foreground">Soma dos compostos:</strong> {mixedFamilies ? 'soma de substâncias diferentes, em mg por dia. Serve para ver o volume total, mas não corresponde a nenhum exame.' : 'soma, em mg por dia, do que cada aplicação ainda está liberando.'}</span></li>
+              ) : null}
+              <li className="flex items-start gap-2 sm:col-span-2"><span aria-hidden="true" className="mt-0.5 size-3 shrink-0" /><span><strong className="font-medium text-foreground">Primeiras semanas:</strong> a curva sobe porque cada aplicação se soma ao que sobrou da anterior. Quando o que entra e o que sai se equilibram, o desenho passa a se repetir.</span></li>
+            </ul>
+            </details>
+          </FramePanel>
+        </Frame>
+
+        {/* ───────── Leitura da curva: o que uso → como se comporta → o que fazer → ligação com o exame ───────── */}
+        <Frame>
+          <FramePanel className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <span className="text-xs font-medium text-muted-foreground">Seu protocolo</span>
               <ul className="m-0 flex list-none flex-col gap-1 p-0">
@@ -451,7 +614,7 @@ export default function RadarHormonal() {
                   <span className="text-xl font-semibold text-success">≈{n0(splitStats.swingPct)}%</span>
                 </div>
                 <p className="m-0 text-xs text-muted-foreground">Mesma dose total na semana, picos menores e vales menos fundos. Converse com o seu médico antes de mudar.</p>
-                <Button variant="outline" size="sm" className="self-start" onClick={() => setCompare2x((v) => !v)}>
+                <Button variant="outline" size="lg" className="h-11 self-start px-3" onClick={() => setCompare2x((v) => !v)}>
                   {compare2x ? 'Esconder 2x/semana no gráfico' : 'Ver 2x/semana no gráfico'}
                 </Button>
               </div>
@@ -481,205 +644,97 @@ export default function RadarHormonal() {
           </FramePanel>
         </Frame>
 
-        {/* ───────── Curva ───────── */}
+        {/* ───────── Ajustar meu protocolo: configuração (feita uma vez), por isso recolhida para quem já tem protocolo ───────── */}
         <Frame>
-          <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
-              <IconTile variant="soft" size="sm" className="text-primary" aria-hidden="true"><Waves aria-hidden="true" /></IconTile>
-              <div className="flex min-w-0 flex-col gap-px">
-                <FrameTitle role="heading" aria-level={2}>Seu hormônio ao longo das semanas</FrameTitle>
-                <FrameDescription>Quanto hormônio o depósito da injeção libera por dia (mg/dia). É uma simulação, não é o nível no sangue.</FrameDescription>
-              </div>
-            </div>
-            <ToggleGroup value={[String(weeks)]} onValueChange={(next) => { if (next[0]) setWeeks(Number(next[0])); }} variant="outline" size="sm" spacing={0} aria-label="Período mostrado">
-              {WEEK_OPTIONS.map((w) => <ToggleGroupItem key={w} value={String(w)}>{w} sem</ToggleGroupItem>)}
-            </ToggleGroup>
-          </FrameHeader>
-          <FramePanel className="flex flex-col gap-3">
-            {(() => {
-              const activePreset =
-                protocol.length === 1 && protocol[0].compoundId === 'test_cyp' && protocol[0].freqDays === 7
-                  ? 'trt1'
-                  : protocol.length === 1 && protocol[0].compoundId === 'test_cyp' && protocol[0].freqDays === 3.5
-                    ? 'trt2'
-                    : protocol.length === 2 && protocol[0].compoundId === 'sustanon' && protocol[1].compoundId === 'mast_prop'
-                      ? 'dura'
-                      : null;
-              return (
-                <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-2">
-                  <span className="text-xs font-medium text-muted-foreground">Testar outro protocolo:</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => preset('trt1')}
-                    className={cn(activePreset === 'trt1' && 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/15')}
-                  >
-                    Reposição 1x/sem
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => preset('trt2')}
-                    className={cn(activePreset === 'trt2' && 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/15')}
-                  >
-                    Reposição 2x/sem
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => preset('dura')}
-                    className={cn(activePreset === 'dura' && 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/15')}
-                  >
-                    Durateston + Masteron
-                  </Button>
-                </div>
-              );
-            })()}
-            <div className="flex flex-wrap items-center gap-2">
-              {series.seriesPerItem.map((s, index) => {
-                const off = hidden.has(s.item.uid);
-                const dashed = series.seriesPerItem.length > 1 ? radarDash(index) : '';
-                return (
-                  <button
-                    key={s.item.uid}
-                    type="button"
-                    aria-pressed={!off}
-                    title={off ? 'Mostrar no gráfico' : 'Esconder do gráfico'}
-                    onClick={() => setHidden((prev) => { const next = new Set(prev); if (off) next.delete(s.item.uid); else next.add(s.item.uid); return next; })}
-                    className={cn('flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-transparent px-2.5 text-xs text-foreground transition-colors hover:bg-muted', off && 'text-muted-foreground line-through')}
-                  >
-                    <svg aria-hidden="true" width="20" height="6" viewBox="0 0 20 6" className={cn('shrink-0', off && 'opacity-30')}>
-                      <line x1="1" x2="19" y1="3" y2="3" stroke={s.comp.color} strokeWidth="2.5" strokeLinecap="round" strokeDasharray={dashed ? dashed.split(' ').map((n) => Number(n) / 2.2).join(' ') : undefined} />
-                    </svg>
-                    {s.comp.short}
-                  </button>
-                );
-              })}
-              {series.seriesPerItem.length > 1 ? (
-                <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden="true" className="h-0.5 w-4 rounded-full bg-foreground" />Total dos compostos</span>
-              ) : null}
-              <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden="true" className="h-0 w-4 border-t border-dotted border-foreground/60" />Média por dia</span>
-              {canSplit ? (
+          <FrameHeader className="relative min-h-14 flex-row items-center gap-3">
+            <IconTile variant="soft" size="sm" className="text-info" aria-hidden="true"><FlaskConical aria-hidden="true" /></IconTile>
+            <div className="flex min-w-0 flex-1 flex-col gap-px">
+              <FrameTitle role="heading" aria-level={2}>
                 <button
                   type="button"
-                  aria-pressed={compare2x}
-                  onClick={() => setCompare2x((v) => !v)}
-                  className={cn('ms-auto flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-transparent px-2.5 text-xs text-foreground transition-colors hover:bg-muted', compare2x && 'border-warning/50 bg-warning/10')}
+                  aria-expanded={configOpen}
+                  onClick={() => setConfigOpen((v) => !v)}
+                  className="cursor-pointer border-0 bg-transparent p-0 text-start text-sm font-semibold text-foreground outline-none after:absolute after:inset-0 after:rounded-lg after:content-[''] focus-visible:after:ring-3 focus-visible:after:ring-ring/50"
                 >
-                  <span aria-hidden="true" className="h-0 w-4 border-t-2 border-dashed border-warning" />
-                  Ver 2x por semana
+                  Ajustar meu protocolo
                 </button>
-              ) : null}
+              </FrameTitle>
+              <FrameDescription>
+                {configOpen
+                  ? 'O que você usa, quando começou e o ritmo do seu corpo. Fica salvo só neste aparelho.'
+                  : protoSummary.map((x) => `${x.name} · ${x.detail}`).join(' + ')}
+              </FrameDescription>
             </div>
-            <RadarChart series={series} compare={compare} stats={stats} weeks={weeks} examDay={testoInProtocol && testoRow ? examDay : null} hidden={hidden} dayLabel={dayLabel} todayDay={todayDay} />
-            <p className="m-0 flex items-start gap-1.5 rounded-lg bg-muted/60 px-3 py-2 text-xs text-foreground">
-              <Info aria-hidden="true" className="mt-px size-3.5 shrink-0 text-muted-foreground" />
-              <span><strong className="font-semibold">Este gráfico é uma simulação.</strong> Depois de cada aplicação a estimativa sobe e depois diminui. Ela vem de médias de estudos, e o seu organismo pode responder de forma diferente. O resultado do exame de sangue é medido separadamente e tem outra unidade.</span>
-            </p>
-            {compareStats ? (
-              <div className="flex flex-col gap-2 rounded-lg border border-warning/40 bg-warning/5 px-3 py-2.5 text-xs">
-                <strong className="text-sm font-semibold text-foreground">Mesma dose na semana, dividida em 2 aplicações</strong>
-                <div className="grid grid-cols-[auto_1fr_1fr] items-baseline gap-x-4 gap-y-1 tabular-nums">
-                  <span />
-                  <span className="text-muted-foreground">Como está</span>
-                  <span className="text-muted-foreground">Dividido em 2x</span>
-                  <span className="text-muted-foreground">Pico</span><span>{n1(stats.peakMg)} mg/dia</span><span>{n1(compareStats.peakMg)} mg/dia</span>
-                  <span className="text-muted-foreground">Vale</span><span>{n1(stats.troughMg)} mg/dia</span><span>{n1(compareStats.troughMg)} mg/dia</span>
-                  <span className="text-muted-foreground">Sobe e desce</span><span>{n0(stats.swingPct)}%</span><span className="font-semibold text-foreground">{n0(compareStats.swingPct)}%</span>
-                  <span className="text-muted-foreground">Média</span><span>{n1(stats.avgDailyMg)} mg/dia</span><span>{n1(compareStats.avgDailyMg)} mg/dia</span>
-                </div>
-                <span className="text-muted-foreground">A quantidade total não muda, só a divisão. É uma simulação: converse com o seu médico antes de mudar a forma de aplicar.</span>
-              </div>
-            ) : null}
-            <details className="group rounded-lg border border-border">
-              <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-2 px-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
-                Como ler este gráfico
-                <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-open:rotate-180 motion-reduce:transition-none" />
-              </summary>
-            <ul className="m-0 grid list-none gap-x-5 gap-y-1.5 px-3 pt-1 pb-3 text-xs text-muted-foreground sm:grid-cols-2">
-              <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 h-3 w-0.5 shrink-0 rounded-full bg-foreground" /><span><strong className="font-medium text-foreground">Dia da aplicação:</strong> cada risquinho embaixo do gráfico, na cor do composto.{usingLog ? ' Os que têm bolinha são os que você registrou; os outros são previsão.' : ''}</span></li>
-              <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 size-3 shrink-0 rounded-full border-2 border-foreground" /><span><strong className="font-medium text-foreground">Pico:</strong> ponto mais alto estimado depois da aplicação. <strong className="font-medium text-foreground">Vale:</strong> ponto mais baixo estimado antes da próxima.</span></li>
-              <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 size-3 shrink-0 rounded-sm bg-muted-foreground/25" /><span><strong className="font-medium text-foreground">Período usado no cálculo:</strong> a faixa cinza, de onde saem o pico, o vale e a média mostrados acima.</span></li>
-              {testoInProtocol && testoRow ? (
-                <li className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 size-2.5 shrink-0 rotate-45 bg-destructive" /><span><strong className="font-medium text-foreground">Dia do exame:</strong> a linha vermelha marca só a data da coleta de testosterona, não o resultado.</span></li>
-              ) : null}
-              {series.seriesPerItem.length > 1 ? (
-                <li className="flex items-start gap-2 sm:col-span-2"><span aria-hidden="true" className="mt-1.5 h-0.5 w-3 shrink-0 rounded-full bg-foreground" /><span><strong className="font-medium text-foreground">Soma dos compostos:</strong> {mixedFamilies ? 'soma de substâncias diferentes, em mg por dia. Serve para ver o volume total, mas não corresponde a nenhum exame.' : 'soma, em mg por dia, do que cada aplicação ainda está liberando.'}</span></li>
-              ) : null}
-              <li className="flex items-start gap-2 sm:col-span-2"><span aria-hidden="true" className="mt-0.5 size-3 shrink-0" /><span><strong className="font-medium text-foreground">Primeiras semanas:</strong> a curva sobe porque cada aplicação se soma ao que sobrou da anterior. Quando o que entra e o que sai se equilibram, o desenho passa a se repetir.</span></li>
-            </ul>
-            </details>
-          </FramePanel>
-        </Frame>
-
-        {/* ───────── Protocolo ───────── */}
-        <Frame>
-          <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
-              <IconTile variant="soft" size="sm" className="text-info" aria-hidden="true"><FlaskConical aria-hidden="true" /></IconTile>
-              <div className="flex min-w-0 flex-col gap-px">
-                <FrameTitle role="heading" aria-level={2}>O que você usa</FrameTitle>
-                <FrameDescription>O que você cadastrou. Toque em Editar para mudar; fica salvo só neste aparelho.</FrameDescription>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs text-muted-foreground">Exemplos:</span>
-              <Button variant="outline" size="sm" onClick={() => preset('trt1')}>Reposição 1x/sem</Button>
-              <Button variant="outline" size="sm" onClick={() => preset('trt2')}>Reposição 2x/sem</Button>
-              <Button variant="outline" size="sm" onClick={() => preset('dura')}>Durateston + Masteron</Button>
-            </div>
+            <ChevronDown aria-hidden="true" className={cn('size-5 shrink-0 text-muted-foreground transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none', configOpen && 'rotate-180')} />
           </FrameHeader>
 
-          {protocol.map((item, index) => (
-            <FramePanel key={item.uid}>
-              <ProtocolItem
-                item={item} index={index} weeks={weeks}
-                dash={protocol.length > 1 ? radarDash(index) : ''}
-                canRemove={protocol.length > 1}
-                editing={editingUid === item.uid}
-                onEdit={() => setEditingUid(item.uid)}
-                onDone={() => setEditingUid(null)}
-                onUpdate={(patch) => update(item.uid, patch)}
-                onChangeCompound={(id) => changeCompound(item.uid, id)}
-                onChangeUnit={(unit) => changeUnit(item, unit)}
-                onExplain={() => setExplainId(item.compoundId)}
-                onRemove={() => { setEditingUid(null); setProtocol((prev) => (prev.length <= 1 ? prev : prev.filter((x) => x.uid !== item.uid))); }}
-              />
-            </FramePanel>
-          ))}
+          {configOpen ? (
+            <>
+              {protocol.map((item, index) => (
+                <FramePanel key={item.uid}>
+                  <ProtocolItem
+                    item={item} index={index} weeks={weeks}
+                    dash={protocol.length > 1 ? radarDash(index) : ''}
+                    canRemove={protocol.length > 1}
+                    editing={editingUid === item.uid}
+                    onEdit={() => setEditingUid(item.uid)}
+                    onDone={() => setEditingUid(null)}
+                    onUpdate={(patch) => update(item.uid, patch)}
+                    onChangeCompound={(id) => changeCompound(item.uid, id)}
+                    onChangeUnit={(unit) => changeUnit(item, unit)}
+                    onExplain={() => setExplainId(item.compoundId)}
+                    onRemove={() => { setEditingUid(null); setProtocol((prev) => (prev.length <= 1 ? prev : prev.filter((x) => x.uid !== item.uid))); }}
+                  />
+                </FramePanel>
+              ))}
 
-          <FramePanel className="flex flex-col gap-4">
-            <button
-              type="button" onClick={add}
-              className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-transparent px-4 text-sm font-medium text-foreground transition-colors hover:border-primary/60 hover:bg-primary/5"
-            >
-              <Plus aria-hidden="true" className="size-4" />
-              Adicionar outro composto
-            </button>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="flex min-w-0 flex-col gap-2 rounded-lg border border-border px-3 py-3">
-                <span className="flex items-center gap-2 text-sm font-medium text-foreground"><CalendarDays aria-hidden="true" className="size-4 text-muted-foreground" />Quando começou? <span className="text-xs font-normal text-muted-foreground">(opcional)</span></span>
-                <Input type="date" className="h-10" value={startDate} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setStartDate(e.target.value)} />
-                <span className="text-xs text-muted-foreground">Com a data, o gráfico mostra dias de verdade e o seu exame cai no dia certo, sozinho.</span>
-              </label>
-              <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-border px-3 py-3">
-                <span className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-sm font-medium text-foreground">
-                  <span className="flex items-center gap-2"><Gauge aria-hidden="true" className="size-4 text-muted-foreground" />Ritmo do seu corpo</span>
-                  <Badge variant={variationPct === 0 ? 'outline' : 'info-light'}>{variationPct === 0 ? 'Na média' : variationPct > 0 ? `${variationPct}% mais rápido` : `${-variationPct}% mais devagar`}</Badge>
-                </span>
-                <Slider min={-30} max={30} step={5} value={[variationPct]} onValueChange={(v) => setVariationPct(Array.isArray(v) ? v[0] : v)} aria-label="Velocidade com que o corpo elimina, em relação à média" className="py-2" />
-                <span aria-hidden="true" className="flex justify-between text-xs text-muted-foreground"><span>Elimina devagar</span><span>Média</span><span>Elimina rápido</span></span>
-                <span className="text-xs text-muted-foreground">Cada pessoa elimina num ritmo. Deixe no meio se não souber.</span>
-              </div>
-            </div>
-          </FramePanel>
+              <FramePanel className="flex flex-col gap-4">
+                <button
+                  type="button" onClick={add}
+                  className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-transparent px-4 text-sm font-medium text-foreground transition-colors hover:border-primary/60 hover:bg-primary/5"
+                >
+                  <Plus aria-hidden="true" className="size-4" />
+                  Adicionar outro composto
+                </button>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="flex min-w-0 flex-col gap-2 rounded-lg border border-border px-3 py-3">
+                    <span className="flex items-center gap-2 text-sm font-medium text-foreground"><CalendarDays aria-hidden="true" className="size-4 text-muted-foreground" />Quando começou? <span className="text-xs font-normal text-muted-foreground">(opcional)</span></span>
+                    <Input id={START_DATE_ID} type="date" className="h-11" value={startDate} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setStartDate(e.target.value)} />
+                    <span className="text-xs text-muted-foreground">Com a data, o gráfico mostra dias de verdade, o placar mostra a estimativa de hoje e o seu exame cai no dia certo, sozinho.</span>
+                  </label>
+                  <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-border px-3 py-3">
+                    <span className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-sm font-medium text-foreground">
+                      <span className="flex items-center gap-2"><Gauge aria-hidden="true" className="size-4 text-muted-foreground" />Ritmo do seu corpo</span>
+                      <Badge variant={variationPct === 0 ? 'outline' : 'info-light'}>{variationPct === 0 ? 'Na média' : variationPct > 0 ? `${variationPct}% mais rápido` : `${-variationPct}% mais devagar`}</Badge>
+                    </span>
+                    <Slider min={-30} max={30} step={5} value={[variationPct]} onValueChange={(v) => setVariationPct(Array.isArray(v) ? v[0] : v)} aria-label="Velocidade com que o corpo elimina, em relação à média" className="py-4" />
+                    <span aria-hidden="true" className="flex justify-between text-xs text-muted-foreground"><span>Elimina devagar</span><span>Média</span><span>Elimina rápido</span></span>
+                    <span className="text-xs text-muted-foreground">Cada pessoa elimina num ritmo. Deixe no meio se não souber.</span>
+                  </div>
+                </div>
+              </FramePanel>
+
+              <FramePanel className="flex flex-col gap-2">
+                <span className="text-xs font-medium text-muted-foreground">Testar outro protocolo</span>
+                <div className="flex flex-wrap gap-2">
+                  {PRESETS.map((opt) => (
+                    <Button
+                      key={opt.kind}
+                      variant="outline"
+                      size="lg"
+                      aria-pressed={activePreset === opt.kind}
+                      onClick={() => preset(opt.kind)}
+                      className={cn('h-11 px-3.5', activePreset === opt.kind && 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/15')}
+                    >
+                      {opt.label}
+                    </Button>
+                  ))}
+                </div>
+                <span className="text-xs text-muted-foreground">São exemplos para ver como a curva muda. Tocar em um deles troca o que está cadastrado acima.</span>
+              </FramePanel>
+            </>
+          ) : null}
         </Frame>
-
-        {/* ───────── Suas aplicações (diário) ───────── */}
-        <DoseLog
-          pid={pid} protocol={protocol} doses={doses} loading={dosesLoading} failed={dosesFailed} hasStartDate={!!startDate}
-          onReload={() => setDosesTick((n) => n + 1)} onChange={setDoses}
-        />
 
         {/* ───────── Seus exames × este protocolo ───────── */}
         <Frame>
@@ -707,8 +762,8 @@ export default function RadarHormonal() {
               ) : (
                 <>
                   {!autoInRange ? (
-                    <Field label={autoDay != null ? 'O exame é de fora deste período. Arraste para simular outro dia:' : `Informe a data de início acima, ou arraste até o dia da coleta: ${dayLabel(examDay)}`}>
-                      <input type="range" min={0} max={totalDays} step={1} value={examDay} onChange={(e) => setManualLabDay(Number(e.target.value))} className="h-10 w-full accent-[var(--primary)]" aria-label="Dia da coleta do exame" />
+                    <Field label={autoDay != null ? 'O exame é de fora deste período. Arraste para simular outro dia:' : `Informe a data de início em "Ajustar meu protocolo", ou arraste até o dia da coleta: ${dayLabel(examDay)}`}>
+                      <input type="range" min={0} max={totalDays} step={1} value={examDay} onChange={(e) => setManualLabDay(Number(e.target.value))} className="h-11 w-full accent-[var(--primary)]" aria-label="Dia da coleta do exame" />
                     </Field>
                   ) : null}
                   {/* Régua vale → pico com o marcador da coleta */}
@@ -843,7 +898,7 @@ export default function RadarHormonal() {
             </ul>
             {withExam > 0 && restMarkers.length > 0 ? (
               <div className="border-t border-border p-1.5">
-                <Button variant="ghost" size="lg" className="h-10 w-full" aria-expanded={showAllMarkers} onClick={() => setShowAllMarkers((v) => !v)}>
+                <Button variant="ghost" size="lg" className="h-11 w-full" aria-expanded={showAllMarkers} onClick={() => setShowAllMarkers((v) => !v)}>
                   {showAllMarkers ? 'Mostrar só os que já tenho' : `Ver mais ${restMarkers.length} ${restMarkers.length === 1 ? 'exame' : 'exames'} para acompanhar`}
                   <ChevronDown aria-hidden="true" className={cn('transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none', showAllMarkers && 'rotate-180')} />
                 </Button>
@@ -856,8 +911,8 @@ export default function RadarHormonal() {
               A faixa é a do seu laudo, que vale para quem não usa hormônio. Em reposição ou ciclo, o que conta é a avaliação do seu médico.
             </p>
             <div className="flex shrink-0 flex-wrap gap-2">
-              <Button variant="outline" size="lg" className="h-10" onClick={() => navigate('/exams/create')}>Enviar exame</Button>
-              <Button size="lg" className="h-10" onClick={askDrExame}>
+              <Button variant="outline" size="lg" className="h-11 px-3" onClick={() => navigate('/exams/create')}>Enviar exame</Button>
+              <Button size="lg" className="h-11 px-3" onClick={askDrExame}>
                 <Sparkles aria-hidden="true" />
                 Perguntar ao Dr. Exame
                 <span className="text-xs font-normal opacity-80 tabular-nums">💎 {CREDIT_COSTS.chat}</span>
@@ -891,8 +946,8 @@ export default function RadarHormonal() {
             <FrameFooter className="flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="m-0 text-xs text-muted-foreground">O resumo junta o que você usa, seus exames e estas perguntas numa página. Quem decide é o médico.</p>
               <div className="flex shrink-0 flex-wrap gap-2">
-                <Button variant="outline" size="lg" className="h-10" onClick={() => void copyQuestions()}><Copy aria-hidden="true" />Copiar perguntas</Button>
-                <Button size="lg" className="h-10" onClick={printSummary}><Printer aria-hidden="true" />Resumo para a consulta</Button>
+                <Button variant="outline" size="lg" className="h-11 px-3" onClick={() => void copyQuestions()}><Copy aria-hidden="true" />Copiar perguntas</Button>
+                <Button size="lg" className="h-11 px-3" onClick={printSummary}><Printer aria-hidden="true" />Resumo para a consulta</Button>
               </div>
             </FrameFooter>
           </Frame>
@@ -902,7 +957,7 @@ export default function RadarHormonal() {
         <Frame>
           <FramePanel className="p-0!">
             <details className="group">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
                 Como o Radar chega nesses números
                 <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
               </summary>

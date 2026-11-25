@@ -8,6 +8,9 @@ import { UnitLabel } from './UnitLabel';
 import { Flag } from './Flag';
 import { RADIUS, tealText } from '../theme';
 import { goalRangeText, withinGoal, withinRef, dualStatusText, hasMixedMethods, lineBreakFlags } from '../utils/clinicalGoals';
+import { TodayMarker } from './charts/TodayMarker';
+import { LastDataLabel } from './charts/LastDataLabel';
+import { LAB_STALE_AFTER_DAYS, planTodayAxis } from './charts/recency';
 import type { ClinicalGoalView } from '@meus-exames/shared';
 import type { Theme } from '@mui/material/styles';
 import type { TimeSeriesByName as TS } from '@meus-exames/shared';
@@ -52,13 +55,21 @@ const fmt2 = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR',
  *  dia em que a medicação começou. A promessa "vi o efeito do tratamento" vira visível. */
 export interface TrendMarker { date: string; label: string }
 
-export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: React.ReactNode; goal?: TrendsGoalBand | null; markers?: TrendMarker[] }) => {
+/**
+ * `todayMarker` (DESLIGADO por padrão — o portal do médico não muda): assinatura de tempo
+ * do paciente. Com eixo de tempo e "hoje" cabendo sem esmagar os dados, desenha a linha
+ * vertical "hoje" (a mesma do Radar); e a "Última medição" passa a dizer HÁ QUANTO TEMPO
+ * foi, marcando quando pode estar desatualizada (> 12 meses, régua do servidor).
+ */
+export const TrendsChart = ({ ts, action, goal, markers, todayMarker = false }: { ts: TS; action?: React.ReactNode; goal?: TrendsGoalBand | null; markers?: TrendMarker[]; todayMarker?: boolean }) => {
   const theme = useTheme<Theme>();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const tealMain = theme.palette.primary.main;
   // CONTRATO item 4 (maquete chart-6): janela da série — 6M/12M/Tudo. Padrão 12M
   // (foco no que importa); "Tudo" devolve o comportamento antigo (série completa).
   const [win, setWin] = useState<'6m' | '12m' | 'all'>('12m');
+  // "Hoje" da linha vertical, fixado na montagem (o domínio do eixo não muda a cada render).
+  const [todayMs] = useState(() => Date.now());
   const winMs = win === '6m' ? 183 * 86400e3 : win === '12m' ? 365 * 86400e3 : Infinity;
   const winStart = Date.now() - winMs;
   const inWin = (p: any) => win === 'all' || !p.performedAt || new Date(p.performedAt).getTime() >= winStart;
@@ -132,6 +143,10 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
       return match ? match.valueNumeric : null;
     })() : null,
   }));
+  // LINHA "HOJE" (opcional): só no eixo de tempo e só se o vazio último ponto → hoje não
+  // esmagar a série (senão fica o texto de recência no cabeçalho).
+  const todayPlan = todayMarker && allDated && data.length >= 2 ? planTodayAxis(data[0].t, data[data.length - 1].t, todayMs) : null;
+  const showToday = !!todayPlan?.show;
   const fmtTick = (t: number) => new Date(t).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).replace(' de ', '/').replace('.', '');
 
   const TooltipBox = ({ active, payload }: any) => {    if (!active || !payload?.length) return null;
@@ -244,7 +259,13 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
           </MuiTooltip>
         )}
         {lastPt && (
-          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>Última medição: <strong>{fmt2(lastPt.performedAt)}</strong></Typography>
+          todayMarker && lastPt.performedAt ? (
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
+              <LastDataLabel date={lastPt.performedAt} now={todayMs} noun="Última medição" staleAfterDays={LAB_STALE_AFTER_DAYS} staleNote="pode estar desatualizada" />
+            </Typography>
+          ) : (
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>Última medição: <strong>{fmt2(lastPt.performedAt)}</strong></Typography>
+          )
         )}
         {/* VS EXAME ANTERIOR (padrão chart-6: "piorou ou melhorou desde a última coleta?").
             Comparação clínica relevante p/ paciente e médico: último vs penúltimo ponto,
@@ -345,11 +366,11 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
 
       {/* Gráfico — linha teal + área verde (faixa de referência). Sem margin negativa (não sangra). */}
       <ResponsiveContainer width="100%" height={isMobile ? 240 : 340}>
-        <LineChart data={data} margin={{ top: 10, right: isMobile ? 26 : 34, bottom: 10, left: isMobile ? 0 : 4 }}>
+        <LineChart data={data} margin={{ top: showToday ? 20 : 10, right: isMobile ? 26 : 34, bottom: 10, left: isMobile ? 0 : 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
           {allDated ? (
             <XAxis
-              dataKey="t" type="number" scale="time" domain={['dataMin', 'dataMax']}
+              dataKey="t" type="number" scale="time" domain={['dataMin', showToday && todayPlan?.domainEnd != null ? todayPlan.domainEnd : 'dataMax']}
               tickFormatter={fmtTick} minTickGap={isMobile ? 28 : 44}
               tick={{ fontSize: isMobile ? 9.5 : 11, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }}
             />
@@ -374,6 +395,7 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
             tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }}
           />
           <Tooltip content={<TooltipBox />} />
+          {showToday && <TodayMarker x={todayMs} color={tealMain} labelColor={titleText} />}
           {uniLow != null && uniHigh != null && (
             /* ifOverflow="extendDomain": sem isto o recharts 3.x DESCARTA a faixa quando ela
                ultrapassa o domínio dos dados (ex.: Plaquetas 116–238k vs faixa até 450k) —

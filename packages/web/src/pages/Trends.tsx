@@ -277,7 +277,7 @@ export const TrendsPage = () => {
 
       {/* GRÁFICO + DETALHES — primitiva compartilhada (dedup paciente↔médico). */}
       {!loading && ts && ts.points.length > 0 && (
-        <TrendsChart ts={ts} goal={goalFor(clinicalGoals, ts.nameCanonical, pid)} markers={markers} />
+        <TrendsChart ts={ts} goal={goalFor(clinicalGoals, ts.nameCanonical, pid)} markers={markers} todayMarker />
       )}
       {!loading && ts && ts.points.length === 0 && sel && (
         <Card sx={{ borderRadius: '20px', textAlign: 'center', py: 4 }}>

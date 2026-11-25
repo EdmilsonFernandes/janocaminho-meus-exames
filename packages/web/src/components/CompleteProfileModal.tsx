@@ -11,13 +11,15 @@ import { useSelectedPatient } from '../patient-context';
 import { DateFieldBR } from './DateFieldBR';
 import { formatCpf, isValidCpf } from '../utils/cpf';
 import { parseHeightCm, maskHeightInput, fmtHeight } from '../utils/height';
-import { claimColdDialog } from '../utils/coldDialog';
+import { autoModalQueue } from '../utils/autoModalQueue';
 
 // Supressão de "Agora não" POR SESSÃO (não mais localStorage permanente): o flag por dispositivo
 // fazia o modal nunca mais aparecer depois de 1 skip ou 1 troca de aparelho — e a completude
 // real é avaliada pelo SERVER (profileCompleteness), então usuário que completa em outro
 // dispositivo não é re-perguntado. O Dashboard (NextStepsCard) continua orientando depois.
 const SKIP_FLAG = 'profileSkippedSession';
+/** Id deste modal na fila única de modais automáticos (grupo "cadastro", menor prioridade). */
+const PROFILE_QUEUE_ID = 'profile';
 
 /** "70,5" → 70.5 · "70.5" → 70.5 · lixo → NaN. Com vírgula: pontos são milhar (1.70,5→170.5); sem vírgula: ponto é decimal. */
 const parseBR = (s: string) => {
@@ -68,8 +70,16 @@ export const CompleteProfileModal = () => {
     if (!pid) return;
     if (sessionStorage.getItem(SKIP_FLAG) === '1') { setLoading(false); return; }
     let cancelled = false;
+    // FILA ÚNICA (25/11/26): este modal (tela cheia no celular) cobria a Agenda e depois a
+    // Home. Agora só abre sozinho pela autoModalQueue: 1 modal automático por sessão, só na
+    // Home, atrás do alerta de saúde e da comemoração. Perdeu a vez = nada gravado — o
+    // NextStepsCard da Home leva ao Perfil/Medições e o próximo boot tenta de novo.
+    let asked = false;
+    autoModalQueue.announce(PROFILE_QUEUE_ID, 'signup');
     (async () => {
       try {
+        // Vaga já usada ou fora da Home: nem gasta rede.
+        if (!autoModalQueue.canOpen()) return;
         // UMA INTERRUPÇÃO SÓ (auditoria 29-31/10): este modal abria ~3s após o login SOBRE
         // QUALQUER rota, antes mesmo do 1º upload (3 modais na 1ª sessão). Agora só auto-abre
         // pra quem JÁ tem exame — é quando sexo/nascimento personalizam as faixas de referência.
@@ -92,15 +102,22 @@ export const CompleteProfileModal = () => {
         if (!p.gender || !p.dateOfBirth) queue.push('profile');
         if (p.heightCm == null || p.weightKg == null) queue.push('body');
         if (!p.hasCpf) queue.push('cpf');
-        // Entra na fila dos cold-dialogs (WhatsNew/GoalQuiz/Notificação): máx 1 modal por sessão.
-        if (queue.length > 0 && claimColdDialog('profile')) { setSteps(queue); setStep(0); setOpen(true); }
+        if (queue.length > 0) {
+          asked = true;
+          autoModalQueue.request(PROFILE_QUEUE_ID, 'signup', () => {
+            if (cancelled) return;
+            setSteps(queue); setStep(0); setOpen(true);
+          });
+        }
       } catch {
         // best-effort: se falhar (offline), simplesmente não mostra — não bloqueia o app.
       } finally {
+        // Não pediu a vez (sem exame, nada faltando, erro, fora da Home) → sai da fila.
+        if (!asked) autoModalQueue.withdraw(PROFILE_QUEUE_ID);
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => { cancelled = true; autoModalQueue.withdraw(PROFILE_QUEUE_ID); };
   }, [pid]);
 
   const close = () => { sessionStorage.setItem(SKIP_FLAG, '1'); setOpen(false); };

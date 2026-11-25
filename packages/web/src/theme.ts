@@ -278,6 +278,17 @@ export const buildTheme = (mode: ThemeMode, textScale: TextScale = 'normal'): Th
               '&.MuiButton-outlinedWarning': { color: '#fbbf24', borderColor: 'rgba(251,191,36,.5)' },
               '&.MuiButton-outlinedInfo': { color: '#38bdf8', borderColor: 'rgba(56,189,248,.5)' },
             } : {}),
+            // DESABILITADO NÃO PODE PARECER O BOTÃO PRINCIPAL (25/11/26): o gradiente de marca é
+            // `background` (imagem) e o estado disabled do MUI só troca `background-color` — o
+            // "Continuar" desabilitado ficava teal com texto escuro por cima (parecia ativo, não
+            // respondia e mal se lia). Vale para todo `contained` (inclusive GradientButton e
+            // gradientes via sx: este seletor tem especificidade maior). Superfície neutra, texto
+            // cinza legível (≥4,5:1), sem gradiente e sem sombra. O habilitado não é tocado.
+            '&.MuiButton-contained.Mui-disabled': {
+              background: isDark ? 'rgba(255,255,255,0.10)' : '#e5e9ec',
+              color: isDark ? 'rgba(255,255,255,0.58)' : '#5b6670',
+              boxShadow: 'none',
+            },
           },
           containedPrimary: {
             background: 'linear-gradient(135deg, #20b2aa, #178f89)',

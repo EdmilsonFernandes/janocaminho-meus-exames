@@ -6,14 +6,17 @@
  *  - o eixo Y não parte do zero (peso de 0 a 90 achataria a variação que interessa);
  *  - a variação não ganha cor de bom/ruim — subir ou descer depende do objetivo de cada um.
  */
-import { useId, useMemo, useSyncExternalStore, type CSSProperties } from 'react';
+import { useId, useMemo, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { cn } from 'cn';
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
 import { Area, CartesianGrid, ComposedChart, ReferenceArea, XAxis, YAxis, type TooltipContentProps } from 'recharts';
 import { Badge } from '@/components/reui/badge';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { LastDataLabel } from '@/components/charts/LastDataLabel';
+import { TodayMarker } from '@/components/charts/TodayMarker';
+import { describeRecency, planTodayAxis } from '@/components/charts/recency';
 import {
-  METRICS, deltaOf, deviceLabel, formatDate, formatDelta, formatMetric, formatShortDate, formatWithUnit,
+  METRICS, deltaOf, deviceLabel, formatDate, formatDelta, formatMetric, formatShortDate, formatWithUnit, isStale,
   type BodyReading, type MetricKey, type RangeInfo,
 } from './model';
 
@@ -122,6 +125,9 @@ const readReduced = () => window.matchMedia(REDUCED_QUERY).matches;
 const MARGIN = { top: 16, right: 12, bottom: 0, left: 0 };
 const ACTIVE_DOT = { r: 4.5, fill: 'currentColor', stroke: 'var(--card)', strokeWidth: 2 };
 const DOT = { r: 3, fill: 'currentColor', stroke: 'var(--card)', strokeWidth: 1.5 };
+/** Data no padrão da tela (fuso de São Paulo), para o rótulo de recência. */
+const formatRecencyDate = (date: Date) => formatDate(date.toISOString());
+const STALE_NOTE = 'pode não refletir seu corpo hoje';
 
 /** Graduações redondas que cobrem [lo, hi] com folga, em no máximo cinco intervalos. */
 function valueTicks(lo: number, hi: number) {
@@ -171,6 +177,8 @@ export function TrendPlot({
     return rows.filter((_, i) => (rows.length - 1 - i) % every === 0).map((row) => row.t);
   }, [rows]);
   const config = useMemo(() => ({ value: { label: spec.label } }), [spec.label]);
+  // "Hoje" fixado na montagem: o eixo não pode mudar de domínio a cada render.
+  const [now] = useState(() => Date.now());
 
   if (rows.length < 2) {
     return (
@@ -184,9 +192,17 @@ export function TrendPlot({
 
   const first = rows[0];
   const last = rows[rows.length - 1];
-  const label = `${spec.label} em ${rows.length} avaliações, de ${formatDate(first.reading.measuredAt)} a ${formatDate(last.reading.measuredAt)}: de ${formatWithUnit(metric, first.value)} para ${formatWithUnit(metric, last.value)}. Use as setas para percorrer as avaliações.`;
+  // Linha "hoje" (a mesma marca do Radar): o eixo é tempo de verdade, então o vazio entre a
+  // última avaliação e hoje fica visível. Se o vazio esmagaria os dados, fica só o texto abaixo.
+  const today = planTodayAxis(first.t, last.t, now);
+  const lastStale = isStale(last.reading.measuredAt, now);
+  // Se a avaliação mais nova não trouxe esta medida, o rótulo diz isso (não confundir com a "Última avaliação" da tela).
+  const lastNoun = readings[readings.length - 1]?.id === last.reading.id ? 'Última avaliação' : 'Última avaliação com esta medida';
+  const recency = describeRecency(last.reading.measuredAt, { now, noun: lastNoun, stale: lastStale, formatDate: formatRecencyDate, staleNote: STALE_NOTE });
+  const label = `${spec.label} em ${rows.length} avaliações, de ${formatDate(first.reading.measuredAt)} a ${formatDate(last.reading.measuredAt)}: de ${formatWithUnit(metric, first.value)} para ${formatWithUnit(metric, last.value)}.${recency ? ` ${recency.text}.` : ''}${today.show ? ' Uma linha vertical marca o dia de hoje.' : ''} Use as setas para percorrer as avaliações.`;
 
   return (
+    <>
     <ChartContainer
       config={config}
       role="group"
@@ -206,7 +222,7 @@ export function TrendPlot({
           dataKey="t"
           type="number"
           scale="time"
-          domain={['dataMin', 'dataMax']}
+          domain={['dataMin', today.show && today.domainEnd != null ? today.domainEnd : 'dataMax']}
           ticks={xTicks}
           interval={0}
           tickFormatter={formatShortDate}
@@ -236,6 +252,7 @@ export function TrendPlot({
             ifOverflow="hidden"
           />
         ) : null}
+        {today.show ? <TodayMarker x={now} /> : null}
         <ChartTooltip isAnimationActive={false} content={<Readout metric={metric} />} />
         <Area
           dataKey="value"
@@ -252,6 +269,11 @@ export function TrendPlot({
         />
       </ComposedChart>
     </ChartContainer>
+    {/* De quando é o último ponto — sempre em texto, com ou sem a linha "hoje". */}
+    <p className="m-0 text-xs text-muted-foreground">
+      <LastDataLabel date={last.reading.measuredAt} now={now} noun={lastNoun} stale={lastStale} formatDate={formatRecencyDate} staleNote={STALE_NOTE} />
+    </p>
+    </>
   );
 }
 

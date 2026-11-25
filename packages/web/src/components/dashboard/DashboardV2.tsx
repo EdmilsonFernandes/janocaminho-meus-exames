@@ -38,6 +38,8 @@ import { AppCard } from '../AppCard';
 import { usePrefersReducedMotion } from '../useCardPress';
 import { GradientButton } from '../GradientButton';
 import { Celebration } from '../Celebration';
+import { NotificationBanner } from '../NotificationPopup';
+import { autoModalQueue } from '../../utils/autoModalQueue';
 import { Shimmer, TileShimmer } from '../Shimmer';
 import { ChangesSinceExam, type Marker } from './ChangesSinceExam';
 import { StaggerIn } from './StaggerIn';
@@ -212,7 +214,16 @@ function useDashboardData(pid: string | null) {
           const r = await fetch(`${API_URL}/patients/${pid}/dashboard-summary`, { headers: h });
           if (!r.ok) return;
           const d = await r.json();
-          setStats({ exams: d.exams?.total ?? 0, abnormal: (d.buckets?.alerta ?? 0) + (d.buckets?.alterados ?? 0) });
+          // FONTE ÚNICA de "fora da faixa" (auditoria 25/11): antes este número vinha dos buckets =
+          // TODA linha de resultado de TODOS os exames, enquanto o herói conta 1 por marcador (último
+          // valor, medido nos últimos 12 meses) — o herói dizia 7 e o bloco logo abaixo dizia 13.
+          // Agora os dois leem a mesma régua do resumo de saúde (leve + moderada + importante).
+          // Sem resumo ou sem nenhum marcador recente → cai no histórico bruto, rotulado como tal.
+          const bp = d.health?.byPriority;
+          const currentOut = bp && (d.health?.markers ?? 0) > 0
+            ? (bp.leve ?? 0) + (bp.moderada ?? 0) + (bp.importante ?? 0)
+            : null;
+          setStats({ exams: d.exams?.total ?? 0, abnormal: currentOut ?? ((d.buckets?.alerta ?? 0) + (d.buckets?.alterados ?? 0)) });
           setLastExam(d.exams?.lastExamAt ?? null);
           setFailed(d.exams?.failed ?? 0);
           setRejected(d.exams?.rejected ?? 0);
@@ -1272,6 +1283,11 @@ export const DashboardV2 = () => (
   </DashboardErrorBoundary>
 );
 
+/** Quando a pessoa disse "Agora não" à oferta de biometria (timestamp; reoferece após 30 dias). */
+const BIO_OFFER_LATER_KEY = 'dx-bio-offer-later';
+/** Id da comemoração do 1º exame na fila única de modais automáticos. */
+const CELEBRATION_QUEUE_ID = 'first-exam';
+
 const DashboardV2Inner = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
@@ -1334,29 +1350,58 @@ const DashboardV2Inner = () => {
     // Offer por PAPEL (paciente): médico matriculado no aparelho não pode calar o offer
     // do paciente (bug: hasEnrollment "qualquer papel" escondia p/ sempre).
     if (BiometricService.isSupported() && !BiometricService.hasEnrollmentFor('patient')) {
-      const id = setTimeout(() => setBioOffer(true), 1500);
-      return () => clearTimeout(id);
+      // FILA ÚNICA (25/11/26): a oferta abre sozinha → disputa a vaga de modal automático da
+      // sessão no grupo "cadastro" (atrás de alerta de saúde e comemoração). Perdeu a vez =
+      // tenta em outra sessão; o caminho manual continua em Segurança.
+      // "Agora não" vale por 30 dias: sem isso a oferta (que pede a vez cedo) levaria a vaga
+      // em TODA sessão e o quiz de objetivo / perfil nunca mais abririam sozinhos.
+      try {
+        const later = Number(localStorage.getItem(BIO_OFFER_LATER_KEY) || 0);
+        if (later > 0 && Date.now() - later < 30 * 24 * 60 * 60 * 1000) return;
+      } catch { /* storage bloqueado: segue oferecendo */ }
+      let gone = false;
+      const id = setTimeout(() => autoModalQueue.request('bio-offer', 'signup', () => { if (!gone) setBioOffer(true); }), 1500);
+      return () => { gone = true; clearTimeout(id); autoModalQueue.withdraw('bio-offer'); };
     }
   }, []);
   // Demo cala o offer de biometria (ruído em cima de dado fictício).
   useEffect(() => { if (demo) setBioOffer(false); }, [demo]);
+  const declineBioOffer = () => {
+    try { localStorage.setItem(BIO_OFFER_LATER_KEY, String(Date.now())); } catch { /* ignore */ }
+    setBioOffer(false);
+  };
 
   // W1 — CELEBRAÇÃO DO 1º EXAME (1× por paciente): dispara quando a conta passa a ter
   // exatamente 1 exame extraído. Veteranos (exames > 1) marcam a flag em silêncio —
   // nunca celebram "1º exame" atrasado. Demo jamais dispara.
+  // FILA ÚNICA (25/11/26): a comemoração abre sozinha → passa pela autoModalQueue (1 modal
+  // automático por sessão, só na Home; perde só pro alerta de saúde). Enquanto o painel
+  // carrega ela fica "decidindo" pra que os modais de cadastro não passem na frente. Perdeu
+  // a vez = a flag `dx1st` NÃO é gravada: comemora numa próxima sessão (se ainda for o 1º exame).
   const [celebrate, setCelebrate] = useState(false);
   const firstKey = `dx1st:${pid}`;
   useEffect(() => {
-    if (demo || !d.loaded || !pid) return;
+    if (demo || !pid) { autoModalQueue.withdraw(CELEBRATION_QUEUE_ID); return; }
     let seen = false;
     try { seen = localStorage.getItem(firstKey) === '1'; } catch { /* ignore */ }
-    if (seen) return;
-    if (d.stats.exams > 1) { try { localStorage.setItem(firstKey, '1'); } catch { /* ignore */ } return; }
-    if (d.stats.exams === 1) {
-      const tm = setTimeout(() => { setCelebrate(true); track('celebration_shown'); }, 900);
-      return () => clearTimeout(tm);
-    }
+    if (seen) { autoModalQueue.withdraw(CELEBRATION_QUEUE_ID); return; }
+    // Sem withdraw no cleanup destes ramos: entre o cleanup e a próxima execução do efeito a
+    // fila daria a vaga a um modal de cadastro. Quem sai da fila é o ramo seguinte ou o unmount.
+    if (!d.loaded) { autoModalQueue.announce(CELEBRATION_QUEUE_ID, 'celebration'); return; }
+    if (d.stats.exams > 1) { try { localStorage.setItem(firstKey, '1'); } catch { /* ignore */ } }
+    if (d.stats.exams !== 1) { autoModalQueue.withdraw(CELEBRATION_QUEUE_ID); return; }
+    let stale = false;
+    autoModalQueue.announce(CELEBRATION_QUEUE_ID, 'celebration');
+    const tm = setTimeout(() => {
+      autoModalQueue.request(CELEBRATION_QUEUE_ID, 'celebration', () => {
+        if (stale) return;
+        setCelebrate(true);
+        track('celebration_shown');
+      });
+    }, 900);
+    return () => { stale = true; clearTimeout(tm); };
   }, [d.loaded, d.stats.exams, pid, demo, firstKey]);
+  useEffect(() => () => autoModalQueue.withdraw(CELEBRATION_QUEUE_ID), []);
   const finishCelebration = () => {
     // REVIEW (01/10, gatilho 3): celebrou e FECHOU a celebração = vitória consumida —
     // momento certo pro review nativo (mesma API/90d; nunca durante a animação).
@@ -1396,6 +1441,9 @@ const DashboardV2Inner = () => {
   };
 
   const totalResults = d.buckets.bons + d.buckets.alerta + d.buckets.alterados;
+  // Base do bloco "Fora da faixa": marcadores atuais (mesma régua do herói) quando há resumo de
+  // saúde; senão o total de resultados do histórico. O rótulo do bloco diz qual das duas é.
+  const outOfBase = d.markerCount > 0 ? d.markerCount : totalResults;
   const cardioLevel: string = d.cardioRisk?.level ?? '';
   const cardioFactors: number = Array.isArray(d.cardioRisk?.factors) ? d.cardioRisk.factors.filter((f: any) => f.risk).length : 0;
 
@@ -1424,7 +1472,7 @@ const DashboardV2Inner = () => {
         parts.push(`Seu Score de Saúde geral está em ${scoreVal}.`);
       }
       if (abn > 0) {
-        parts.push(`Identifiquei ${abn} marcador${abn > 1 ? 'es' : ''} que requer${abn > 1 ? 'em' : ''} atenção preventiva no seu histórico.`);
+        parts.push(`Identifiquei ${abn} marcador${abn > 1 ? 'es' : ''} que requer${abn > 1 ? 'em' : ''} atenção preventiva ${(d?.markerCount ?? 0) > 0 ? 'nos seus resultados mais recentes' : 'no seu histórico'}.`);
       } else if (examsCount > 0) {
         parts.push(`Todos os seus marcadores analisados estão dentro das faixas saudáveis de referência.`);
       }
@@ -1447,7 +1495,13 @@ const DashboardV2Inner = () => {
   // Toggle OFF → este return não é alcançado e a renderização abaixo fica
   // EXATAMENTE igual à atual (screenshot-comparável).
   if (!demo && sports.active) {
-    return <SportsDashboard pid={pid} d={real} profile={sports.profile} firstName={firstName} />;
+    return (
+      <>
+        {/* Aviso que não pôde abrir como modal — nunca se perde, em nenhuma variante da Home. */}
+        <NotificationBanner sx={{ mx: 2 }} />
+        <SportsDashboard pid={pid} d={real} profile={sports.profile} firstName={firstName} />
+      </>
+    );
   }
 
   // FIRST-EXAM FLOW — conta SEM exames: uma missão só (enviar o 1º exame), zero
@@ -1459,6 +1513,7 @@ const DashboardV2Inner = () => {
     return (
       <PageContainer width="wide" sx={{ bgcolor: 'transparent', minHeight: '100dvh' }}>
         <DashboardHeader firstName={firstName} />
+        <NotificationBanner />
         <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
         <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
         {d.processing && d.processing.count > 0 && (
@@ -1481,6 +1536,10 @@ const DashboardV2Inner = () => {
   return (
     <PageContainer width="wide" sx={{ bgcolor: 'transparent', minHeight: '100dvh' }}>
       <DashboardHeader firstName={firstName} />
+      {/* AVISO PENDENTE (25/11/26): o alerta que não pôde abrir como modal (outra rota, vaga
+          da sessão já usada) ou foi fechado sem resposta fica AQUI, no topo, sem bloquear a
+          tela, até a pessoa ver ou reconhecer. Resolve para nada quando não há aviso. */}
+      {!demo && <NotificationBanner />}
       {!demo && <LiveTeleconsultaBanner />}
       {/* Fila imediata "Falar agora" (spec 2026-10-27 §5) — strip compacto; some
           quando não há médicos online nem entrada ativa (mínimo invasivo). */}
@@ -1556,8 +1615,8 @@ const DashboardV2Inner = () => {
             tone={d.stats.abnormal > 0 ? 'error' : 'success'}
             label={d.stats.abnormal > 0 ? 'Fora da faixa' : SEVERITY.low}
             value={d.loaded ? String(d.stats.abnormal) : '—'}
-            sub={d.loaded ? (totalResults > 0 ? `de ${totalResults} marcadores` : '') : ''}
-            progressBar={totalResults > 0 && d.loaded ? { percent: Math.round((d.stats.abnormal / totalResults) * 100), color: '#ef4444' } : undefined}
+            sub={d.loaded ? (outOfBase > 0 ? (d.markerCount > 0 ? `de ${outOfBase} marcadores, no resultado mais recente de cada um` : `de ${outOfBase} resultados no seu histórico`) : '') : ''}
+            progressBar={outOfBase > 0 && d.loaded ? { percent: Math.min(100, Math.round((d.stats.abnormal / outOfBase) * 100)), color: '#ef4444' } : undefined}
             onClick={go('/tendencias')}
           />
           <IndicatorTile
@@ -1799,11 +1858,11 @@ const DashboardV2Inner = () => {
       </Dialog>
 
       {/* Oferta de biometria */}
-      <Dialog open={bioOffer} onClose={() => setBioOffer(false)} PaperProps={{ sx: { borderRadius: '12px' } }}>
+      <Dialog open={bioOffer} onClose={declineBioOffer} PaperProps={{ sx: { borderRadius: '12px' } }}>
         <DialogTitle sx={{ fontWeight: 800, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 0.75 }}><FingerprintIcon sx={{ fontSize: 20, color: 'primary.main' }} /> Entrar com biometria?</DialogTitle>
         <DialogContent><Typography sx={{ color: 'text.secondary' }}>Ative a entrada por face/digital neste aparelho. Na próxima vez, você entra sem digitar senha — mais rápido e seguro.</Typography></DialogContent>
         <DialogActions>
-          <Button onClick={() => setBioOffer(false)} sx={{ textTransform: 'none' }}>Agora não</Button>
+          <Button onClick={declineBioOffer} sx={{ textTransform: 'none' }}>Agora não</Button>
           <GradientButton onClick={() => { BiometricService.enroll(token() || '', false); setBioOffer(false); }}>Ativar biometria</GradientButton>
         </DialogActions>
       </Dialog>

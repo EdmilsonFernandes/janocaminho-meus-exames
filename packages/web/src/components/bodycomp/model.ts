@@ -114,7 +114,7 @@ export function timeAgo(iso: string, now = Date.now()): string {
   if (days === 1) return 'ontem';
   if (days < 60) return `há ${days} dias`;
   const months = Math.floor(days / 30.44);
-  if (months < 12) return `há ${months} meses`;
+  if (months < 12) return `há ${months} ${months === 1 ? 'mês' : 'meses'}`;
   const years = Math.floor(months / 12);
   const rest = months % 12;
   const y = `${years} ano${years > 1 ? 's' : ''}`;

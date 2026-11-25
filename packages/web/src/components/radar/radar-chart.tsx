@@ -7,7 +7,8 @@
  *
  *  - faixa sombreada = o período usado no cálculo de pico/vale/oscilação;
  *  - "pico" e "vale" marcados na própria curva, dentro desse período;
- *  - risquinhos embaixo = cada aplicação PREVISTA, na cor do composto;
+ *  - triângulo VAZADO embaixo = cada aplicação PREVISTA, na cor do composto (forma diferente da
+ *    registrada: não depender só de cor); a PRÓXIMA depois de hoje ganha o rótulo "próxima";
  *  - bolinha grande NA CURVA = aplicação que a pessoa REGISTROU (dono 24/11: "vejo o traço mas
  *    não fica claro quando apliquei" — no celular o SVG de 820px encolhe ~2,6x, então tudo que
  *    marca data precisa ser grande no viewBox);
@@ -21,14 +22,21 @@ import { cn } from 'cn';
 import type { RadarSeriesResult, RadarStats } from '@/utils/hormoneRadar';
 
 const W = 820;
-const H = 366;
-const PAD = { top: 52, right: 16, bottom: 56, left: 54 };
+const H = 384;
+const PAD = { top: 52, right: 16, bottom: 74, left: 54 };
 const CW = W - PAD.left - PAD.right;
 const CH = H - PAD.top - PAD.bottom;
 
 const DASHES = ['', '9 4', '2 5', '12 4 2 4', '5 3'];
 /** Tipo de traço do composto pela posição no protocolo (o mesmo na legenda e no gráfico). */
 export const radarDash = (index: number): string => DASHES[index % DASHES.length];
+
+/** Larguras ESTIMADAS dos rótulos no pior caso (celular, fonte de 24 no viewBox) — só para não sobrepor. */
+const HOJE_W = 62;
+const NEXT_W = 104;
+/** Triângulo da aplicação prevista: meia-largura máxima e altura, em unidades do viewBox (encolhe ~2,6x no celular). */
+const TRI_HALF = 12;
+const TRI_H = 20;
 
 const fmt = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
@@ -100,6 +108,45 @@ export function RadarChart({
   const todayStep = todayDay != null && todayDay >= 0 && todayDay <= series.totalDays ? Math.round(todayDay * series.stepsPerDay) : null;
   const isToday = day != null && todayDay != null && Math.floor(day) === Math.floor(todayDay);
 
+  // Previstas = dias do calendário que a pessoa NÃO registrou. Uma fileira por composto (até 4).
+  const base = PAD.top + CH;
+  const predicted = shown.map((s, row) => {
+    const spacing = (Math.max(0.5, s.item.freqDays) / Math.max(1, series.totalDays)) * CW;
+    return {
+      s,
+      top: base + 4 + Math.min(row, 3) * 8,
+      // Aplicação diária em 24 semanas ficaria um borrão: o triângulo estreita com o intervalo.
+      half: Math.max(2.5, Math.min(TRI_HALF, spacing * 0.38)),
+      days: s.injectionDays.filter((d) => d <= series.totalDays && !s.loggedDays.some((l) => Math.abs(l - d) < 1e-6)),
+    };
+  });
+  const triangle = (cx: number, top: number, half: number) => `M${cx.toFixed(1)},${top}L${(cx + half).toFixed(1)},${top + TRI_H}L${(cx - half).toFixed(1)},${top + TRI_H}Z`;
+
+  // A PRÓXIMA prevista a partir de hoje (só com data de início e hoje dentro do período).
+  let nextMark: { day: number; color: string; top: number; half: number } | null = null;
+  if (todayStep != null && todayDay != null) {
+    const from = Math.floor(todayDay);
+    for (const p of predicted) {
+      for (const d of p.days) {
+        if (d >= from && (nextMark == null || d < nextMark.day)) nextMark = { day: d, color: p.s.comp.color, top: p.top, half: p.half };
+      }
+    }
+  }
+  // Rótulos "hoje" e "próxima" lado a lado sem se sobrepor; sem espaço, a "próxima" fica só com a marca.
+  const xToday = todayStep != null ? x(todayStep) : null;
+  const xNext = nextMark ? x(nextMark.day * series.stepsPerDay) : null;
+  let hojeLabel: { x: number; anchor: 'start' | 'middle' | 'end' } | null = xToday != null && todayStep != null ? { x: xToday, anchor: anchor(todayStep) } : null;
+  let nextLabel: { x: number; anchor: 'start' | 'end' } | null = null;
+  if (xToday != null && xNext != null) {
+    const hojeFitsLeft = xToday - 8 - HOJE_W >= 0;
+    hojeLabel = hojeFitsLeft ? { x: xToday - 8, anchor: 'end' } : { x: xToday + 8, anchor: 'start' };
+    const hojeRight = hojeFitsLeft ? xToday : xToday + 8 + HOJE_W;
+    if (xNext + 8 >= hojeRight + 6 && xNext + 8 + NEXT_W <= W) nextLabel = { x: xNext + 8, anchor: 'start' };
+    else if (xNext - 8 - NEXT_W >= hojeRight + 6) nextLabel = { x: xNext - 8, anchor: 'end' };
+  }
+  const loggedColors = shown.filter((s) => s.loggedDays.some((d) => d >= 0 && d <= series.totalDays)).map((s) => s.comp.color).slice(0, 3);
+  const predictedColors = predicted.filter((p) => p.days.length > 0).map((p) => p.s.comp.color).slice(0, 3);
+
   return (
     <div className="flex flex-col gap-3">
       <svg
@@ -162,20 +209,27 @@ export function RadarChart({
         {many ? <path d={path(series.total)} fill="none" className="stroke-foreground" strokeWidth={2.5} strokeLinejoin="round" aria-hidden="true" /> : null}
         {compare ? <path d={path(compare.total)} fill="none" className="stroke-warning" strokeWidth={2} strokeDasharray="6 4" aria-hidden="true" /> : null}
 
-        {/* Aplicações: um risco por dose, na cor do composto */}
-        {shown.map((s, row) => s.injectionDays.map((d) => (
-          <line
-            key={`${s.item.uid}-${d}`} aria-hidden="true"
-            x1={x(d * series.stepsPerDay)} x2={x(d * series.stepsPerDay)}
-            y1={PAD.top + CH + 4 + row * 9} y2={PAD.top + CH + 14 + row * 9}
-            stroke={s.comp.color} strokeWidth={4} strokeLinecap="round"
+        {/* Aplicações PREVISTAS: triângulo vazado embaixo do eixo, na cor do composto */}
+        {predicted.map((p) => p.days.map((d) => (
+          <path
+            key={`${p.s.item.uid}-${d}`} aria-hidden="true"
+            d={triangle(x(d * series.stepsPerDay), p.top, p.half)}
+            className="fill-card" stroke={p.s.comp.color} strokeWidth={2.5} strokeLinejoin="round"
           />
         )))}
+        {/* A próxima prevista depois de hoje: guia até o topo, marca reforçada e rótulo */}
+        {nextMark && xNext != null ? (
+          <g aria-hidden="true">
+            <line x1={xNext} x2={xNext} y1={PAD.top} y2={base} className="stroke-muted-foreground" strokeWidth={1.5} strokeDasharray="2 6" strokeLinecap="round" />
+            <path d={triangle(xNext, nextMark.top, nextMark.half)} className="fill-card" stroke={nextMark.color} strokeWidth={4} strokeLinejoin="round" />
+            {nextLabel ? <text x={nextLabel.x} y={PAD.top - 4} textAnchor={nextLabel.anchor} className="fill-muted-foreground font-semibold">próxima</text> : null}
+          </g>
+        ) : null}
         {/* Hoje: onde a pessoa está no ciclo */}
-        {todayStep != null ? (
+        {todayStep != null && hojeLabel ? (
           <g aria-hidden="true">
             <line x1={x(todayStep)} x2={x(todayStep)} y1={PAD.top} y2={PAD.top + CH} className="stroke-primary" strokeWidth={3} />
-            <text x={x(todayStep)} y={PAD.top - 4} textAnchor={anchor(todayStep)} className="fill-primary font-semibold">hoje</text>
+            <text x={hojeLabel.x} y={PAD.top - 4} textAnchor={hojeLabel.anchor} className="fill-primary font-semibold">hoje</text>
           </g>
         ) : null}
 
@@ -190,7 +244,7 @@ export function RadarChart({
         ) : null}
 
         {/* Aplicações que o paciente REGISTROU: bolinha grande NA CURVA do composto + haste até o eixo
-            (no celular r=11 vira ~4px de raio — dá para ver e tocar). O resto é previsão (risquinhos). */}
+            (no celular r=11 vira ~4px de raio — dá para ver e tocar). O resto é previsão (triângulos vazados). */}
         {shown.map((s) => s.loggedDays.filter((d) => d >= 0 && d <= series.totalDays).map((d) => {
           const st = Math.round(d * series.stepsPerDay);
           const cy = y((many ? series.total[st] : s.values[st]) ?? 0);
@@ -219,12 +273,32 @@ export function RadarChart({
         ) : null}
       </svg>
 
-      {/* Legenda das marcas de data (cor + forma, nunca só cor) */}
+      {/* Legenda das marcas de data: as MESMAS formas e cores do gráfico (bolinha cheia × triângulo vazado) */}
       <div aria-hidden="true" className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-        {hasLogged ? (
-          <span className="flex items-center gap-1.5"><span className="size-3 rounded-full border-2 border-card bg-foreground shadow-[0_0_0_1px_var(--border)]" />Aplicação registrada</span>
+        {hasLogged && loggedColors.length ? (
+          <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-0.5">
+              {loggedColors.map((color, i) => (
+                <svg key={`${color}-${i}`} width="14" height="14" viewBox="0 0 14 14" className="shrink-0">
+                  <circle cx="7" cy="7" r="5.5" fill={color} className="stroke-card" strokeWidth="1.5" />
+                </svg>
+              ))}
+            </span>
+            Aplicação registrada
+          </span>
         ) : null}
-        <span className="flex items-center gap-1.5"><span className="h-3 w-1 rounded-full bg-muted-foreground" />Aplicação prevista</span>
+        {predictedColors.length ? (
+          <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-0.5">
+              {predictedColors.map((color, i) => (
+                <svg key={`${color}-${i}`} width="14" height="14" viewBox="0 0 14 14" className="shrink-0">
+                  <path d="M7,2L12.5,12H1.5Z" className="fill-card" stroke={color} strokeWidth="1.75" strokeLinejoin="round" />
+                </svg>
+              ))}
+            </span>
+            Aplicação prevista
+          </span>
+        ) : null}
         {todayStep != null ? <span className="flex items-center gap-1.5"><span className="h-3.5 w-0.5 bg-primary" />Hoje</span> : null}
       </div>
 

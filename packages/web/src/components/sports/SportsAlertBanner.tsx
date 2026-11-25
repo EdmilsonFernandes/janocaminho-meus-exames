@@ -215,7 +215,7 @@ export const SportsAlertBanner = ({ loaded, exams, importante, moderada, abnorma
               ? `${SEVERITY.high}: prioridade na sua próxima consulta médica.`
               : `${SEVERITY.mid}: acompanhe a evolução e comente na sua consulta.`}
             {abnormalTotal != null && abnormalTotal > attention
-              ? ` São os prioritários entre ${abnormalTotal} valores fora da faixa no total.`
+              ? ` São os prioritários entre ${abnormalTotal} marcadores fora da faixa nos seus resultados mais recentes.`
               : ''}
           </Typography>
 

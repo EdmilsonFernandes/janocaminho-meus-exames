@@ -73,7 +73,7 @@ export function CompoundExplainDialog({ compoundId, onClose }: { compoundId: str
             <TriangleAlert aria-hidden="true" />
             <AlertTitle>Não consegui carregar esta explicação</AlertTitle>
             <AlertDescription>
-              <Button variant="outline" size="lg" className="mt-2" onClick={() => setAttempt((n) => n + 1)}>
+              <Button variant="outline" size="lg" className="mt-2 h-11 px-4" onClick={() => setAttempt((n) => n + 1)}>
                 <RotateCw aria-hidden="true" />
                 Tentar de novo
               </Button>

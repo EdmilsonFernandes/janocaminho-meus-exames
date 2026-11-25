@@ -7,7 +7,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import BoltIcon from '@mui/icons-material/Bolt';
 import { DrExame } from './DrExame';
-import { claimColdDialog } from '../utils/coldDialog';
+import { autoModalQueue } from '../utils/autoModalQueue';
 import { celebrateCredits } from './CreditRewardFx';
 import { API_URL, token } from '../config';
 import { tealText } from '../theme';
@@ -335,14 +335,20 @@ export const GoalQuizCard = () => {
 
 /** Cold-open global (App.tsx): 1º login ainda abre o quiz sozinho — mas agora RETOMA
  *  o índice salvo. Fechar no meio = pausa (o card do dashboard oferece continuar).
- *  Mesma bateria anti-cascata (espera outros dialogs + claimColdDialog). */
+ *  FILA ÚNICA (25/11/26): só abre sozinho pela autoModalQueue — 1 modal automático por
+ *  sessão, só na Home, atrás do alerta de saúde e da comemoração. Perdeu a vez = nada é
+ *  gravado: o GoalQuizCard da Home oferece o quiz e o próximo boot tenta de novo. */
+const QUIZ_QUEUE_ID = 'quiz';
 export const GoalQuiz = () => {
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<{ currentIndex: number; answers: Record<string, unknown> } | null>(null);
 
   useEffect(() => {
     let done = false;
+    let cancelled = false;
     try { if (localStorage.getItem(KEY)) return; } catch { return; }
+    autoModalQueue.announce(QUIZ_QUEUE_ID, 'signup');
+    const giveUp = () => autoModalQueue.withdraw(QUIZ_QUEUE_ID);
     // Espera tour/perfil/notificação fecharem (todos são .MuiDialog-root) pra não empilhar
     // modais no 1º login. Se em 30s não deu, desiste sem marcar (pergunta no próximo boot).
     const iv = setInterval(() => {
@@ -350,29 +356,37 @@ export const GoalQuiz = () => {
       if (document.querySelector('.MuiDialog-root')) return;
       done = true;
       clearInterval(iv);
-      // Máx 1 diálogo de cold-load por SESSÃO (P1 bateria 2026-09): se WhatsNew/notificação
-      // já abriram nesta sessão, o quiz fica pro card do dashboard (nova rota de entrada).
-      if (!claimColdDialog('quiz')) return;
+      // Máx 1 modal automático por SESSÃO e só na Home: se a vaga já foi usada (ou a pessoa
+      // abriu o app direto em outra tela, ex.: Radar Hormonal), o quiz fica pro card do
+      // dashboard — nem gasta rede.
+      if (!autoModalQueue.canOpen()) { giveUp(); return; }
       // UMA INTERRUPÇÃO SÓ (31/10): antes do 1º exame a missão é o upload — o quiz
       // não auto-abre pra conta sem exame (o GoalQuizCard do dashboard oferece depois).
       fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } })
         .then((r) => (r.ok ? r.json() : null))
         .then((st) => {
-          if (!st || !(Number(st.examsCount) > 0)) return;
+          if (cancelled) return;
+          if (!st || !(Number(st.examsCount) > 0)) { giveUp(); return; }
           return fetchQuizState().then((d) => {
-        if (d?.participation?.completedAt) {
-          // Completa em outro device: sela local e encerra sem abrir.
-          try { localStorage.setItem(KEY, JSON.stringify(Array.isArray(d.participation.answers?.['0']) ? d.participation.answers['0'] : [])); } catch { /* ignore */ }
-          return;
-        }
-        setState({ currentIndex: d?.participation?.currentIndex ?? 0, answers: d?.participation?.answers ?? {} });
-        setOpen(true);
+            if (cancelled) return;
+            if (d?.participation?.completedAt) {
+              // Completa em outro device: sela local e encerra sem abrir.
+              try { localStorage.setItem(KEY, JSON.stringify(Array.isArray(d.participation.answers?.['0']) ? d.participation.answers['0'] : [])); } catch { /* ignore */ }
+              giveUp();
+              return;
+            }
+            // A fila decide (vaga da sessão + Home + prioridade). Negado = sem callback: nada a desfazer.
+            autoModalQueue.request(QUIZ_QUEUE_ID, 'signup', () => {
+              if (cancelled) return;
+              setState({ currentIndex: d?.participation?.currentIndex ?? 0, answers: d?.participation?.answers ?? {} });
+              setOpen(true);
+            });
           });
         })
-        .catch(() => { /* offline — pergunta no próximo boot */ });
+        .catch(() => { giveUp(); /* offline — pergunta no próximo boot */ });
     }, 1200);
-    const kill = setTimeout(() => { done = true; clearInterval(iv); }, 30000);
-    return () => { done = true; clearInterval(iv); clearTimeout(kill); };
+    const kill = setTimeout(() => { if (!done) { done = true; clearInterval(iv); giveUp(); } }, 30000);
+    return () => { done = true; cancelled = true; clearInterval(iv); clearTimeout(kill); giveUp(); };
   }, []);
 
   if (!open || !state) return null;
