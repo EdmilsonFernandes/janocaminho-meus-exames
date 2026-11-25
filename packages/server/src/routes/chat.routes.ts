@@ -6,9 +6,11 @@ import { memoryDigest, patientSlug, appendConversation } from '../analysis/agent
 import { chargeCredits, refundCredits, CREDIT_COSTS } from '../utils/credits';
 import { logAiUsage } from '../utils/aiUsage';
 import { tryLocalAnswer, streamLocalAnswer } from '../analysis/chat-router';
+import { buildOfflineAnswer } from '../analysis/chat-offline';
 import { describeStaleness } from '../analysis/health-state';
 import { guidelinesContext } from '../analysis/guidelines';
-import { guidelinesEnabled, sportsModeEnabled } from '../utils/settings';
+import { guidelinesEnabled, sportsModeEnabled, chatEconomy } from '../utils/settings';
+import { findCachedAnswer, dataFingerprint } from '../analysis/chat-cache';
 import { sportsContextBlocks } from '../analysis/sports-context';
 import { personalizedTargets, formatTarget } from '../analysis/personalized-targets';
 import { medicationsContextBlock } from '../analysis/medications-context';
@@ -146,8 +148,10 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     );
 
     // histórico da conversa (últimos turnos deste paciente)
+    // Turnos 'offline' (resposta sem IA, com rodapé de indisponibilidade) ficam FORA do histórico
+    // mandado ao modelo: não são conversa, e o rodapé viraria ruído/tokens em todo turno seguinte.
     const prior = await prisma.aiAnalysis.findMany({
-      where: { patientId: pid, type: 'CHAT' },
+      where: { patientId: pid, type: 'CHAT', OR: [{ modelUsed: null }, { modelUsed: { not: 'offline' } }] },
       orderBy: { createdAt: 'desc' },
       take: 10,
     });
@@ -180,8 +184,16 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     // CRUZAMENTO: mesmos analitos ao longo do tempo → a IA usa pra evolução/comparação/tendência.
     // DEDUP por (analito + dia): 2 exames no mesmo dia (reenvio / painel sobreposto) não viram
     // 2 pontos — recent[] vem em performedAt desc, então o 1º a aparecer é o mais recente.
+    // CONTEXTO ENXUTO (economia de token, 24/11): o bloco "Exames recentes (TODOS os itens)"
+    // repetia o que já está em VALORES ATUAIS + linha do tempo — os mesmos números 3 vezes por
+    // pergunta. No modo enxuto ele vira só título+data; para nada se perder: (1) cada ponto da
+    // linha do tempo ganha a marca [acima/abaixo] e (2) item que a linha do tempo descartaria
+    // por repetir a chave no MESMO dia (ex.: % e valor absoluto) segue listado no exame.
+    const economy = chatEconomy();
+    const slim = economy.slimContext;
     const byAnalyte = new Map<string, { name: string; pts: string[] }>();
     const trendSeen = new Set<string>();
+    const extrasByExam = new Map<string, string[]>();
     for (const e of recent) {
       const dt = fmtDate(e.performedAt as Date | null);
       for (const it of (e.items as any[])) {
@@ -189,11 +201,21 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         if (!trendSeen.has(`${k}|${dt}`)) {
           trendSeen.add(`${k}|${dt}`);
           const entry = byAnalyte.get(k) ?? { name: it.name, pts: [] as string[] };
-          entry.pts.push(`${fmtVal(it)}${it.unit ? ' ' + it.unit : ''} (${dt})`);
+          entry.pts.push(`${fmtVal(it)}${it.unit ? ' ' + it.unit : ''} (${dt})${slim && fmtFlag(it) ? ` [${fmtFlag(it)}]` : ''}`);
           byAnalyte.set(k, entry);
+        } else {
+          extrasByExam.set(e.id, [...(extrasByExam.get(e.id) ?? []), fmtItem(it)]);
         }
       }
     }
+    const examsBlockSlim = recent.length
+      ? recent
+          .map((e) => {
+            const extras = extrasByExam.get(e.id) ?? [];
+            return `   • ${e.title} (${fmtDate(e.performedAt as Date | null)}) — ${(e.items as any[]).length} ${(e.items as any[]).length === 1 ? 'item' : 'itens'}` + (extras.length ? '\n      ' + extras.join('\n      ') : '');
+          })
+          .join('\n')
+      : '(nenhum exame extraído ainda)';
     const trendBlock = [...byAnalyte.values()].map((v) => `   • ${v.name}: ${v.pts.join('  →  ')}`).join('\n');
 
     // VALORES ATUAIS — o MAIS RECENTE por analito (anti-alucinação). Antes a IA citava o valor ANTIGO
@@ -223,7 +245,9 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       targetsBlock +
       sports.addendum +
       (currentBlock.length ? `- VALORES ATUAIS (exame MAIS RECENTE por analito — use ESTES ao citar "atual/último resultado"):\n${currentBlock.join('\n')}\n` : '') +
-      `- Exames recentes (TODOS os itens — nome: valor (ref) [flag se alterado]):\n${examsBlock}\n` +
+      (slim
+        ? `- Exames recentes (títulos e datas — os valores de cada item estão em VALORES ATUAIS e na linha do tempo abaixo):\n${examsBlockSlim}\n`
+        : `- Exames recentes (TODOS os itens — nome: valor (ref) [flag se alterado]):\n${examsBlock}\n`) +
       (trendBlock ? `\n- Analitos ao longo do tempo (use pra evolução/comparar/tendência; o 1º valor de cada linha é o MAIS RECENTE):\n${trendBlock}\n` : '') +
       (memory ? `- Resumo de análises anteriores (mantenha coerência):\n${memory}\n` : '') +
       `\nDIRETIVA: responda DIRETAMENTE à pergunta USANDO os dados acima. Se o usuário CITAR um valor específico na ` +
@@ -250,6 +274,31 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     let fullContext = guidelinesTxt ? `${contextText}\n${guidelinesTxt}` : contextText;
     if (sports.knowledge) fullContext += sports.knowledge;
 
+    // CACHE DE RESPOSTA (economia de token): mesma pergunta + mesmos dados deste paciente →
+    // devolve a resposta que a IA já deu (até 7 dias). Sem IA = sem débito, como o pré-roteador.
+    // A impressão digital usa o bloco COMPLETO dos exames (todo valor conta), não o enxuto.
+    const fp = dataFingerprint([examsBlock, medsBlock, targetsBlock, patient?.clinicalProfile, sports.addendum]);
+    if (economy.cache) {
+      const cached = await findCachedAnswer({ patientId: pid, message, fp }).catch(() => null);
+      if (cached) {
+        res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-cache, no-transform');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('X-Accel-Buffering', 'no');
+        res.flushHeaders?.();
+        res.write(`data: ${JSON.stringify({ type: 'delta', delta: cached.text })}\n\n`);
+        if (cached.sources.length) res.write(`data: ${JSON.stringify({ type: 'sources', sources: cached.sources })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'done', usage: null, model: 'cache' })}\n\n`);
+        res.end();
+        await prisma.aiAnalysis.create({
+          data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: cached.text, modelUsed: 'cache', structured: { sources: cached.sources, fp } as any },
+        });
+        void logAiUsage({ userId: req.userId!, feature: 'CHAT', model: 'cache' });
+        console.log('[chat] cache_hit (mesma pergunta + mesmos dados, sem IA)');
+        return;
+      }
+    }
+
     // DÉBITO ATÔMICO ANTES da chamada de IA (anti-race). Antes era gate-read + charge DEPOIS do
     // stream: N requisições paralelas passavam no gate com o mesmo saldo → N respostas de IA, 1 débito.
     // Agora: chargeCredits (atômico, só debita se credits>=cost) ANTES; se falhar → 402 sem chamar IA.
@@ -260,15 +309,28 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos para conversar. Compre um pacote de créditos.' });
       return;
     }
-    let text: string; let model: string; let sources: { label: string; topic: string }[];
+    let text: string; let model: string; let sources: { label: string; topic: string }[]; let offline: boolean | undefined; let usage: unknown;
     try {
-      ({ text, model, sources } = await streamChat({ res, contextText: fullContext, history, message, guidelineTopics: [...guidelineTopics, ...sports.topics] }));
+      ({ text, model, sources, offline, usage } = await streamChat({
+        res, contextText: fullContext, history, message, guidelineTopics: [...guidelineTopics, ...sports.topics],
+        offlineAnswer: () => buildOfflineAnswer(message, recent as any),
+      }));
     } catch (e) {
       await refundCredits(req.userId!, CREDIT_COSTS.chat, 'ai_chat_refund', 'Reembolso: falha na IA (chat)');
       throw e;
     }
+    if (offline) {
+      // IA fora do ar: a pessoa recebeu os dados dos exames (sem IA) → não cobra, não vira
+      // memória do agente; fica no histórico da tela marcado como 'offline' (medição + auditoria).
+      await refundCredits(req.userId!, CREDIT_COSTS.chat, 'ai_chat_refund', 'Reembolso: IA indisponível (resposta sem IA)');
+      await prisma.aiAnalysis.create({ data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: text, modelUsed: 'offline' } });
+      void logAiUsage({ userId: req.userId!, feature: 'CHAT', model: 'offline' });
+      return;
+    }
     await prisma.aiAnalysis.create({
-      data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: text, modelUsed: model, structured: { sources: sources ?? [] } as any },
+      // fp = impressão digital dos dados (habilita o cache); tokenUsage = consumo real do provedor
+      // (antes não era gravado — sem ele não dá p/ medir economia nem custo por mensagem).
+      data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: text, modelUsed: model, structured: { sources: sources ?? [], fp } as any, ...(usage ? { tokenUsage: usage as any } : {}) },
     });
     void logAiUsage({ userId: req.userId!, feature: 'CHAT', model });
     // Persiste a conversa em .md (não se perde; vira memória durável do paciente)

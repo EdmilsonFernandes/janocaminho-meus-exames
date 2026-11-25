@@ -50,6 +50,9 @@ export const DEFAULT_SETTINGS = {
   // (knowledge/guidelines/*.md) no prompt do chat/resumo e extrai as fontes citadas
   // [FONTE ANO] da resposta. 1 = ligado. Kill-switch instantâneo via admin, sem deploy.
   guidelines: { enabled: 1 },
+  // Economia de token do chat (24/11/26): cache de resposta + contexto enxuto. 1 = ligado.
+  // Kill-switch sem deploy: PATCH /admin/config/costs { category: 'chatEconomy', cache: 0 } (ou slimContext: 0).
+  chatEconomy: { cache: 1, slimContext: 1 },
   // API pública (Fase 2): acesso mediante solicitação aprovada no admin; aprovação concede
   // o pacote TESTE grátis (freeMonthly calls). Pacotes pré-pagos via PIX/cartão/débito (MP).
   // reviewRequired=0 = auto-aprova (self-serve). Preço/cobertura 100% editável no admin.
@@ -226,6 +229,17 @@ export function guidelinesEnabled(): boolean {
   const g = (getSettings() as any).guidelines;
   // default LIGADO: ausência da chave (banco antigo) não pode desligar a feature.
   return g == null || Number(g.enabled) !== 0;
+}
+
+/** Economia de token do chat (24/11/26) — dois knobs independentes, ambos LIGADOS por padrão
+ *  (ausência da chave não desliga). Kill-switch sem deploy: AppSetting `chatEconomy`
+ *  = { cache: 0 } e/ou { slimContext: 0 }.
+ *   - cache: mesma pergunta + mesmos dados reaproveita a resposta anterior da IA (chat-cache.ts);
+ *   - slimContext: tira do contexto o bloco "exames recentes com todos os itens", que repetia
+ *     o que já está em "valores atuais" + "analitos ao longo do tempo". */
+export function chatEconomy(): { cache: boolean; slimContext: boolean } {
+  const c = (getSettings() as any).chatEconomy;
+  return { cache: c == null || Number(c.cache) !== 0, slimContext: c == null || Number(c.slimContext) !== 0 };
 }
 
 /** Modo esportivo (Saúde Esportiva): default DESLIGADO. Inversão proposital do padrão

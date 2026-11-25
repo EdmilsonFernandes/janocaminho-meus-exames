@@ -35,7 +35,10 @@ export async function streamChat(opts: {
    *  da resposta ao tema p/ o rodapé "📚 Fontes" da UI. Opcional: sem ele, o parse de
    *  sources ainda roda (topic 'geral'), e se nada for citado nada é emitido. */
   guidelineTopics?: string[];
-}): Promise<{ text: string; model: string; sources: { label: string; topic: string }[] }> {
+  /** Resposta SEM IA (dados dos exames) usada quando todos os provedores falham ANTES do 1º
+   *  token: a pessoa recebe os fatos em vez de "A IA não respondeu" (24/11). A rota reembolsa. */
+  offlineAnswer?: () => string;
+}): Promise<{ text: string; model: string; sources: { label: string; topic: string }[]; offline?: boolean; usage?: unknown }> {
   const { res, contextText, history, message } = opts;
 
   res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
@@ -102,9 +105,23 @@ export async function streamChat(opts: {
     }
     res.write(`data: ${JSON.stringify({ type: 'done', usage, model })}\n\n`);
     res.end();
-    return { text: guarded.text, model: model ?? getModel() ?? 'glm-4.6', sources };
+    return { text: guarded.text, model: model ?? getModel() ?? 'glm-4.6', sources, usage };
   } catch (e: any) {
     const aborted = ac.signal.aborted || e?.name === 'AbortError';
+    // Nada foi escrito ainda → dá p/ trocar o erro pela resposta sem IA. Com texto parcial já
+    // enviado não dá (viraria resposta remendada): segue o erro + reembolso de sempre.
+    if (!gotFirstToken && opts.offlineAnswer) {
+      try {
+        const text = opts.offlineAnswer();
+        console.warn(`[chat] IA indisponível (${e?.status ?? e?.message ?? '?'}) → resposta sem IA (dados dos exames)`);
+        res.write(`data: ${JSON.stringify({ type: 'delta', delta: text })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'done', usage: null, model: 'offline' })}\n\n`);
+        res.end();
+        return { text, model: 'offline', sources: [], offline: true };
+      } catch (e2) {
+        console.error('[chat] resposta sem IA falhou:', e2);
+      }
+    }
     failSse(aborted
       ? 'A IA demorou demais para responder (tempo esgotado). Seu crédito foi devolvido — tente novamente.'
       : 'A IA não respondeu agora. Seu crédito foi devolvido — tente novamente em instantes.');

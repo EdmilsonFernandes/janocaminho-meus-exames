@@ -134,4 +134,7 @@ const defaultResponse = {
   json: async () => ({}),
   text: async () => '',
 };
+// O fetch de verdade fica guardado só para testes AO VIVO opt-in (ex.: chat-economy.live.test.ts,
+// que só roda com chave no ambiente). Nenhum teste normal usa.
+(globalThis as any).__realFetch ??= globalThis.fetch;
 globalThis.fetch = vi.fn(async () => defaultResponse as any) as any;
