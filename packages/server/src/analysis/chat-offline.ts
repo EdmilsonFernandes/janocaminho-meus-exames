@@ -36,7 +36,12 @@ function outOfRange(it: OfflineItem): 'acima' | 'abaixo' | null {
   return f === 'HIGH' ? 'acima' : f === 'LOW' ? 'abaixo' : null;
 }
 
-const FOOTER =
+// Tela NOVA (manda `originNote: true`): quem diz que a IA estava indisponível e que o crédito voltou
+// é o selo de origem (`origin: 'offline'`) — o texto leva só a frase de segurança, sem repetir.
+const FOOTER_SHORT = '\n\n_Isto são só os dados dos seus exames, não uma avaliação médica._';
+// App ANTIGO (instalado, sem selo): o texto precisa explicar sozinho — senão a pessoa recebe uma
+// lista de valores sem saber que a IA caiu nem que o crédito foi devolvido.
+const FOOTER_FULL =
   '\n\n_A explicação com a IA está indisponível agora — o crédito desta pergunta foi devolvido. ' +
   'Pergunte de novo em alguns minutos. Isto são só os dados dos seus exames, não uma avaliação médica._';
 
@@ -45,7 +50,8 @@ const FOOTER =
  *  - a pergunta cita um analito → os últimos resultados dele, com data e faixa;
  *  - senão → o que está fora da faixa no resultado mais recente de cada analito.
  */
-export function buildOfflineAnswer(message: string, exams: OfflineExam[]): string {
+export function buildOfflineAnswer(message: string, exams: OfflineExam[], opts: { originShownByClient?: boolean } = {}): string {
+  const FOOTER = opts.originShownByClient ? FOOTER_SHORT : FOOTER_FULL;
   if (!exams.length) {
     return 'Ainda não há exames lidos no seu perfil para eu consultar.' + FOOTER;
   }

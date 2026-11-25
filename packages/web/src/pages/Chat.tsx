@@ -68,6 +68,7 @@ import {
   X,
   ChevronRight,
   ShieldCheck,
+  RefreshCw,
 } from 'lucide-react';
 
 const TEAL = '#178f89';
@@ -136,12 +137,103 @@ const QUICK_ACTIONS: {
   { category: 'habitos', icon: '🗓️', LucideIcon: Bell, colorClass: 'text-amber-600', title: 'Lembretes pendentes', subtitle: 'Seus próximos compromissos', prompt: 'Quais lembretes e compromissos de saúde eu tenho pendentes agora?' },
 ];
 
+/** De onde veio a resposta (servidor: `origin` no histórico; `model` no evento `done` do stream). */
+type Origin = 'ai' | 'cache' | 'offline' | 'local';
+const ORIGINS: readonly Origin[] = ['ai', 'cache', 'offline', 'local'];
+const asOrigin = (v: unknown): Origin | undefined =>
+  ORIGINS.includes(v as Origin) ? (v as Origin) : undefined;
+/** O `done` traz o modelo; a tela só quer saber a origem (o nome do modelo não aparece). */
+const originFromModel = (model: unknown): Origin | undefined => {
+  if (typeof model !== 'string' || !model) return undefined;
+  if (model === 'cache') return 'cache';
+  if (model === 'offline') return 'offline';
+  if (model === 'local-router') return 'local';
+  return 'ai';
+};
+// Selo de ORIGEM da resposta — fala só de onde o texto veio, nunca do conteúdo clínico.
+// 'ai' é o caso normal e não ganha selo (não poluir).
+const ORIGIN_NOTE: Record<Exclude<Origin, 'ai'>, string> = {
+  offline:
+    'Montado com os dados dos seus exames. A IA estava indisponível e o crédito foi devolvido.',
+  cache: 'Mesma resposta de antes — seus exames não mudaram.',
+  local: 'Direto dos seus exames, sem usar IA.',
+};
+
 interface Msg {
   role: 'user' | 'assistant';
   text: string;
   ts?: string;
   sources?: { label: string; topic: string }[];
+  /** Ausente em conversa salva por versão anterior do app → sem selo. */
+  origin?: Origin;
 }
+
+/**
+ * Selo discreto abaixo da resposta + (só na resposta reaproveitada) a ação "Gerar de novo",
+ * com o custo escrito NO botão — a pessoa vê quanto custa antes de tocar.
+ */
+const OriginNote = ({
+  origin,
+  cost,
+  disabled,
+  onRegenerate,
+}: {
+  origin?: Origin;
+  cost: number;
+  disabled: boolean;
+  onRegenerate?: () => void;
+}) => {
+  if (!origin || origin === 'ai') return null;
+  return (
+    <Box
+      role="note"
+      sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        columnGap: 1,
+        rowGap: 0.25,
+        mt: 1.5,
+        pt: 1,
+        borderTop: '1px dashed',
+        borderColor: 'divider',
+      }}
+    >
+      <Typography
+        component="span"
+        sx={{ flex: '1 1 200px', minWidth: 0, fontSize: 12, lineHeight: 1.45, color: 'text.secondary' }}
+      >
+        {ORIGIN_NOTE[origin]}
+      </Typography>
+      {origin === 'cache' && onRegenerate && (
+        <Button
+          type="button"
+          variant="text"
+          size="small"
+          disabled={disabled}
+          onClick={onRegenerate}
+          startIcon={<RefreshCw size={14} aria-hidden="true" />}
+          aria-label={`Gerar de novo com a IA. Custa ${cost} crédito${cost !== 1 ? 's' : ''}.`}
+          sx={{
+            minHeight: 44,
+            px: 1.25,
+            flexShrink: 0,
+            textTransform: 'none',
+            fontSize: 12.5,
+            fontWeight: 700,
+            whiteSpace: 'nowrap',
+            background: 'none',
+            boxShadow: 'none',
+            color: (t) => tealText(t.palette.mode),
+            '&:hover': { background: 'rgba(32,178,170,.08)', boxShadow: 'none' },
+          }}
+        >
+          Gerar de novo · {cost} crédito{cost !== 1 ? 's' : ''}
+        </Button>
+      )}
+    </Box>
+  );
+};
 const fmtTime = (iso?: string) =>
   iso ? new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
 interface Conv {
@@ -202,6 +294,9 @@ export const ChatPage = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   // Abort da resposta em andamento (auditoria: provider travado = dots infinitos + input morto).
   const abortRef = useRef<AbortController | null>(null);
+  // Trava síncrona de envio: `busy` só muda no próximo render, então dois toques seguidos em
+  // "Gerar de novo" (ação que cobra) passariam os dois pelo `if (busy)`.
+  const sendingRef = useRef(false);
   // iOS Safari: teclado NÃO redimensiona o layout (só o visual viewport)
   const kbInset = useKeyboardInset();
 
@@ -245,6 +340,7 @@ export const ChatPage = () => {
             userMessage?: string;
             contentMd?: string;
             structured?: { sources?: { label: string; topic: string }[] } | null;
+            origin?: string;
           }[]
         ) => {
           if (!Array.isArray(turns) || !turns.length) return;
@@ -256,6 +352,7 @@ export const ChatPage = () => {
                     role: 'assistant' as const,
                     text: t.contentMd,
                     sources: t.structured?.sources ?? [],
+                    origin: asOrigin(t.origin),
                   },
                 ]
               : []),
@@ -304,10 +401,13 @@ export const ChatPage = () => {
     setHistOpen(false);
   };
 
-  const send = async (overrideText?: string) => {
+  // `fresh` = "Gerar de novo": mesma pergunta, mas o servidor pula a resposta reaproveitada e
+  // chama a IA (cobra como pergunta normal). O que estiver digitado no campo é preservado.
+  const send = async (overrideText?: string, opts?: { fresh?: boolean }) => {
     const message = (overrideText ?? input).trim();
-    if (!message || busy || !pid) return;
-    setInput('');
+    if (!message || busy || sendingRef.current || !pid) return;
+    sendingRef.current = true;
+    if (!opts?.fresh) setInput('');
     setBusy(true);
     nearBottomRef.current = true;
 
@@ -368,7 +468,7 @@ export const ChatPage = () => {
       const r = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: apiHeaders(true),
-        body: JSON.stringify({ message, patientId: pid }),
+        body: JSON.stringify({ message, patientId: pid, originNote: true, ...(opts?.fresh ? { fresh: true } : {}) }),
         signal: ac.signal,
       });
       if (r.status === 402) {
@@ -428,6 +528,22 @@ export const ChatPage = () => {
               );
               setConvs(work);
             }
+            if (evt.type === 'done') {
+              const origin = originFromModel(evt.model);
+              if (origin) {
+                work = work.map((c) =>
+                  c.id === cid
+                    ? {
+                        ...c,
+                        messages: c.messages.map((m, i) =>
+                          i === assistantIdx ? { ...m, origin } : m
+                        ),
+                      }
+                    : c
+                );
+                setConvs(work);
+              }
+            }
           } catch {
             /* pacote parcial */
           }
@@ -441,6 +557,7 @@ export const ChatPage = () => {
         type: 'error',
       });
     } finally {
+      sendingRef.current = false;
       abortRef.current = null;
       setBusy(false);
       window.dispatchEvent(new Event('creditsChanged'));
@@ -664,6 +781,9 @@ export const ChatPage = () => {
             const isLastAssistant = m.role === 'assistant' && i === messages.length - 1 && busy && !m.text;
             const isStreamingThis = m.role === 'assistant' && i === messages.length - 1 && busy && !!m.text;
             const prevSameRole = i > 0 && messages[i - 1]?.role === m.role;
+            // Pergunta que gerou esta resposta — é ela que "Gerar de novo" reenvia.
+            const prevMsg = i > 0 ? messages[i - 1] : undefined;
+            const question = !isUser && prevMsg?.role === 'user' ? prevMsg.text : '';
             return (
               <Box
                 key={i}
@@ -813,6 +933,17 @@ export const ChatPage = () => {
                               </ReuiBadge>
                             ))}
                           </Box>
+                        )}
+
+                        {!!m.text && !isStreamingThis && (
+                          <OriginNote
+                            origin={m.origin}
+                            cost={CREDIT_COSTS.chat}
+                            disabled={busy}
+                            onRegenerate={
+                              question ? () => void send(question, { fresh: true }) : undefined
+                            }
+                          />
                         )}
                       </FramePanel>
                       {!!m.text && !isLastAssistant && !isStreamingThis && (

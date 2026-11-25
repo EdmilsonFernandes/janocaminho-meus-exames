@@ -11,6 +11,7 @@ import { loadSettings, saveSettings } from '../src/utils/settings';
 import { CREDIT_COSTS } from '../src/utils/credits';
 import { questionKey, dataFingerprint } from '../src/analysis/chat-cache';
 import { buildOfflineAnswer } from '../src/analysis/chat-offline';
+import { chatOrigin } from '../src/routes/chat.routes';
 
 const llm = vi.mocked(streamChat);
 // Um dos botões de sugestão do app — a pergunta mais repetida em produção.
@@ -29,9 +30,9 @@ async function patientWithExams() {
 // existir. Sem esperar, a pergunta seguinte (ou a leitura do turno) corre contra a gravação —
 // passou local e quebrou no CI (24/11). Cada pergunta só "termina" quando o turno dela está salvo.
 const turnCount = (patientId: string) => prisma.aiAnalysis.count({ where: { patientId, type: 'CHAT' } });
-const ask = async (token: string, patientId: string, message = CHIP) => {
+const ask = async (token: string, patientId: string, message = CHIP, extra: Record<string, unknown> = {}) => {
   const before = await turnCount(patientId);
-  const r = await api().post('/api/chat').set(authHeader(token)).send({ message, patientId });
+  const r = await api().post('/api/chat').set(authHeader(token)).send({ message, patientId, ...extra });
   await vi.waitFor(async () => expect(await turnCount(patientId)).toBeGreaterThan(before), { timeout: 5000, interval: 25 });
   return r;
 };
@@ -95,6 +96,65 @@ describe('chat: cache de resposta (mesma pergunta + mesmos dados)', () => {
     await ask(token, patient.id);
     await ask(token, patient.id);
     expect(llm).toHaveBeenCalledTimes(2);
+  });
+
+  it('fresh: true ("Gerar de novo") pula o cache: chama a IA de novo e cobra', async () => {
+    const { user, patient, token } = await patientWithExams();
+    await ask(token, patient.id);
+    const reused = await ask(token, patient.id);
+    expect(reused.text).toContain('"model":"cache"');
+    expect(llm).toHaveBeenCalledTimes(1);
+    expect(await getUserCredits(user.id)).toBe(100 - CREDIT_COSTS.chat);
+
+    const again = await ask(token, patient.id, CHIP, { fresh: true });
+    expect(again.status).toBe(200);
+    expect(again.text).not.toContain('"model":"cache"');
+    expect(llm).toHaveBeenCalledTimes(2); // IA chamada de novo, mesmo com resposta em cache
+    expect(await getUserCredits(user.id)).toBe(100 - 2 * CREDIT_COSTS.chat); // resposta nova cobra
+    expect((await lastTurn(patient.id))?.modelUsed).toBe('glm-4.6');
+
+    // Só `true` literal liga; e sem o campo tudo segue como antes (reaproveita, sem cobrar).
+    const str = await ask(token, patient.id, CHIP, { fresh: 'true' });
+    expect(str.text).toContain('"model":"cache"');
+    await ask(token, patient.id);
+    expect(llm).toHaveBeenCalledTimes(2);
+    expect(await getUserCredits(user.id)).toBe(100 - 2 * CREDIT_COSTS.chat);
+  });
+});
+
+describe('chat: origem da resposta no histórico (GET /api/chat)', () => {
+  beforeEach(async () => { await resetDb(); await loadSettings(); llm.mockClear(); });
+
+  it('devolve origin de cada turno (ia, cache, offline) sem expor o nome do modelo', async () => {
+    const { patient, token } = await patientWithExams();
+    await ask(token, patient.id); // IA
+    await ask(token, patient.id); // cache
+    llm.mockImplementationOnce(async ({ res, offlineAnswer }: any) => {
+      const text = offlineAnswer();
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.write(`data: ${JSON.stringify({ type: 'delta', delta: text })}\n\n`);
+      res.end();
+      return { text, model: 'offline', sources: [], offline: true };
+    });
+    // Outra pergunta (>55 caracteres, fora do pré-roteador) para não cair no cache da primeira.
+    await ask(token, patient.id, 'Meu TSH está melhorando ou piorando com o passar do tempo nos exames?');
+
+    const r = await api().get('/api/chat').query({ patientId: patient.id }).set(authHeader(token));
+    expect(r.status).toBe(200);
+    expect(r.body.map((t: any) => t.origin)).toEqual(['ai', 'cache', 'offline']);
+    expect(r.body[0].userMessage).toBe(CHIP); // campos de sempre continuam lá
+    expect(r.body[0].contentMd).toContain('Resposta de teste do Dr. Exame.');
+    expect(r.body[0]).toHaveProperty('structured');
+    expect(r.body.every((t: any) => !('modelUsed' in t))).toBe(true);
+    expect(JSON.stringify(r.body)).not.toContain('glm-4.6');
+  });
+
+  it('mapa modelUsed → origin', () => {
+    expect(chatOrigin('gemini-3.5-flash')).toBe('ai');
+    expect(chatOrigin(null)).toBe('ai'); // turno antigo, sem modelUsed
+    expect(chatOrigin('cache')).toBe('cache');
+    expect(chatOrigin('offline')).toBe('offline');
+    expect(chatOrigin('local-router')).toBe('local');
   });
 });
 
@@ -169,18 +229,33 @@ describe('chat: IA indisponível → resposta com os dados dos exames', () => {
         { name: 'TSH', nameCanonical: 'TSH', valueNumeric: 11, unit: 'mUI/L', refLow: 0.4, refHigh: 4 },
       ] },
     ];
-    const geral = buildOfflineAnswer(CHIP, exams);
+    const geral = buildOfflineAnswer(CHIP, exams, { originShownByClient: true });
     expect(geral).toContain('TSH: **7,2 mUI/L**');
     expect(geral).toContain('acima da faixa');
     expect(geral).not.toContain('Glicose'); // na faixa → não entra na lista de fora da faixa
     expect(geral).not.toContain('11'); // só o MAIS RECENTE de cada item
-    expect(geral).toContain('crédito desta pergunta foi devolvido');
+    // O aviso de indisponibilidade/crédito saiu do texto (quem diz é o selo de origem da tela);
+    // a frase de segurança continua DENTRO da resposta.
+    expect(geral).not.toMatch(/indispon|cr[eé]dito/i);
+    expect(geral).toContain('só os dados dos seus exames, não uma avaliação médica');
     expect(geral).not.toMatch(/normal|grave|preocup|tudo bem/i); // fatos, sem leitura clínica
 
-    const focado = buildOfflineAnswer('como está meu TSH?', exams);
+    const focado = buildOfflineAnswer('como está meu TSH?', exams, { originShownByClient: true });
     expect(focado).toContain('20/09/2026');
     expect(focado).toContain('10/03/2026'); // pergunta sobre um item → traz o histórico dele
+    expect(focado).toContain('não uma avaliação médica');
     expect(buildOfflineAnswer('oi', [])).toContain('Ainda não há exames');
+  });
+
+  it('app antigo (sem selo de origem): o próprio texto explica a indisponibilidade e o crédito', () => {
+    const exams = [{ title: 'Check-up', performedAt: new Date('2026-09-20T12:00:00Z'), items: [
+      { name: 'TSH', nameCanonical: 'TSH', valueNumeric: 7.2, unit: 'mUI/L', refLow: 0.4, refHigh: 4 },
+    ] }];
+    const antigo = buildOfflineAnswer(CHIP, exams); // não manda originNote
+    expect(antigo).toContain('crédito desta pergunta foi devolvido');
+    expect(antigo).toContain('não uma avaliação médica');
+    const novo = buildOfflineAnswer(CHIP, exams, { originShownByClient: true });
+    expect(novo).not.toMatch(/cr[eé]dito/i); // quem diz é o selo da tela
   });
 });
 

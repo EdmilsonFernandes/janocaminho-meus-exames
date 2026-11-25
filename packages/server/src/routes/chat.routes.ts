@@ -19,6 +19,15 @@ import { logPaywallHit } from '../utils/paywall';
 const router = Router();
 router.use(requireAuth);
 
+/** De onde veio a resposta de um turno — é o que a tela mostra no selo (nunca o nome do modelo). */
+export type ChatOrigin = 'ai' | 'cache' | 'offline' | 'local';
+export function chatOrigin(modelUsed: string | null | undefined): ChatOrigin {
+  if (modelUsed === 'cache') return 'cache';
+  if (modelUsed === 'offline') return 'offline';
+  if (modelUsed === 'local-router') return 'local';
+  return 'ai'; // modelo de verdade (ou turno antigo sem modelUsed gravado)
+}
+
 // HISTÓRICO da conversa do paciente (pra persistir entre sessões / reload)
 router.get('/', async (req: AuthedRequest, res, next) => {
   try {
@@ -29,9 +38,11 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       where: { patientId: pid, type: 'CHAT' },
       orderBy: { createdAt: 'asc' },
       take: 40,
-      select: { userMessage: true, contentMd: true, structured: true },
+      select: { userMessage: true, contentMd: true, structured: true, modelUsed: true },
     });
-    res.json(turns);
+    // `origin` é campo NOVO e opcional para o app (versão antiga instalada ignora). O nome do
+    // modelo fica no servidor: sai do payload e entra só a origem.
+    res.json(turns.map(({ modelUsed, ...t }) => ({ ...t, origin: chatOrigin(modelUsed) })));
   } catch (e) { next(e); }
 });
 
@@ -40,6 +51,10 @@ router.post('/', async (req: AuthedRequest, res, next) => {
   try {
     const message = String((req.body as any)?.message ?? '');
     if (!message) { res.status(400).json({ error: 'message obrigatório' }); return; }
+    // "Gerar de novo" (tela): a pessoa viu a resposta reaproveitada e pediu uma NOVA → pula só a
+    // busca no cache e segue o caminho normal da IA (cobra e grava como sempre). Só `true` literal
+    // liga; app antigo não manda o campo. O pré-roteador local continua valendo.
+    const fresh = (req.body as any)?.fresh === true;
     const pids = await userPatientIds(req.userId!);
     const pid = String((req.body as any)?.patientId ?? req.headers['x-patient-id'] ?? pids[0] ?? '');
     if (!pid || !pids.includes(pid)) { res.status(403).json({ error: 'Paciente inválido' }); return; }
@@ -148,8 +163,8 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     );
 
     // histórico da conversa (últimos turnos deste paciente)
-    // Turnos 'offline' (resposta sem IA, com rodapé de indisponibilidade) ficam FORA do histórico
-    // mandado ao modelo: não são conversa, e o rodapé viraria ruído/tokens em todo turno seguinte.
+    // Turnos 'offline' (resposta sem IA, só os dados dos exames) ficam FORA do histórico
+    // mandado ao modelo: não são conversa, e virariam ruído/tokens em todo turno seguinte.
     const prior = await prisma.aiAnalysis.findMany({
       where: { patientId: pid, type: 'CHAT', OR: [{ modelUsed: null }, { modelUsed: { not: 'offline' } }] },
       orderBy: { createdAt: 'desc' },
@@ -278,7 +293,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     // devolve a resposta que a IA já deu (até 7 dias). Sem IA = sem débito, como o pré-roteador.
     // A impressão digital usa o bloco COMPLETO dos exames (todo valor conta), não o enxuto.
     const fp = dataFingerprint([examsBlock, medsBlock, targetsBlock, patient?.clinicalProfile, sports.addendum]);
-    if (economy.cache) {
+    if (economy.cache && !fresh) {
       const cached = await findCachedAnswer({ patientId: pid, message, fp }).catch(() => null);
       if (cached) {
         res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
@@ -313,7 +328,9 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     try {
       ({ text, model, sources, offline, usage } = await streamChat({
         res, contextText: fullContext, history, message, guidelineTopics: [...guidelineTopics, ...sports.topics],
-        offlineAnswer: () => buildOfflineAnswer(message, recent as any),
+        // originNote=true: a tela mostra o selo de origem (app novo). App antigo nao manda o campo e
+        // recebe o rodape completo, que explica a indisponibilidade no proprio texto.
+        offlineAnswer: () => buildOfflineAnswer(message, recent as any, { originShownByClient: (req.body as any)?.originNote === true }),
       }));
     } catch (e) {
       await refundCredits(req.userId!, CREDIT_COSTS.chat, 'ai_chat_refund', 'Reembolso: falha na IA (chat)');
