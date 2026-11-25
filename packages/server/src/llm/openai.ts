@@ -47,7 +47,9 @@ export class OpenAIAdapter implements LlmProvider {
     });
     if (!r.ok || !r.body) {
       const detail = await r.text().catch(() => '');
-      throw new Error(`OpenAI ${r.status}: ${detail.slice(0, 300)}`);
+      // status no erro: sem ele o classifyError não reconhece 429/401/503 e o FallbackProvider
+      // NÃO alterna p/ o backup (caso 24/11: cota do Gemini estourou e o chat morreu sem cair no GLM).
+      throw Object.assign(new Error(`OpenAI ${r.status}: ${detail.slice(0, 300)}`), { status: r.status });
     }
     const reader = r.body.getReader();
     const decoder = new TextDecoder();

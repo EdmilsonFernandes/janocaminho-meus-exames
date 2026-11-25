@@ -30,46 +30,41 @@ function buildAdapter(p: AiProviderName, cfg = resolveProviderConfig(p)): LlmPro
  *  O stream só rejeita ANTES do 1º token, então o retry nunca duplica texto pro cliente. */
 export class FallbackProvider implements LlmProvider {
   name: string;
+  /** Primário em cooldown (429/401/503): as próximas requests vão direto ao backup até expirar,
+   *  em vez de pagar a latência de bater no provedor esgotado a cada mensagem (caso 24/11:
+   *  cota diária do Gemini estourada). Se os backups também falharem, o primário é a última tentativa. */
+  private primaryDownUntil = 0;
   constructor(private primary: LlmProvider, private backups: LlmProvider[]) {
     this.name = primary.name;
   }
-  async stream(req: LlmRequest): Promise<LlmStream> {
-    try {
-      return await this.primary.stream(req);
-    } catch (e) {
-      if (!classifyError(e).rotate || !this.backups.length) throw e;
-      console.warn(`[llm] ${this.primary.name} esgotou (${(e as any)?.status ?? '?'}) — failover p/ ${this.backups.map((b) => b.name).join(' → ')}`);
-      let last = e;
-      for (const b of this.backups) {
-        try {
-          // req.model vem do PROVIDER DE ORIGEM (ex.: glm-5.3) — o backup usaria o modelo
-          // errado na própria API. Strip: cada adapter cai no model do próprio config.
-          return await b.stream({ ...req, model: undefined });
-        } catch (e2) {
-          last = e2;
-          if (!classifyError(e2).rotate) throw e2;
-        }
+  private order(): LlmProvider[] {
+    return Date.now() < this.primaryDownUntil ? [...this.backups, this.primary] : [this.primary, ...this.backups];
+  }
+  private async run<T>(label: string, fn: (p: LlmProvider) => Promise<T>): Promise<T> {
+    let last: unknown;
+    const list = this.order();
+    for (let i = 0; i < list.length; i++) {
+      const p = list[i];
+      try {
+        return await fn(p);
+      } catch (e) {
+        last = e;
+        const c = classifyError(e);
+        if (!c.rotate) throw e;
+        if (p === this.primary) this.primaryDownUntil = Date.now() + Math.min(c.cooldownMs, 30 * 60_000);
+        const rest = list.slice(i + 1).map((b) => b.name);
+        if (rest.length) console.warn(`[llm] ${p.name} ${label} (${(e as any)?.status ?? '?'}) — failover p/ ${rest.join(' → ')}`);
       }
-      throw last;
     }
+    throw last;
+  }
+  async stream(req: LlmRequest): Promise<LlmStream> {
+    // req.model vem do PROVIDER DE ORIGEM (ex.: glm-5.3) — o backup usaria o modelo
+    // errado na própria API. Strip: cada adapter cai no model do próprio config.
+    return this.run('esgotou', (p) => p.stream(p === this.primary ? req : { ...req, model: undefined }));
   }
   async complete(req: LlmRequest): Promise<LlmResult> {
-    try {
-      return await this.attempt(this.primary, req);
-    } catch (e) {
-      if (!classifyError(e).rotate || !this.backups.length) throw e;
-      console.warn(`[llm] ${this.primary.name} falhou/vazio (${(e as any)?.status ?? '?'}) — failover p/ ${this.backups.map((b) => b.name).join(' → ')}`);
-      let last = e;
-      for (const b of this.backups) {
-        try {
-          return await this.attempt(b, req);
-        } catch (e2) {
-          last = e2;
-          if (!classifyError(e2).rotate) throw e2;
-        }
-      }
-      throw last;
-    }
+    return this.run('falhou/vazio', (p) => this.attempt(p, req));
   }
 
   /** stream + final com REGRAS DE VAZIO (caso Dione 18/11): o relay às vezes devolve 200
