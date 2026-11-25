@@ -1,0 +1,15 @@
+{
+  "name": "meus-exames-lint",
+  "private": true,
+  "description": "Verificador isolado (fora dos workspaces): regra oficial do React para ordem de hooks. Dependências próprias, para não mexer no package-lock do app.",
+  "type": "module",
+  "scripts": {
+    "hooks": "cd ../.. && node tools/lint/node_modules/eslint/bin/eslint.js --config tools/lint/eslint.config.mjs packages/web/src"
+  },
+  "devDependencies": {
+    "eslint": "10.15.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.74.0"
+  }
+}

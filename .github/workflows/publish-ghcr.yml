@@ -65,6 +65,12 @@ jobs:
       - run: npm run typecheck --workspace packages/web
       # Typecheck do SERVER: antes só o `tsc` do build da imagem pegava, no fim da pipeline.
       - run: npm run typecheck --workspace packages/server
+      # Ordem de HOOKS no front (regra oficial react-hooks/rules-of-hooks). Hook depois de `return`
+      # antecipado ou dentro de condição derruba a tela em produção (React #300/#310) e o TypeScript
+      # não vê — passou duas vezes (mapa do corpo em out/26, painel esportivo em nov/26). Fica numa
+      # pasta isolada (tools/lint, fora dos workspaces) para não mexer no package-lock do app.
+      - run: npm ci --prefix tools/lint
+      - run: npm run hooks --prefix tools/lint
 
   # === SUÍTE DO SERVER em 4 FATIAS PARALELAS ===
   # O vitest roda 1 arquivo por vez (fileParallelism false + maxWorkers 1 no vitest.config: os testes dividem UM

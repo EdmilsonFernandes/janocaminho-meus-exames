@@ -480,9 +480,9 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         start: new Date(s.startedAt!).getTime(),
         end: s.endStatus === 'interrompi' && s.endedAt ? new Date(s.endedAt).getTime() : Number.POSITIVE_INFINITY,
       }));
-    const useAt = (t: number) => windows.find((w) => t >= w.start && t <= w.end);
+    const windowAt = (t: number) => windows.find((w) => t >= w.start && t <= w.end);
     const evts: SportsEvent[] = exams.map((e) => {
-      const w = e.performedAt ? useAt(new Date(e.performedAt).getTime()) : undefined;
+      const w = e.performedAt ? windowAt(new Date(e.performedAt).getTime()) : undefined;
       return {
         id: e.id, date: e.performedAt, title: e.title ?? 'Exame', type: 'exam' as const, abnormalCount: abnByExam[e.id] ?? 0,
         duringUse: w?.name ?? null,

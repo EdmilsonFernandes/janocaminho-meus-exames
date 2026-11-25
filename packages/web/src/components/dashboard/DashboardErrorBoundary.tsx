@@ -1,6 +1,7 @@
 // Lucian UX/UI Prompt #090 (adaptado) · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#090
 import { Component, type ReactNode } from 'react';
 import { Box, Typography, Button } from '@mui/material';
+import * as Sentry from '@sentry/react';
 
 // Auto-recuperação (28/10/26, bug "não carrega o corpo → clica e aparece"): o crash do
 // 1º mount era transitório (dado/cache chegando depois) — remonta SOZINHO 1x em 1,2s
@@ -63,6 +64,16 @@ export class DashboardErrorBoundary extends Component<{ children: ReactNode }, {
   componentDidCatch(error: Error, info: any) {
     // Rastro no ring buffer do diag (Perfil → enviar diagnóstico) + console/Sentry.
     console.error('[DashboardErrorBoundary]', error?.message, info?.componentStack);
+    // Antes era SÓ o console: o React entrega o erro ao boundary e nada chegava ao Sentry — o
+    // painel esportivo caiu em loop para quem tinha 0 exames e ninguém ficou sabendo (25/11/26).
+    // O auto-retry esconde o erro do usuário; por isso mesmo ele precisa aparecer para nós.
+    // `attempt` diz se é a 1ª queda (que se recupera sozinha) ou a que mostrou o card de erro.
+    try {
+      Sentry.captureException(error, {
+        tags: { boundary: 'dashboard', attempt: String(this.state.attempt) },
+        extra: { componentStack: info?.componentStack },
+      });
+    } catch { /* Sentry indisponível/sem DSN: o boundary nunca pode lançar */ }
   }
 
   componentDidUpdate(_props: unknown, prevState: { error: Error | null; attempt: number }) {
