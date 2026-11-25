@@ -1,0 +1,5 @@
+• Tela inicial mais limpa: um botão de destaque por tela e cartões mais leves.
+• "Seus Marcadores" passa a mostrar os mesmos números do placar do topo.
+• Aparece há quanto tempo foi o seu último exame (ex.: "há 8 meses").
+• Textos maiores e sem cortes; botões mais fáceis de tocar.
+• Aviso quando está na hora de repetir um exame.
