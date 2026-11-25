@@ -25,8 +25,16 @@ async function patientWithExams() {
   await createItem(newer.id, { name: 'Glicose', nameCanonical: 'GLICOSE', valueNumeric: 92, unit: 'mg/dL', refLow: 70, refHigh: 99, flag: 'NORMAL' });
   return { ...u, newer };
 }
-const ask = (token: string, patientId: string, message = CHIP) =>
-  api().post('/api/chat').set(authHeader(token)).send({ message, patientId });
+// A rota grava o turno no banco DEPOIS de fechar o stream: a resposta HTTP chega antes da linha
+// existir. Sem esperar, a pergunta seguinte (ou a leitura do turno) corre contra a gravação —
+// passou local e quebrou no CI (24/11). Cada pergunta só "termina" quando o turno dela está salvo.
+const turnCount = (patientId: string) => prisma.aiAnalysis.count({ where: { patientId, type: 'CHAT' } });
+const ask = async (token: string, patientId: string, message = CHIP) => {
+  const before = await turnCount(patientId);
+  const r = await api().post('/api/chat').set(authHeader(token)).send({ message, patientId });
+  await vi.waitFor(async () => expect(await turnCount(patientId)).toBeGreaterThan(before), { timeout: 5000, interval: 25 });
+  return r;
+};
 const lastTurn = (patientId: string) =>
   prisma.aiAnalysis.findFirst({ where: { patientId, type: 'CHAT' }, orderBy: { createdAt: 'desc' } });
 
