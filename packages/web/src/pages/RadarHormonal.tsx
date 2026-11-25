@@ -735,7 +735,7 @@ export default function RadarHormonal() {
                         Próximas datas equivalentes: <strong className="font-semibold">{nextDraws.map(weekdayDate).join(' ou ')}</strong>
                         <span className="block text-xs text-muted-foreground">Servem para comparar com o exame anterior; quem define quando repetir é o seu médico.</span>
                       </p>
-                      <Button variant="outline" size="lg" className="h-10" disabled={reminding} onClick={() => void remindNextDraw()}>
+                      <Button variant="outline" size="lg" className="h-11" disabled={reminding} onClick={() => void remindNextDraw()}>
                         <BellPlus aria-hidden="true" />
                         Lembrar-me
                       </Button>
@@ -788,7 +788,7 @@ export default function RadarHormonal() {
                   ))}
                 </ul>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                  <Button variant="outline" size="sm" disabled={reminding} onClick={() => void remindExams()}><BellPlus aria-hidden="true" />Lembrar de fazer os exames</Button>
+                  <Button variant="outline" size="lg" className="h-11" disabled={reminding} onClick={() => void remindExams()}><BellPlus aria-hidden="true" />Lembrar de fazer os exames</Button>
                   <span className="text-xs text-muted-foreground">Avisos pela faixa do seu laudo e pela evolução. Quem avalia é o médico.</span>
                 </div>
               </div>

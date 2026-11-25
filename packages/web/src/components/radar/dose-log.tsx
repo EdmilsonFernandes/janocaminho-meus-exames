@@ -184,10 +184,8 @@ export function DoseLog({
                 ) : st.last == null ? (
                   <span className="text-xs text-muted-foreground">Nenhuma aplicação registrada ainda.</span>
                 ) : (
-                  <>
-                    <span className="text-xs text-muted-foreground">Última: <strong className="font-medium text-foreground">{dayLabel(st.last)}</strong> · {ago(st.last, now)}</span>
-                    <span className="text-xs text-muted-foreground">Próxima prevista: <strong className="font-medium text-foreground">{dayLabel(st.next as number)}</strong></span>
-                  </>
+                  // Datas ficam SÓ na lista abaixo (próxima prevista + aplicadas) — repetir aqui era ler duas vezes.
+                  <span className="text-xs text-muted-foreground">{mine.length} {mine.length === 1 ? 'aplicação registrada' : 'aplicações registradas'} · última {ago(st.last, now)}</span>
                 )}
               </div>
             </div>
@@ -197,7 +195,7 @@ export function DoseLog({
                 <CircleCheck aria-hidden="true" />
                 <AlertTitle>Registrado hoje às {hhmm(new Date(registeredToday.takenAt).getTime())} · {n0(registeredToday.doseMg)} mg</AlertTitle>
                 <AlertDescription>
-                  <button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent p-0 text-xs text-muted-foreground underline underline-offset-2" onClick={() => setExtraDose(item.compoundId)}>
+                  <button type="button" className="-mb-2 inline-flex min-h-11 cursor-pointer items-center border-0 bg-transparent p-0 text-xs text-muted-foreground underline underline-offset-2" onClick={() => setExtraDose(item.compoundId)}>
                     Apliquei outra dose hoje
                   </button>
                 </AlertDescription>
@@ -217,7 +215,7 @@ export function DoseLog({
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className={st.next != null ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-1 gap-2'}>
               <Button variant="outline" size="lg" className="h-11 min-w-0 px-2" aria-expanded={picking} disabled={loading} onClick={() => setOtherDate(picking ? null : { compoundId: item.compoundId, value: todayIso() })}>
                 <CalendarDays aria-hidden="true" />
                 <span className="truncate">Outra data</span>
