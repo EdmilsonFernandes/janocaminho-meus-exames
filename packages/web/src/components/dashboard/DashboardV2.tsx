@@ -1444,6 +1444,18 @@ const DashboardV2Inner = () => {
   // Base do bloco "Fora da faixa": marcadores atuais (mesma régua do herói) quando há resumo de
   // saúde; senão o total de resultados do histórico. O rótulo do bloco diz qual das duas é.
   const outOfBase = d.markerCount > 0 ? d.markerCount : totalResults;
+  // O herói destaca só o que PEDE ATENÇÃO (importante + moderada); este bloco conta TUDO que está
+  // fora da faixa, inclusive desvio pequeno. Mesma fonte, números diferentes ("1" lá, "5" aqui) —
+  // sem dizer isso na tela, parecia divergência (visto na conta de QA em 25/11). O subtítulo
+  // separa os dois grupos, e a soma dá o número grande do bloco.
+  const outAttention = d.importante + d.moderada;
+  const outSmall = Math.max(0, d.stats.abnormal - outAttention);
+  const outOfSub = outOfBase <= 0 ? ''
+    : d.markerCount <= 0 ? `de ${outOfBase} resultados no seu histórico`
+    : d.stats.abnormal === 0 ? `de ${outOfBase} marcadores`
+    : outAttention > 0 && outSmall > 0 ? `${outAttention} ${outAttention === 1 ? 'pede' : 'pedem'} atenção · ${outSmall} com desvio pequeno`
+    : outAttention > 0 ? `${outAttention === 1 ? 'pede' : 'pedem'} atenção · de ${outOfBase} marcadores`
+    : `com desvio pequeno · de ${outOfBase} marcadores`;
   const cardioLevel: string = d.cardioRisk?.level ?? '';
   const cardioFactors: number = Array.isArray(d.cardioRisk?.factors) ? d.cardioRisk.factors.filter((f: any) => f.risk).length : 0;
 
@@ -1615,7 +1627,7 @@ const DashboardV2Inner = () => {
             tone={d.stats.abnormal > 0 ? 'error' : 'success'}
             label={d.stats.abnormal > 0 ? 'Fora da faixa' : SEVERITY.low}
             value={d.loaded ? String(d.stats.abnormal) : '—'}
-            sub={d.loaded ? (outOfBase > 0 ? (d.markerCount > 0 ? `de ${outOfBase} marcadores, no resultado mais recente de cada um` : `de ${outOfBase} resultados no seu histórico`) : '') : ''}
+            sub={d.loaded ? outOfSub : ''}
             progressBar={outOfBase > 0 && d.loaded ? { percent: Math.min(100, Math.round((d.stats.abnormal / outOfBase) * 100)), color: '#ef4444' } : undefined}
             onClick={go('/tendencias')}
           />
