@@ -94,7 +94,10 @@ export class AnthropicAdapter implements LlmProvider {
   private clientFor(key: string): Anthropic {
     let c = this.clients.get(key);
     if (!c) {
-      c = new Anthropic({ apiKey: key, ...(this.cfg.baseURL ? { baseURL: this.cfg.baseURL } : {}) });
+      // authToken: null é OBRIGATÓRIO (incidente 25/11/26): sem ele o SDK lê ANTHROPIC_AUTH_TOKEN do
+      // ambiente e manda "Authorization: Bearer <env>" JUNTO do x-api-key. O Z.ai obedece ao Bearer —
+      // então, trocando a chave pelo painel/banco, a chave VELHA do .env continuava mandando (401).
+      c = new Anthropic({ apiKey: key, authToken: null, ...(this.cfg.baseURL ? { baseURL: this.cfg.baseURL } : {}) });
       this.clients.set(key, c);
     }
     return c;

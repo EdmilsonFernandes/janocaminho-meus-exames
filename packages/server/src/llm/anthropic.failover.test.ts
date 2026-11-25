@@ -9,13 +9,13 @@ import { AnthropicAdapter, splitKeys, parseResetAt, classifyError, keyId, clearC
 
 // Registry de comportamento por chave — o mock do SDK consulta isso (hoisted: roda antes do vi.mock).
 const { registry } = vi.hoisted(() => ({
-  registry: { mode: new Map<string, 'ok' | 'rate' | 'bad400'>(), calls: new Map<string, number>(), lastParams: null as any },
+  registry: { mode: new Map<string, 'ok' | 'rate' | 'bad400'>(), calls: new Map<string, number>(), lastParams: null as any, ctorOpts: [] as any[] },
 }));
 
 vi.mock('@anthropic-ai/sdk', () => ({
   default: class FakeAnthropic {
     apiKey: string;
-    constructor(opts: { apiKey: string }) { this.apiKey = opts.apiKey; }
+    constructor(opts: { apiKey: string }) { this.apiKey = opts.apiKey; registry.ctorOpts.push(opts); }
     messages = {
       stream: (params: any) => {
         const key = this.apiKey;
@@ -217,5 +217,16 @@ describe('rodadas com backoff (incidente 429-1302, 02/11)', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe('AnthropicAdapter — credencial do ambiente não vaza para a request', () => {
+  it('cria o cliente com authToken null (senão o SDK manda o ANTHROPIC_AUTH_TOKEN do .env como Bearer e o relay ignora a chave do banco)', async () => {
+    registry.ctorOpts.length = 0;
+    const adapter = new AnthropicAdapter({ apiKey: 'chave-so-deste-teste-0001' });
+    await adapter.complete({ messages: [{ role: 'user', content: 'oi' }], maxTokens: 5 });
+    const opts = registry.ctorOpts.find((o) => o.apiKey === 'chave-so-deste-teste-0001');
+    expect(opts).toBeTruthy();
+    expect('authToken' in opts && opts.authToken === null).toBe(true);
   });
 });
