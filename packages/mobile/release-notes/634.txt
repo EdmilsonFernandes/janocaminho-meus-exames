@@ -1,0 +1,4 @@
+• Composição corporal: toque ou arraste o dedo no gráfico para ver cada avaliação por inteiro.
+• Botão "Reproduzir" mostra sua evolução, da primeira avaliação à mais recente.
+• Histórico por mês, com peso, gordura e músculo e o quanto mudou desde a avaliação anterior.
+• Escolha o período do gráfico: 3 meses, 6 meses, 1 ano ou tudo.
