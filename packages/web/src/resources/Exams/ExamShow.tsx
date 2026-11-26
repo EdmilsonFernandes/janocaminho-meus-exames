@@ -4,13 +4,25 @@ import {
   Box, Card, CardContent, Typography, Chip, Button, CircularProgress, Alert, Divider, Stack,
   Accordion, AccordionSummary, AccordionDetails, Tooltip as MuiTooltip,
 } from '@mui/material';
-import { keyframes } from '@mui/material/styles';
+import { alpha, keyframes, lighten } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 import StopIcon from '@mui/icons-material/Stop';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
+import FlagIcon from '@mui/icons-material/Flag';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import LockIcon from '@mui/icons-material/Lock';
+import CheckIcon from '@mui/icons-material/Check';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { SecondaryButton } from '../../components/SecondaryButton';
+import { prettyName } from '../../utils/names';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { confirmDialog, snackbar } from '../../components/ConfirmDialog';
@@ -26,7 +38,7 @@ import { Sparkline } from '../../components/Sparkline';
 import { ExplainButton } from '../../components/ExplainItem';
 import { UnitLabel } from '../../components/UnitLabel';
 import { TelemedicineButton } from '../../components/TelemedicineButton';
-import { fmtVal, unitSuffix, fmtDateShort, plural } from '../../utils/format';
+import { fmtVal, unitSuffix, fmtDateShort, timeAgo, plural } from '../../utils/format';
 import { categorizeExam } from '../../utils/medicalData';
 import { tealText, RADIUS, SEM } from '../../theme';
 import { WhatIsThis } from '../../components/WhatIsThis';
@@ -43,6 +55,14 @@ import { cleanExtractedLabel } from '../../utils/examDisplay';
 import { useClinicalGoals } from '../../hooks/useClinicalGoals';
 import { goalFor, goalRangeText, withinGoal, withinRef, dualStatusText } from '../../utils/clinicalGoals';
 
+
+/** Título de cartão do detalhe (25/11/26): mesmo nível do título de seção da Home (Poppins 17/700).
+ *  Antes "Análise de saúde" e "Conversar" saíam num tamanho e "Preparar visita" noutro. */
+const CARD_TITLE = { component: 'h2', fontFamily: '"Poppins", sans-serif', fontWeight: 700, fontSize: 17, lineHeight: 1.25 } as const;
+
+/** Texto de apoio DENTRO de um aviso de fundo tingido: o text.secondary padrão dava 4,19:1 em cima da
+ *  lavagem vermelha (medido em 25/11/26). Um pouco do texto principal mantém a hierarquia e passa de AA. */
+const noteOnTint = { color: (t: Theme) => alpha(t.palette.text.primary, t.palette.mode === 'dark' ? 0.75 : 0.8) };
 
 /** Valor do item editável inline (corrigir erro de OCR). Salva via PATCH /items/:id. */
 const EditableItemValue = ({ it, color, onSaved }: { it: any; color: string; onSaved: (u: any) => void }) => {
@@ -70,8 +90,12 @@ const EditableItemValue = ({ it, color, onSaved }: { it: any; color: string; onS
   return (
     <Typography onClick={() => setEditing(true)} title="Toque para corrigir o valor"
       {...chipA11y()} aria-label={`Corrigir valor de ${it.name ?? 'marcador'}`}
-      sx={{ fontSize: '1.5rem', fontWeight: 800, lineHeight: 1.2, color, cursor: 'pointer', borderBottom: '2px dotted rgba(32,178,170,.45)', '&:hover': { color: '#178f89' } }}>
-      {fmtVal(it)} <Box component="span" sx={{ fontSize: '0.8rem', opacity: 0.6 }}>✏️</Box>
+      sx={{ position: 'relative', fontSize: '1.5rem', fontWeight: 800, lineHeight: 1.2, color, cursor: 'pointer', borderBottom: '2px dotted rgba(32,178,170,.45)', '&:hover': { color: '#178f89' },
+        // Alvo de 44px sem mexer no layout (o número tem ~29px de altura).
+        '&::before': { content: '""', position: 'absolute', inset: '-8px -10px' } }}>
+      {fmtVal(it)}
+      {/* Lápis do conjunto de ícones do app no lugar do emoji (25/11/26). */}
+      <EditOutlinedIcon sx={{ fontSize: 16, ml: 0.4, opacity: 0.55, verticalAlign: 'text-bottom' }} aria-hidden="true" />
     </Typography>
   );
 };
@@ -426,10 +450,12 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
         <CardContent>
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
             <Typography variant="h5" component="h1" title={titleInfo.original || exam.title} sx={{ fontSize: { xs: '1.15rem', md: '1.5rem' }, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minWidth: 0 }}>{titleInfo.text || 'Exame'}</Typography>
-            <Chip color={statusColor[exam.status] ?? 'default'} label={statusLabel[exam.status] ?? exam.status} />
+            {/* "Pronto" não é informação (25/11/26): todo exame com valores lidos está pronto. O chip de status
+                só aparece quando diz algo diferente (Falhou, Enviado, Extraindo) — mesma regra da lista. */}
+            {exam.status !== 'EXTRACTED' && <Chip color={statusColor[exam.status] ?? 'default'} label={statusLabel[exam.status] ?? exam.status} />}
             {exam.kind === 'IMAGING' && <Chip variant="outlined" label="Imagem" />}
             {exam.kind === 'LAB_PANEL' && <Chip variant="outlined" label="Laboratorial" />}
-            {cc.key !== 'image' && cc.key !== 'other' && <Chip size="small" sx={{ bgcolor: cc.color + '18', color: cc.color, fontWeight: 700 }} icon={<Box component={cc.icon} sx={{ fontSize: 16, color: `${cc.color} !important`, ml: 0.5, mr: -0.5 }} />} label={cc.cat} />}
+            {cc.key !== 'image' && cc.key !== 'other' && <Chip size="small" sx={{ bgcolor: cc.color + '18', fontWeight: 700, color: (t) => (t.palette.mode === 'dark' ? lighten(cc.color, 0.35) : '#334155') }} icon={<Box component={cc.icon} sx={{ fontSize: 16, color: `${cc.color} !important`, ml: 0.5, mr: -0.5 }} />} label={cc.cat} />}
             {headerNeedsReview && <Chip color="warning" label="conferir dados" />}
           </Stack>
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
@@ -437,6 +463,10 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
               <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.3, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.10)' }}>
                 <CalendarMonthIcon sx={{ fontSize: 16, color: 'primary.main' }} />
                 <Typography component="span" sx={{ fontWeight: 700, color: (t) => tealText(t.palette.mode), fontSize: '0.9rem', lineHeight: 1 }}>{fmtDateShort(exam.performedAt)}</Typography>
+                {/* "de quando" ao lado da data (25/11/26): "07 mar 2026" sozinho obrigava a pessoa a contar meses. */}
+                {timeAgo(exam.performedAt) && (
+                  <Typography component="span" sx={{ fontWeight: 600, ...noteOnTint, fontSize: '0.85rem', lineHeight: 1 }}>· {timeAgo(exam.performedAt)}</Typography>
+                )}
               </Box>
             ) : (
               <Typography component="span" sx={{ fontWeight: 700, color: 'warning.main', fontSize: '0.85rem' }}>Data não identificada</Typography>
@@ -448,29 +478,34 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
               </Box>
             )}
           </Stack>
-          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 1.5 }}>
-            <Button size="small" variant="outlined" onClick={openPdf} startIcon={<PictureAsPdfOutlinedIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }}>Abrir laudo</Button>
+          {/* Três ações discretas em duas linhas no celular: [Abrir laudo][Baixar PDF] / [Ouvir resumo]
+              (25/11/26). O único botão destaque da tela é "Gerar resumo". */}
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap rowGap={1} sx={{ mt: 1.5 }}>
+            <SecondaryButton onClick={openPdf} startIcon={<PictureAsPdfOutlinedIcon />}>Abrir laudo</SecondaryButton>
+            {exam.status === 'EXTRACTED' && (
+              <SecondaryButton onClick={downloadPdf} disabled={pdfLoading} startIcon={pdfLoading ? <CircularProgress size={16} color="inherit" /> : <FileDownloadOutlinedIcon />}>
+                Baixar PDF
+              </SecondaryButton>
+            )}
             {exam.status === 'EXTRACTED' && (
               speaking ? (
-                <Button size="small" variant="contained" color="error" onClick={stopNarration} startIcon={<StopIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
+                <Button size="small" variant="contained" color="error" onClick={stopNarration} startIcon={<StopIcon />} sx={{ borderRadius: RADIUS.button, textTransform: 'none', fontWeight: 700, minHeight: 44 }}>
                   Parar <WaveBars />
                 </Button>
               ) : (
-                <Button size="small" variant="outlined" onClick={narrate} disabled={narrLoading} startIcon={narrLoading ? <CircularProgress size={16} color="inherit" /> : <RecordVoiceOverIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }}>
+                <SecondaryButton onClick={narrate} disabled={narrLoading} startIcon={narrLoading ? <CircularProgress size={16} color="inherit" /> : <RecordVoiceOverIcon />}>
                   Ouvir resumo ({CREDIT_COSTS.chat} crédito{CREDIT_COSTS.chat > 1 ? 's' : ''})
-                </Button>
+                </SecondaryButton>
               )
-            )}
-            {exam.status === 'EXTRACTED' && (
-              <Button size="small" variant="outlined" onClick={downloadPdf} disabled={pdfLoading} startIcon={pdfLoading ? <CircularProgress size={16} color="inherit" /> : <FileDownloadOutlinedIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }}>
-                Baixar PDF
-              </Button>
             )}
           </Stack>
           {(patientInfo.text || patientInfo.suspicious || doctorInfo.text || doctorInfo.suspicious) && (
-            <Typography color="text.secondary" sx={{ fontSize: '0.85rem', mt: 0.5 }}>
-              {patientInfo.text ? `👤 ${patientInfo.text}` : patientInfo.suspicious ? '👤 Titular detectado em revisão' : ''}
-              {doctorInfo.text ? ` • 🩺 ${doctorInfo.text}` : doctorInfo.suspicious ? ' • 🩺 Médico solicitante em revisão' : ''}
+            // Caixa normal e sem emoji (25/11/26): antes "👤 NOME EM CAIXA ALTA • 🩺 MÉDICO".
+            <Typography component="div" color="text.secondary" sx={{ fontSize: 13, mt: 0.75, lineHeight: 1.4 }}>
+              {[
+                patientInfo.text ? prettyName(patientInfo.text) : patientInfo.suspicious ? 'Titular detectado em revisão' : '',
+                doctorInfo.text ? `Dr. ${prettyName(doctorInfo.text)}` : doctorInfo.suspicious ? 'Médico solicitante em revisão' : '',
+              ].filter(Boolean).join('  ·  ')}
             </Typography>
           )}
           {headerNeedsReview && (
@@ -492,10 +527,11 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                 </Box>
               )}
               A extração falhou: {exam.extractionError}
-              <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                <Button size="small" variant="outlined" onClick={reextract} disabled={reExtracting}>Re-extrair</Button>
+              <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+                {/* 44px e o mesmo contorno discreto das outras ações da tela (25/11/26). */}
+                <SecondaryButton onClick={reextract} disabled={reExtracting} startIcon={<RefreshIcon />}>Re-extrair</SecondaryButton>
                 {/* "Entender o que houve" reabre o sheet educativo (auto-abre 1× por exame) */}
-                <Button size="small" variant="text" onClick={() => setFailSheetOpen(true)} sx={{ fontWeight: 700 }}>Entender o que houve</Button>
+                <Button onClick={() => setFailSheetOpen(true)} sx={{ minHeight: 44, px: 2, borderRadius: RADIUS.button, textTransform: 'none', fontWeight: 700, color: 'text.secondary' }}>Entender o que houve</Button>
               </Box>
             </Alert>
           )}
@@ -529,36 +565,47 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
 
       {/* BLOQUEIO FORTE: CPF do documento ≠ perfil */}
       {cpfBlock && (
-        <Card sx={{ mt: 2, border: '1px solid', borderColor: 'error.main', background: 'linear-gradient(135deg, rgba(220,38,38,.10), transparent)' }}>
+        <Card sx={{ mt: 2, border: '1px solid', borderColor: 'error.main', bgcolor: (t) => alpha('#dc2626', t.palette.mode === 'dark' ? 0.12 : 0.06) }}>
           <CardContent>
-            <Typography sx={{ fontWeight: 800, color: 'error.main' }}>
+            <Typography {...CARD_TITLE} sx={{ color: (t) => SEM.bad[t.palette.mode] }}>
               {identity?.crossUser ? 'Este exame pertence a outro usuário' : 'CPF do exame não confere'}
             </Typography>
             <Typography variant="body2" sx={{ mt: 0.5 }}>
               {identity?.crossUser
-                ? 'O CPF deste documento já está cadastrado em outra conta. Por segurança, este exame foi rejeitado: você não pode adicioná-lo nem gerar análise com ele.'
+                ? 'O CPF deste documento já está cadastrado em outra conta, então este exame foi bloqueado: ele não entra no seu histórico nem nas suas análises e não dá para gerar análise com ele — só você vê esta tela.'
                 : <>O CPF detectado no documento ({identity?.docCpfMasked ?? 'não exibido'}) diverge do CPF cadastrado neste perfil ({identity?.profileCpfMasked ?? 'não exibido'}). Se o exame é de um dependente, troque o perfil no topo e envie novamente.</>}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Por segurança, este exame não entrou no seu histórico nem nas suas análises: só você vê esta tela.
-              {exam.status === 'REJECTED' ? '' : ' Exclua o exame ou acione o suporte para investigar.'}
+            {/* Texto enxugado (25/11/26): quando o CPF é de outra conta, os dois parágrafos repetiam
+                "Por segurança" e diziam a mesma coisa. A instrução continua completa. */}
+            <Typography variant="body2" sx={{ mt: 1, ...noteOnTint }}>
+              {identity?.crossUser
+                ? 'Se acredita que é um erro, acione o suporte. Se o exame não for seu, exclua.'
+                : <>Por segurança, este exame não entrou no seu histórico nem nas suas análises: só você vê esta tela.
+                    {exam.status === 'REJECTED' ? '' : ' Exclua o exame ou acione o suporte para investigar.'}</>}
             </Typography>
             <Box sx={{ mt: 1.5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Button size="small" variant="contained" onClick={() => navigate(`/suporte?exam=${exam.id}`)}>Acredito que houve um erro</Button>
-              <Button size="small" variant="outlined" color="error" onClick={rejectExam} disabled={attesting}>Excluir exame</Button>
+              <Button size="small" variant="contained" onClick={() => navigate(`/suporte?exam=${exam.id}`)} sx={{ minHeight: 44 }}>Acredito que houve um erro</Button>
+              <Button size="small" variant="outlined" color="error" onClick={rejectExam} disabled={attesting} sx={{ minHeight: 44, color: (t) => SEM.bad[t.palette.mode] }}>Excluir exame</Button>
             </Box>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
-              A leitura automática pode errar em documentos rasurados ou ilegíveis: o suporte confere o arquivo original (o contexto já vai anexado, com CPFs mascarados).
+            {/* Enxugado (25/11/26): eram 4 linhas no celular para uma ressalva. O fato de privacidade (CPFs
+                mascarados) continua dito. */}
+            <Typography sx={{ display: 'block', mt: 0.75, fontSize: 13, lineHeight: 1.45, ...noteOnTint }}>
+              A leitura automática pode errar em documentos rasurados ou ilegíveis. O suporte confere o arquivo original, com os CPFs mascarados.
             </Typography>
           </CardContent>
         </Card>
       )}
 
-      {/* BLOQUEIO SUAVE: nome do documento ≠ perfil */}
+      {/* BLOQUEIO SUAVE: nome do documento ≠ perfil.
+          (25/11/26) Mesmo tratamento do bloqueio de CPF: lavagem chapada no lugar do gradiente, ícone do
+          conjunto no lugar do emoji, botões com 44px e sem os "✓"/"✕" de texto. O texto não mudou. */}
       {nameBlock && (
-        <Card sx={{ mt: 2, border: '1px solid', borderColor: 'warning.main', background: 'linear-gradient(135deg, rgba(245,158,11,.10), transparent)' }}>
+        <Card sx={{ mt: 2, border: '1px solid', borderColor: 'warning.main', bgcolor: (t) => alpha('#f59e0b', t.palette.mode === 'dark' ? 0.12 : 0.06) }}>
           <CardContent>
-            <Typography sx={{ fontWeight: 800, color: (t) => SEM.warn[t.palette.mode] }}>⚠️ Confirme o titular antes da análise</Typography>
+            <Typography {...CARD_TITLE} sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: 'warning.main' }}>
+              <WarningAmberIcon sx={{ fontSize: 20 }} aria-hidden="true" />
+              Confirme o titular antes da análise
+            </Typography>
             <Typography variant="body2" sx={{ mt: 0.5 }}>
               O nome detectado no documento (<strong>{docNameInfo.text}</strong>) parece diferente do perfil selecionado (<strong>{profileNameInfo.text}</strong>).
             </Typography>
@@ -568,8 +615,8 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
             </Stack>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Se o exame é realmente deste paciente, confirme para liberar a análise. Se não for, exclua para evitar misturar dados de outra pessoa.</Typography>
             <Box sx={{ mt: 1.5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Button size="small" variant="contained" onClick={attest} disabled={attesting}>✓ Confirmo que é deste paciente</Button>
-              <Button size="small" variant="outlined" color="error" onClick={rejectExam} disabled={attesting}>✕ Não é deste paciente (excluir)</Button>
+              <Button variant="contained" onClick={attest} disabled={attesting} startIcon={<CheckIcon />} sx={{ minHeight: 44, borderRadius: RADIUS.button, textTransform: 'none', fontWeight: 700 }}>Confirmo que é deste paciente</Button>
+              <Button variant="outlined" color="error" onClick={rejectExam} disabled={attesting} sx={{ minHeight: 44, borderRadius: RADIUS.button, textTransform: 'none', fontWeight: 700 }}>Não é deste paciente (excluir)</Button>
             </Box>
           </CardContent>
         </Card>
@@ -578,46 +625,54 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
       {/* LABORATORIAL: valores */}
       {exam.status === 'EXTRACTED' && exam.kind !== 'IMAGING' && items.length > 0 && (
         <>
-          {/* banner de atenção */}
-          <Card sx={{ mt: 2, borderLeft: abnormal.length ? '6px solid' : undefined, borderColor: 'warning.main' }}>
+          {/* banner de atenção — sem a faixa lateral grossa (regra de profundidade do DS, 25/11/26);
+              o estado continua no título, nos chips e na borda. */}
+          <Card sx={{ mt: 2, ...(abnormal.length ? { border: '1px solid', borderColor: 'warning.main' } : {}) }}>
             <CardContent>
               {abnormal.length ? (
                 <>
-                  <Typography sx={{ fontWeight: 700, color: 'warning.main' }}>
-                    🚩 {plural(abnormal.length, 'valor')} fora da faixa de referência
+                  <Typography {...CARD_TITLE} sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: 'warning.main' }}>
+                    <FlagIcon sx={{ fontSize: 20 }} aria-hidden="true" />
+                    {plural(abnormal.length, 'valor')} fora da faixa
                   </Typography>
                   <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
                     {abnormal.map((i) => (
-                      <Chip key={i.id} color="warning" variant="outlined"
+                      <Chip key={i.id} color="warning" variant="outlined" sx={{ minHeight: 44, fontSize: 13.5 }}
                         label={`${i.flag === 'HIGH' ? '↑ ' : i.flag === 'LOW' ? '↓ ' : ''}${i.name}: ${i.valueText ?? ''}`} onClick={() => openCitation(i.extractedPage)} />
                     ))}
                   </Stack>
                 </>
               ) : noRef.length > 0 ? (
-                <Typography sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                <Typography {...CARD_TITLE} sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: 'text.secondary' }}>
+                  <InfoOutlinedIcon sx={{ fontSize: 20 }} aria-hidden="true" />
                   {noRef.length} de {plural(items.length, 'valor')} sem referência informada pelo laboratório — não foi possível classificar automaticamente.
                 </Typography>
               ) : (
-                <Typography sx={{ fontWeight: 700, color: 'success.main' }}>
-                  ✅ Todos os {items.length} valores estão dentro da faixa de referência.
+                <Typography {...CARD_TITLE} sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: 'success.main' }}>
+                  <CheckCircleIcon sx={{ fontSize: 20 }} aria-hidden="true" />
+                  Todos os {items.length} valores estão dentro da faixa
                 </Typography>
               )}
             </CardContent>
           </Card>
 
-          {/* itens por painel — Acoordion colapsável (sem scroll infinito em exames grandes) */}
-          {Object.entries(grouped).map(([panel, list]: any) => {
+          {/* itens por painel — UMA lista com divisórias (25/11/26; antes cada painel era um cartão
+              separado). Accordion colapsável, sem scroll infinito em exames grandes. */}
+          <Box sx={{ mt: 2, borderRadius: RADIUS.sectionCard, border: '1px solid', borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper' }}>
+          {Object.entries(grouped).map(([panel, list]: any, panelIdx: number, panelList: any[]) => {
             const abn = (list as any[]).filter((i: any) => i.isAbnormal).length;
             const fewPanels = Object.keys(grouped).length <= 2;
             return (
             <Accordion key={panel} disableGutters elevation={0} defaultExpanded={fewPanels}
-              sx={{ mt: 1.5, borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
-                <Typography sx={{ fontWeight: 700, fontSize: '1rem', flex: '1 1 auto', minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere', pr: 1 }}>{panel}</Typography>
-                {abn > 0 && <Chip size="small" color="error" variant="outlined" label={`${abn} alterado${abn > 1 ? 's' : ''}`} sx={{ ml: 0.5, height: 20, flexShrink: 0 }} />}
-                <Chip size="small" label={`${(list as any[]).length} ${(list as any[]).length === 1 ? 'item' : 'itens'}`} sx={{ ml: 0.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20, flexShrink: 0 }} />
+              sx={{ mt: 0, backgroundColor: 'transparent', borderRadius: '0 !important', overflow: 'hidden', border: 0, borderBottom: panelIdx < panelList.length - 1 ? '1px solid' : 0, borderColor: 'divider', '&:before': { display: 'none' } }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '48px !important', px: 2, '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
+                <Typography component="h3" sx={{ fontWeight: 700, fontSize: '1rem', flex: '1 1 auto', minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere', pr: 1 }}>{panel}</Typography>
+                {abn > 0 && <Chip size="small" color="error" variant="outlined" label={`${abn} fora da faixa`} sx={{ ml: 0.5, height: 22, flexShrink: 0 }} />}
+                <Chip size="small" label={`${(list as any[]).length} ${(list as any[]).length === 1 ? 'item' : 'itens'}`} sx={{ ml: 0.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.primary', height: 20, fontWeight: 600, flexShrink: 0 }} />
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 1 }}>
+              {/* p: 0 — o respiro fica em cada linha (px/py abaixo), assim a lavagem do valor fora da faixa e as
+                  divisórias vão de borda a borda da seção. */}
+              <AccordionDetails sx={{ p: 0 }}>
                 <Stack divider={<Divider sx={{ borderColor: 'divider', my: 0.5 }} />}>
                   {(list as any[]).map((it) => {
                     const m = fm(it);
@@ -627,10 +682,10 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                     const goalText = goal ? dualStatusText(withinGoal(it.valueNumeric, goal), withinRef(it.valueNumeric, it.refLow, it.refHigh)) : null;
                     return (
                       <Box key={it.id} sx={{
-                        py: 1.25, pl: 1, borderRadius: RADIUS.sm,
-                        borderLeft: out ? '5px solid' : '5px solid transparent',
-                        borderColor: out ? (m.color === 'error' ? 'error.main' : 'warning.main') : 'transparent',
-                        background: out ? (m.color === 'error' ? 'rgba(198,40,40,.06)' : 'rgba(230,81,0,.06)') : 'transparent',
+                        py: 1.25, px: 2,
+                        // Fora da faixa = só a lavagem (é um estado), de borda a borda da seção (25/11/26). A faixa
+                        // lateral grossa de 5px saiu: é o mesmo "side-tab" que o design-system bane nos cartões.
+                        background: out ? (t) => alpha(m.color === 'error' ? t.palette.error.main : t.palette.warning.main, t.palette.mode === 'dark' ? 0.16 : 0.07) : 'transparent',
                       }}>
                         {/* Nome (quebra linha, não corta) + ? + status */}
                         <Stack direction="row" alignItems="flex-start" useFlexGap spacing={0.5} sx={{ mb: 0.25 }}>
@@ -657,7 +712,8 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                         <Stack direction="row" spacing={1} alignItems="baseline" useFlexGap flexWrap="wrap">
                           <EditableItemValue it={it} color={valColor} onSaved={(u) => setExam((e: any) => e ? { ...e, items: (e.items ?? []).map((i: any) => i.id === u.id ? { ...i, ...u } : i) } : e)} />
                           {unitSuffix(it) ? <UnitLabel unit={unitSuffix(it)} /> : null}
-                          <Button size="small" sx={{ fontSize: '0.75rem', minWidth: 0, p: 0 }} onClick={() => openCitation(it.extractedPage)}>pág. {it.extractedPage}</Button>
+                          {/* Link pequeno, alvo de 44px (abre o laudo nesta página — em cima do dedo não dá pra acertar 20px). */}
+                          <Button size="small" sx={{ fontSize: '0.85rem', minWidth: 0, p: 0, position: 'relative', '&::before': { content: '""', position: 'absolute', inset: '-12px -8px' } }} onClick={() => openCitation(it.extractedPage)}>pág. {it.extractedPage}</Button>
                         </Stack>
                         {/* Referência + barra visual */}
                         <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mt: 0.25, wordBreak: 'break-word' }}>
@@ -702,6 +758,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
             </Accordion>
           );
           })}
+          </Box>
         </>
       )}
 
@@ -709,7 +766,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
       {exam.status === 'EXTRACTED' && exam.kind === 'IMAGING' && exam.rawExtraction?.findings && (
         <Card sx={{ mt: 2 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>Achados do laudo</Typography>
+            <Typography {...CARD_TITLE} sx={{ mb: 1 }}>Achados do laudo</Typography>
             {(exam.rawExtraction.findings as any[]).map((f, i) => (
               <Typography key={i} sx={{ mb: 1, fontSize: '1.02rem' }}>• {f.text}</Typography>
             ))}
@@ -734,23 +791,35 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                 <HealthSummary analysis={summary} />
               )}
               <Box sx={{ mt: 1.5, textAlign: 'center' }}>
-                <Button size="small" variant="outlined" onClick={() => generateSummary(true)} disabled={genLoading}>
-                  {genLoading ? <CircularProgress size={18} /> : '↻ Regenerar resumo'}
-                </Button>{' '}
+                <SecondaryButton onClick={() => generateSummary(true)} disabled={genLoading} startIcon={genLoading ? <CircularProgress size={16} color="inherit" /> : <RefreshIcon />}>
+                  Regenerar resumo
+                </SecondaryButton>{' '}
                 <CreditBadge amount={CREDIT_COSTS.summary} />
               </Box>
             </>
           ) : (
             <Card variant="outlined">
               <CardContent>
-                <Typography variant="h6" gutterBottom>Análise de saúde</Typography>
+                <Typography {...CARD_TITLE} sx={{ mb: 0.75 }}>Análise de saúde</Typography>
                 <Typography color="text.secondary" sx={{ mb: 2 }}>
                   Gera um resumo educativo comparando com o exame anterior e os pontos a levar ao médico.
                 </Typography>
-                <Button variant="contained" size="large" onClick={() => generateSummary(false)} disabled={genLoading}>
-                  {genLoading ? <CircularProgress size={22} /> : 'Gerar resumo'}
-                </Button>{' '}
-                <CreditBadge amount={CREDIT_COSTS.summary} />
+                {/* Exame bloqueado por CPF: "Gerar resumo" seria recusado na hora. Em vez do botão destaque que
+                    não funciona, a pessoa vê o motivo — o destaque da tela fica com o que resolve ("Acredito que
+                    houve um erro", no aviso acima). */}
+                {cpfBlock ? (
+                  <Stack direction="row" spacing={0.75} alignItems="center" sx={{ color: 'text.secondary', fontSize: 13.5 }}>
+                    <LockIcon sx={{ fontSize: 18, flexShrink: 0 }} aria-hidden="true" />
+                    A análise deste exame só fica disponível depois que o CPF for conferido.
+                  </Stack>
+                ) : (
+                  <>
+                    <Button variant="contained" size="large" onClick={() => generateSummary(false)} disabled={genLoading}>
+                      {genLoading ? <CircularProgress size={22} /> : 'Gerar resumo'}
+                    </Button>{' '}
+                    <CreditBadge amount={CREDIT_COSTS.summary} />
+                  </>
+                )}
                 {genLoading && <Box sx={{ mt: 3, pt: 1 }}><AnalysisScan label="Dr. Exame está analisando seu exame" /></Box>}
               </CardContent>
             </Card>
@@ -760,7 +829,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
       {exam.status === 'EXTRACTED' && summary && (
         <Card sx={{ mt: 2 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>Conversar com Dr. Exame</Typography>
+            <Typography {...CARD_TITLE} sx={{ mb: 1 }}>Conversar com Dr. Exame</Typography>
             <Box sx={{ mb: 1 }}><CreditBadge amount={CREDIT_COSTS.chat} label={`${CREDIT_COSTS.chat} por pergunta`} /></Box>
             <Box sx={{ maxHeight: 320, overflowY: 'auto', mb: 1, p: 1, bgcolor: 'action.hover', borderRadius: RADIUS.sm }}>
               {chatMessages.length === 0 && <Typography color="text.secondary">Ex.: "Por que minha hemoglobina subiu?"</Typography>}
@@ -793,13 +862,17 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
         </Card>
       )}
 
-      {/* PREPARO DE CONSULTA */}
+      {/* PREPARO DE CONSULTA — cartão limpo (25/11/26): sem o fundo verde, tinta é só para estado.
+          "Gerar documento" é ação discreta; o único botão destaque da tela é "Gerar resumo". */}
       {exam.status === 'EXTRACTED' && (
-        <Card sx={{ mt: 2, background: 'linear-gradient(135deg, rgba(22,163,74,.10), rgba(22,163,74,.03))', border: '1px solid', borderColor: 'rgba(22,163,74,.25)' }}>
+        <Card sx={{ mt: 2 }}>
           <CardContent>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.25, sm: 2 }} alignItems={{ xs: 'stretch', sm: 'center' }}>
-              <Typography variant="h6" sx={{ color: 'success.main', flex: 1 }}>📋 Preparar visita ao médico</Typography>
-              <Button variant="contained" color="success" size="large" sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+              <Typography {...CARD_TITLE} sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flex: 1 }}>
+                <AssignmentTurnedInIcon sx={{ fontSize: 20, color: (t) => tealText(t.palette.mode) }} aria-hidden="true" />
+                Preparar visita ao médico
+              </Typography>
+              <SecondaryButton sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}
                 onClick={async () => {
                   const r = await fetch(`${API_URL}/consulta/exams/${id}`, {
                     method: 'POST', headers: { Authorization: `Bearer ${token()}` },
@@ -808,10 +881,10 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                   if (d.html) { setDocHtml(d.html); setDocTitle('Preparo de consulta'); setDocOpen(true); }
                 }}>
                 Gerar documento
-              </Button>
+              </SecondaryButton>
             </Stack>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-              1 página com valores alterados + perfil clínico + comparação. Pronto para levar na consulta.
+            <Typography sx={{ color: 'text.secondary', mt: 0.5, fontSize: 13, lineHeight: 1.45 }}>
+              1 página com os valores fora da faixa + perfil clínico + comparação. Pronto para levar na consulta.
             </Typography>
           </CardContent>
         </Card>

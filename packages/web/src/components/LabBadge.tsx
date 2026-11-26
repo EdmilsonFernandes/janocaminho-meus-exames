@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { API_URL } from '../config';
 import { matchLab, labColor, labInitial, labUnit, fetchLabs } from '../utils/labRegistry';
+import { prettyName } from '../utils/names';
 
 /** Badge de laboratório com identidade de marca:
  *  - se a marca tem LOGO (admin subiu): mostra a imagem (estilo app de saúde);
@@ -18,13 +19,15 @@ export const LabBadge = ({ raw, size = 'sm', showUnit = false }: { raw?: string 
   const name = brand?.name ?? raw;
   const unit = brand ? labUnit(raw) : null;
   const dim = size === 'md' ? 28 : 20;
-  const fs = size === 'md' ? 12.5 : 10.5;
+  // Nome legível (25/11/26): era 10,5px na cor da marca — "Delboni" em rosa dava 3,25:1 de contraste.
+  // A cor da marca fica no círculo (logo ou inicial); o nome vai em cinza AA nos dois modos.
+  const fs = size === 'md' ? 13 : 12.5;
   return (
     <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, verticalAlign: 'middle', maxWidth: '100%', overflow: 'hidden' }} title={`Laboratório: ${name}${unit ? ` · unidade ${unit}` : ''}`}>
       {brand?.hasLogo && brand.id ? (
         <Box component="img" src={`${API_URL}/labs/${brand.id}/logo`} alt={name} sx={{ width: dim, height: dim, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, bgcolor: '#fff', boxShadow: `0 1px 3px ${color}33` }} />
       ) : (
-        <Box sx={{ width: dim, height: dim, borderRadius: '50%', flexShrink: 0, display: 'grid', placeItems: 'center', background: color, color: '#fff', fontWeight: 800, fontSize: fs * 0.85, lineHeight: 1, boxShadow: `0 1px 3px ${color}55` }}>{labInitial(name)}</Box>
+        <Box sx={{ width: dim, height: dim, borderRadius: '50%', flexShrink: 0, display: 'grid', placeItems: 'center', background: color, color: '#fff', fontWeight: 800, fontSize: fs * 0.75, lineHeight: 1, boxShadow: `0 1px 3px ${color}55` }}>{labInitial(name)}</Box>
       )}
       {/* minWidth:0 + ellipsis: lab cru NÃO cadastrado (ex.: "VOLPI ara Vol! Jnir BIANCARDI…")
           já estourou 113px pra fora do card e foi cortado pelo overflow do AppCard (fix 2026-09-07).
@@ -32,7 +35,7 @@ export const LabBadge = ({ raw, size = 'sm', showUnit = false }: { raw?: string 
           lineHeight 1.25 (era 1.1): com o overflow hidden da própria caixa, 1.1 raspava o topo das
           letras altas e dos acentos do nome do laboratório (ascendente do Inter ≈ 1,21em). */}
       <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
-        <Typography component="span" sx={{ display: 'block', fontSize: fs, fontWeight: 800, color: brand ? color : 'text.primary', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</Typography>
+        <Typography component="span" sx={{ display: 'block', fontSize: fs, fontWeight: 700, color: 'text.secondary', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{prettyName(name)}</Typography>
         {showUnit && unit && <Typography component="span" sx={{ fontSize: fs * 0.85, color: 'text.secondary', ml: 0.5, whiteSpace: 'nowrap' }}>: {unit}</Typography>}
       </Box>
     </Box>

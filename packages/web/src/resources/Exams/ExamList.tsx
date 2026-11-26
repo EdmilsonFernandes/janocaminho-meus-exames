@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef, type ReactNode } from 'react';
-import { plural } from '../../utils/format';
+import { Fragment, useEffect, useState, useRef, type ReactNode } from 'react';
+import { plural, fmtDateShort, timeAgo } from '../../utils/format';
 import { List, useListContext, useRefresh, useNotify, useTranslate } from 'react-admin';
 import { track } from '../../utils/analytics';
 import { chipA11y } from '../../utils/chipA11y';
@@ -20,6 +20,8 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LockIcon from '@mui/icons-material/Lock';
+import BlockIcon from '@mui/icons-material/Block';
+import ReplayIcon from '@mui/icons-material/Replay';
 import SearchIcon from '@mui/icons-material/Search';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
@@ -41,7 +43,6 @@ import { ListSkeleton } from '../../components/Skeleton';
 import { EmptyState } from '../../components/EmptyState';
 import { LabBadge } from '../../components/LabBadge';
 import { AppCard } from '../../components/AppCard';
-import { GradientButton } from '../../components/GradientButton';
 import { ProcessingStages } from '../../components/ProcessingStages';
 import { DateLabel } from '../../components/DateLabel';
 import { ChangesSinceExam, type Marker } from '../../components/dashboard/ChangesSinceExam';
@@ -50,6 +51,9 @@ import { cleanExtractedLabel } from '../../utils/examDisplay';
 import { openExamFile } from '../../utils/examFile';
 import { ExamFilePreview } from '../../components/ExamFilePreview';
 import { RADIUS, SEM, tealText } from '../../theme';
+import { SecondaryButton } from '../../components/SecondaryButton';
+import { prettyName } from '../../utils/names';
+import { elapsedLabel } from '../../utils/elapsed';
 import { Timeline, TimelineItem, TimelineSeparator, TimelineIndicator, TimelineHeader, TimelineTitle, TimelineDate, TimelineContent } from '@/components/reui/timeline';
 
 // Status de PROCESSAMENTO (não clínico) → chave de paleta (token, sem hex literal).
@@ -64,6 +68,56 @@ const RECENT_DAYS = 90; // filtro "Recentes": últimos ~3 meses.
 
 /** Tema mínimo p/ callbacks sx de cor por modo (indexar SEM com `any` dá TS7053). */
 type ModeTheme = { palette: { mode: 'light' | 'dark' } };
+
+/** Hover de cartão de LISTA (25/11/26, regra de profundidade do DS): o AppCard interativo levanta e ganha
+ *  sombra sob o mouse; aqui só a borda acende — sombra fica com o que flutua. O sx do AppCard é espalhado por
+ *  objeto, então o hover precisa vir inteiro (o dele é substituído, não mesclado). */
+const QUIET_HOVER = { transform: 'none', boxShadow: 'none', borderColor: 'rgba(32,178,170,.55)' } as const;
+
+/** Título de grupo da lista — mesmo nível do título de seção da Home (Poppins 17/700). */
+const GROUP_TITLE_STYLE = { fontSize: 17, fontWeight: 700, lineHeight: 1.25, fontFamily: '"Poppins", sans-serif' } as const;
+
+/** Texto de chip de status legível nos dois modos: o hex da paleta (#dc2626) dava 4,0:1 sobre a lavagem e
+ *  quase sumia no escuro. Usa o par light/dark de SEM. */
+const SEM_BY_TONE: Record<string, 'ok' | 'bad' | 'warn' | 'info'> = { success: 'ok', error: 'bad', warning: 'warn', info: 'info' };
+const statusText = (t: ModeTheme, sc: string) => (SEM_BY_TONE[sc] ? SEM[SEM_BY_TONE[sc]][t.palette.mode] : toneMain(t, sc));
+
+/** Texto de chip "na faixa" / "fora da faixa" sobre a própria lavagem: os tons -700 de SEM davam 4,49:1 e ~4,1:1
+ *  no modo claro (medido em 25/11/26). No escuro os pares de SEM já passam. */
+const okText = (t: ModeTheme) => (t.palette.mode === 'dark' ? SEM.ok.dark : '#065f46');
+const warnText = (t: ModeTheme) => (t.palette.mode === 'dark' ? SEM.warn.dark : '#92400e');
+
+/** Palavras curtas não quebram no meio: "Vitamina D — 25-OH" partia em "25-" / "OH" no celular. Cada pedaço de
+ *  até `max` letras vira um trecho inseparável; nomes longos continuam quebrando onde couber. */
+const UnbrokenWords = ({ text, max = 14 }: { text: string; max?: number }) => (
+  <>
+    {text.split(' ').map((w, i) => (
+      <Fragment key={i}>
+        {i > 0 && ' '}
+        {w.length <= max ? <Box component="span" sx={{ whiteSpace: 'nowrap' }}>{w}</Box> : w}
+      </Fragment>
+    ))}
+  </>
+);
+
+/** "22 resultados" / "Documento médico" — mesma frase do rodapé do card, para a linha de detalhe da timeline. */
+const itemCountText = (r: any) => { const n: number = r?._count?.items ?? 0; return n > 0 ? plural(n, 'resultado') : 'Documento médico'; };
+
+/** Título de grupo da lista ("Em processamento", "Não foi possível ler", "Não adicionados").
+ *  Mesmo papel do título de seção da Home (25/11/26): 17px e o ícone do conjunto do app — antes o
+ *  ícone era um emoji dentro do texto traduzido. A contagem fica ao lado, como antes. */
+const GroupTitle = ({ icon, title, count, tone = 'neutral' }: { icon: ReactNode; title: string; count: number; tone?: 'info' | 'bad' | 'neutral' }) => {
+  // SEM.bad em vez de error.main (25/11/26): o #dc2626 da paleta dava 3,7:1 no chip de contagem, sobre a lavagem.
+  const color = (t: ModeTheme) => (tone === 'neutral' ? 'text.secondary' : SEM[tone === 'info' ? 'info' : 'bad'][t.palette.mode]);
+  const wash = (t: ModeTheme) => (tone === 'neutral' ? 'action.hover' : alpha(SEM[tone === 'info' ? 'info' : 'bad'][t.palette.mode], 0.14));
+  return (
+    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
+      <Box sx={{ display: 'flex', color, '& svg': { fontSize: 20 } }} aria-hidden="true">{icon}</Box>
+      <Typography component="h2" sx={{ ...GROUP_TITLE_STYLE, color, minWidth: 0 }}>{title}</Typography>
+      <Chip size="small" label={count} sx={{ height: 24, minWidth: 24, px: 0.75, fontSize: 13, fontWeight: 700, bgcolor: wash, color }} />
+    </Stack>
+  );
+};
 
 /** Ano (int) de um exame — performedAt (data do exame) com fallback no envio (createdAt). */
 const yearOf = (r: any): number | null => {
@@ -84,8 +138,6 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
   const start = r.createdAt ? new Date(r.createdAt).getTime() : 0;
   const elapsed = start ? Math.max(0, Math.floor((now - start) / 1000)) : 0;
-  const mm = Math.floor(elapsed / 60);
-  const ss = (elapsed % 60).toString().padStart(2, '0');
   // Etapa corrente pelo status REAL do exame: EXTRACTING = IA já lendo o conteúdo.
   const stage = r.status === 'EXTRACTING' ? 1 : 0;
   return (
@@ -102,28 +154,35 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
           to: { opacity: 1, transform: 'none' },
         },
         '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+        '&:hover': QUIET_HOVER,
       }}
     >
-      <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
-        <Box sx={{ flexShrink: 0, display: 'grid', placeItems: 'center' }}>
-          <DrExameRobot size={48} />
+      <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pt: 1.5, px: { xs: 1.5, sm: 2 } }}>
+          <Box sx={{ flexShrink: 0, display: 'grid', placeItems: 'center' }}>
+            <DrExameRobot size={48} />
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title || 'Novo exame enviado'}</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+              {r.status === 'EXTRACTING' ? 'Lendo os resultados…' : 'Exame recebido, preparando a leitura…'} {start ? <Box component="span" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{elapsedLabel(elapsed)}</Box> : null}
+            </Typography>
+          </Box>
+          {onCancel && <IconButton onClick={(e) => { e.stopPropagation(); onCancel(e); }} title="Cancelar e excluir" aria-label="Cancelar e excluir exame" sx={{ flexShrink: 0, color: 'text.secondary', width: 44, height: 44 }}><CloseIcon sx={{ fontSize: 20 }} /></IconButton>}
+          <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0, display: { xs: 'none', sm: 'block' } }} />
         </Box>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title || 'Novo exame enviado'}</Typography>
-          <Typography variant="caption" color="text.secondary">
-            {r.status === 'EXTRACTING' ? 'Lendo os resultados…' : 'Exame recebido, preparando a leitura…'} {start ? <Box component="span" sx={{ fontWeight: 700, fontFamily: 'monospace' }}>há {mm}:{ss}</Box> : null}
-          </Typography>
-          {/* Orienta a espera: quanto costuma levar, se pode sair e como vai saber que terminou. */}
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4, mt: 0.25 }}>
-            {elapsed > 240
+        {/* Orienta a espera: quanto costuma levar, se pode sair e como vai saber que terminou.
+            (25/11/26) Em linha inteira, abaixo do cabeçalho: espremido na coluna do título eram 4 linhas
+            num celular de 360px. Preso há mais de um dia ganha frase própria — "demorando mais" não descreve. */}
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4, mt: 0.25, px: { xs: 1.5, sm: 2 } }}>
+          {elapsed >= 86400
+            ? 'A leitura está demorando muito mais que o normal. Não precisa reenviar: se não der para ler, avisamos e devolvemos o crédito.'
+            : elapsed > 240
               ? 'Está demorando mais que o normal. Não precisa reenviar: se não der para ler, avisamos e devolvemos o crédito.'
               : 'Costuma levar de 1 a 3 minutos. Pode sair desta tela ou enviar outro exame: avisamos quando ficar pronto.'}
-          </Typography>
-        </Box>
-        {onCancel && <IconButton size="small" onClick={(e) => { e.stopPropagation(); onCancel(e); }} title="Cancelar e excluir" aria-label="Cancelar e excluir exame" sx={{ flexShrink: 0, color: 'text.secondary', p: 1.25 }}><CloseIcon fontSize="small" /></IconButton>}
-        <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
+        </Typography>
       </CardContent>
-      <Box sx={{ px: { xs: 1.5, sm: 2 }, pb: 1.25 }}>
+      <Box sx={{ px: { xs: 1.5, sm: 2 }, pt: 1, pb: 1.25 }}>
         <ProcessingStages active={stage} />
       </Box>
       <LinearProgress sx={{ height: 4, '& .MuiLinearProgress-bar': { background: 'linear-gradient(90deg,#0ea5e9,#20b2aa)' } }} />
@@ -135,9 +194,9 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
 const ExamHero = ({ r, abnCount, onView, onPdf }: { r: any; abnCount: number; onView: () => void; onPdf: () => void }) => {
   const titleInfo = cleanExtractedLabel(r.title, kindLabel[r.kind] ?? 'Exame', 60);
   const itemCount: number = r._count?.items ?? 0;
-  const tone = abnCount > 0 ? 'warning' : 'primary';
   return (
-    <AppCard kind="tinted" tone={tone} tone2="secondary" glow sx={{ p: { xs: 2, md: 2.5 }, height: '100%' }}>
+    // Cartão limpo (regra de profundidade do DS, 25/11/26): sem tinta nem brilho decorativos.
+    <AppCard sx={{ p: { xs: 2, md: 2.5 }, height: '100%' }}>
       {/* Sem uppercase/ls largo no label (audit: caixa alta = cara de dashboard admin, não app premium). */}
       <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>Último exame</Typography>
       <Typography title={titleInfo.original || r.title} sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 19, md: 22 }, lineHeight: 1.2, mt: 0.25, wordBreak: 'break-word' }}>{titleInfo.text || 'Exame'}</Typography>
@@ -145,13 +204,14 @@ const ExamHero = ({ r, abnCount, onView, onPdf }: { r: any; abnCount: number; on
       <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5, alignItems: 'center' }}>
         <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{itemCount} resultado{itemCount !== 1 ? 's' : ''}</Typography>
         {abnCount > 0 ? (
-          <Chip size="small" label={`${abnCount} alterado${abnCount === 1 ? '' : 's'}`} sx={{ height: 22, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.14), color: (t) => SEM.warn[t.palette.mode] }} />
+          <Chip size="small" label={`${abnCount} fora da faixa`} sx={{ height: 22, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.14), color: warnText }} />
         ) : (
-          <Chip size="small" label="Nada alterado" sx={{ height: 22, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: (t) => alpha(SEM.ok[t.palette.mode], 0.14), color: (t) => SEM.ok[t.palette.mode] }} />
+          <Chip size="small" label="Todos na faixa" sx={{ height: 22, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: (t) => alpha(SEM.ok[t.palette.mode], 0.14), color: okText }} />
         )}
       </Stack>
       <Stack direction="row" spacing={1} sx={{ mt: 2.25 }}>
-        <GradientButton onClick={onView} endIcon={<ArrowForwardIcon />} sx={{ flex: 1 }}>Ver análise</GradientButton>
+        {/* Ação discreta: o destaque da lista é o "+" de enviar exame (uma ação destaque por tela). */}
+        <SecondaryButton onClick={onView} endIcon={<ArrowForwardIcon />} sx={{ flex: 1 }}>Ver análise</SecondaryButton>
         <Button variant="outlined" onClick={onPdf} startIcon={<PictureAsPdfOutlinedIcon />} sx={{ borderRadius: RADIUS.button, textTransform: 'none', fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }}>Abrir laudo</Button>
       </Stack>
     </AppCard>
@@ -167,17 +227,26 @@ const ExamHeroCompact = ({ r, abnCount, onView }: { r: any; abnCount: number; on
   const titleInfo = cleanExtractedLabel(r.title, kindLabel[r.kind] ?? 'Exame', 60);
   const itemCount: number = r._count?.items ?? 0;
   return (
-    <AppCard kind="tinted" tone={abnCount > 0 ? 'warning' : 'primary'} tone2="secondary" sx={{ p: 0 }}>
+    <AppCard sx={{ p: 0 }}>
       <Box component="button" type="button" onClick={onView} aria-label={`Abrir a análise do último exame: ${titleInfo.text || 'Exame'}`}
         sx={{ all: 'unset', boxSizing: 'border-box', width: '100%', minHeight: 72, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.25, borderRadius: 'inherit',
           '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 }, '&:active': { transform: 'scale(0.99)' }, transition: 'transform 160ms cubic-bezier(0.22,1,0.36,1)' }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>Último exame</Typography>
+          {/* Data + "de quando" junto do rótulo (25/11/26): "Último exame" sem idade do exame violava a regra
+              "nenhum dado de saúde sem dizer de quando é" — e no celular esta linha é a única que cabe. */}
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>
+            Último exame{' '}
+            {r.performedAt && (
+              <Typography component="span" sx={{ fontSize: 12, fontWeight: 600, ml: 0.75 }}>
+                · {fmtDateShort(r.performedAt)}{timeAgo(r.performedAt) ? ` · ${timeAgo(r.performedAt)}` : ''}
+              </Typography>
+            )}
+          </Typography>
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 16, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titleInfo.text || 'Exame'}</Typography>
           <Stack direction="row" spacing={1} sx={{ mt: 0.25, alignItems: 'center', flexWrap: 'wrap', rowGap: 0.25 }}>
             <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>{itemCount} resultado{itemCount !== 1 ? 's' : ''}</Typography>
-            <Chip size="small" label={abnCount > 0 ? `${abnCount} alterado${abnCount === 1 ? '' : 's'}` : 'Nada alterado'}
-              sx={{ height: 20, fontSize: 12, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: (t) => alpha((abnCount > 0 ? SEM.warn : SEM.ok)[t.palette.mode], 0.14), color: (t) => (abnCount > 0 ? SEM.warn : SEM.ok)[t.palette.mode] }} />
+            <Chip size="small" label={abnCount > 0 ? `${abnCount} fora da faixa` : 'Todos na faixa'}
+              sx={{ height: 20, fontSize: 12, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: (t) => alpha((abnCount > 0 ? SEM.warn : SEM.ok)[t.palette.mode], 0.14), color: (t) => (abnCount > 0 ? warnText(t) : okText(t)) }} />
           </Stack>
         </Box>
         <Box aria-hidden sx={{ flexShrink: 0, width: 40, height: 40, borderRadius: '50%', display: 'grid', placeItems: 'center', color: '#fff', background: 'linear-gradient(135deg,#20b2aa,#178f89)' }}>
@@ -215,6 +284,9 @@ const ExamFilterToolbar = ({
   const isAllActive = sfilter === 'all' && cat === 'all';
   const isAlteredActive = sfilter === 'altered';
   const isRecentActive = sfilter === 'recent';
+  // No celular o campo tem ~190px: o exemplo "(TSH, glicose...)" saía cortado no meio. Fica só no desktop.
+  const theme = useTheme();
+  const isSm = useMediaQuery(theme.breakpoints.up('sm'));
 
   return (
     <Stack spacing={1} sx={{ mb: 0.5 }}>
@@ -225,7 +297,7 @@ const ExamFilterToolbar = ({
           fullWidth
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Buscar exame (TSH, glicose...)"
+          placeholder={isSm ? 'Buscar exame (TSH, glicose...)' : 'Buscar exame…'}
           inputProps={{ 'aria-label': 'Buscar exame por nome' }}
           InputProps={{
             startAdornment: (
@@ -241,20 +313,20 @@ const ExamFilterToolbar = ({
               </InputAdornment>
             ) : null,
           }}
-          sx={{ flex: 1, '& .MuiOutlinedInput-root': { borderRadius: RADIUS.button, bgcolor: 'background.paper' } }}
+          sx={{ flex: 1, '& .MuiOutlinedInput-root': { borderRadius: RADIUS.button, bgcolor: 'background.paper', minHeight: { xs: 48, md: 44 } } }}
         />
         <ToggleButtonGroup
           exclusive
           size="small"
           value={view}
           onChange={(_, v) => { if (v) setView(v); }}
-          sx={{ flexShrink: 0, bgcolor: 'background.paper', borderRadius: RADIUS.button, height: 40 }}
+          sx={{ flexShrink: 0, bgcolor: 'background.paper', borderRadius: RADIUS.button, height: { xs: 48, md: 44 } }}
         >
-          <ToggleButton value="date" aria-label="Visualizar por data" sx={{ px: { xs: 1.25, sm: 1.5 }, py: 0.5, minHeight: 44, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider', gap: 0.5 }}>
+          <ToggleButton value="date" aria-label="Visualizar por data" sx={{ px: { xs: 1.25, sm: 1.5 }, py: 0.5, minWidth: { xs: 48, sm: 0 }, minHeight: { xs: 48, md: 44 }, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider', gap: 0.5 }}>
             <CalendarMonthIcon sx={{ fontSize: 16 }} />
             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Data</Box>
           </ToggleButton>
-          <ToggleButton value="category" aria-label="Visualizar por categoria" sx={{ px: { xs: 1.25, sm: 1.5 }, py: 0.5, minHeight: 44, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider', gap: 0.5 }}>
+          <ToggleButton value="category" aria-label="Visualizar por categoria" sx={{ px: { xs: 1.25, sm: 1.5 }, py: 0.5, minWidth: { xs: 48, sm: 0 }, minHeight: { xs: 48, md: 44 }, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider', gap: 0.5 }}>
             <FolderOutlinedIcon sx={{ fontSize: 16 }} />
             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Categoria</Box>
           </ToggleButton>
@@ -270,7 +342,7 @@ const ExamFilterToolbar = ({
           onClick={() => { setSfilter('all'); setCat('all'); }}
           {...chipA11y(isAllActive)}
           sx={{
-            height: 32,
+            height: 44,
             flexShrink: 0,
             fontWeight: 800,
             whiteSpace: 'nowrap',
@@ -286,11 +358,11 @@ const ExamFilterToolbar = ({
           <Chip
             size="small"
             icon={<WarningAmberIcon sx={{ fontSize: '15px !important', color: (t: ModeTheme) => `${isAlteredActive ? '#fff' : SEM.warn[t.palette.mode]} !important`, ml: 0.5, mr: -0.5 }} />}
-            label={`Alterados (${abnormalCount})`}
+            label={`Fora da faixa (${abnormalCount})`}
             onClick={() => { setSfilter(isAlteredActive ? 'all' : 'altered'); setCat('all'); }}
             {...chipA11y(isAlteredActive)}
             sx={{
-              height: 32,
+              height: 44,
               flexShrink: 0,
               fontWeight: 800,
               whiteSpace: 'nowrap',
@@ -311,7 +383,7 @@ const ExamFilterToolbar = ({
             onClick={() => { setSfilter(isRecentActive ? 'all' : 'recent'); setCat('all'); }}
             {...chipA11y(isRecentActive)}
             sx={{
-              height: 32,
+              height: 44,
               flexShrink: 0,
               fontWeight: 700,
               whiteSpace: 'nowrap',
@@ -337,12 +409,14 @@ const ExamFilterToolbar = ({
               onClick={() => { setCat(isCatActive ? 'all' : c.key); setSfilter('all'); }}
               {...chipA11y(isCatActive)}
               sx={{
-                height: 32,
+                height: 44,
                 flexShrink: 0,
                 fontWeight: 700,
                 whiteSpace: 'nowrap',
                 bgcolor: isCatActive ? c.color : (t) => alpha(c.color, t.palette.mode === 'dark' ? 0.22 : 0.10),
-                color: isCatActive ? '#fff' : (t) => (t.palette.mode === 'dark' ? lighten(c.color, 0.35) : c.color),
+                // Texto do chip em cinza escuro no modo claro: a cor da categoria em 13px dava 3,2:1 de
+                // contraste (25/11/26). A cor da categoria segue no fundo, na borda e no ícone.
+                color: isCatActive ? '#fff' : (t) => (t.palette.mode === 'dark' ? lighten(c.color, 0.35) : '#1e293b'),
                 border: '1px solid',
                 borderColor: isCatActive ? c.color : (t) => alpha(c.color, t.palette.mode === 'dark' ? 0.45 : 0.25),
                 '& .MuiChip-icon': { color: isCatActive ? '#fff !important' : (t: ModeTheme) => `${t.palette.mode === 'dark' ? lighten(c.color, 0.35) : c.color} !important` },
@@ -594,7 +668,6 @@ const ExamCards = () => {
     const itemCount: number = r._count?.items ?? 0;
     const Icon = r.kind === 'IMAGING' ? ImageIcon : r.kind === 'LAB_PANEL' ? ScienceIcon : DescriptionOutlinedIcon;
     const CatIcon = cc.icon;
-    const accentColor = altered > 0 ? '#f59e0b' : r.kind === 'IMAGING' ? '#0284c7' : '#14b8a6';
     return (
       <AppCard key={r.id} kind="interactive" onClick={() => isMd ? setSelected(r.id) : navigate(`/exams/${r.id}/show`)} sx={{
         position: 'relative',
@@ -605,31 +678,20 @@ const ExamCards = () => {
           : altered > 0
             ? (t.palette.mode === 'dark' ? 'rgba(245,158,11,0.28)' : 'rgba(245,158,11,0.24)')
             : (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(15,118,110,0.12)'),
-        background: (t) => t.palette.mode === 'dark'
-          ? 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)'
-          : altered > 0
-            ? 'linear-gradient(145deg, #ffffff 0%, rgba(254,243,199,0.22) 100%)'
-            : 'linear-gradient(145deg, #ffffff 0%, rgba(240,253,250,0.45) 100%)',
-        boxShadow: (t) => isMd && selected === r.id
-          ? '0 0 0 2px #20b2aa inset, 0 8px 24px rgba(32,178,170,0.14)'
-          : t.palette.mode === 'dark'
-            ? '0 4px 16px rgba(0,0,0,0.28)'
-            : '0 2px 10px rgba(15,61,58,0.04), 0 1px 2px rgba(15,61,58,0.03)',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: 4,
-          bgcolor: accentColor,
-        },
+        // Borda em repouso (regra de profundidade do DS, 25/11/26): sem sombra, sem gradiente e sem
+        // a faixa lateral colorida — quem diz que há valor fora da faixa é o chip do rodapé. No
+        // desktop (master/detail) o card selecionado mantém o anel teal.
+        boxShadow: isMd && selected === r.id ? '0 0 0 2px #20b2aa inset' : 'none',
+        // Mouse (25/11/26): não levanta nem ganha sombra no hover — só a borda acende (regra de profundidade).
+        // Antes o card selecionado no desktop ficava com um brilo teal por baixo só porque o cursor estava nele.
+        '&:hover': isMd && selected === r.id ? { ...QUIET_HOVER, boxShadow: '0 0 0 2px #20b2aa inset', borderColor: '#20b2aa' } : QUIET_HOVER,
         ...(isOld ? { filter: 'grayscale(.85)', opacity: 0.72, transition: `filter ${DUR}ms ease, opacity ${DUR}ms ease` } : {}),
       }}>
         <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
           {/* Corpo principal do Card */}
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, pt: 1.75, pb: 1.5, pl: 2.25, pr: 1.5 }}>
-            <IconTile tone={altered > 0 ? 'amber' : r.kind === 'IMAGING' ? 'sky' : 'teal'}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, pt: 1.75, pb: 1.5, pl: 2, pr: 1.5 }}>
+            {/* Variante `soft` do IconTile (padrão ReUI): lavagem + ícone forte, para listas densas. */}
+            <IconTile soft tone={altered > 0 ? 'amber' : r.kind === 'IMAGING' ? 'sky' : 'teal'}>
               <Icon sx={{ fontSize: 22 }} />
             </IconTile>
             <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -640,7 +702,7 @@ const ExamCards = () => {
                   sx={{
                     fontFamily: '"Poppins", sans-serif',
                     fontWeight: 700,
-                    fontSize: { xs: 14, sm: 15 },
+                    fontSize: 16,
                     lineHeight: 1.28,
                     color: 'text.primary',
                     display: '-webkit-box',
@@ -650,9 +712,10 @@ const ExamCards = () => {
                     overflowWrap: 'anywhere',
                   }}
                 >
-                  <PrivacyText>{titleInfo.text || 'Exame'}</PrivacyText>
+                  <PrivacyText><UnbrokenWords text={titleInfo.text || 'Exame'} /></PrivacyText>
                 </Typography>
-                <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, mt: -0.25 }}>
+                {/* "?" ao lado do título só onde sobra largura (tablet/desktop). No celular ele vai para o rodapé. */}
+                <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, mt: -0.25, display: { xs: 'none', sm: 'block' } }}>
                   <ExplainButton name={r.title} />
                 </Box>
               </Box>
@@ -673,7 +736,8 @@ const ExamCards = () => {
                     fontSize: 12,
                     fontWeight: 700,
                     bgcolor: `${cc.color}14`,
-                    color: cc.color,
+                    // Texto legível: a cor da categoria em 12px dava 3,3:1 no modo claro (25/11/26).
+                    color: (t) => (t.palette.mode === 'dark' ? lighten(cc.color, 0.35) : '#334155'),
                     border: `1px solid ${cc.color}28`,
                     whiteSpace: 'nowrap',
                   }}
@@ -681,11 +745,28 @@ const ExamCards = () => {
                   <CatIcon sx={{ fontSize: 12 }} />
                   {cc.cat}
                 </Box>
-              </Box>
+              {/* "Conferir dados" ao lado da categoria (25/11/26): no rodapé ele quebrava sozinho
+                  para uma segunda linha e o rodapé deixava de ser uma linha só. */}
+              {needsReview && (
+                <Chip
+                  size="small"
+                  label={translate('exams.review')}
+                  sx={{
+                    bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.14),
+                    // #b45309 sobre a própria lavagem dava 4,1:1 no modo claro (medido em 25/11/26).
+                    color: warnText,
+                    fontWeight: 800,
+                    height: 24,
+                    fontSize: 12,
+                  }}
+                />
+              )}
+            </Box>
 
               {!labInfo.text && labInfo.suspicious && (
-                <Typography variant="caption" sx={{ display: 'block', color: 'warning.main', fontWeight: 700, lineHeight: 1.3, mt: 0.35 }}>
-                  🏥 Laboratório em revisão
+                <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'warning.main', fontWeight: 700, lineHeight: 1.3, mt: 0.35 }}>
+                  <WarningAmberIcon sx={{ fontSize: 14 }} aria-hidden="true" />
+                  Laboratório em revisão
                 </Typography>
               )}
               {doctorInfo.text && (
@@ -696,6 +777,7 @@ const ExamCards = () => {
                     display: 'block',
                     color: 'text.secondary',
                     fontWeight: 600,
+                    fontSize: 13,
                     lineHeight: 1.35,
                     mt: 0.4,
                     whiteSpace: 'nowrap',
@@ -703,26 +785,30 @@ const ExamCards = () => {
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  🩺 Dr. {doctorInfo.text}
+                  {/* Caixa normal ("Dr. Daniel Cesar Shirane"): o laudo manda em maiúsculas e o nome
+                      saía como "Dr. DANIEL CESAR SHIR…". */}
+                  Dr. {prettyName(doctorInfo.text)}
                 </Typography>
               )}
             </Box>
 
+            {/* Alvo de 44px no celular (o ícone é pequeno, o dedo não) e seta só onde sobra espaço: no celular ela
+                custava 22px da largura do título e o card já é inteiro clicável. */}
             <Stack direction="row" alignItems="center" spacing={0.25} sx={{ flexShrink: 0, mt: -0.25 }}>
               <IconButton
-                size="small"
                 onClick={(e) => del(e, r.id, r.title)}
                 title="Excluir"
                 aria-label={`Excluir exame ${r.title}`}
-                sx={{ p: 1, color: 'text.secondary', '&:hover': { color: 'error.main' } }}
+                sx={{ p: 1, width: 44, height: 44, color: 'text.secondary', '&:hover': { color: 'error.main' } }}
               >
-                <DeleteOutlineIcon fontSize="small" />
+                <DeleteOutlineIcon sx={{ fontSize: 20 }} />
               </IconButton>
-              <ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 20 }} />
+              <ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 20, display: { xs: 'none', sm: 'block' } }} />
             </Stack>
           </Box>
 
-          {/* Rodapé ReUI Frame Footer: Métricas (Resultados + Alterados) à esquerda e Status à direita */}
+          {/* Rodapé do card: UMA linha de texto — "22 resultados · Todos na faixa" (25/11/26). Antes
+              era uma faixa pintada com caixinhas; o chip "Pronto" sumiu (só aparece o que pede ação). */}
           <Box
             sx={{
               display: 'flex',
@@ -730,11 +816,10 @@ const ExamCards = () => {
               justifyContent: 'space-between',
               flexWrap: 'wrap',
               gap: 1,
-              px: 2.25,
+              px: 2,
               py: 1,
               borderTop: '1px solid',
               borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,118,110,0.08)'),
-              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(15,118,110,0.03)'),
             }}
           >
             {itemCount > 0 ? (
@@ -745,13 +830,7 @@ const ExamCards = () => {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 0.5,
-                    px: 1,
-                    py: 0.25,
-                    borderRadius: '7px',
-                    bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : '#ffffff'),
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: 700,
                     color: 'text.primary',
                     fontVariantNumeric: 'tabular-nums',
@@ -787,12 +866,8 @@ const ExamCards = () => {
                         : alpha(SEM.ok[t.palette.mode], 0.25),
                     fontSize: 12,
                     fontWeight: 800,
-                    color: (t) =>
-                      altered > 0
-                        ? t.palette.mode === 'dark'
-                          ? '#fcd34d'
-                          : '#b45309'
-                        : SEM.ok[t.palette.mode],
+                    // "#b45309" sobre a própria lavagem dava ~4,1:1 no claro (25/11/26).
+                    color: (t) => (altered > 0 ? warnText(t) : okText(t)),
                     fontVariantNumeric: 'tabular-nums',
                   }}
                 >
@@ -805,7 +880,8 @@ const ExamCards = () => {
                       bgcolor: 'currentColor',
                     }}
                   />
-                  {altered > 0 ? `${altered} ${altered === 1 ? 'alterado' : 'alterados'}` : 'Todos na faixa'}
+                  {/* Mesmo termo da Home ("fora da faixa") — antes "alterados". */}
+                  {altered > 0 ? `${altered} fora da faixa` : 'Todos na faixa'}
                 </Box>
               </Stack>
             ) : (
@@ -815,6 +891,11 @@ const ExamCards = () => {
             )}
 
             <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" alignItems="center">
+              {/* "?" no rodapé, no celular (25/11/26): ao lado do título ele custava 32px da largura e nomes comuns
+                  ("Hemograma completo") quebravam em duas linhas. A margem negativa mantém o rodapé com 40px. */}
+              <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, display: { xs: 'block', sm: 'none' }, my: -0.5 }}>
+                <ExplainButton name={r.title} />
+              </Box>
               {isNew && (
                 <Chip
                   size="small"
@@ -829,29 +910,20 @@ const ExamCards = () => {
                   }}
                 />
               )}
+              {/* "Pronto" não é informação: todo exame da lista que chegou aqui está pronto. O chip de
+                  status só aparece quando diz algo diferente (Falhou, Enviado, Extraindo, Rejeitado). */}
+              {r.status !== 'EXTRACTED' && (
               <Chip
                 size="small"
                 label={statusLabel[r.status] ?? r.status}
                 sx={{
-                  height: 20,
+                  height: 24,
                   fontSize: 12,
                   fontWeight: 700,
                   bgcolor: (t) => alpha(toneMain(t, sc), 0.12),
-                  color: (t) => toneMain(t, sc),
+                  color: (t) => statusText(t, sc),
                 }}
               />
-              {needsReview && (
-                <Chip
-                  size="small"
-                  label={translate('exams.review')}
-                  sx={{
-                    bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.14),
-                    color: (t) => SEM.warn[t.palette.mode],
-                    fontWeight: 800,
-                    height: 20,
-                    fontSize: 12,
-                  }}
-                />
               )}
             </Stack>
           </Box>
@@ -863,16 +935,18 @@ const ExamCards = () => {
                 dependia de `filePath` (que a API nunca manda) e punha o token na URL do <img>
                 (401) → nunca apareceu. Agora: a API diz `fileKind` e a foto baixa com header. */}
             {r.fileKind === 'image' && <ExamFilePreview examId={r.id} sx={{ mb: 0.75 }} />}
-            <Typography variant="caption" sx={{ color: 'error.main', display: 'block', lineHeight: 1.35 }}>
-              ⚠️ {(r.extractionError || 'Falha na leitura do documento').slice(0, 140)}
+            <Typography component="span" sx={{ color: (t) => SEM.bad[t.palette.mode], display: 'flex', alignItems: 'flex-start', gap: 0.5, lineHeight: 1.4, fontSize: 13 }}>
+              <WarningAmberIcon sx={{ fontSize: 16, flexShrink: 0, mt: '2px' }} aria-hidden="true" />
+              {(r.extractionError || 'Falha na leitura do documento').slice(0, 140)}
             </Typography>
-            <Button size="small" color="primary" onClick={(e) => reextract(e, r.id)} sx={{ mt: 0.5, textTransform: 'none', fontWeight: 700 }}>↻ Re-extrair</Button>
+            <Button size="small" onClick={(e) => reextract(e, r.id)} startIcon={<ReplayIcon />} sx={{ mt: 0.5, textTransform: 'none', fontWeight: 700, minHeight: 44, color: (t) => tealText(t.palette.mode) }}>{translate('exams.reextract')}</Button>
           </Box>
         )}
         {r.status === 'REJECTED' && (
           <Box onClick={(e) => e.stopPropagation()} sx={{ px: 1.5, pb: 1.25 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.35 }}>
-              🚫 Não conseguimos adicionar este exame: o CPF identificado no documento é diferente do CPF da sua conta. Ele não entra nas suas análises.
+            <Typography component="span" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'flex-start', gap: 0.5, lineHeight: 1.4, fontSize: 13 }}>
+              <BlockIcon sx={{ fontSize: 16, flexShrink: 0, mt: '2px', color: 'text.disabled' }} aria-hidden="true" />
+              Não conseguimos adicionar este exame: o CPF identificado no documento é diferente do CPF da sua conta. Ele não entra nas suas análises.
             </Typography>
             <Button size="small" color="primary" onClick={(e) => { e.stopPropagation(); navigate(`/suporte?exam=${r.id}`); }} sx={{ mt: 0.5, textTransform: 'none', fontWeight: 700 }}>Acredito que houve um erro</Button>
           </Box>
@@ -890,13 +964,14 @@ const ExamCards = () => {
     .filter((g) => g.items.length);
 
   const lockCard = (key: string, label: string, count: number) => (
-    <AppCard key={key} kind="tinted" tone="primary" sx={{ p: 1.75, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+    <AppCard key={key} sx={{ p: 1.75, display: 'flex', alignItems: 'center', gap: 1.5 }}>
       <LockIcon sx={{ color: '#178f89' }} />
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontWeight: 800 }}>{label}</Typography>
-        <Typography variant="caption" color="text.secondary">{translate('exams.history_premium')}</Typography>
+        <Typography component="h2" sx={{ ...GROUP_TITLE_STYLE, lineHeight: 1.25 }}>{label}</Typography>
+        <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>{translate('exams.history_premium')}</Typography>
       </Box>
-      <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' }, flexShrink: 0 }}>{translate('common.view_plans')}</Button>
+      {/* Ação discreta: o destaque da lista é o "+" de enviar exame. */}
+      <SecondaryButton onClick={() => navigate('/planos')} sx={{ flexShrink: 0 }}>{translate('common.view_plans')}</SecondaryButton>
     </AppCard>
   );
 
@@ -929,19 +1004,13 @@ const ExamCards = () => {
           />
           {processing.length > 0 && (
             <Box>
-              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: (t) => SEM.info[t.palette.mode] }}>{translate('exams.processing')}</Typography>
-                <Chip size="small" label={processing.length} sx={{ height: 18, bgcolor: (t) => alpha(SEM.info[t.palette.mode], 0.14), color: (t) => SEM.info[t.palette.mode], fontWeight: 700 }} />
-              </Stack>
+              <GroupTitle icon={<ScheduleIcon />} title={translate('exams.processing')} count={processing.length} tone="info" />
               <Stack spacing={1.5}>{processing.map((r: any) => <ProcessingCard key={r.id} r={r} onCancel={(e: any) => del(e, r.id, r.title || 'Exame em processamento')} />)}</Stack>
             </Box>
           )}
           {failed.length > 0 && (
             <Box>
-              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'error.main' }}>{translate('exams.failed_title')}</Typography>
-                <Chip size="small" label={failed.length} sx={{ height: 18, bgcolor: (t) => alpha(SEM.bad[t.palette.mode], 0.14), color: (t) => SEM.bad[t.palette.mode], fontWeight: 700 }} />
-              </Stack>
+              <GroupTitle icon={<WarningAmberIcon />} title={translate('exams.failed_title')} count={failed.length} tone="bad" />
               <Alert severity="warning" icon={false} sx={{ mb: 1.25, borderRadius: RADIUS.sectionCard, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
                 {failed.length === 1 ? translate('exams.failed_msg_one') : translate('exams.failed_msg_many', { count: failed.length })} {translate('exams.failed_action')} <strong>{translate('exams.reextract')}</strong>.
               </Alert>
@@ -950,10 +1019,7 @@ const ExamCards = () => {
           )}
           {rejected.length > 0 && (
             <Box>
-              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.secondary' }}>Não adicionados (CPF divergente)</Typography>
-                <Chip size="small" label={rejected.length} sx={{ height: 18, bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 700 }} />
-              </Stack>
+              <GroupTitle icon={<BlockIcon />} title="Não adicionados (CPF divergente)" count={rejected.length} />
               <Alert severity="info" icon={false} sx={{ mb: 1.25, borderRadius: RADIUS.sectionCard, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
                 Exames cujo CPF do documento difere do CPF da conta ficam de fora das análises. Se o documento é seu, toque em "Acredito que houve um erro" e o suporte confere (OCR pode errar).
               </Alert>
@@ -976,13 +1042,14 @@ const ExamCards = () => {
                         <TimelineSeparator />
                         <TimelineIndicator />
                         <TimelineHeader>
-                          <TimelineTitle>{i === 0 ? 'Mais recente' : `${r.title ?? 'Exame'}`}</TimelineTitle>
-                          <TimelineDate>
-                            {new Date(r.performedAt ?? r.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).replace('.', '')}
-                          </TimelineDate>
+                          <TimelineTitle>{i === 0 ? 'Mais recente' : (r.title ?? 'Exame')}</TimelineTitle>
+                          <TimelineDate>{fmtDateShort(r.performedAt ?? r.createdAt)}</TimelineDate>
                         </TimelineHeader>
+                        {/* Sem repetir o título do cabeçalho (25/11/26): a linha de baixo diz quantos resultados o
+                            exame tem — e traz o nome quando o cabeçalho é "Mais recente". Antes o título saía duas
+                            vezes e a data num formato diferente do resto da lista. */}
                         <TimelineContent>
-                          {r.title ?? 'Exame'} {r.itemCount != null && `· ${r.itemCount} valores`}
+                          {[i === 0 ? (r.title ?? 'Exame') : '', itemCountText(r)].filter(Boolean).join(' · ')}
                         </TimelineContent>
                       </TimelineItem>
                     ))}
@@ -991,14 +1058,14 @@ const ExamCards = () => {
               {dateGroups.length === 0 && processing.length === 0 && emptyBlock}
               {dateGroups.map((g) => {
                 const locked = !premium && g.year !== latestYear && g.year != null;
-                if (locked) return lockCard(String(g.year), `📅 ${g.label} • ${plural(g.items.length, 'exame')}`, g.items.length);
+                if (locked) return lockCard(String(g.year), `${g.label} • ${plural(g.items.length, 'exame')}`, g.items.length);
                 const defaultExp = premium || g.year === latestYear || (g.year === null && g.items.some((r: any) => r.status === 'FAILED'));
                 const expKey = `date-${g.year}`;
                 return (
-                  <Accordion key={String(g.year)} expanded={isAccordionExpanded(expKey, defaultExp)} onChange={() => toggleAccordion(expKey, defaultExp)} disableGutters elevation={0} sx={{ borderRadius: `${RADIUS.sectionCard} !important`, border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: '#178f89', bgcolor: 'rgba(32,178,170,.12)', borderRadius: '50%', p: 0.6, boxShadow: '0 2px 6px rgba(32,178,170,.18)' }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
-                      <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>📅 {g.label}</Typography>
-                      <Chip size="small" label={`${g.items.length} ${g.items.length === 1 ? 'exame' : 'exames'}`} sx={{ ml: 1.5, bgcolor: 'action.hover', color: 'text.secondary', height: 22, fontSize: 12, flexShrink: 0 }} />
+                  <Accordion key={String(g.year)} expanded={isAccordionExpanded(expKey, defaultExp)} onChange={() => toggleAccordion(expKey, defaultExp)} disableGutters elevation={0} sx={{ borderRadius: `${RADIUS.sectionCard} !important`, border: '1px solid', borderColor: 'transparent', backgroundColor: 'transparent', '&:before': { display: 'none' } }}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: '#178f89', bgcolor: 'rgba(32,178,170,.12)', borderRadius: '50%', p: 0.6 }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
+                      <Typography component="h2" sx={{ display: 'flex', alignItems: 'center', gap: 0.75, fontSize: 17, fontWeight: 700, fontFamily: '"Poppins", sans-serif', lineHeight: 1.25, flex: '1 1 auto', minWidth: 0 }}><CalendarMonthIcon sx={{ fontSize: 20, color: (t) => tealText(t.palette.mode) }} />{g.label}</Typography>
+                      <Chip size="small" label={`${g.items.length} ${g.items.length === 1 ? 'exame' : 'exames'}`} sx={{ ml: 1.5, bgcolor: 'action.hover', color: 'text.primary', height: 22, fontSize: 12, fontWeight: 600, flexShrink: 0 }} />
                     </AccordionSummary>
                     <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>{g.items.map(renderCard)}</AccordionDetails>
                   </Accordion>
@@ -1013,9 +1080,9 @@ const ExamCards = () => {
                 const defaultExp = catGroups.length <= 3;
                 const expKey = `cat-${c.key}`;
                 return (
-                  <Accordion key={c.key} expanded={isAccordionExpanded(expKey, defaultExp)} onChange={() => toggleAccordion(expKey, defaultExp)} disableGutters elevation={0} sx={{ borderRadius: `${RADIUS.sectionCard} !important`, border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
+                  <Accordion key={c.key} expanded={isAccordionExpanded(expKey, defaultExp)} onChange={() => toggleAccordion(expKey, defaultExp)} disableGutters elevation={0} sx={{ borderRadius: `${RADIUS.sectionCard} !important`, border: '1px solid', borderColor: 'transparent', backgroundColor: 'transparent', '&:before': { display: 'none' } }}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: c.color, bgcolor: c.color + '1f', borderRadius: '50%', p: 0.6 }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, fontWeight: 800, flex: "1 1 auto", minWidth: 0 }}><Box component={c.icon} sx={{ fontSize: 18, color: c.color }} />{c.cat}</Box>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, fontSize: 17, fontWeight: 700, lineHeight: 1.25, flex: "1 1 auto", minWidth: 0 }}><Box component={c.icon} sx={{ fontSize: 20, color: c.color }} />{c.cat}</Box>
                       <Chip size="small" label={`${items.length}`} sx={{ ml: 1.5, bgcolor: c.color + '1a', color: c.color, height: 20, flexShrink: 0 }} />
                     </AccordionSummary>
                     <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>{items.map(renderCard)}</AccordionDetails>
@@ -1076,10 +1143,7 @@ const ExamCards = () => {
       {/* FAB "＋ Enviar exame" está no AppLayout (ExamCreateFab) — sempre acima do rodapé. */}
       {processing.length > 0 && (
         <Box>
-          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: (t) => SEM.info[t.palette.mode] }}>{translate('exams.processing')}</Typography>
-            <Chip size="small" label={processing.length} sx={{ height: 18, bgcolor: (t) => alpha(SEM.info[t.palette.mode], 0.14), color: (t) => SEM.info[t.palette.mode], fontWeight: 700 }} />
-          </Stack>
+          <GroupTitle icon={<ScheduleIcon />} title={translate('exams.processing')} count={processing.length} tone="info" />
           <Stack spacing={1.5}>
             {processing.map((r: any) => <ProcessingCard key={r.id} r={r} onCancel={(e: any) => del(e, r.id, r.title || 'Exame em processamento')} />)}
           </Stack>
@@ -1087,10 +1151,7 @@ const ExamCards = () => {
       )}
       {failed.length > 0 && (
         <Box>
-          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'error.main' }}>{translate('exams.failed_title')}</Typography>
-            <Chip size="small" label={failed.length} sx={{ height: 18, bgcolor: (t) => alpha(SEM.bad[t.palette.mode], 0.14), color: (t) => SEM.bad[t.palette.mode], fontWeight: 700 }} />
-          </Stack>
+          <GroupTitle icon={<WarningAmberIcon />} title={translate('exams.failed_title')} count={failed.length} tone="bad" />
           <Alert severity="warning" icon={false} sx={{ mb: 1.25, borderRadius: RADIUS.sectionCard, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
             {failed.length === 1 ? translate('exams.failed_msg_one') : translate('exams.failed_msg_many', { count: failed.length })} {translate('exams.failed_action')} <strong>{translate('exams.reextract')}</strong>.
           </Alert>
@@ -1101,10 +1162,7 @@ const ExamCards = () => {
       )}
       {rejected.length > 0 && (
         <Box>
-          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.secondary' }}>Não adicionados (CPF divergente)</Typography>
-            <Chip size="small" label={rejected.length} sx={{ height: 18, bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 700 }} />
-          </Stack>
+          <GroupTitle icon={<BlockIcon />} title="Não adicionados (CPF divergente)" count={rejected.length} />
           <Alert severity="info" icon={false} sx={{ mb: 1.25, borderRadius: RADIUS.sectionCard, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
             Exames cujo CPF do documento difere do CPF da conta ficam de fora das análises. Se o documento é seu, toque em "Acredito que houve um erro" e o suporte confere (OCR pode errar).
           </Alert>
@@ -1123,15 +1181,15 @@ const ExamCards = () => {
           {dateGroups.length === 0 && processing.length === 0 && emptyBlock}
           {dateGroups.map((g) => {
             const locked = !premium && g.year !== latestYear && g.year != null;
-            if (locked) return lockCard(String(g.year), `📅 ${g.label} • ${plural(g.items.length, 'exame')}`, g.items.length);
+            if (locked) return lockCard(String(g.year), `${g.label} • ${plural(g.items.length, 'exame')}`, g.items.length);
             const defaultExp = premium || g.year === latestYear || (g.year === null && g.items.some((r: any) => r.status === 'FAILED'));
             const expKey = `date-${g.year}`;
             return (
               <Accordion key={String(g.year)} expanded={isAccordionExpanded(expKey, defaultExp)} onChange={() => toggleAccordion(expKey, defaultExp)} disableGutters elevation={0}
-                sx={{ borderRadius: `${RADIUS.sectionCard} !important`, border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: '#178f89', bgcolor: 'rgba(32,178,170,.12)', borderRadius: '50%', p: 0.6, boxShadow: '0 2px 6px rgba(32,178,170,.18)' }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
-                  <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>📅 {g.label}</Typography>
-                  <Chip size="small" label={`${g.items.length} ${g.items.length === 1 ? 'exame' : 'exames'}`} sx={{ ml: 1.5, bgcolor: 'action.hover', color: 'text.secondary', height: 22, fontSize: 12, flexShrink: 0 }} />
+                sx={{ borderRadius: `${RADIUS.sectionCard} !important`, border: '1px solid', borderColor: 'transparent', backgroundColor: 'transparent', '&:before': { display: 'none' } }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: '#178f89', bgcolor: 'rgba(32,178,170,.12)', borderRadius: '50%', p: 0.6 }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
+                  <Typography component="h2" sx={{ display: 'flex', alignItems: 'center', gap: 0.75, fontSize: 17, fontWeight: 700, fontFamily: '"Poppins", sans-serif', lineHeight: 1.25, flex: '1 1 auto', minWidth: 0 }}><CalendarMonthIcon sx={{ fontSize: 20, color: (t) => tealText(t.palette.mode) }} />{g.label}</Typography>
+                  <Chip size="small" label={`${g.items.length} ${g.items.length === 1 ? 'exame' : 'exames'}`} sx={{ ml: 1.5, bgcolor: 'action.hover', color: 'text.primary', height: 22, fontSize: 12, fontWeight: 600, flexShrink: 0 }} />
                 </AccordionSummary>
                 <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   {g.items.map(renderCard)}
@@ -1150,10 +1208,10 @@ const ExamCards = () => {
             const expKey = `cat-${c.key}`;
             return (
               <Accordion key={c.key} expanded={isAccordionExpanded(expKey, defaultExp)} onChange={() => toggleAccordion(expKey, defaultExp)} disableGutters elevation={0}
-                sx={{ borderRadius: `${RADIUS.sectionCard} !important`, border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
+                sx={{ borderRadius: `${RADIUS.sectionCard} !important`, border: '1px solid', borderColor: 'transparent', backgroundColor: 'transparent', '&:before': { display: 'none' } }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: c.color, bgcolor: c.color + '1f', borderRadius: '50%', p: 0.6 }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, fontWeight: 800, flex: "1 1 auto", minWidth: 0 }}><Box component={c.icon} sx={{ fontSize: 18, color: c.color }} />{c.cat}</Box>
-                  <Chip size="small" label={`${items.length}`} sx={{ ml: 1.5, bgcolor: c.color + '1a', color: c.color, height: 20, flexShrink: 0 }} />
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, fontSize: 17, fontWeight: 700, fontFamily: '"Poppins", sans-serif', lineHeight: 1.25, flex: "1 1 auto", minWidth: 0 }}><Box component={c.icon} sx={{ fontSize: 20, color: c.color }} />{c.cat}</Box>
+                  <Chip size="small" label={`${items.length}`} sx={{ ml: 1.5, bgcolor: c.color + '1a', color: (t) => (t.palette.mode === 'dark' ? lighten(c.color, 0.35) : '#1e293b'), height: 20, flexShrink: 0 }} />
                 </AccordionSummary>
                 <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   {items.map(renderCard)}
@@ -1170,7 +1228,12 @@ const ExamCards = () => {
 export const ExamList = () => {
   const [pid] = useSelectedPatient();
   return (
-    <List key={pid} sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={1000} pagination={false} filter={{ patientId: pid || 'none' }} actions={false} empty={false}>
+    // component="div" (25/11/26): a lista assenta no fundo da página. O react-admin envolve tudo num
+    // cartão branco por padrão — caixa dentro de caixa dentro de caixa com os grupos e os cards.
+    // minWidth 0 vai junto: era o que o App.tsx garantia no cartão antigo (o card não pode inchar
+    // além da viewport no celular).
+    <List key={pid} sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={1000} pagination={false} filter={{ patientId: pid || 'none' }} actions={false} empty={false} component="div"
+      sx={{ minWidth: 0, maxWidth: '100%', '& .RaList-main, & .RaList-content': { minWidth: 0, maxWidth: '100%' } }}>
       <ExamCards />
     </List>
   );

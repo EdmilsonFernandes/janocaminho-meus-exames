@@ -11,7 +11,9 @@ import { Box, Stack, Typography } from '@mui/material';
 
 const TEAL = '#20b2aa';
 
-export const STAGE_LABELS = ['📄 Extraindo valores…', '🤖 Analisando com IA…', '📊 Gerando resumo…'] as const;
+// Sem emoji (25/11/26): os círculos numerados já são a marca de cada etapa — os emojis coloridos
+// competiam com o teal e mudavam de cara por aparelho. Vale também para a faixa "Em processamento" da Home.
+export const STAGE_LABELS = ['Extraindo valores…', 'Analisando com IA…', 'Gerando resumo…'] as const;
 
 export const ProcessingStages = ({ active, labels = STAGE_LABELS }: { active: 0 | 1 | 2; labels?: readonly string[] }) => (
   <Stack
@@ -49,13 +51,14 @@ export const ProcessingStages = ({ active, labels = STAGE_LABELS }: { active: 0 
             >
               {done ? '✓' : idx + 1}
             </Box>
+            {/* Nome da etapa inteiro, em até 2 linhas (25/11/26): no celular eram "Extraind…", "Analisan…". */}
             <Typography
-              noWrap
               sx={{
                 fontSize: 12, fontWeight: current ? 800 : 600, mt: 0.4,
                 color: done ? 'text.secondary' : current ? 'text.primary' : 'text.disabled',
-                maxWidth: { xs: 84, sm: 120 },
-                overflow: 'hidden', textOverflow: 'ellipsis',
+                maxWidth: { xs: 96, sm: 120 },
+                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                overflow: 'hidden', textAlign: 'center', lineHeight: 1.25,
               }}
             >
               {label}
