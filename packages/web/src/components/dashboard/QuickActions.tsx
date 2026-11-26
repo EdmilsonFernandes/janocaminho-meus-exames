@@ -12,7 +12,7 @@ const ACTIONS = [
   { icon: <UploadSimple size={22} weight="duotone" />, label: 'Enviar exame', to: '/exams/create', primary: true, color: '#20b2aa' },
   { icon: <ChartLineUp size={22} weight="duotone" />, label: 'Evolução', to: '/evolucao', primary: false, color: '#0ea5e9' },
   { icon: <UsersThree size={22} weight="duotone" />, label: 'Família', to: '/familia', primary: false, color: '#f59e0b' },
-  { icon: <FileText size={22} weight="duotone" />, label: 'Relatório', to: '/relatorio', primary: false, color: '#8b5cf6' },
+  { icon: <FileText size={22} weight="duotone" />, label: 'Panorama', to: '/relatorio', primary: false, color: '#8b5cf6' },
 ] as const;
 
 export const QuickActions = () => {

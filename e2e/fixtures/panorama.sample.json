@@ -1,0 +1,244 @@
+{
+  "_meta": {
+    "person": "Marina, 41 anos (pessoa fictícia)",
+    "what": "Dados de exemplo do 'Panorama da sua saúde' — os mesmos do esboço aprovado (design-lab/mocks/panorama-saude-v1.html).",
+    "asOf": "2026-11-26T12:00:00-03:00",
+    "note": "Todas as datas são relativas a asOf. Quem usa o arquivo desloca as datas até o 'agora' real (QA do Panorama e panoramaPresenter.test.ts) para as idades continuarem certas."
+  },
+  "patientId": "sample-marina",
+  "panorama": {
+    "patientId": "sample-marina",
+    "generatedAt": "2026-11-26T12:00:00-03:00",
+    "changed": [
+      { "area": "hormones", "kind": "entered_range", "subject": "Vitamina D", "before": 28, "after": 41, "unit": "ng/mL", "at": "2026-11-21T08:15:00-03:00" },
+      { "area": "mind", "kind": "screening", "subject": "PHQ-9", "before": 8, "after": 3, "unit": "pontos", "at": "2026-11-23T19:30:00-03:00" },
+      { "area": "vitality", "kind": "habit", "subject": "Sono", "before": 392, "after": 432, "unit": "min", "at": "2026-11-26T07:00:00-03:00" }
+    ],
+    "exams": {
+      "key": "exams", "status": "attention", "asOf": "2026-11-21T08:15:00-03:00",
+      "data": {
+        "lastExam": { "id": "sample-exam-1", "title": "Hemograma e perfil lipídico", "performedAt": "2026-11-21T08:15:00-03:00" },
+        "examCount": 7,
+        "itemCount": 38,
+        "abnormalCount": 3,
+        "abnormal": [
+          { "id": "v-ldl", "name": "Colesterol LDL", "nameCanonical": "LDL", "valueText": "142", "valueNumeric": 142, "unit": "mg/dL", "flag": "HIGH", "ref": { "low": null, "high": 130, "text": null }, "extractedPage": 1 },
+          { "id": "v-fer", "name": "Ferritina", "nameCanonical": "FERRITINA", "valueText": "12", "valueNumeric": 12, "unit": "ng/mL", "flag": "LOW", "ref": { "low": 30, "high": 200, "text": null }, "extractedPage": 2 },
+          { "id": "v-vcm", "name": "VCM", "nameCanonical": "VCM", "valueText": "96,8", "valueNumeric": 96.8, "unit": "fL", "flag": "HIGH", "ref": { "low": 80, "high": 96, "text": null }, "extractedPage": 1 }
+        ],
+        "retest": { "dueAt": "2027-05-21T12:00:00-03:00", "months": 6, "status": "scheduled" },
+        "abnormalPerExam": [
+          { "at": "2026-05-12T08:00:00-03:00", "count": 5 },
+          { "at": "2026-06-10T08:00:00-03:00", "count": 4 },
+          { "at": "2026-07-08T08:00:00-03:00", "count": 6 },
+          { "at": "2026-08-19T08:00:00-03:00", "count": 4 },
+          { "at": "2026-09-15T08:00:00-03:00", "count": 3 },
+          { "at": "2026-10-20T08:00:00-03:00", "count": 4 },
+          { "at": "2026-11-21T08:15:00-03:00", "count": 3 }
+        ]
+      }
+    },
+    "heart": {
+      "key": "heart", "status": "ok", "asOf": "2026-11-24T08:00:00-03:00",
+      "data": {
+        "bp": { "systolic": 120, "diastolic": 80, "at": "2026-11-24T08:00:00-03:00" },
+        "bpSeries": [
+          { "at": "2026-05-27T08:00:00-03:00", "v": 128 },
+          { "at": "2026-06-27T08:00:00-03:00", "v": 126 },
+          { "at": "2026-07-28T08:00:00-03:00", "v": 124 },
+          { "at": "2026-08-27T08:00:00-03:00", "v": 122 },
+          { "at": "2026-09-26T08:00:00-03:00", "v": 121 },
+          { "at": "2026-11-24T08:00:00-03:00", "v": 120 }
+        ],
+        "cardioRisk": { "level": "low", "label": "baixo" },
+        "bodyAge": { "estimate": 37, "method": "phenoage", "chronologicalAge": 41 }
+      }
+    },
+    "weight": {
+      "key": "weight", "status": "ok", "asOf": "2026-11-25T07:30:00-03:00",
+      "data": {
+        "latest": { "v": 76.8, "at": "2026-11-25T07:30:00-03:00" },
+        "series": [
+          { "at": "2026-08-26T07:30:00-03:00", "v": 78.2 },
+          { "at": "2026-09-10T07:30:00-03:00", "v": 78.0 },
+          { "at": "2026-09-25T07:30:00-03:00", "v": 77.9 },
+          { "at": "2026-10-24T07:30:00-03:00", "v": 77.4 },
+          { "at": "2026-11-10T07:30:00-03:00", "v": 77.1 },
+          { "at": "2026-11-25T07:30:00-03:00", "v": 76.8 }
+        ],
+        "bmi": 24.1
+      }
+    },
+    "bodyComp": { "key": "bodyComp", "status": "missing", "asOf": null, "data": null },
+    "hormones": {
+      "key": "hormones", "status": "ok", "asOf": "2026-11-21T08:15:00-03:00",
+      "data": {
+        "markers": [
+          { "key": "VITAMIN_D", "name": "Vitamina D 25-OH", "valueText": "41", "valueNumeric": 41, "unit": "ng/mL", "status": "in", "ref": { "low": 30, "high": 100, "text": null }, "at": "2026-11-21T08:15:00-03:00",
+            "series": [
+              { "at": "2025-12-01T08:00:00-03:00", "v": 22 },
+              { "at": "2026-02-01T08:00:00-03:00", "v": 25 },
+              { "at": "2026-04-01T08:00:00-03:00", "v": 28 },
+              { "at": "2026-07-01T08:00:00-03:00", "v": 33 },
+              { "at": "2026-09-20T08:00:00-03:00", "v": 38 },
+              { "at": "2026-11-21T08:15:00-03:00", "v": 41 }
+            ] },
+          { "key": "TSH", "name": "TSH", "valueText": "2,1", "valueNumeric": 2.1, "unit": "mUI/mL", "status": "in", "ref": { "low": 0.4, "high": 4.0, "text": null }, "at": "2026-11-21T08:15:00-03:00",
+            "series": [
+              { "at": "2026-05-10T08:00:00-03:00", "v": 2.4 },
+              { "at": "2026-08-23T08:00:00-03:00", "v": 2.2 },
+              { "at": "2026-11-21T08:15:00-03:00", "v": 2.1 }
+            ] },
+          { "key": "T4_FREE", "name": "T4 livre", "valueText": "1,1", "valueNumeric": 1.1, "unit": "ng/dL", "status": "in", "ref": { "low": 0.8, "high": 1.8, "text": null }, "at": "2026-11-21T08:15:00-03:00",
+            "series": [
+              { "at": "2026-08-23T08:00:00-03:00", "v": 1.2 },
+              { "at": "2026-11-21T08:15:00-03:00", "v": 1.1 }
+            ] }
+        ],
+        "radarInUse": false
+      }
+    },
+    "mind": {
+      "key": "mind", "status": "ok", "asOf": "2026-11-23T19:30:00-03:00",
+      "data": {
+        "latest": { "at": "2026-11-23T19:30:00-03:00", "phq9": 3, "gad7": 2, "phq9Band": "mínima", "gad7Band": "mínima", "suicidalIdeation": false, "phq9At": "2026-11-23T19:30:00-03:00", "gad7At": "2026-11-23T19:30:00-03:00" },
+        "previous": { "at": "2026-10-16T20:00:00-03:00", "phq9": 8, "gad7": 7, "phq9Band": "leve", "gad7Band": "leve" },
+        "history": [
+          { "at": "2026-09-18T20:00:00-03:00", "phq9": 8, "gad7": 6, "phq9Band": "leve", "gad7Band": "leve" },
+          { "at": "2026-10-16T20:00:00-03:00", "phq9": 8, "gad7": 7, "phq9Band": "leve", "gad7Band": "leve" },
+          { "at": "2026-11-06T20:00:00-03:00", "phq9": 5, "gad7": 4, "phq9Band": "leve", "gad7Band": "mínima" },
+          { "at": "2026-11-23T19:30:00-03:00", "phq9": 3, "gad7": 2, "phq9Band": "mínima", "gad7Band": "mínima" }
+        ]
+      }
+    },
+    "diary": {
+      "key": "diary", "status": "ok", "asOf": "2026-11-26",
+      "data": {
+        "streak": 6,
+        "daysLogged90": 21,
+        "last7": [
+          { "date": "2026-11-20", "mood": 3, "energy": 3, "symptoms": ["Dor de cabeça"] },
+          { "date": "2026-11-21", "mood": 4, "energy": 3, "symptoms": ["Dor de cabeça", "Cansaço"] },
+          { "date": "2026-11-22", "mood": 3, "energy": 4, "symptoms": [] },
+          { "date": "2026-11-23", "mood": 4, "energy": 3, "symptoms": ["Dor de cabeça"] },
+          { "date": "2026-11-24", "mood": 5, "energy": 4, "symptoms": ["Cansaço"] },
+          { "date": "2026-11-25", "mood": 4, "energy": 4, "symptoms": [] },
+          { "date": "2026-11-26", "mood": 4, "energy": 4, "symptoms": [] }
+        ],
+        "moodAvg7": 3.8,
+        "energyAvg7": 3.6,
+        "topSymptoms": [ { "name": "Dor de cabeça", "days": 3 }, { "name": "Cansaço", "days": 2 } ]
+      }
+    },
+    "vitality": {
+      "key": "vitality", "status": "ok", "asOf": "2026-11-26T10:00:00-03:00",
+      "data": {
+        "lastSyncAt": "2026-11-26T10:00:00-03:00",
+        "sleepMinutes": { "latest": 432, "avg7": 432, "avg30": 392,
+          "series7": [
+            { "at": "2026-11-20T07:00:00-03:00", "v": 372 },
+            { "at": "2026-11-21T07:00:00-03:00", "v": 390 },
+            { "at": "2026-11-22T07:00:00-03:00", "v": 384 },
+            { "at": "2026-11-23T07:00:00-03:00", "v": 408 },
+            { "at": "2026-11-24T07:00:00-03:00", "v": 396 },
+            { "at": "2026-11-25T07:00:00-03:00", "v": 420 },
+            { "at": "2026-11-26T07:00:00-03:00", "v": 432 }
+          ] },
+        "steps": { "latest": 9100, "avg7": 8430, "avg30": 7100,
+          "series7": [
+            { "at": "2026-11-20T07:00:00-03:00", "v": 7900 },
+            { "at": "2026-11-21T07:00:00-03:00", "v": 8200 },
+            { "at": "2026-11-22T07:00:00-03:00", "v": 8400 },
+            { "at": "2026-11-23T07:00:00-03:00", "v": 8100 },
+            { "at": "2026-11-24T07:00:00-03:00", "v": 8800 },
+            { "at": "2026-11-25T07:00:00-03:00", "v": 8600 },
+            { "at": "2026-11-26T07:00:00-03:00", "v": 9100 }
+          ] },
+        "heartRate": null,
+        "exerciseMinutes": null
+      }
+    },
+    "meds": {
+      "key": "meds", "status": "ok", "asOf": "2026-11-26T08:00:00-03:00",
+      "data": {
+        "active": [
+          { "id": "m-1", "name": "Losartana 50 mg", "dose": "50 mg" },
+          { "id": "m-2", "name": "Metformina 850 mg", "dose": "850 mg" },
+          { "id": "m-3", "name": "Vitamina D 2.000 UI", "dose": "2.000 UI" }
+        ],
+        "criticalInteractions": 0
+      }
+    },
+    "care": {
+      "key": "care", "status": "ok", "asOf": "2026-12-12T14:30:00-03:00",
+      "data": {
+        "nextAppointment": { "at": "2026-12-12T14:30:00-03:00", "doctor": "Dr. Daniel Cesar", "specialty": "endocrinologia", "title": "Retorno com novos exames" },
+        "pendingQuestions": 4,
+        "overdueReminders": 0
+      }
+    },
+    "vaccines": { "key": "vaccines", "status": "missing", "asOf": null, "data": null },
+    "emergency": { "key": "emergency", "status": "missing", "asOf": null, "data": null }
+  },
+  "healthSummary": {
+    "patientId": "sample-marina",
+    "generatedAt": "2026-11-26T12:00:00-03:00",
+    "markers": 38,
+    "score": 72,
+    "byPriority": { "normal": 35, "leve": 3, "moderada": 0, "importante": 0 },
+    "topAttention": [
+      { "nameCanonical": "LDL", "name": "Colesterol LDL", "priority": "leve" },
+      { "nameCanonical": "FERRITINA", "name": "Ferritina", "priority": "leve" },
+      { "nameCanonical": "VCM", "name": "VCM", "priority": "leve" }
+    ],
+    "improving": [],
+    "worsening": [],
+    "stale": [],
+    "staleWarning": null
+  },
+  "variants": {
+    "_what": "Trocas pontuais de áreas sobre a amostra principal (Datas também relativas a _meta.asOf).",
+    "mindOnlyGad7": {
+      "_why": "Só o GAD-7 foi respondido: PHQ-9 vem null (nunca 0) e a área mostra só a ansiedade.",
+      "mind": {
+        "key": "mind", "status": "ok", "asOf": "2026-11-23T19:30:00-03:00",
+        "data": {
+          "latest": { "at": "2026-11-23T19:30:00-03:00", "phq9": null, "gad7": 4, "phq9Band": "não realizado", "gad7Band": "mínima", "suicidalIdeation": false, "phq9At": null, "gad7At": "2026-11-23T19:30:00-03:00" },
+          "previous": { "at": "2026-10-16T20:00:00-03:00", "phq9": null, "gad7": 9, "phq9Band": "não realizado", "gad7Band": "leve" },
+          "history": [
+            { "at": "2026-10-16T20:00:00-03:00", "phq9": null, "gad7": 9, "phq9Band": "não realizado", "gad7Band": "leve" },
+            { "at": "2026-11-23T19:30:00-03:00", "phq9": null, "gad7": 4, "phq9Band": "não realizado", "gad7Band": "mínima" }
+          ]
+        }
+      }
+    },
+    "bodyCompKg": {
+      "_why": "Balança que guarda músculo em kg: a área passa a ter dado e mostra kg de músculo (sem %).",
+      "bodyComp": {
+        "key": "bodyComp", "status": "ok", "asOf": "2026-11-20T08:00:00-03:00",
+        "data": { "latest": { "at": "2026-11-20T08:00:00-03:00", "bodyFatPct": 27.5, "skeletalMusclePct": null, "skeletalMuscleKg": 28.4 } }
+      }
+    },
+    "staleExams": {
+      "_why": "Último exame há 14 meses com valores fora da faixa: stale vence attention — o azulejo mostra dado antigo.",
+      "exams": {
+        "key": "exams", "status": "stale", "asOf": "2025-09-26T08:15:00-03:00",
+        "data": {
+          "lastExam": { "id": "sample-exam-old", "title": "Hemograma e perfil lipídico", "performedAt": "2025-09-26T08:15:00-03:00" },
+          "examCount": 3, "itemCount": 38, "abnormalCount": 3,
+          "abnormal": [
+            { "id": "o-ldl", "name": "Colesterol LDL", "nameCanonical": "LDL", "valueText": "142", "valueNumeric": 142, "unit": "mg/dL", "flag": "HIGH", "ref": { "low": null, "high": 130, "text": null }, "extractedPage": 1 },
+            { "id": "o-fer", "name": "Ferritina", "nameCanonical": "FERRITINA", "valueText": "12", "valueNumeric": 12, "unit": "ng/mL", "flag": "LOW", "ref": { "low": 30, "high": 200, "text": null }, "extractedPage": 2 },
+            { "id": "o-vcm", "name": "VCM", "nameCanonical": "VCM", "valueText": "96,8", "valueNumeric": 96.8, "unit": "fL", "flag": "HIGH", "ref": { "low": 80, "high": 96, "text": null }, "extractedPage": 1 }
+          ],
+          "retest": null,
+          "abnormalPerExam": [
+            { "at": "2025-04-10T08:00:00-03:00", "count": 5 },
+            { "at": "2025-06-18T08:00:00-03:00", "count": 4 },
+            { "at": "2025-09-26T08:15:00-03:00", "count": 3 }
+          ]
+        }
+      }
+    }
+  }
+}

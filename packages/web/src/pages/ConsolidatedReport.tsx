@@ -1,9 +1,8 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, type MutableRefObject } from 'react';
 import { plural } from '../utils/format';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, CircularProgress, Stack, Alert, Grid, Chip, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl, Avatar } from '@mui/material';
-import { Title, useTranslate } from 'react-admin';
-import DescriptionIcon from '@mui/icons-material/Description';
+import { useTranslate } from 'react-admin';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MedicationIcon from '@mui/icons-material/Medication';
@@ -22,7 +21,7 @@ import { maybeRequestReview } from '../components/ReviewPrompt';
 import { useFeedback } from '../components/feedback/FeedbackProvider';
 import { ShareDialog } from '../components/ShareDialog';
 import { ReportGeneratingCard } from '../components/ReportGeneratingCard';
-import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
+import { CREDIT_COSTS } from '../components/CreditBadge';
 import type { SourceExam } from '@meus-exames/shared';
 import { notifyInsufficientCredits } from '../utils/credits-events';
 import { ConfirmSpend } from '../components/ConfirmSpend';
@@ -33,9 +32,33 @@ import { WhatIsThis } from '../components/WhatIsThis';
 import { ReportSectionCard } from '../components/report/ReportSectionCard';
 import { DestaqueCard } from '../components/report/DestaqueCard';
 import { MetaCard } from '../components/report/MetaCard';
-import { PageContainer } from '../components/layout/PageContainer';
-import { PageHeader } from '../components/layout/PageHeader';
-import SummarizeIcon from '@mui/icons-material/Summarize';
+
+/**
+ * ConsolidatedReportSection — o relatório consolidado como SEÇÃO. Desde 26/11 a tela `/relatorio`
+ * é o "Panorama da sua saúde" (pages/PanoramaPage) e o relatório mora dentro dela, logo abaixo do
+ * cartão "Análise do Dr. Exame".
+ *
+ * O que mudou em relação à tela antiga: saiu o cabeçalho de página e o cartão de preview com o
+ * botão "Gerar relatório completo" — o convite para gerar agora é o botão do cartão do Dr. Exame
+ * (os dois não competem). Todo o comportamento do relatório segue aqui e igual: gerar, atualizar,
+ * ouvir, PDF, compartilhar e enviar perguntas ao médico.
+ *
+ * - `generateRef`: recebe a função "gerar", para o cartão do Dr. Exame disparar.
+ * - `onState`: avisa o dono da página em que estado a análise está (sem relatório / gerando /
+ *   pronta / sem créditos), para o cartão dizer a mesma coisa.
+ * - `noExamsElsewhere`: o dono da página já mostra o aviso "você não tem exames".
+ */
+export interface ConsolidatedReportSectionState {
+  hasReport: boolean;
+  /** Gerando a partir DESTA tela (o cartão de progresso está na tela). */
+  loading: boolean;
+  /** Gerando aqui ou em outra sessão (registry do servidor). */
+  generating: boolean;
+  generatedAt: string | null;
+  /** Há perfil selecionado e ao menos um exame para analisar. */
+  canGenerate: boolean;
+  noCredits: boolean;
+}
 
 interface Summary {
   resumoGeral?: string;
@@ -62,73 +85,12 @@ interface Summary {
 
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
 
-const ReportPreviewCard = ({
-  loading,
-  disabled,
-  onGenerate,
-  onExams,
-}: {
-  loading: boolean;
-  disabled: boolean;
-  onGenerate: () => void;
-  onExams: () => void;
-}) => {
-  const items = [
-    { icon: <ReportProblemIcon />, title: 'Prioridades clínicas', desc: 'Valores alterados e pontos que merecem atenção.', accent: '#ef4444' },
-    { icon: <InsightsIcon />, title: 'Evolução dos exames', desc: 'Comparação entre resultados anteriores e atuais.', accent: '#0369a1' },
-    { icon: <LiveHelpIcon />, title: 'Perguntas para o médico', desc: 'Uma lista objetiva para levar na consulta.', accent: '#6366f1' },
-    { icon: <CheckCircleIcon />, title: 'Pontos positivos', desc: 'O que está estável ou dentro da referência.', accent: '#059669' },
-  ];
-
-  return (
-    <Box sx={{ mt: 2, p: { xs: 2, md: 2.5 }, borderRadius: '12px', border: '1px solid', borderColor: 'rgba(32,178,170,.22)', background: 'linear-gradient(135deg, rgba(32,178,170,.12), transparent)' }}>
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'center' }}>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Chip size="small" label="Preview do relatório" sx={{ height: 22, mb: 1, bgcolor: '#20b2aa18', color: (t) => tealText(t.palette.mode), fontWeight: 900 }} />
-          <Typography sx={{ fontWeight: 900, fontSize: { xs: 22, md: 26 }, lineHeight: 1.12, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
-            Um resumo pronto para consulta, antes de abrir exame por exame
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 0.75, color: 'text.secondary', maxWidth: 620, lineHeight: 1.55 }}>
-            O Dr. Exame consolida seu histórico em linguagem simples, com prioridades, contexto e perguntas para discutir com o profissional de saúde.
-          </Typography>
-        </Box>
-        <Stack spacing={1} alignItems={{ xs: 'stretch', md: 'flex-end' }} sx={{ flexShrink: 0 }}>
-          <Button variant="contained" size="large" startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DescriptionIcon />} onClick={onGenerate} disabled={disabled} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 900, bgcolor: 'primary.dark', boxShadow: 'none', '&:hover': { bgcolor: '#0f766e', boxShadow: 'none' } }}>
-            {loading ? 'Gerando...' : 'Gerar relatório completo'}
-          </Button>
-          <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
-            <CreditBadge amount={CREDIT_COSTS.consolidated} />
-          </Box>
-        </Stack>
-      </Stack>
-
-      <Grid container spacing={1.25} sx={{ mt: 2 }}>
-        {items.map((item) => (
-          <Grid key={item.title} size={{ xs: 12, sm: 6 }}>
-            <Box sx={{ height: '100%', p: 1.5, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: `${item.accent}26` }}>
-              <Box sx={{ width: 34, height: 34, borderRadius: '12px', display: 'grid', placeItems: 'center', color: item.accent, bgcolor: `${item.accent}14`, mb: 1 }}>
-                {item.icon}
-              </Box>
-              <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{item.title}</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, lineHeight: 1.45 }}>{item.desc}</Typography>
-            </Box>
-          </Grid>
-        ))}
-      </Grid>
-
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" sx={{ mt: 1.5, p: 1.25, borderRadius: '12px', bgcolor: 'action.hover' }}>
-        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
-          Consome créditos somente ao gerar. Use quando quiser levar uma visão consolidada para consulta.
-        </Typography>
-        <Button size="small" onClick={onExams} sx={{ alignSelf: { xs: 'flex-start', sm: 'center' }, textTransform: 'none', fontWeight: 800, borderRadius: '999px', color: (t) => tealText(t.palette.mode) }}>
-          Ver exames usados →
-        </Button>
-      </Stack>
-    </Box>
-  );
-};
-
-export const ConsolidatedReportPage = () => {
+/** O relatório consolidado, como seção da tela /relatorio (ver doc acima da interface de estado). */
+export const ConsolidatedReportSection = ({ generateRef, onState, noExamsElsewhere = false }: {
+  generateRef?: MutableRefObject<(() => void) | null>;
+  onState?: (s: ConsolidatedReportSectionState) => void;
+  noExamsElsewhere?: boolean;
+} = {}) => {
   const navigate = useNavigate();
   const planInfo = usePlanInfo();
   const translate = useTranslate();
@@ -315,6 +277,18 @@ export const ConsolidatedReportPage = () => {
     }
     doGenerate(false);
   };
+  // Integração com a tela do Panorama: o cartão do Dr. Exame dispara a geração daqui e acompanha o estado.
+  const analysisId = analysis?.id ?? null;
+  const generatedAt: string | null = analysis?.createdAt ?? null;
+  useEffect(() => {
+    if (generateRef) generateRef.current = () => generate(false);
+    return () => { if (generateRef) generateRef.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pid, generateRef]);
+  useEffect(() => {
+    onState?.({ hasReport: !!analysisId, loading, generating: loading || generatingSince != null, generatedAt, canGenerate: !!pid && examCount !== 0, noCredits });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onState, analysisId, generatedAt, loading, generatingSince, pid, examCount, noCredits]);
   const [genStart, setGenStart] = useState<number | null>(null); // início REAL da geração (timer do card)
   const doGenerate = (force: boolean) => {
     setLoading(true);
@@ -455,15 +429,8 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
   );
 
   return (
-    <PageContainer width="content" sx={{ pb: { xs: 10, sm: 5 }, overflowX: 'hidden' }}>
-      <Title title={translate('page.report')} />
-      <PageHeader
-        icon={<SummarizeIcon />}
-        title="Relatório completo de saúde"
-        subtitle="A IA junta seus últimos exames, tendências e perguntas num documento único para consulta."
-      />
-
-      {!analysis && examCount === 0 && pid && (
+    <>
+      {!noExamsElsewhere && !analysis && examCount === 0 && pid && (
         <Box sx={{ mt: 2, p: 4, borderRadius: '12px', textAlign: 'center', bgcolor: 'background.paper', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
           <Box sx={{ fontSize: 56, mb: 1.5, opacity: 0.4 }}>📄</Box>
           <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 18, mb: 1 }}>Você ainda não tem exames</Typography>
@@ -471,14 +438,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           <Button variant="contained" onClick={() => navigate('/exams')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 4, bgcolor: 'primary.dark' }}>Enviar meu primeiro exame →</Button>
         </Box>
       )}
-      {!loading && !analysis && examCount !== 0 && (
-        <ReportPreviewCard
-          loading={loading}
-          disabled={loading || !pid}
-          onGenerate={() => generate(false)}
-          onExams={() => navigate('/exams')}
-        />
-      )}
+      {/* Sem relatório: o convite para gerar é o botão do cartão "Análise do Dr. Exame" da tela. */}
       {!pid && <Typography color="text.secondary" sx={{ mt: 1 }}>Selecione um perfil no topo para gerar o relatório.</Typography>}
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
 
@@ -715,6 +675,6 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           <b>Atualização em andamento</b> — o relatório segue sendo gerado e aparece aqui automaticamente. Pode continuar usando o app.
         </Alert>
       )}
-    </PageContainer>
+    </>
   );
 };

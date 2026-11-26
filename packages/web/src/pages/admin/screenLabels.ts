@@ -30,7 +30,7 @@ export const SCREENS: Record<string, { label: string; area: ScreenArea }> = {
   '/sinais': { label: 'Sinais de risco', area: 'exames' },
 
   '/chat': { label: 'Chat com IA', area: 'ia' },
-  '/relatorio': { label: 'Relatório completo', area: 'ia' },
+  '/relatorio': { label: 'Panorama completo', area: 'ia' },
   '/alimentacao': { label: 'Alimentação e exames', area: 'ia' },
 
   '/medicoes': { label: 'Medições', area: 'rotina' },

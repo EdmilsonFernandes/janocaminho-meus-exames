@@ -59,7 +59,7 @@ describe('créditos: débito atômico + cache (não cobrar 2x)', () => {
     expect(r.body.error).toBe('insufficient_credits');
   });
 
-  it('POST /analyses/consolidated cobra 20 e usa cache de 1h', async () => {
+  it(`POST /analyses/consolidated cobra CREDIT_COSTS.consolidated (${CREDIT_COSTS.consolidated}) e usa cache de 1h`, async () => {
     const { user, patient, token } = await createUser({ credits: 100 });
     const _e = await createExam(patient.id);
     await createItem(_e.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 }); // precisa de ≥1 exame extraído

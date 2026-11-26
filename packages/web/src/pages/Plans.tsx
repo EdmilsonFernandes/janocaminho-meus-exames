@@ -408,7 +408,7 @@ export const PlansPage = () => {
       <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mb: 2, lineHeight: 1.5 }}>
         {/* Custos VIVOS das settings — era hardcode ("chat 3 💎", "enviar é grátis") contradizendo
             a cobrança real (upload custa uploadRules.freeCost depois do 1º exame). */}
-        Leitura de exame <b>1</b> · relatório completo <b>{Math.max(1, Math.round((plans?.creditCosts?.consolidated ?? 20) / rd))}</b> leituras · pergunta no chat <b>{plans?.creditCosts?.chat ?? 2}</b> 💎. <b>1º exame grátis</b>; depois {plans?.uploadRules?.freeCost ?? 1} 💎 por envio. Sem mensalidade.
+        Leitura de exame <b>{rd}</b> 💎 · relatório completo <b>{plans?.creditCosts?.consolidated ?? 3}</b> 💎 · pergunta no chat <b>{plans?.creditCosts?.chat ?? 2}</b> 💎. <b>1º exame grátis</b>; depois {plans?.uploadRules?.freeCost ?? 1} 💎 por envio. Sem mensalidade.
       </Typography>
       {/* ══ CRÉDITOS AVULSOS — radio cards (Lucian #015): frame desliza pro pack
           escolhido, ponto pop, preço acorda no selecionado; setas navegam.

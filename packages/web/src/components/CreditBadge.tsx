@@ -3,7 +3,8 @@ import { API_URL, token } from '../config';
 
 // Default — sincronizado com o backend. Atualizado via fetchCreditCosts() no startup.
 // NÃO usar `as const` — o admin pode mudar os valores em runtime.
-export const CREDIT_COSTS: { extraction: number; summary: number; consolidated: number; chat: number; bodyReport: number; foodSummary: number } = { extraction: 0, summary: 10, consolidated: 20, chat: 2, bodyReport: 5, foodSummary: 5 };
+// consolidated = 3 (desde 26/11/26) — mesmo padrão de CREDIT_COSTS no servidor (utils/credits.ts).
+export const CREDIT_COSTS: { extraction: number; summary: number; consolidated: number; chat: number; bodyReport: number; foodSummary: number } = { extraction: 0, summary: 10, consolidated: 3, chat: 2, bodyReport: 5, foodSummary: 5 };
 
 /** Busca os custos atuais do backend (admin pode ter mudado). Chama no startup do app. */
 export async function syncCreditCosts() {

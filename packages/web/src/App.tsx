@@ -140,6 +140,7 @@ import { initDeepLinks } from './utils/deepLinks';
 import { Onboarding } from './components/Onboarding';
 import { WhatsNew } from './components/WhatsNew';
 import { PageSkeleton } from './components/PageSkeleton';
+import { ScrollToTopOnNavigate } from './components/ScrollToTopOnNavigate';
 import { CompleteProfileModal } from './components/CompleteProfileModal';
 import { GoalQuiz } from './components/GoalQuiz';
 import { Motd } from './components/Motd';
@@ -168,7 +169,8 @@ const EvolutionPage = lazy(() => import('./pages/Evolution').then(m => ({ defaul
 
 const FamilyPage = lazy(() => import('./pages/Family').then(m => ({ default: m.FamilyPage })));
 
-const ConsolidatedReportPage = lazy(() => import('./pages/ConsolidatedReport').then(m => ({ default: m.ConsolidatedReportPage })));
+// 26/11: /relatorio passou a ser o "Panorama da sua saúde"; o relatório consolidado virou seção dela.
+const PanoramaPage = lazy(() => import('./pages/PanoramaPage').then(m => ({ default: m.PanoramaPage })));
 
 const ValoresAlteradosPage = lazy(() => import('./pages/ValoresAlterados').then(m => ({ default: m.ValoresAlteradosPage })));
 
@@ -1137,7 +1139,7 @@ const AppMenu = () => {
         {/* Tendências voltou ao menu em 16/11 a pedido do dono (tinha saído por parecer repetida com a Evolução). */}
         <NavItem to="/tendencias" primaryText={translate('menu.trends', { _: 'Tendências' })} icon={<QueryStatsOutlinedIcon />} />
         <NavItem to="/linha-do-tempo" primaryText={translate('menu.timeline', { _: 'Linha do tempo' })} icon={<HistoryOutlinedIcon />} />
-        <NavItem to="/relatorio" primaryText={translate('menu.report', { _: 'Relatório completo' })} icon={<SummarizeOutlinedIcon />} />
+        <NavItem to="/relatorio" primaryText={translate('menu.report', { _: 'Panorama completo' })} icon={<SummarizeOutlinedIcon />} />
       </MenuSectionAccordion>
 
       {/* Grupo 2: Consultas & Médicos (Teleconsulta integrada!) */}
@@ -1550,6 +1552,8 @@ const AppLayout = (props: any) => {
         <DrawerProvider>
           <BiometricGate>
             <ScreenBackdrop />
+            {/* Toda troca de tela começa no topo (dono, 26/11/26): antes a tela nova herdava a rolagem da anterior. */}
+            <ScrollToTopOnNavigate />
             {/* gap reduzido + espaço pra não cobrir conteúdo com o menu rodapé (mobile) */}
             <Layout {...props} menu={AppMenu} appBar={CustomAppBar} error={AppCrashPage}
               sx={{
@@ -1873,7 +1877,7 @@ export const App = () => {
           <Route path="/familia" element={<Suspense fallback={<PageSkeleton />}><FamilyPage /></Suspense>} />
           <Route path="/tendencias" element={<Suspense fallback={<PageSkeleton />}><TrendsPage /></Suspense>} />
           <Route path="/linha-do-tempo" element={<Suspense fallback={<PageSkeleton />}><TimelinePage /></Suspense>} />
-          <Route path="/relatorio" element={<Suspense fallback={<PageSkeleton />}><ConsolidatedReportPage /></Suspense>} />
+          <Route path="/relatorio" element={<Suspense fallback={<PageSkeleton />}><PanoramaPage /></Suspense>} />
           <Route path="/alterados" element={<Suspense fallback={<PageSkeleton />}><ValoresAlteradosPage /></Suspense>} />
           <Route path="/lembretes" element={<Suspense fallback={<PageSkeleton />}><RemindersPage /></Suspense>} />
           <Route path="/consultas" element={<Suspense fallback={<PageSkeleton />}><MinhasConsultasPage /></Suspense>} />

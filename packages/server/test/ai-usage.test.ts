@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { api, authHeader, resetDb, createUser, createExam, getUserCredits , createItem } from './helpers';
 import { prisma } from '../src/prisma';
+import { CREDIT_COSTS } from '../src/utils/credits';
 
 // As rotas gravam o log com `void logAiUsage(...)` e respondem antes (o chat, depois de
 // encerrar o SSE) — a linha pode chegar ao banco DEPOIS da resposta. Contar uma vez só
@@ -42,13 +43,13 @@ describe('uso de IA visível: ai_usage_logs + carteira premium', () => {
     await waitLog(async () => expect(await prisma.aiUsageLog.count({ where: { userId: user.id, feature: 'CONSOLIDATED' } })).toBe(1));
   });
 
-  it('consolidado de FREE cobra 20 e registra uso', async () => {
+  it(`consolidado de FREE cobra CREDIT_COSTS.consolidated (${CREDIT_COSTS.consolidated}) e registra uso`, async () => {
     const { user, patient, token } = await createUser({ credits: 100 });
     const _e = await createExam(patient.id);
     await createItem(_e.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     const r = await api().post('/api/analyses/consolidated').set(authHeader(token)).send({ patientId: patient.id });
     expect(r.status).toBe(201);
-    expect(await getUserCredits(user.id)).toBe(100 - 20);
+    expect(await getUserCredits(user.id)).toBe(100 - CREDIT_COSTS.consolidated);
     await waitLog(async () => expect(await prisma.aiUsageLog.count({ where: { userId: user.id, feature: 'CONSOLIDATED' } })).toBe(1));
   });
 

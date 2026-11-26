@@ -10,25 +10,10 @@ import { computeDailyInsights, narrateDailyInsights } from '../analysis/daily-in
 const router = Router();
 router.use(requireAuth);
 
-/** Catálogo canônico de sintomas (chips). Key = sem acento/maiúscula; label = exibição. */
-export const SYMPTOM_CATALOG: { key: string; label: string }[] = [
-  { key: 'DOR_CABECA', label: 'Dor de cabeça' },
-  { key: 'CANSAICO', label: 'Cansaço' },
-  { key: 'INSONIA', label: 'Insônia' },
-  { key: 'DOR_CORPO', label: 'Dor no corpo' },
-  { key: 'NAUSEA', label: 'Náusea' },
-  { key: 'TONTURA', label: 'Tontura' },
-  { key: 'ANSIEDADE', label: 'Ansiedade' },
-  { key: 'FALTA_AR', label: 'Falta de ar' },
-  { key: 'DOR_ABDOMINAL', label: 'Dor abdominal' },
-  { key: 'FEBRE', label: 'Febre' },
-];
-const SYMPTOM_KEYS = new Set(SYMPTOM_CATALOG.map((s) => s.key));
-
-/** 'YYYY-MM-DD' de hoje no fuso de São Paulo (o dia do usuário, não o do servidor UTC). */
-function brToday(): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
-}
+// Catálogo de sintomas + dia BR + streak: fonte única em analysis/daily-log-utils.ts
+// (compartilhados com o panorama da saúde). Re-exportado para não quebrar quem importava daqui.
+import { SYMPTOM_CATALOG, SYMPTOM_KEYS, brToday, computeDailyStreak } from '../analysis/daily-log-utils';
+export { SYMPTOM_CATALOG };
 
 // LIST — últimos N dias (default 30)
 router.get('/', async (req: AuthedRequest, res, next) => {
@@ -62,19 +47,8 @@ router.get('/streak', async (req: AuthedRequest, res, next) => {
       select: { date: true },
       orderBy: { date: 'desc' },
     });
-    const dates = new Set(rows.map((r) => r.date.toISOString().slice(0, 10)));
-    const today = brToday();
-    const yesterday = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' })
-      .format(new Date(Date.now() - 86400000));
-    let cursor = dates.has(today) ? today : dates.has(yesterday) ? yesterday : null;
-    let streak = 0;
-    while (cursor && dates.has(cursor)) {
-      streak++;
-      const d = new Date(`${cursor}T12:00:00Z`);
-      cursor = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' })
-        .format(new Date(d.getTime() - 86400000));
-    }
-    res.json({ streak });
+    const dates = rows.map((r) => r.date);
+    res.json({ streak: computeDailyStreak(dates) });
   } catch (e) { next(e); }
 });
 

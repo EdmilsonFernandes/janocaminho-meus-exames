@@ -3,6 +3,7 @@ import { prisma } from '../src/prisma';
 import { resetDb, createUser, createExam, createItem, api, authHeader, mpResponse, testCpf } from './helpers';
 import { createSubscriptionCompat, resetSubscriptionColumnsCacheForTests } from '../src/utils/subscriptionCompat';
 import { loadSettings, getEffectivePlanPrice } from '../src/utils/settings';
+import { CREDIT_COSTS } from '../src/utils/credits';
 
 const fetchMock = () => globalThis.fetch as unknown as Mock;
 
@@ -78,7 +79,7 @@ describe('pricing strategy: plano configurável + perks + fundador', () => {
 
     const r = await api().post(`/api/analyses/consolidated`).set(authHeader(token)).send({ patientId: patient.id });
     expect([200, 201]).toContain(r.status);
-    expect(await getUserCreditsSafe(user.id)).toBe(57); // 77 - 20
+    expect(await getUserCreditsSafe(user.id)).toBe(77 - CREDIT_COSTS.consolidated); // preço vem da constante, não de literal
   });
 
   it('S7) premium cria dependentes até o limite do plano; free para no 4º com 402', async () => {

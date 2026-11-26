@@ -5,6 +5,7 @@ export * from './schemas/items';
 export * from './schemas/goals';
 export * from './idealRanges';
 export * from './mental-health';
+export * from './panorama';
 
 // ── Tendência por distância à banda de referência (lógica pura, sem Zod) ──
 // "Subir" não é bom nem ruim por si só (HDL subindo é bom; glicose subindo é ruim).
