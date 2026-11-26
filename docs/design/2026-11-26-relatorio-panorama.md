@@ -79,12 +79,24 @@ o foco volta ao azulejo.
 | Testes do web (frases do panorama + rolagem) | 52 de 52 |
 | Lint de ordem de hooks e linguagem vedada | ok / nenhum termo |
 | Navegador, build local com dados de exemplo (`e2e/qa-panorama-funcional.mjs`, só GET) | **25 de 25** |
-| Navegador, produção | ver seção abaixo |
+| Navegador, produção (conta de teste) | 18 de 19 — a "falha" era o roteiro esperar 9 áreas; a conta só tem 2 com dado. Ajustado. |
+
+Em produção desde 26/11 13:58 (`c52e18f7`). Na conta de teste o endpoint responde em ~190 ms (166 ms com
+cache). Preço da análise completa em produção: **3 créditos** — a linha salva em `app_settings.creditCosts`
+tinha 20 e vencia o padrão do código; foi atualizada no banco na hora do deploy.
 
 O roteiro cobre 390, 360, 390 escuro e 1280: azulejos, idade do dado em todos, alvos de 44px, história
 manual (6 s parado continua no cartão 1), `inert`, percurso das 9 áreas até o fim, Esc + foco, nada gravado,
 rolagem direta e pela gaveta do menu, e as variantes "exame antigo" e "PHQ-9 nunca respondido".
 Fixture de dados de exemplo (pessoa fictícia): `e2e/fixtures/panorama.sample.json`.
+
+## Pacote do app
+
+**AAB 636 (2.7.386)** — `packages/mobile/android/app/build/outputs/bundle/release/app-release-636-v2.7.386.aab`
+(17.671.762 bytes, sha256 `4da31ac6fbe13d477ae6ad72c1aa66a6728f138a7ddd60c0903ab767aa0964e6`), gerado em 26/11
+14:19 a partir do commit `002176c`. Conferido por dentro: `build-info` com a versão 636, a tela do panorama
+em `PanoramaPage-*.js`, sem `dist/`, sem "Program Files". O AAB 635 foi montado num checkout sem estes
+arquivos e **não** tem o panorama. Subida no Play Console: manual.
 
 ## O que ficou de fora
 
