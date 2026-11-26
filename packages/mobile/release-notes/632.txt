@@ -1,0 +1,5 @@
+• Tela inicial: data do último exame e botão de ouvir o resumo na mesma linha, sem espaço sobrando.
+• Lista de exames mais limpa: data, laboratório e médico em cada exame.
+• Exame parado em "processando" agora explica o que está acontecendo.
+• Detalhe do exame: valores fora da faixa em destaque.
+• Radar Hormonal: última e próxima aplicação de cada composto.

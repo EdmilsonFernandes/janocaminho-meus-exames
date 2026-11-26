@@ -596,14 +596,19 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
       boxShadow: `0 2px 8px rgba(0,0,0,.04), 0 8px 32px ${scoreGlowColor(score)}`,
       transition: 'box-shadow .6s ease',
     }}>
-      {/* Barra superior de status: Data do exame à esquerda + Play de áudio à direita (sem sobreposição) */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: '100%', mb: { xs: 1.5, sm: 1.75 }, position: 'relative', zIndex: 2, flexWrap: 'wrap', rowGap: 1 }}>
+      {/* Barra superior de status: Data do exame à esquerda + Play de áudio à direita.
+          UMA linha só, em qualquer largura: no celular a data perde o prefixo e o botão vira "Ouvir"
+          (abaixo de 380px, só o ícone de 44px), para a DATA caber inteira. Reticências são o último
+          recurso — o botão nunca cai para a linha de baixo. */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" data-hero-status sx={{ width: '100%', mb: { xs: 1.5, sm: 1.75 }, position: 'relative', zIndex: 2, flexWrap: 'nowrap', gap: 1 }}>
         {/* Data + IDADE do último exame, em caixa normal (caixa alta miúda custa a ler aos 40+). */}
         <Box
           component="span"
           sx={{
             display: 'inline-flex',
             alignItems: 'center',
+            minWidth: 0,
+            flex: '0 1 auto',
             gap: 0.75,
             px: 1.25,
             py: 0.5,
@@ -613,13 +618,17 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
             fontSize: 13,
             fontWeight: 700,
             lineHeight: 1.3,
+            '@media (max-width:339.95px)': { fontSize: 12, px: 1, gap: 0.5 },
             color: (th) => (th.palette.mode === 'dark' ? '#2dd4bf' : '#0f766e'),
           }}
         >
           {last && !noData ? (
             <>
-              <ScienceIcon sx={{ fontSize: 15 }} />
-              <span>Último exame: {last}{rec.relative ? ` · ${rec.relative}` : ''}</span>
+              <ScienceIcon sx={{ fontSize: 15, flexShrink: 0 }} />
+              <Box component="span" aria-label={`Último exame: ${last}${rec.relative ? `, ${rec.relative}` : ''}`} sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Último exame: </Box>
+                {last}{rec.relative ? ` · ${rec.relative}` : ''}
+              </Box>
             </>
           ) : (
             <>Sua saúde hoje</>
@@ -641,8 +650,9 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
                 ml: 'auto',
                 gap: 0.75,
                 minHeight: 44,
-                px: 2,
+                px: { xs: 1.5, sm: 2 },
                 py: 1,
+                '@media (max-width:379.95px)': { width: 44, px: 0, justifyContent: 'center', '& [data-audio-label]': { display: 'none' } },
                 borderRadius: '999px',
                 border: '1px solid',
                 borderColor: (th) => alpha(th.palette.primary.main, audioPlaying ? 0.6 : th.palette.mode === 'dark' ? 0.35 : 0.3),
@@ -670,12 +680,12 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
               {audioPlaying ? (
                 <>
                   <PauseIcon sx={{ fontSize: 16 }} />
-                  <span>Pausar</span>
+                  <span data-audio-label>Pausar</span>
                 </>
               ) : (
                 <>
                   <GraphicEqRoundedIcon sx={{ fontSize: 18 }} />
-                  <span>Ouvir resumo IA</span>
+                  <span data-audio-label>Ouvir<Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}> resumo IA</Box></span>
                 </>
               )}
             </Box>
