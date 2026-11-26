@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { photoReadNotice } from '../../utils/photoReadNotice';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box, Card, CardContent, Typography, Chip, Button, CircularProgress, Alert, Divider, Stack,
@@ -417,6 +418,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   const doctorInfo = cleanExtractedLabel(exam.rawExtraction?.requestingDoctor, '', 56);
   const docNameInfo = cleanExtractedLabel(nm?.docName, 'nome detectado no documento', 64);
   const profileNameInfo = cleanExtractedLabel(nm?.profileName, 'perfil selecionado', 64);
+  const photoNotice = exam.status === 'EXTRACTED' ? photoReadNotice(exam.rawExtraction?.photoRead) : null;
   const headerNeedsReview = !!exam.reviewRequired || titleInfo.suspicious || labInfo.suspicious || patientInfo.suspicious || doctorInfo.suspicious || !exam.performedAt;
   const abnormal = items.filter((i) => i.isAbnormal);
   // UNKNOWN = sem faixa de referência (ou sem valor). NÃO é "dentro da faixa" — o header distingue.
@@ -508,7 +510,13 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
               ].filter(Boolean).join('  ·  ')}
             </Typography>
           )}
-          {headerNeedsReview && (
+          {photoNotice && (
+            <Alert severity="warning" data-photo-read sx={{ mt: 1.5, borderRadius: RADIUS.sectionCard, '& .MuiAlert-message': { fontSize: 13.5, lineHeight: 1.5 } }}>
+              <Typography component="div" sx={{ fontWeight: 800, fontSize: 14, mb: 0.25 }}>{photoNotice.title}</Typography>
+              {photoNotice.lines.map((l) => (<Box key={l}>{l}</Box>))}
+            </Alert>
+          )}
+          {headerNeedsReview && !photoNotice && (
             <Alert severity="info" icon={false} sx={{ mt: 1.5, borderRadius: RADIUS.sectionCard, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
               Alguns dados do cabeçalho vieram da leitura automática e precisam conferência. Os valores abaixo continuam editáveis.
             </Alert>

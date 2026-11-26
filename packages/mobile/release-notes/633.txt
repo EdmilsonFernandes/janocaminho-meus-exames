@@ -1,0 +1,4 @@
+• Foto de exame difícil de ler: agora o app tenta uma segunda leitura antes de recusar e avisa o que conferir no papel.
+• Mensagem mais clara quando a imagem enviada não é um resultado de exame.
+• Tela inicial: data do último exame e botão de ouvir o resumo na mesma linha.
+• Lista e detalhe dos exames mais limpos e fáceis de ler.

@@ -8,6 +8,7 @@ import { extractLabPanel, extractLabPanels, extractImaging } from './claude';
 import { ocrPdfPages } from './ocrPdf';
 import { explainNonExamDoc } from './nonExamExplain';
 import { imageToText, ocrWordCount, OCR_UNREADABLE_WORDS, OCR_WEAK_WORDS } from './imageToText';
+import { visionReadPhoto } from './visionRead';
 import { canonicalName, reconcileScaleFlag, parseNumeric, normalizeUnit, sanitizeUnitInText } from '../utils/normalize';
 import { invalidateHealthSummary } from '../analysis/hs-cache';
 import { toCanonicalUnit } from '../utils/units';
@@ -109,6 +110,8 @@ async function runExtractionOnce(examId: string): Promise<void> {
     // Antes chamava readPdf em tudo → imagem virava texto vazio → "Documento vazio".
     let pageCount = 1;
     let text = '';
+    // Preenchido quando a foto só foi lida pela leitura dupla (visionRead.ts) → exame entra para conferir.
+    let photoRead: { by: 'vision'; unsure: string[]; refDropped: string[]; agreed: number; models: string[] } | null = null;
     if (media === 'application/pdf') {
       const r = await readPdf(buffer);
       pageCount = r.pageCount; text = r.text;
@@ -131,7 +134,26 @@ async function runExtractionOnce(examId: string): Promise<void> {
       // FOTO ILEGÍVEL: quase nenhuma palavra saiu da imagem. Antes ela seguia para a IA (até 3
       // chamadas, minutos de espera) para terminar em "não é um exame". Agora para aqui, na hora,
       // dizendo a verdade: a foto não deu para ler — e como tirar outra.
+      // 2ª CHANCE (26/11): antes de recusar, a foto é lida duas vezes por modelos de visão e só o
+      // que sai igual nas duas segue adiante. Indisponível ou sem acordo → recusa como sempre.
       if (ocrWordCount(text) < OCR_UNREADABLE_WORDS) {
+        const v = await visionReadPhoto(buffer, media).catch((e) => ({ kind: 'unavailable' as const, why: (e as Error).message }));
+        if (v.kind === 'exam') {
+          console.log(`[extraction] ${examId}: foto lida pela leitura dupla — ${v.agreed} resultados confirmados, ${v.unsure.length} em dúvida`);
+          text = v.text;
+          photoRead = { by: 'vision', unsure: v.unsure, refDropped: v.refDropped, agreed: v.agreed, models: v.models };
+        } else if (v.kind === 'not_exam') {
+          const reason = 'Esta imagem não parece um resultado de exame 😕 — não encontrei valores nela. Se for a chapa ou o filme de um exame de imagem, envie o laudo escrito que veio junto. Se for outra foto, escolha a do resultado do exame. Seu crédito de envio foi devolvido.';
+          await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: 'not_a_document', extractionError: reason } });
+          await refundUploadOnFailure(examId);
+          console.log(`[extraction] ${examId} rejeitado (leitura dupla: não é exame)`);
+          void NotificationService.examFailed({ userId: patient?.ownerId ?? undefined, patientName: patient?.fullName ?? undefined, examTitle: exam.title ?? '—', reason });
+          return;
+        } else {
+          console.log(`[extraction] ${examId}: leitura dupla não ajudou (${v.why})`);
+        }
+      }
+      if (!photoRead && ocrWordCount(text) < OCR_UNREADABLE_WORDS) {
         const reason = 'Não consegui ler esta foto 😕 — o texto saiu apagado, tremido ou cortado. Tire outra com o exame inteiro na tela, em lugar claro e sem sombra, ou use o botão Escanear, que ajusta a imagem sozinho. Seu crédito de envio foi devolvido.';
         await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: 'low_quality', extractionError: reason } });
         await refundUploadOnFailure(examId);
@@ -253,7 +275,9 @@ async function runExtractionOnce(examId: string): Promise<void> {
     }
 
     // trava anti-alucinação (apenas painel lab): compara itens extraídos vs. densidade de valores no texto
-    const reviewRequired = kind !== 'IMAGING' ? sanityCheckItems(text, items) : false;
+    // Foto lida pela leitura dupla SEMPRE entra para conferir, e leva a lista do que ficou em dúvida.
+    const reviewRequired = !!photoRead || (kind !== 'IMAGING' ? sanityCheckItems(text, items) : false);
+    if (photoRead && raw) raw.photoRead = photoRead;
 
     // identidade: CPF do documento é sinal forte; sem CPF confiável, cai no match por nome.
     if (raw && patient?.cpfHash) {
