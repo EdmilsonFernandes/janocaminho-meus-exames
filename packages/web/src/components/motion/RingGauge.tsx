@@ -54,7 +54,7 @@ export function RingGauge({ segments, size = 148, thickness = 12, gap = 3, child
               strokeLinecap={visible.length > 1 ? 'butt' : 'round'}
               strokeDasharray={`${len} ${c - len}`}
               strokeDashoffset={-(start + gapLen / 2)}
-              className={s.className}
+              className={cn('transition-[stroke-dasharray,stroke-dashoffset] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none', s.className)}
             />
           );
           start += Math.min(1, s.fraction) * c;

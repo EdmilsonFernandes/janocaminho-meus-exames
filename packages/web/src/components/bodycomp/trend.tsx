@@ -6,15 +6,16 @@
  *  - o eixo Y não parte do zero (peso de 0 a 90 achataria a variação que interessa);
  *  - a variação não ganha cor de bom/ruim — subir ou descer depende do objetivo de cada um.
  */
-import { useId, useMemo, useState, useSyncExternalStore, type CSSProperties } from 'react';
+import { useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { cn } from 'cn';
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
-import { Area, CartesianGrid, ComposedChart, ReferenceArea, XAxis, YAxis, type TooltipContentProps } from 'recharts';
+import { Area, CartesianGrid, ComposedChart, ReferenceArea, ReferenceDot, ReferenceLine, XAxis, YAxis, type TooltipContentProps } from 'recharts';
 import { Badge } from '@/components/reui/badge';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LastDataLabel } from '@/components/charts/LastDataLabel';
 import { TodayMarker } from '@/components/charts/TodayMarker';
 import { describeRecency, planTodayAxis } from '@/components/charts/recency';
+import { hapticNav } from '@/utils/haptic';
 import {
   METRICS, deltaOf, deviceLabel, formatDate, formatDelta, formatMetric, formatShortDate, formatWithUnit, isStale,
   type BodyReading, type MetricKey, type RangeInfo,
@@ -123,8 +124,13 @@ const subscribeReduced = (notify: () => void) => {
 const readReduced = () => window.matchMedia(REDUCED_QUERY).matches;
 
 const MARGIN = { top: 16, right: 12, bottom: 0, left: 0 };
+/** Largura do eixo Y e folga do eixo X — usadas no desenho E na conta de qual avaliação o dedo tocou. */
+const Y_AXIS_WIDTH = 40;
+const X_PADDING = 16;
 const ACTIVE_DOT = { r: 4.5, fill: 'currentColor', stroke: 'var(--card)', strokeWidth: 2 };
 const DOT = { r: 3, fill: 'currentColor', stroke: 'var(--card)', strokeWidth: 1.5 };
+/** Acima disto (relógio medindo todo dia) um ponto por avaliação vira ruído: fica só a linha. */
+const DOTS_UP_TO = 40;
 /** Data no padrão da tela (fuso de São Paulo), para o rótulo de recência. */
 const formatRecencyDate = (date: Date) => formatDate(date.toISOString());
 const STALE_NOTE = 'pode não refletir seu corpo hoje';
@@ -147,12 +153,18 @@ export function TrendPlot({
   readings,
   metric,
   band,
+  selectedId,
+  onSelect,
 }: {
   /** Mais antiga primeiro. */
   readings: BodyReading[];
   metric: MetricKey;
   /** Faixa de referência desenhada atrás da série (só quando existe uma para a medida). */
   band: RangeInfo | null;
+  /** Avaliação em exibição na tela: ganha a marca no gráfico. */
+  selectedId?: string | null;
+  /** Tocar num ponto (ou arrastar o dedo) escolhe a avaliação — o gráfico é o controle da tela. */
+  onSelect?: (id: string) => void;
 }) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const reduced = useSyncExternalStore(subscribeReduced, readReduced, () => false);
@@ -179,6 +191,10 @@ export function TrendPlot({
   const config = useMemo(() => ({ value: { label: spec.label } }), [spec.label]);
   // "Hoje" fixado na montagem: o eixo não pode mudar de domínio a cada render.
   const [now] = useState(() => Date.now());
+  // Dedo no gráfico: só vira "arrastar para escolher" depois de andar mais na horizontal do que
+  // na vertical — rolar a página com o dedo em cima do gráfico não pode trocar a avaliação.
+  const touch = useRef<{ x: number; y: number; scrub: boolean } | null>(null);
+  const plotRef = useRef<HTMLDivElement>(null);
 
   if (rows.length < 2) {
     return (
@@ -199,10 +215,46 @@ export function TrendPlot({
   // Se a avaliação mais nova não trouxe esta medida, o rótulo diz isso (não confundir com a "Última avaliação" da tela).
   const lastNoun = readings[readings.length - 1]?.id === last.reading.id ? 'Última avaliação' : 'Última avaliação com esta medida';
   const recency = describeRecency(last.reading.measuredAt, { now, noun: lastNoun, stale: lastStale, formatDate: formatRecencyDate, staleNote: STALE_NOTE });
-  const label = `${spec.label} em ${rows.length} avaliações, de ${formatDate(first.reading.measuredAt)} a ${formatDate(last.reading.measuredAt)}: de ${formatWithUnit(metric, first.value)} para ${formatWithUnit(metric, last.value)}.${recency ? ` ${recency.text}.` : ''}${today.show ? ' Uma linha vertical marca o dia de hoje.' : ''} Use as setas para percorrer as avaliações.`;
+  const selected = selectedId ? rows.find((row) => row.reading.id === selectedId) : undefined;
+  // Escolha pela posição do dedo/clique, calculada aqui (não pelo estado interno do recharts,
+  // que só existe depois de um "hover" e chega atrasado no toque): a avaliação mais próxima em X.
+  const domainEnd = today.show && today.domainEnd != null ? today.domainEnd : last.t;
+  const pick = (clientX: number, viaTouch: boolean) => {
+    const rect = plotRef.current?.getBoundingClientRect();
+    if (!onSelect || !rect) return;
+    const from = rect.left + MARGIN.left + Y_AXIS_WIDTH + X_PADDING;
+    const to = rect.right - MARGIN.right - X_PADDING;
+    if (to <= from) return;
+    const at = first.t + ((clientX - from) / (to - from)) * (domainEnd - first.t);
+    const row = rows.reduce((best, candidate) => (Math.abs(candidate.t - at) < Math.abs(best.t - at) ? candidate : best));
+    if (row.reading.id === selectedId) return;
+    if (viaTouch) hapticNav();
+    onSelect(row.reading.id);
+  };
+  const label = `${spec.label} em ${rows.length} avaliações, de ${formatDate(first.reading.measuredAt)} a ${formatDate(last.reading.measuredAt)}: de ${formatWithUnit(metric, first.value)} para ${formatWithUnit(metric, last.value)}.${recency ? ` ${recency.text}.` : ''}${today.show ? ' Uma linha vertical marca o dia de hoje.' : ''} Use as setas para percorrer as avaliações.${onSelect ? ' Toque em um ponto para ver aquela avaliação.' : ''}`;
 
   return (
     <>
+    <div
+      ref={plotRef}
+      className={onSelect ? 'cursor-pointer touch-pan-y select-none' : undefined}
+      onClick={(event) => pick(event.clientX, false)}
+      onTouchStart={(event) => {
+        const point = event.touches[0];
+        touch.current = point ? { x: point.clientX, y: point.clientY, scrub: false } : null;
+      }}
+      onTouchMove={(event) => {
+        const point = event.touches[0];
+        const start = touch.current;
+        if (!point || !start) return;
+        if (!start.scrub) {
+          const dx = Math.abs(point.clientX - start.x);
+          if (dx < 8 || dx < Math.abs(point.clientY - start.y)) return;
+          start.scrub = true;
+        }
+        pick(point.clientX, true);
+      }}
+    >
     <ChartContainer
       config={config}
       role="group"
@@ -222,14 +274,15 @@ export function TrendPlot({
           dataKey="t"
           type="number"
           scale="time"
-          domain={['dataMin', today.show && today.domainEnd != null ? today.domainEnd : 'dataMax']}
+          domain={[first.t, domainEnd]}
           ticks={xTicks}
-          interval={0}
+          interval="preserveStartEnd"
+          minTickGap={14}
           tickFormatter={formatShortDate}
           tickLine={false}
           axisLine={false}
           tickMargin={10}
-          padding={{ left: 16, right: 16 }}
+          padding={{ left: X_PADDING, right: X_PADDING }}
         />
         <YAxis
           ticks={ticks}
@@ -238,7 +291,7 @@ export function TrendPlot({
           tickLine={false}
           axisLine={false}
           tickMargin={6}
-          width={40}
+          width={Y_AXIS_WIDTH}
         />
         {band ? (
           <ReferenceArea
@@ -253,6 +306,7 @@ export function TrendPlot({
           />
         ) : null}
         {today.show ? <TodayMarker x={now} /> : null}
+        {selected ? <ReferenceLine x={selected.t} stroke="var(--foreground)" strokeOpacity={0.3} strokeDasharray="3 3" ifOverflow="discard" /> : null}
         <ChartTooltip isAnimationActive={false} content={<Readout metric={metric} />} />
         <Area
           dataKey="value"
@@ -260,15 +314,28 @@ export function TrendPlot({
           stroke="currentColor"
           strokeWidth={2}
           fill={`url(#${id}-fill)`}
-          dot={DOT}
+          dot={rows.length > DOTS_UP_TO ? false : DOT}
           activeDot={ACTIVE_DOT}
           isAnimationActive={!reduced}
           animationDuration={400}
           animationEasing="ease-out"
           className={spec.ink}
         />
+        {selected ? (
+          <ReferenceDot
+            x={selected.t}
+            y={selected.value}
+            ifOverflow="discard"
+            shape={({ cx, cy }: { cx?: number; cy?: number }) =>
+              typeof cx === 'number' && typeof cy === 'number' ? (
+                <circle aria-hidden="true" cx={cx} cy={cy} r={6} fill="currentColor" stroke="var(--card)" strokeWidth={2.5} className={spec.ink} />
+              ) : <g />
+            }
+          />
+        ) : null}
       </ComposedChart>
     </ChartContainer>
+    </div>
     {/* De quando é o último ponto — sempre em texto, com ou sem a linha "hoje". */}
     <p className="m-0 text-xs text-muted-foreground">
       <LastDataLabel date={last.reading.measuredAt} now={now} noun={lastNoun} stale={lastStale} formatDate={formatRecencyDate} staleNote={STALE_NOTE} />

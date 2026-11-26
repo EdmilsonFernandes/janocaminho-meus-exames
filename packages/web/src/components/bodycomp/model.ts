@@ -174,3 +174,79 @@ export const formatDelta = (key: MetricKey, delta: number) => {
   const u = key === 'bodyFatPct' ? 'p.p.' : unit;
   return `${sign}${abs}${u ? ` ${u}` : ''}`;
 };
+
+// ───────── Linha do tempo: janela do gráfico, "reproduzir" e histórico por mês ─────────
+
+const SP = 'America/Sao_Paulo';
+
+/** Janela do gráfico. Ancorada na avaliação MAIS RECENTE, não em hoje: quem mediu há um ano ainda vê os dados. */
+export type ChartRange = '3m' | '6m' | '1a' | 'tudo';
+export const RANGE_LABEL: Record<ChartRange, string> = { '3m': '3 meses', '6m': '6 meses', '1a': '1 ano', tudo: 'Tudo' };
+const RANGE_DAYS: Record<Exclude<ChartRange, 'tudo'>, number> = { '3m': 92, '6m': 183, '1a': 366 };
+
+/** As avaliações (mais antiga primeiro) dentro da janela. */
+export function inRange(oldestFirst: BodyReading[], range: ChartRange): BodyReading[] {
+  if (range === 'tudo' || oldestFirst.length === 0) return oldestFirst;
+  const end = new Date(oldestFirst[oldestFirst.length - 1].measuredAt).getTime();
+  const from = end - RANGE_DAYS[range] * 86_400_000;
+  return oldestFirst.filter((item) => new Date(item.measuredAt).getTime() >= from);
+}
+
+/**
+ * Janelas que fazem sentido oferecer: só as que escondem alguma avaliação e ainda deixam
+ * pelo menos duas para desenhar. Sem nenhuma assim, devolve [] (a tela não mostra o seletor).
+ */
+export function availableRanges(oldestFirst: BodyReading[]): ChartRange[] {
+  const cut = (['3m', '6m', '1a'] as const).filter((range) => {
+    const size = inRange(oldestFirst, range).length;
+    return size >= 2 && size < oldestFirst.length;
+  });
+  // Duas janelas com as mesmas avaliações são a mesma opção: fica a mais curta.
+  const distinct = cut.filter((range, i) => i === 0 || inRange(oldestFirst, range).length !== inRange(oldestFirst, cut[i - 1]).length);
+  return distinct.length ? [...distinct, 'tudo'] : [];
+}
+
+/** No máximo `max` passos espalhados por igual, sempre com o primeiro e o último. */
+export function sampleSteps<T>(list: T[], max = 24): T[] {
+  if (list.length <= max || max < 2) return list;
+  const picked: T[] = [];
+  for (let i = 0; i < max; i++) picked.push(list[Math.round((i * (list.length - 1)) / (max - 1))]);
+  return picked;
+}
+
+export interface MonthGroup {
+  /** "2026-11" (fuso de São Paulo). */
+  key: string;
+  /** "Novembro 2026". */
+  label: string;
+  /** Mais recente primeiro, como a API devolve. */
+  items: BodyReading[];
+}
+
+const monthKey = (iso: string) => {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: SP, year: 'numeric', month: '2-digit' }).formatToParts(new Date(iso));
+  return `${parts.find((p) => p.type === 'year')?.value}-${parts.find((p) => p.type === 'month')?.value}`;
+};
+
+const monthLabel = (iso: string) => {
+  const text = new Date(iso).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: SP }).replace(' de ', ' ');
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
+/** Histórico agrupado por mês, na ordem recebida (mais recente primeiro). */
+export function groupByMonth(newestFirst: BodyReading[]): MonthGroup[] {
+  const groups: MonthGroup[] = [];
+  for (const item of newestFirst) {
+    const key = monthKey(item.measuredAt);
+    const last = groups[groups.length - 1];
+    if (last && last.key === key) last.items.push(item);
+    else groups.push({ key, label: monthLabel(item.measuredAt), items: [item] });
+  }
+  return groups;
+}
+
+/** "02 nov" e "seg" — a data curta de cada linha do histórico (o ano está no título do mês). */
+export const formatDayMonth = (iso: string) =>
+  new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', timeZone: SP }).replace(/\./g, '').replace(' de ', ' ');
+export const formatWeekday = (iso: string) =>
+  new Date(iso).toLocaleDateString('pt-BR', { weekday: 'short', timeZone: SP }).replace(/\./g, '');

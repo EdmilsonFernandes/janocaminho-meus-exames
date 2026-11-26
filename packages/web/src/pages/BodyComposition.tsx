@@ -2,16 +2,22 @@
  * Composição corporal (bioimpedância) — /composicao.
  *
  * Plano ReUI: superfície operacional · arquétipo "Frame stack" · família Frame ·
- * densidade padrão (alvos de toque de celular) · regiões: última avaliação (barra do
- * corpo + indicadores com régua), evolução (blocos + gráfico), histórico · cada região
- * com vazio/carregando/erro · sem animação de entrada.
+ * densidade padrão (alvos de toque de celular) · regiões: avaliação em exibição (anel do
+ * corpo), evolução (blocos + gráfico + o que mudou), indicadores com régua, histórico por
+ * mês · cada região com vazio/carregando/erro.
+ *
+ * O GRÁFICO É O CONTROLE DA TELA (26/11/26): tocar num ponto, arrastar o dedo, as setas do
+ * topo ou uma linha do histórico escolhem UMA avaliação, e anel, blocos, variações e
+ * indicadores passam a mostrar aquela. Fora da mais recente, a tela diz isso em faixa
+ * visível e oferece voltar — dado antigo nunca passa por atual.
  *
  * Blocos de origem: chart-6 (blocos + gráfico), stats-18 (medidor segmentado),
- * chart-8 (célula de indicador: título + selo, valor, fatos).
+ * chart-8 (célula de indicador: título + selo, valor, fatos), timeline (histórico — o mesmo
+ * componente da linha do tempo dos exames).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNotify } from 'react-admin';
-import { ArrowDownRight, ArrowUpRight, ChartLine, ChevronDown, History, Minus, Plus, RotateCw, Scale, Trash2, TriangleAlert } from 'lucide-react';
+import { Activity, ArrowDownRight, ArrowUpRight, ChartLine, ChevronDown, ChevronLeft, ChevronRight, History, Minus, Pause, Play, Plus, RotateCw, Scale, Trash2, TriangleAlert } from 'lucide-react';
 import { cn } from 'cn';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -26,6 +32,7 @@ import { IconTile } from '@/components/reui/icon-tile';
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { ListEmpty } from '@/components/reui/list-empty';
 import { SettingRow } from '@/components/reui/setting-row';
+import { Timeline, TimelineIndicator, TimelineItem, TimelineSeparator } from '@/components/reui/timeline';
 import { SourceIcon } from '@/components/bodycomp/source-icon';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 import { Button } from '@/components/ui/button';
@@ -42,9 +49,9 @@ import { GlassGlow } from '../components/motion/GlassGlow';
 import { TrendPlot, TrendTiles } from '@/components/bodycomp/trend';
 import { NewReadingDialog } from '@/components/bodycomp/new-reading-dialog';
 import {
-  METRICS, TREND_KEYS, ZONE_LABEL, deltaOf, deviceLabel, formatDate, formatDelta, formatMetric, formatNumber, formatWithUnit,
-  isStale, rangeFor, timeAgo, zoneOf,
-  type BodyCompositionResponse, type BodyReading, type MetricKey,
+  METRICS, RANGE_LABEL, TREND_KEYS, ZONE_LABEL, availableRanges, deltaOf, deviceLabel, formatDate, formatDayMonth, formatDelta, formatMetric,
+  formatNumber, formatWeekday, groupByMonth, inRange, isStale, rangeFor, sampleSteps, timeAgo, zoneOf,
+  type BodyCompositionResponse, type BodyReading, type ChartRange, type MetricKey,
 } from '@/components/bodycomp/model';
 
 /** Indicadores da última avaliação, na ordem de leitura; só aparece o que foi medido. */
@@ -167,6 +174,95 @@ function partsOf(reading: BodyReading): CompositionPart[] | null {
   return [fat, { key: 'lean', label: 'Massa livre de gordura', kg: weightKg - fatMassKg, swatch: 'bg-sky-600 dark:bg-sky-400' }];
 }
 
+/** As três medidas de cada linha do histórico (as mesmas que quase todo aparelho entrega). */
+const HISTORY_KEYS: MetricKey[] = ['weightKg', 'bodyFatPct', 'skeletalMuscleKg'];
+/** Tempo de cada avaliação no "Reproduzir". */
+const PLAY_STEP_MS = 800;
+
+/**
+ * Uma avaliação no histórico: data, aparelho e três números com a variação desde a avaliação
+ * anterior NO TEMPO. A variação só aparece entre avaliações do mesmo aparelho (aparelhos
+ * diferentes medem diferente) e não ganha cor de bom/ruim.
+ */
+function HistoryRow({
+  item,
+  before,
+  active,
+  onOpen,
+  onDelete,
+}: {
+  item: BodyReading;
+  /** A avaliação imediatamente anterior no tempo (qualquer aparelho). */
+  before: BodyReading | undefined;
+  active: boolean;
+  onOpen: () => void;
+  onDelete: () => void;
+}) {
+  const comparable = !!before && deviceLabel(before) === deviceLabel(item);
+  return (
+    <TimelineItem step={0} role="listitem" className="pb-0">
+      <TimelineSeparator className="group-data-[orientation=vertical]/timeline-item:top-10" />
+      <TimelineIndicator className={cn('top-3.5 ring-card', active && 'border-primary bg-primary group-data-completed/timeline-item:bg-primary')}>
+        {active ? <span className="size-2 rounded-full bg-white" /> : null}
+      </TimelineIndicator>
+      <button
+        type="button"
+        aria-current={active ? 'true' : undefined}
+        aria-label={`Ver avaliação de ${formatDate(item.measuredAt)}`}
+        onClick={onOpen}
+        className={cn(
+          'flex w-full cursor-pointer flex-col gap-2.5 rounded-lg border-0 bg-transparent px-2 py-3 text-start text-foreground outline-none transition-colors hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset',
+          active && 'bg-primary/6',
+        )}
+      >
+        <span className="flex min-h-6 flex-wrap items-center gap-x-2 gap-y-1 pe-11">
+          <span className="text-sm font-semibold tabular-nums">{formatDayMonth(item.measuredAt)}</span>
+          <span className="text-xs text-muted-foreground">{formatWeekday(item.measuredAt)}</span>
+          <Badge variant="outline" size="sm">
+            {item.source === 'HEALTH_CONNECT' ? <SourceIcon brand={item.deviceBrand} className="size-3 rounded-[3px]" /> : null}
+            {deviceLabel(item)}
+          </Badge>
+          {active ? <Badge variant="primary-light" size="sm">Em exibição</Badge> : null}
+        </span>
+        <span className="grid w-full grid-cols-3 gap-2">
+          {HISTORY_KEYS.map((key) => {
+            const value = item[key];
+            const delta = comparable ? deltaOf(key, item, before) : null;
+            const DeltaIcon = delta == null || delta === 0 ? null : delta > 0 ? ArrowUpRight : ArrowDownRight;
+            return (
+              <span key={key} className="flex min-w-0 flex-col gap-1">
+                <span className="truncate text-xs text-muted-foreground">{METRICS[key].short}</span>
+                <span className="flex items-baseline gap-1 whitespace-nowrap">
+                  <span className="text-base leading-none font-semibold tracking-tight tabular-nums">{value == null ? '—' : formatMetric(key, value)}</span>
+                  {value == null ? null : <span className="text-xs text-muted-foreground">{METRICS[key].unit}</span>}
+                </span>
+                <span className="flex h-4 items-center gap-0.5 text-xs whitespace-nowrap text-muted-foreground tabular-nums">
+                  {delta == null ? null : delta === 0 ? 'igual' : (
+                    <>
+                      {DeltaIcon ? <DeltaIcon className="size-3.5 shrink-0" aria-hidden="true" /> : null}
+                      {formatDelta(key, delta)}
+                    </>
+                  )}
+                </span>
+              </span>
+            );
+          })}
+        </span>
+        {before && !comparable ? <span className="text-xs text-muted-foreground">Aparelho diferente da avaliação anterior: sem variação.</span> : null}
+      </button>
+      <Button
+        variant="ghost"
+        size="icon-lg"
+        className="absolute end-0 top-1 size-11 bg-transparent text-muted-foreground"
+        aria-label={`Excluir avaliação de ${formatDate(item.measuredAt)}`}
+        onClick={onDelete}
+      >
+        <Trash2 aria-hidden="true" />
+      </Button>
+    </TimelineItem>
+  );
+}
+
 function LoadingState() {
   return (
     <Frame role="status" aria-label="Carregando suas avaliações">
@@ -199,6 +295,14 @@ export const BodyCompositionPage = () => {
   const [importing, setImporting] = useState(false);
   const [allIndicators, setAllIndicators] = useState(false);
   const [baseline, setBaseline] = useState<Baseline>('anterior');
+  // A avaliação em exibição (null = a mais recente), a janela do gráfico e o "reproduzir".
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [range, setRange] = useState<ChartRange>('tudo');
+  const [playing, setPlaying] = useState(false);
+  const [openMonths, setOpenMonths] = useState<Record<string, boolean>>({});
+  const playTimer = useRef<number | undefined>(undefined);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const indicatorsRef = useRef<HTMLDivElement>(null);
   // Só no app Android com Health Connect e ponte nova (AAB 585+); no navegador o botão não existe.
   const canImport = useMemo(() => bodyCompositionSupported(), []);
 
@@ -216,8 +320,22 @@ export const BodyCompositionPage = () => {
 
   useEffect(() => {
     setData(null);
+    setSelectedId(null);
     void load();
   }, [load]);
+
+  const stopPlay = useCallback(() => {
+    window.clearInterval(playTimer.current);
+    playTimer.current = undefined;
+    setPlaying(false);
+  }, []);
+  useEffect(() => () => window.clearInterval(playTimer.current), []);
+  /** Escolha feita pela pessoa (gráfico, setas, histórico): interrompe o "reproduzir". */
+  const select = useCallback((id: string | null) => { stopPlay(); setSelectedId(id); }, [stopPlay]);
+  const scrollTo = (target: HTMLElement | null) => {
+    const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    target?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  };
 
   // Já conectado ao relógio? Sincroniza sozinho ao abrir a tela (1x por visita, em silêncio:
   // só avisa quando entra medição nova). Falha aqui nunca incomoda — o botão continua lá.
@@ -251,42 +369,80 @@ export const BodyCompositionPage = () => {
 
   const items = data?.items ?? [];
   const latest = items[0];
-  const previous = items[1];
-  // Mesma marca de aparelho da última avaliação: comparar InBody com relógio mistura erro de
-  // aparelho com mudança do corpo, então o "início" e os mini gráficos ficam dentro da mesma marca.
-  const sameDevice = latest ? items.filter((item) => deviceLabel(item) === deviceLabel(latest)) : [];
-  const trendSource = sameDevice.length >= 2 ? sameDevice : items;
-  const startReading = sameDevice.length >= 2 ? sameDevice[sameDevice.length - 1] : items[items.length - 1];
-  const monthReading = latest
-    ? [...items].reverse().find((item) => item.id !== latest.id && new Date(latest.measuredAt).getTime() - new Date(item.measuredAt).getTime() <= 30 * 86_400_000)
+  // A avaliação em exibição. Tudo abaixo (anel, variações, indicadores) é calculado a partir DELA
+  // e das que vieram antes — vendo uma avaliação antiga, o "anterior" é o anterior a ela.
+  const currentIndex = Math.max(0, selectedId ? items.findIndex((item) => item.id === selectedId) : 0);
+  const current = items[currentIndex];
+  const viewingOld = currentIndex > 0;
+  const pool = items.slice(currentIndex);
+  const previous = pool[1];
+  // Mesma marca de aparelho: comparar InBody com relógio mistura erro de aparelho com mudança
+  // do corpo, então o "início" e os mini gráficos ficam dentro da mesma marca.
+  const sameDevice = current ? pool.filter((item) => deviceLabel(item) === deviceLabel(current)) : [];
+  const trendSource = sameDevice.length >= 2 ? sameDevice : pool;
+  const startReading = sameDevice.length >= 2 ? sameDevice[sameDevice.length - 1] : pool[pool.length - 1];
+  const monthReading = current
+    ? [...pool].reverse().find((item) => item.id !== current.id && new Date(current.measuredAt).getTime() - new Date(item.measuredAt).getTime() <= 30 * 86_400_000)
     : undefined;
-  const compareTo = baseline === 'inicio' ? (startReading?.id !== latest?.id ? startReading : previous) : baseline === '30d' ? (monthReading ?? previous) : previous;
-  const sinceLabel = !compareTo ? '' : baseline === 'anterior' || compareTo.id === previous?.id ? 'desde a anterior' : `desde ${formatDate(compareTo.measuredAt)}`;
+  const has30d = !!monthReading && monthReading.id !== previous?.id;
+  const hasStart = !!startReading && startReading.id !== current?.id && startReading.id !== previous?.id;
+  // A opção escolhida pode não existir para a avaliação em exibição: aí vale "anterior".
+  const activeBaseline: Baseline = (baseline === '30d' && !has30d) || (baseline === 'inicio' && !hasStart) ? 'anterior' : baseline;
+  const compareTo = activeBaseline === 'inicio' ? startReading : activeBaseline === '30d' ? monthReading : previous;
+  const sinceLabel = !compareTo ? '' : activeBaseline === 'anterior' ? 'desde a anterior' : `desde ${formatDate(compareTo.measuredAt)}`;
   const historyOf = (key: MetricKey) => [...trendSource].reverse().map((item) => item[key]).filter((v): v is number => v != null);
   // O que mudou no peso, e de onde veio: gordura ou o resto (massa livre de gordura).
   const change = (() => {
-    if (!latest || !compareTo) return null;
-    const weight = deltaOf('weightKg', latest, compareTo);
+    if (!current || !compareTo) return null;
+    const weight = deltaOf('weightKg', current, compareTo);
     if (weight == null) return null;
-    const fat = deltaOf('fatMassKg', latest, compareTo);
-    const days = Math.round((new Date(latest.measuredAt).getTime() - new Date(compareTo.measuredAt).getTime()) / 86_400_000);
-    return { weight, fat, lean: fat == null ? null : Math.round((weight - fat) * 100) / 100, days, mixed: deviceLabel(latest) !== deviceLabel(compareTo) };
+    const fat = deltaOf('fatMassKg', current, compareTo);
+    const days = Math.round((new Date(current.measuredAt).getTime() - new Date(compareTo.measuredAt).getTime()) / 86_400_000);
+    return { weight, fat, lean: fat == null ? null : Math.round((weight - fat) * 100) / 100, days, mixed: deviceLabel(current) !== deviceLabel(compareTo) };
   })();
   const oldestFirst = useMemo(() => [...(data?.items ?? [])].reverse(), [data]);
-  const parts = latest ? partsOf(latest) : null;
-  const trendBand = latest ? (metric === 'bodyFatPct' ? rangeFor(metric, latest, data?.reference ?? null) : null) : null;
+  const parts = current ? partsOf(current) : null;
+  const trendBand = current ? (metric === 'bodyFatPct' ? rangeFor(metric, current, data?.reference ?? null) : null) : null;
   const devices = useMemo(() => new Set((data?.items ?? []).map((item) => deviceLabel(item))), [data]);
+  // Janela do gráfico e os passos do "reproduzir" (só avaliações que têm a medida do gráfico).
+  const ranges = useMemo(() => availableRanges(oldestFirst), [oldestFirst]);
+  const activeRange: ChartRange = ranges.includes(range) ? range : 'tudo';
+  const plotReadings = useMemo(() => inRange(oldestFirst, activeRange), [oldestFirst, activeRange]);
+  const plotIds = plotReadings.filter((item) => item[metric] != null).map((item) => item.id);
+  const months = useMemo(() => groupByMonth(data?.items ?? []), [data]);
   // Resumo primeiro: o que está fora da faixa sobe; o resto fica atrás de "ver todos".
-  const measured = latest ? INDICATORS.filter((key) => latest[key] != null) : [];
+  const measured = current ? INDICATORS.filter((key) => current[key] != null) : [];
   const isOut = (key: MetricKey) => {
-    if (!latest) return false;
-    const range = rangeFor(key, latest, data?.reference ?? null);
-    return !!range && zoneOf(latest[key] as number, range.low, range.high) !== 'in';
+    if (!current) return false;
+    const range = rangeFor(key, current, data?.reference ?? null);
+    return !!range && zoneOf(current[key] as number, range.low, range.high) !== 'in';
   };
   const orderedIndicators = [...measured].sort((a, b) => Number(isOut(b)) - Number(isOut(a)));
-  const shortCount = Math.max(INDICATORS_SHORT, measured.filter(isOut).length);
+  const outCount = measured.filter(isOut).length;
+  const shortCount = Math.max(INDICATORS_SHORT, outCount);
   const shownIndicators = allIndicators ? orderedIndicators : orderedIndicators.slice(0, shortCount);
   const hiddenIndicators = orderedIndicators.length - shownIndicators.length;
+
+  /** Passa pelas avaliações do gráfico, da mais antiga à mais recente, uma a cada instante. */
+  const togglePlay = () => {
+    if (playing) { stopPlay(); return; }
+    const steps = sampleSteps(plotIds);
+    if (steps.length < 2) return;
+    let at = 0;
+    setPlaying(true);
+    setSelectedId(steps[0]);
+    playTimer.current = window.setInterval(() => {
+      at += 1;
+      setSelectedId(steps[at]);
+      if (at >= steps.length - 1) stopPlay();
+    }, PLAY_STEP_MS);
+  };
+  /** Abre uma avaliação a partir do histórico: o gráfico volta a mostrar tudo e a tela sobe até ela. */
+  const openFromHistory = (id: string | null) => {
+    select(id);
+    setRange('tudo');
+    scrollTo(heroRef.current);
+  };
 
   const remove = async () => {
     if (!toDelete) return;
@@ -295,6 +451,7 @@ export const BodyCompositionPage = () => {
       const response = await fetch(`${API_URL}/body-composition/${toDelete.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
       if (!response.ok && response.status !== 404) throw new Error(String(response.status));
       setToDelete(null);
+      stopPlay();
       notify('Avaliação excluída.', { type: 'info' });
       await load();
     } catch {
@@ -460,24 +617,189 @@ export const BodyCompositionPage = () => {
               </Alert>
             ) : null}
 
-            {/* Comparar com: muda todas as variações da tela de uma vez */}
-            {items.length >= 3 ? (
-              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-                <span id="bc-compare-label" className="text-sm text-muted-foreground">Comparar a última com</span>
-                <ToggleGroup value={[baseline]} onValueChange={(next) => { if (next[0]) setBaseline(next[0] as Baseline); }} variant="outline" size="sm" spacing={0} aria-labelledby="bc-compare-label">
-                  <ToggleGroupItem value="anterior" className="h-10 px-3">Anterior</ToggleGroupItem>
-                  {monthReading && monthReading.id !== previous?.id ? <ToggleGroupItem value="30d" className="h-10 px-3">30 dias</ToggleGroupItem> : null}
-                  {startReading && startReading.id !== latest.id && startReading.id !== previous?.id ? <ToggleGroupItem value="inicio" className="h-10 px-3">Início</ToggleGroupItem> : null}
-                </ToggleGroup>
-              </div>
-            ) : null}
-
-            {/* O que mudou: o peso e de onde veio a diferença */}
-            {change && compareTo && change.weight !== 0 ? (
+            {/* Avaliação em exibição */}
+            <div ref={heroRef} className="scroll-mt-24">
               <Frame>
+                <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                  <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
+                    <IconTile variant="frame" size="sm" aria-hidden="true">
+                      <Scale aria-hidden="true" />
+                    </IconTile>
+                    <div className="flex min-w-0 flex-col gap-px">
+                      <FrameTitle role="heading" aria-level={2}>{viewingOld ? 'Avaliação anterior' : 'Última avaliação'}</FrameTitle>
+                      <FrameDescription className="tabular-nums" aria-live="polite">
+                        {formatDate(current.measuredAt)} · {timeAgo(current.measuredAt)}
+                      </FrameDescription>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Badge variant="outline">
+                      {current.source === 'HEALTH_CONNECT' ? <SourceIcon brand={current.deviceBrand} className="size-3 rounded-[3px]" /> : null}
+                      {deviceLabel(current)}
+                    </Badge>
+                    {current.needsReview ? <Badge variant="warning-light">Conferir com a folha</Badge> : null}
+                  </div>
+                </FrameHeader>
+
+                {/* Vendo uma avaliação que não é a mais recente: dito em faixa, com a volta a um toque. */}
+                {viewingOld ? (
+                  <FramePanel className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 bg-warning/10 py-2!">
+                    <p className="m-0 min-w-0 flex-1 basis-44 text-sm">
+                      Você está vendo <span className="font-medium tabular-nums">{formatDate(current.measuredAt)}</span>, não a avaliação mais recente.
+                    </p>
+                    <Button variant="outline" size="lg" className="h-10 shrink-0" onClick={() => select(null)}>
+                      Voltar para a última
+                    </Button>
+                  </FramePanel>
+                ) : null}
+
+                {current.weightKg != null ? (
+                  <FramePanel className="dx-glass flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
+                    <GlassGlow />
+                    <RingGauge
+                      size={148}
+                      thickness={13}
+                      segments={(parts ?? []).map((part) => ({ fraction: part.kg / current.weightKg!, className: RING_STROKE[part.key] ?? 'stroke-primary' }))}
+                      label={parts ? `Do peso de ${formatMetric('weightKg', current.weightKg)} kg: ${parts.map((part) => `${part.label} ${formatNumber((part.kg / current.weightKg!) * 100, 0)} por cento`).join(', ')}` : `Peso ${formatMetric('weightKg', current.weightKg)} kg`}
+                    >
+                      <CountUp value={current.weightKg} format={(v) => formatMetric('weightKg', v)} className="text-3xl leading-none font-semibold tracking-tight tabular-nums" />
+                      <span className="mt-1 text-xs text-muted-foreground">kg de peso</span>
+                    </RingGauge>
+                    <div className="flex min-w-0 flex-1 basis-44 flex-col gap-3">
+                      {deltaOf('weightKg', current, compareTo) != null ? (
+                        <p className="m-0 text-xs text-muted-foreground tabular-nums">
+                          <span className="font-medium text-foreground">{deltaOf('weightKg', current, compareTo) === 0 ? 'Sem mudança' : formatDelta('weightKg', deltaOf('weightKg', current, compareTo)!)}</span> {sinceLabel}
+                        </p>
+                      ) : null}
+                      {parts ? (
+                        <dl className="m-0 flex flex-col gap-2.5">
+                          {parts.map((part) => (
+                            <div key={part.key} className="flex items-center justify-between gap-3 text-sm">
+                              <dt className="flex min-w-0 items-center gap-2">
+                                <span aria-hidden="true" className={cn('size-2.5 shrink-0 rounded-full', part.swatch)} />
+                                <span className="min-w-0 truncate">{part.label}</span>
+                              </dt>
+                              <dd className="m-0 flex shrink-0 items-baseline gap-2 tabular-nums">
+                                <span className="font-medium">{formatNumber(part.kg, 1)} kg</span>
+                                <span className="w-10 text-end text-xs text-muted-foreground">{formatNumber((part.kg / current.weightKg!) * 100, 0)} %</span>
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                      ) : null}
+                      {outCount > 0 ? (
+                        <Button variant="outline" size="lg" className="h-10 w-fit" onClick={() => scrollTo(indicatorsRef.current)}>
+                          {outCount === 1 ? '1 indicador fora da faixa' : `${outCount} indicadores fora da faixa`}
+                          <ChevronDown aria-hidden="true" />
+                        </Button>
+                      ) : null}
+                    </div>
+                  </FramePanel>
+                ) : null}
+
+                {/* De uma avaliação para a outra, sem sair do topo */}
+                {items.length >= 2 ? (
+                  <FramePanel className="flex items-center justify-between gap-2 p-1.5!">
+                    <Button
+                      variant="ghost"
+                      size="icon-lg"
+                      className="size-11 bg-transparent"
+                      aria-label="Avaliação anterior"
+                      disabled={currentIndex >= items.length - 1}
+                      onClick={() => select(items[currentIndex + 1].id)}
+                    >
+                      <ChevronLeft aria-hidden="true" />
+                    </Button>
+                    <span className="text-sm text-muted-foreground tabular-nums">
+                      Avaliação <span className="font-medium text-foreground">{items.length - currentIndex}</span> de {items.length}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon-lg"
+                      className="size-11 bg-transparent"
+                      aria-label="Avaliação seguinte"
+                      disabled={currentIndex === 0}
+                      onClick={() => select(currentIndex === 1 ? null : items[currentIndex - 1].id)}
+                    >
+                      <ChevronRight aria-hidden="true" />
+                    </Button>
+                  </FramePanel>
+                ) : null}
+              </Frame>
+            </div>
+
+            {/* Evolução: os blocos e o gráfico mostram a avaliação em exibição; o gráfico também a escolhe */}
+            <Frame>
+              <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                <div className="flex min-w-0 flex-1 basis-48 items-center gap-3">
+                  <IconTile variant="frame" size="sm" aria-hidden="true">
+                    <ChartLine aria-hidden="true" />
+                  </IconTile>
+                  <div className="flex min-w-0 flex-col gap-px">
+                    <FrameTitle role="heading" aria-level={2}>Evolução</FrameTitle>
+                    <FrameDescription>
+                      {items.length === 1 ? '1 avaliação registrada' : `${items.length} avaliações${sinceLabel ? ` · variação ${sinceLabel}` : ''}`}
+                    </FrameDescription>
+                  </div>
+                </div>
+                {/* Comparar com: muda todas as variações da tela de uma vez */}
+                {has30d || hasStart ? (
+                  <ToggleGroup value={[activeBaseline]} onValueChange={(next) => { if (next[0]) setBaseline(next[0] as Baseline); }} variant="outline" size="sm" spacing={0} aria-label="Comparar com">
+                    <ToggleGroupItem value="anterior" className="h-10 px-3">Anterior</ToggleGroupItem>
+                    {has30d ? <ToggleGroupItem value="30d" className="h-10 px-3">30 dias</ToggleGroupItem> : null}
+                    {hasStart ? <ToggleGroupItem value="inicio" className="h-10 px-3">Início</ToggleGroupItem> : null}
+                  </ToggleGroup>
+                ) : null}
+              </FrameHeader>
+              <FramePanel className="@container">
+                <TrendTiles keys={TREND_KEYS} active={metric} latest={current} previous={compareTo} onSelect={(key) => { stopPlay(); setMetric(key); }} />
+              </FramePanel>
+              <FramePanel className="flex flex-col gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <span aria-hidden="true" className={cn('size-2 rounded-full', METRICS[metric].swatch)} />
+                    {METRICS[metric].label}{METRICS[metric].unit ? `, em ${METRICS[metric].unit}` : ''}
+                  </span>
+                  {trendBand ? (
+                    <span className="flex items-center gap-1.5 tabular-nums">
+                      <span aria-hidden="true" className="h-2 w-3 rounded-sm border border-dashed border-success/60 bg-success/15" />
+                      Faixa de referência: {formatNumber(trendBand.low, 1)} a {formatNumber(trendBand.high, 1)} %
+                    </span>
+                  ) : null}
+                </div>
+                <TrendPlot readings={plotReadings} metric={metric} band={trendBand} selectedId={current.id} onSelect={(id) => select(id === latest.id ? null : id)} />
+                {plotIds.length >= 3 || ranges.length > 0 ? (
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    {ranges.length > 0 ? (
+                      <ToggleGroup value={[activeRange]} onValueChange={(next) => { if (next[0]) { stopPlay(); setRange(next[0] as ChartRange); } }} variant="outline" size="sm" spacing={0} aria-label="Período do gráfico">
+                        {ranges.map((option) => (
+                          <ToggleGroupItem key={option} value={option} className="h-10 px-3">{RANGE_LABEL[option]}</ToggleGroupItem>
+                        ))}
+                      </ToggleGroup>
+                    ) : <span />}
+                    {plotIds.length >= 3 ? (
+                      <Button variant="outline" size="lg" className="h-10" aria-pressed={playing} onClick={togglePlay}>
+                        {playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
+                        {playing ? 'Pausar' : 'Reproduzir'}
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
+                {plotIds.length >= 2 ? (
+                  <p className="m-0 text-xs text-muted-foreground">Toque num ponto ou arraste o dedo no gráfico para ver aquela avaliação.</p>
+                ) : null}
+                {devices.size > 1 ? (
+                  <p className="m-0 text-xs text-muted-foreground">
+                    Há avaliações de aparelhos diferentes ({[...devices].join(', ')}). Parte da variação pode ser do aparelho, não do corpo.
+                  </p>
+                ) : null}
+              </FramePanel>
+
+              {/* O que mudou: o peso e de onde veio a diferença */}
+              {change && compareTo && change.weight !== 0 ? (
                 <FramePanel className="flex flex-col gap-3">
                   <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                    <h2 className="m-0 text-sm font-medium text-muted-foreground">O que mudou {sinceLabel}</h2>
+                    <h3 className="m-0 text-sm font-medium text-muted-foreground">O que mudou {sinceLabel}</h3>
                     <span className="text-xs text-muted-foreground tabular-nums">{change.days <= 0 ? 'no mesmo dia' : change.days === 1 ? 'em 1 dia' : `em ${change.days} dias`}</span>
                   </div>
                   <p className="m-0 flex items-baseline gap-1.5">
@@ -495,7 +817,7 @@ export const BodyCompositionPage = () => {
                               <dd className="m-0 shrink-0 font-medium tabular-nums">{Math.abs(value) < 0.05 ? 'sem mudança' : formatDelta('fatMassKg', value)}</dd>
                             </div>
                             <span aria-hidden="true" className="block h-1.5 w-full rounded-full bg-muted">
-                              <span className={cn('block h-full rounded-full', swatch)} style={{ width: `${Math.max(4, (Math.abs(value) / total) * 100)}%` }} />
+                              <span className={cn('block h-full rounded-full transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none', swatch)} style={{ width: `${Math.max(4, (Math.abs(value) / total) * 100)}%` }} />
                             </span>
                           </div>
                         );
@@ -506,170 +828,98 @@ export const BodyCompositionPage = () => {
                     <p className="m-0 text-xs text-muted-foreground">As duas avaliações são de aparelhos diferentes: parte da diferença pode ser do aparelho, não do corpo.</p>
                   ) : null}
                 </FramePanel>
-              </Frame>
-            ) : null}
+              ) : null}
+            </Frame>
 
-            {/* Última avaliação */}
-            <Frame>
-              <FrameHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
-                <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
+            {/* Indicadores da avaliação em exibição */}
+            <div ref={indicatorsRef} className="scroll-mt-24">
+              <Frame>
+                <FrameHeader className="flex-row items-center gap-3">
                   <IconTile variant="frame" size="sm" aria-hidden="true">
-                    <Scale aria-hidden="true" />
+                    <Activity aria-hidden="true" />
                   </IconTile>
                   <div className="flex min-w-0 flex-col gap-px">
-                    <FrameTitle role="heading" aria-level={2}>Última avaliação</FrameTitle>
+                    <FrameTitle role="heading" aria-level={2}>Indicadores</FrameTitle>
                     <FrameDescription className="tabular-nums">
-                      {formatDate(latest.measuredAt)} · {timeAgo(latest.measuredAt)}
+                      Avaliação de {formatDate(current.measuredAt)}{viewingOld ? ' · não é a mais recente' : ''}
                     </FrameDescription>
                   </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <Badge variant="outline">
-                    {latest.source === 'HEALTH_CONNECT' ? <SourceIcon brand={latest.deviceBrand} className="size-3 rounded-[3px]" /> : null}
-                    {deviceLabel(latest)}
-                  </Badge>
-                  {latest.needsReview ? <Badge variant="warning-light">Conferir com a folha</Badge> : null}
-                </div>
-              </FrameHeader>
-
-              {latest.weightKg != null ? (
-                <FramePanel className="dx-glass flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
-                  <GlassGlow />
-                  <RingGauge
-                    size={148}
-                    thickness={13}
-                    segments={(parts ?? []).map((part) => ({ fraction: part.kg / latest.weightKg!, className: RING_STROKE[part.key] ?? 'stroke-primary' }))}
-                    label={parts ? `Do peso de ${formatMetric('weightKg', latest.weightKg)} kg: ${parts.map((part) => `${part.label} ${formatNumber((part.kg / latest.weightKg!) * 100, 0)} por cento`).join(', ')}` : `Peso ${formatMetric('weightKg', latest.weightKg)} kg`}
-                  >
-                    <CountUp value={latest.weightKg} format={(v) => formatMetric('weightKg', v)} className="text-3xl leading-none font-semibold tracking-tight tabular-nums" />
-                    <span className="mt-1 text-xs text-muted-foreground">kg de peso</span>
-                  </RingGauge>
-                  <div className="flex min-w-0 flex-1 basis-44 flex-col gap-3">
-                    {deltaOf('weightKg', latest, compareTo) != null ? (
-                      <p className="m-0 text-xs text-muted-foreground tabular-nums">
-                        <span className="font-medium text-foreground">{formatDelta('weightKg', deltaOf('weightKg', latest, compareTo)!)}</span> {sinceLabel}
-                      </p>
-                    ) : null}
-                    {parts ? (
-                      <dl className="m-0 flex flex-col gap-2.5">
-                        {parts.map((part) => (
-                          <div key={part.key} className="flex items-center justify-between gap-3 text-sm">
-                            <dt className="flex min-w-0 items-center gap-2">
-                              <span aria-hidden="true" className={cn('size-2.5 shrink-0 rounded-full', part.swatch)} />
-                              <span className="min-w-0 truncate">{part.label}</span>
-                            </dt>
-                            <dd className="m-0 flex shrink-0 items-baseline gap-2 tabular-nums">
-                              <span className="font-medium">{formatNumber(part.kg, 1)} kg</span>
-                              <span className="w-10 text-end text-xs text-muted-foreground">{formatNumber((part.kg / latest.weightKg!) * 100, 0)} %</span>
-                            </dd>
-                          </div>
-                        ))}
-                      </dl>
-                    ) : null}
-                  </div>
+                </FrameHeader>
+                <FramePanel className="grid gap-px bg-border p-0! sm:grid-cols-2">
+                  {shownIndicators.map((key) => (
+                    <IndicatorCell key={key} metric={key} reading={current} previous={compareTo} reference={data.reference} sinceLabel={sinceLabel} history={historyOf(key)} />
+                  ))}
                 </FramePanel>
-              ) : null}
-
-              <FramePanel className="grid gap-px bg-border p-0! sm:grid-cols-2">
-                {shownIndicators.map((key) => (
-                  <IndicatorCell key={key} metric={key} reading={latest} previous={compareTo} reference={data.reference} sinceLabel={sinceLabel} history={historyOf(key)} />
-                ))}
-              </FramePanel>
-              {orderedIndicators.length > shortCount ? (
-                <FramePanel className="p-1.5!">
-                  <Button variant="ghost" size="lg" className="h-10 w-full" aria-expanded={allIndicators} onClick={() => setAllIndicators((v) => !v)}>
-                    {allIndicators ? 'Mostrar só o resumo' : `Ver mais ${hiddenIndicators} ${hiddenIndicators === 1 ? 'indicador' : 'indicadores'}`}
-                    <ChevronDown aria-hidden="true" className={cn('transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none', allIndicators && 'rotate-180')} />
-                  </Button>
-                </FramePanel>
-              ) : null}
-
-              <FrameFooter>
-                <p className="m-0 text-xs text-muted-foreground">
-                  Bioimpedância é uma estimativa e varia com hidratação, refeição e horário. As faixas são educativas e não substituem a avaliação de um profissional de saúde.
-                </p>
-              </FrameFooter>
-            </Frame>
-
-            {/* Evolução */}
-            <Frame>
-              <FrameHeader className="flex-row items-center gap-3">
-                <IconTile variant="frame" size="sm" aria-hidden="true">
-                  <ChartLine aria-hidden="true" />
-                </IconTile>
-                <div className="flex min-w-0 flex-col gap-px">
-                  <FrameTitle role="heading" aria-level={2}>Evolução</FrameTitle>
-                  <FrameDescription>
-                    {items.length === 1 ? '1 avaliação registrada' : `${items.length} avaliações · variação ${sinceLabel}`}
-                  </FrameDescription>
-                </div>
-              </FrameHeader>
-              <FramePanel className="@container">
-                <TrendTiles keys={TREND_KEYS} active={metric} latest={latest} previous={compareTo} onSelect={setMetric} />
-              </FramePanel>
-              <FramePanel className="flex flex-col gap-3">
-                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <span aria-hidden="true" className={cn('size-2 rounded-full', METRICS[metric].swatch)} />
-                    {METRICS[metric].label}{METRICS[metric].unit ? `, em ${METRICS[metric].unit}` : ''}
-                  </span>
-                  {trendBand ? (
-                    <span className="flex items-center gap-1.5 tabular-nums">
-                      <span aria-hidden="true" className="h-2 w-3 rounded-sm border border-dashed border-success/60 bg-success/15" />
-                      Faixa de referência: {formatNumber(trendBand.low, 1)} a {formatNumber(trendBand.high, 1)} %
-                    </span>
-                  ) : null}
-                </div>
-                <TrendPlot readings={oldestFirst} metric={metric} band={trendBand} />
-                {devices.size > 1 ? (
-                  <p className="m-0 text-xs text-muted-foreground">
-                    Há avaliações de aparelhos diferentes ({[...devices].join(', ')}). Parte da variação pode ser do aparelho, não do corpo.
-                  </p>
+                {orderedIndicators.length > shortCount ? (
+                  <FramePanel className="p-1.5!">
+                    <Button variant="ghost" size="lg" className="h-10 w-full" aria-expanded={allIndicators} onClick={() => setAllIndicators((v) => !v)}>
+                      {allIndicators ? 'Mostrar só o resumo' : `Ver mais ${hiddenIndicators} ${hiddenIndicators === 1 ? 'indicador' : 'indicadores'}`}
+                      <ChevronDown aria-hidden="true" className={cn('transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none', allIndicators && 'rotate-180')} />
+                    </Button>
+                  </FramePanel>
                 ) : null}
-              </FramePanel>
-            </Frame>
+                <FrameFooter>
+                  <p className="m-0 text-xs text-muted-foreground">
+                    Bioimpedância é uma estimativa e varia com hidratação, refeição e horário. As faixas são educativas e não substituem a avaliação de um profissional de saúde.
+                  </p>
+                </FrameFooter>
+              </Frame>
+            </div>
 
-            {/* Histórico */}
+            {/* Histórico, mês a mês: cada linha traz a variação desde a avaliação anterior */}
             <Frame>
               <FrameHeader className="flex-row items-center gap-3">
                 <IconTile variant="frame" size="sm" aria-hidden="true">
                   <History aria-hidden="true" />
                 </IconTile>
-                <FrameTitle role="heading" aria-level={2}>Histórico</FrameTitle>
+                <div className="flex min-w-0 flex-col gap-px">
+                  <FrameTitle role="heading" aria-level={2}>Histórico</FrameTitle>
+                  <FrameDescription>Toque numa avaliação para ver tudo dela no topo.</FrameDescription>
+                </div>
               </FrameHeader>
-              <FramePanel className="p-0!">
-                <ul className="m-0 flex list-none flex-col divide-y divide-border p-0">
-                  {items.map((item) => (
-                    <li key={item.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                      <div className="flex min-w-0 flex-col gap-1">
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <span className="text-sm font-medium tabular-nums">{formatDate(item.measuredAt)}</span>
-                          <Badge variant="outline" size="sm">
-                            {item.source === 'HEALTH_CONNECT' ? <SourceIcon brand={item.deviceBrand} className="size-3 rounded-[3px]" /> : null}
-                            {deviceLabel(item)}
-                          </Badge>
-                        </div>
-                        <span className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground tabular-nums">
-                          {(['weightKg', 'bodyFatPct', 'skeletalMuscleKg'] as MetricKey[])
-                            .filter((key) => item[key] != null)
-                            .map((key) => (
-                              <span key={key} className="whitespace-nowrap">{METRICS[key].short} {formatWithUnit(key, item[key] as number)}</span>
-                            ))}
-                        </span>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon-lg"
-                        className="size-10 shrink-0 bg-transparent text-muted-foreground"
-                        aria-label={`Excluir avaliação de ${formatDate(item.measuredAt)}`}
-                        onClick={() => setToDelete(item)}
+              {months.map((month, monthIndex) => {
+                const open = openMonths[month.key] ?? (monthIndex < 2 || items.length <= 8);
+                const weights = month.items.map((item) => item.weightKg).filter((v): v is number => v != null);
+                // Peso da primeira à última avaliação do mês (a lista vem da mais recente para a mais antiga).
+                const span = weights.length >= 2 ? `${formatNumber(weights[weights.length - 1], 1)} → ${formatNumber(weights[0], 1)} kg` : weights.length === 1 ? `${formatNumber(weights[0], 1)} kg` : null;
+                return (
+                  <FramePanel key={month.key} className="p-0!">
+                    <h3 className="m-0">
+                      <button
+                        type="button"
+                        aria-expanded={open}
+                        onClick={() => setOpenMonths((state) => ({ ...state, [month.key]: !open }))}
+                        className="flex min-h-12 w-full cursor-pointer items-center justify-between gap-3 border-0 bg-transparent px-4 py-2 text-start text-foreground outline-none transition-colors hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset"
                       >
-                        <Trash2 aria-hidden="true" />
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </FramePanel>
+                        <span className="flex min-w-0 flex-col gap-0.5">
+                          <span className="text-sm font-semibold">{month.label}</span>
+                          <span className="text-xs text-muted-foreground tabular-nums">
+                            {month.items.length === 1 ? '1 avaliação' : `${month.items.length} avaliações`}{span ? ` · peso ${span}` : ''}
+                          </span>
+                        </span>
+                        <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none', open && 'rotate-180')} />
+                      </button>
+                    </h3>
+                    {open ? (
+                      <Timeline value={0} role="list" className="border-t border-border py-1 ps-4 pe-2">
+                        {month.items.map((item) => {
+                          const at = items.indexOf(item);
+                          return (
+                            <HistoryRow
+                              key={item.id}
+                              item={item}
+                              before={items[at + 1]}
+                              active={item.id === current.id}
+                              onOpen={() => openFromHistory(at === 0 ? null : item.id)}
+                              onDelete={() => setToDelete(item)}
+                            />
+                          );
+                        })}
+                      </Timeline>
+                    ) : null}
+                  </FramePanel>
+                );
+              })}
             </Frame>
           </>
         )}
