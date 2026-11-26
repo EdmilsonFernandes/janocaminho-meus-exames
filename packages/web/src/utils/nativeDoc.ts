@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import { prepareSpeech, SPEECH_BASE_RATE } from './speechText';
+import { DEFAULT_SPEECH_RATE, engineSpeechRate, normalizeSpeechRate, prepareSpeech } from './speechText';
 
 /**
  * Imprimir / salvar documento.
@@ -58,77 +58,119 @@ function pickWebVoice(synth: SpeechSynthesis, lang: string): SpeechSynthesisVoic
   return pool.find((v) => /francisca|maria|luciana|let[ií]cia|fernanda|female|feminin/i.test(v.name)) ?? pool[0];
 }
 
+// ───────── Velocidade da fala: uma preferência só, guardada no aparelho, para todos os áudios ─────────
+const RATE_KEY = 'drx.speechRate';
+const readStoredRate = (): number => {
+  try { return normalizeSpeechRate(localStorage.getItem(RATE_KEY) ?? DEFAULT_SPEECH_RATE); } catch { return DEFAULT_SPEECH_RATE; }
+};
+let liveRate: number | null = null; // carregada na primeira leitura
+/** Muda a cada troca de velocidade: o laço de trechos compara antes/depois de falar um trecho. */
+let rateEpoch = 0;
+/** Há uma fala em andamento (para saber se a troca de velocidade precisa interromper o trecho). */
+let speakingNow = false;
+type TtsPlugin = typeof import('@capacitor-community/text-to-speech')['TextToSpeech'];
+let ttsPlugin: TtsPlugin | null = null;
+const loadTts = async (): Promise<TtsPlugin> => {
+  if (!ttsPlugin) ttsPlugin = (await import('@capacitor-community/text-to-speech')).TextToSpeech;
+  return ttsPlugin;
+};
+
+/** A velocidade escolhida pela pessoa (1 = normal). */
+export function getSpeechRate(): number {
+  if (liveRate == null) liveRate = readStoredRate();
+  return liveRate;
+}
+
+/**
+ * Troca a velocidade — vale para todos os áudios e fica guardada.
+ * Com uma fala em andamento, ela NÃO recomeça: só a frase atual é dita de novo, já na
+ * velocidade nova, e o resto segue de onde estava.
+ */
+export function setSpeechRate(rate: number): void {
+  const next = normalizeSpeechRate(rate);
+  if (next === getSpeechRate()) return;
+  liveRate = next;
+  try { localStorage.setItem(RATE_KEY, String(next)); } catch { /* sem armazenamento: vale só nesta sessão */ }
+  rateEpoch += 1;
+  if (!speakingNow) return;
+  // Interrompe só o trecho atual (o laço continua vivo e o repete na velocidade nova).
+  try {
+    if (Capacitor.isNativePlatform()) void ttsPlugin?.stop().catch(() => {});
+    else window.speechSynthesis?.cancel();
+  } catch { /* ignore */ }
+}
+
 /**
  * Fala um texto. No APK usa TTS nativo (voz pt-BR do Android); no web usa speechSynthesis.
  * O texto é dito em TRECHOS (frase a frase), com pausa entre eles e unidades por extenso
- * (utils/speechText). `rate` é o que a tela mostra (1x, 1,25x…): o "1x" real é um pouco mais
- * lento que o padrão do motor de voz, que soava corrido.
+ * (utils/speechText). A velocidade é a escolhida pela pessoa (`getSpeechRate`), lida a cada
+ * trecho — por isso trocar a velocidade no meio não volta ao começo. O "1x" real é um pouco
+ * mais lento que o padrão do motor de voz, que soava corrido.
  */
 export async function speakText(
   text: string,
-  opts: { rate?: number; lang?: string; onDone?: () => void; onFail?: () => void } = {},
+  opts: { lang?: string; onDone?: () => void; onFail?: () => void } = {},
 ): Promise<void> {
   if (!text) return;
   const lang = opts.lang ?? 'pt-BR';
-  const rate = Math.max(0.5, Math.min(2, (opts.rate ?? 1.0) * SPEECH_BASE_RATE));
   const chunks = prepareSpeech(text);
   if (!chunks.length) { opts.onDone?.(); return; }
   const run = ++speechRun;
   const alive = () => run === speechRun;
+  speakingNow = true;
+  const finish = (how: 'done' | 'fail') => {
+    if (!alive()) return;
+    speakingNow = false;
+    if (how === 'done') opts.onDone?.(); else opts.onFail?.();
+  };
 
+  let speakOne: (chunkText: string, rate: number) => Promise<void>;
   if (Capacitor.isNativePlatform()) {
-    try {
-      const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
-      for (const chunk of chunks) {
-        if (!alive()) return; // parado ou substituído por outra fala
-        // resolve quando termina de falar o trecho (ou é cancelado por stop)
-        await TextToSpeech.speak({ text: chunk.text, lang, rate, pitch: 1.0, volume: 1.0 });
-        if (!alive()) return;
-        if (chunk.pauseMs) await sleep(chunk.pauseMs);
-      }
-      if (alive()) opts.onDone?.();
-    } catch (e) {
-      console.warn('[tts] speak falhou:', e);
-      if (alive()) opts.onFail?.();
-    }
-    return;
+    let tts: TtsPlugin;
+    try { tts = await loadTts(); } catch (e) { console.warn('[tts] plugin indisponível:', e); finish('fail'); return; }
+    // resolve quando termina de falar o trecho (ou quando é interrompido por stop)
+    speakOne = (chunkText, rate) => tts.speak({ text: chunkText, lang, rate, pitch: 1.0, volume: 1.0 });
+  } else {
+    const synth = window.speechSynthesis;
+    if (!synth) { finish('fail'); return; }
+    synth.cancel();
+    const voice = pickWebVoice(synth, lang);
+    speakOne = (chunkText, rate) => new Promise<void>((resolve, reject) => {
+      const u = new SpeechSynthesisUtterance(chunkText);
+      u.lang = lang;
+      u.rate = rate;
+      if (voice) u.voice = voice;
+      u.onend = () => resolve();
+      u.onerror = (ev) => (ev.error === 'canceled' || ev.error === 'interrupted' ? resolve() : reject(new Error(ev.error)));
+      synth.speak(u);
+    });
   }
 
-  const synth = window.speechSynthesis;
-  if (!synth) { opts.onFail?.(); return; }
-  synth.cancel();
-  const voice = pickWebVoice(synth, lang);
-  const speakOne = (chunkText: string) => new Promise<void>((resolve, reject) => {
-    const u = new SpeechSynthesisUtterance(chunkText);
-    u.lang = lang;
-    u.rate = rate;
-    if (voice) u.voice = voice;
-    u.onend = () => resolve();
-    u.onerror = (ev) => (ev.error === 'canceled' || ev.error === 'interrupted' ? resolve() : reject(new Error(ev.error)));
-    synth.speak(u);
-  });
-  try {
-    for (const chunk of chunks) {
+  for (let i = 0; i < chunks.length;) {
+    if (!alive()) return; // parado ou substituído por outra fala
+    const epoch = rateEpoch;
+    try {
+      await speakOne(chunks[i].text, engineSpeechRate(getSpeechRate()));
+    } catch (e) {
       if (!alive()) return;
-      await speakOne(chunk.text);
-      if (!alive()) return;
-      if (chunk.pauseMs) await sleep(chunk.pauseMs);
+      // interrompido pela troca de velocidade: não é falha, o trecho é dito de novo
+      if (epoch === rateEpoch) { console.warn('[tts] speak falhou:', e); finish('fail'); return; }
     }
-    if (alive()) opts.onDone?.();
-  } catch {
-    if (alive()) opts.onFail?.();
+    if (!alive()) return;
+    if (epoch !== rateEpoch) continue; // a velocidade mudou durante este trecho: repete só ele
+    if (chunks[i].pauseMs) await sleep(chunks[i].pauseMs);
+    i += 1;
   }
+  finish('done');
 }
 
 /** Para a fala (qualquer plataforma). */
 export async function stopSpeakText(): Promise<void> {
   speechRun += 1; // invalida o laço de trechos em andamento
+  speakingNow = false;
   try {
     if (Capacitor.isNativePlatform()) {
-      try {
-        const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
-        await TextToSpeech.stop();
-      } catch { /* ignore */ }
+      try { await (await loadTts()).stop(); } catch { /* ignore */ }
     } else {
       window.speechSynthesis?.cancel();
     }

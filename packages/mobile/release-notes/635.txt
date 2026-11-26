@@ -1,0 +1,4 @@
+• Áudio: trocar a velocidade no meio da fala não volta mais ao começo.
+• Velocidades do áudio agora fazem diferença de verdade: 0,75x, 1x, 1,25x e 1,5x.
+• A velocidade que você escolher fica guardada e vale para todos os áudios do app.
+• Composição corporal: toque no gráfico para ver cada avaliação e reproduza sua evolução.

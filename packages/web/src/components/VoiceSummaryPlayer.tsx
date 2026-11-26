@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -10,8 +10,8 @@ import { alpha } from '@mui/material/styles';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import SpeedIcon from '@mui/icons-material/Speed';
-import { speakText, stopSpeakText } from '../utils/nativeDoc';
+import { getSpeechRate, setSpeechRate, speakText, stopSpeakText } from '../utils/nativeDoc';
+import { SPEECH_RATES, formatSpeechRate } from '../utils/speechText';
 
 export interface VoiceSummaryPlayerProps {
   /** Texto a ser narrado pela IA */
@@ -46,8 +46,8 @@ export const VoiceSummaryPlayer = ({
   const dark = theme.palette.mode === 'dark';
 
   const [playing, setPlaying] = useState(false);
-  const [rate, setRate] = useState<number>(1.0);
-  const restartingRef = useRef(false);
+  // A velocidade é uma preferência do aparelho, compartilhada por todos os áudios do app.
+  const [rate, setRate] = useState<number>(() => getSpeechRate());
 
   // Parar fala ao desmontar o componente
   useEffect(() => {
@@ -65,46 +65,15 @@ export const VoiceSummaryPlayer = ({
       if (!text) return;
       setPlaying(true);
       onPlayStateChange?.(true);
-      void speakText(text, {
-        rate,
-        onDone: () => {
-          if (!restartingRef.current) {
-            setPlaying(false);
-            onPlayStateChange?.(false);
-          }
-        },
-        onFail: () => {
-          if (!restartingRef.current) {
-            setPlaying(false);
-            onPlayStateChange?.(false);
-          }
-        },
-      });
+      const ended = () => { setPlaying(false); onPlayStateChange?.(false); };
+      void speakText(text, { onDone: ended, onFail: ended });
     }
   };
 
+  // Trocar a velocidade NÃO recomeça a fala: o motor repete só a frase atual, já na nova velocidade.
   const handleChangeRate = (newRate: number) => {
     setRate(newRate);
-    if (playing) {
-      restartingRef.current = true;
-      void stopSpeakText();
-      void speakText(text, {
-        rate: newRate,
-        onDone: () => {
-          setPlaying(false);
-          onPlayStateChange?.(false);
-          restartingRef.current = false;
-        },
-        onFail: () => {
-          setPlaying(false);
-          onPlayStateChange?.(false);
-          restartingRef.current = false;
-        },
-      });
-      setTimeout(() => {
-        restartingRef.current = false;
-      }, 500);
-    }
+    setSpeechRate(newRate);
   };
 
   // Cores dinâmicas baseadas no tema (identidade teal Dr. Exame)
@@ -204,7 +173,9 @@ export const VoiceSummaryPlayer = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          flexWrap: 'wrap',
           gap: 1.5,
+          rowGap: 1,
           mt: 1.25,
           pt: 1.25,
           borderTop: '1px solid',
@@ -251,7 +222,7 @@ export const VoiceSummaryPlayer = ({
           )}
         </Box>
 
-        {/* Seletor de Velocidade (1x / 1.25x / 1.5x) */}
+        {/* Seletor de velocidade — as mesmas opções em todos os áudios do app */}
         <Box
           sx={{
             display: 'flex',
@@ -261,9 +232,12 @@ export const VoiceSummaryPlayer = ({
             p: '3px',
             borderRadius: '8px',
             flexShrink: 0,
+            ml: 'auto',
           }}
+          role="group"
+          aria-label="Velocidade da fala"
         >
-          {[0.85, 1.0, 1.25].map((r) => {
+          {SPEECH_RATES.map((r) => {
             const active = rate === r;
             return (
               <Box
@@ -271,7 +245,7 @@ export const VoiceSummaryPlayer = ({
                 component="button"
                 type="button"
                 aria-pressed={active}
-                aria-label={`Velocidade ${r}x`}
+                aria-label={`Velocidade ${formatSpeechRate(r)}`}
                 onClick={() => handleChangeRate(r)}
                 sx={{
                   border: 0,
@@ -281,7 +255,8 @@ export const VoiceSummaryPlayer = ({
                   fontWeight: 800,
                   fontFamily: 'inherit',
                   px: 1,
-                  py: 0.4,
+                  minHeight: 32,
+                  minWidth: 40,
                   borderRadius: '8px',
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
@@ -291,7 +266,7 @@ export const VoiceSummaryPlayer = ({
                   },
                 }}
               >
-                {r}x
+                {formatSpeechRate(r)}
               </Box>
             );
           })}

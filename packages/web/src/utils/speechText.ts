@@ -11,6 +11,33 @@ export interface SpeechChunk { text: string; pauseMs: number }
 /** Velocidade real do motor de voz para o "1x" da tela: a voz padrão do Android a 1.0 soa corrida. */
 export const SPEECH_BASE_RATE = 0.88;
 
+/**
+ * Velocidades que a tela oferece. Uma lista só, para todos os áudios do app.
+ * Antes eram 0,85x / 1x / 1,25x: no motor de voz isso dava 0,75 / 0,88 / 1,1 — perto demais
+ * para o ouvido notar ("parece que não funciona").
+ */
+export const SPEECH_RATES = [0.75, 1, 1.25, 1.5] as const;
+export const DEFAULT_SPEECH_RATE = 1;
+
+/** Qualquer valor (guardado, digitado, antigo) → a velocidade oferecida mais próxima. */
+export function normalizeSpeechRate(value: unknown): number {
+  const n = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(n) || n <= 0) return DEFAULT_SPEECH_RATE;
+  return SPEECH_RATES.reduce<number>((best, option) => (Math.abs(option - n) < Math.abs(best - n) ? option : best), DEFAULT_SPEECH_RATE);
+}
+
+/** A próxima velocidade da lista (depois da última volta para a primeira). */
+export function nextSpeechRate(current: number): number {
+  const at = SPEECH_RATES.indexOf(normalizeSpeechRate(current) as (typeof SPEECH_RATES)[number]);
+  return SPEECH_RATES[(at + 1) % SPEECH_RATES.length];
+}
+
+/** Velocidade da tela → velocidade pedida ao motor de voz (0,5 a 2). */
+export const engineSpeechRate = (rate: number) => Math.max(0.5, Math.min(2, normalizeSpeechRate(rate) * SPEECH_BASE_RATE));
+
+/** "1x", "1,25x". */
+export const formatSpeechRate = (rate: number) => `${String(rate).replace('.', ',')}x`;
+
 const PAUSE_SENTENCE = 380;
 const PAUSE_PARAGRAPH = 750;
 const PAUSE_CLAUSE = 180;

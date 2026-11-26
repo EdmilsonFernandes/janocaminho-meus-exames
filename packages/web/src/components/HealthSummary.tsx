@@ -5,7 +5,7 @@ import { AppCard } from './AppCard';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PrintIcon from '@mui/icons-material/Print';
 import { DrExame } from './DrExame';
-import { printDocument, speakText, stopSpeakText } from '../utils/nativeDoc';
+import { printDocument, setSpeechRate, speakText, stopSpeakText } from '../utils/nativeDoc';
 import { tealText } from '../theme';
 import { VoiceSummaryPlayer } from './VoiceSummaryPlayer';
 import ShareIcon from '@mui/icons-material/Share';
@@ -159,8 +159,8 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
     if (!text) return;
     setSpeaking(true);
     // speakText usa TTS nativo (voz pt-BR) no APK e speechSynthesis no web.
+    if (newRate != null) setSpeechRate(newRate);
     void speakText(text, {
-      rate: newRate ?? rate,
       onDone: () => { if (!restartingRef.current) setSpeaking(false); },
       onFail: () => { if (!restartingRef.current) setSpeaking(false); },
     });
@@ -168,11 +168,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
   const stopSpeak = () => { void stopSpeakText(); setSpeaking(false); };
   const changeRate = (r: number) => {
     setRate(r);
-    if (speaking) {
-      restartingRef.current = true;
-      speak(r);
-      setTimeout(() => { restartingRef.current = false; }, 600);
-    }
+    setSpeechRate(r); // com a fala em andamento o motor troca sem recomeçar
   };
 
   const printSummary = () => {

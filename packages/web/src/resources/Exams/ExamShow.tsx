@@ -30,7 +30,8 @@ import { confirmDialog, snackbar } from '../../components/ConfirmDialog';
 import { chipA11y } from '../../utils/chipA11y';
 import { LabBadge } from '../../components/LabBadge';
 import { Capacitor } from '@capacitor/core';
-import { openBlobFile, speakText, stopSpeakText } from '../../utils/nativeDoc';
+import { getSpeechRate, openBlobFile, setSpeechRate, speakText, stopSpeakText } from '../../utils/nativeDoc';
+import { formatSpeechRate, nextSpeechRate } from '../../utils/speechText';
 import { openExamFile } from '../../utils/examFile';
 import { HealthSummary } from '../../components/HealthSummary';
 import { displayStatus } from '../../utils/examStatus';
@@ -171,6 +172,9 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   // 1x); o áudio sai do TTS do dispositivo (nativo APK / speechSynthesis web).
   const [narrLoading, setNarrLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  // Velocidade da fala: preferência do aparelho (a mesma de todos os áudios). Trocar no meio não recomeça.
+  const [speechRate, setRateState] = useState(() => getSpeechRate());
+  const cycleSpeechRate = () => { const next = nextSpeechRate(speechRate); setRateState(next); setSpeechRate(next); };
   const [pdfLoading, setPdfLoading] = useState(false);
   // Para a fala ao sair da tela (senão o áudio continua na página seguinte).
   useEffect(() => { return () => { void stopSpeakText(); }; }, []);
@@ -491,9 +495,14 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
             )}
             {exam.status === 'EXTRACTED' && (
               speaking ? (
+                <>
                 <Button size="small" variant="contained" color="error" onClick={stopNarration} startIcon={<StopIcon />} sx={{ borderRadius: RADIUS.button, textTransform: 'none', fontWeight: 700, minHeight: 44 }}>
                   Parar <WaveBars />
                 </Button>
+                <Button size="small" variant="outlined" onClick={cycleSpeechRate} aria-label={`Velocidade da fala: ${formatSpeechRate(speechRate)}. Toque para mudar.`} sx={{ borderRadius: RADIUS.button, textTransform: 'none', fontWeight: 700, minHeight: 44, minWidth: 64 }}>
+                  {formatSpeechRate(speechRate)}
+                </Button>
+                </>
               ) : (
                 <SecondaryButton onClick={narrate} disabled={narrLoading} startIcon={narrLoading ? <CircularProgress size={16} color="inherit" /> : <RecordVoiceOverIcon />}>
                   Ouvir resumo ({CREDIT_COSTS.chat} crédito{CREDIT_COSTS.chat > 1 ? 's' : ''})
