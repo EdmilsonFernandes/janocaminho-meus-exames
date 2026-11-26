@@ -1,0 +1,5 @@
+• Lista de exames mais limpa e fácil de ler: data, laboratório e médico em cada exame.
+• "Último exame" mostra há quanto tempo foi feito.
+• Exame parado em "processando" há dias agora explica o que está acontecendo.
+• Detalhe do exame: valores fora da faixa em destaque e botões mais fáceis de tocar.
+• Radar Hormonal: última e próxima aplicação de cada composto.
