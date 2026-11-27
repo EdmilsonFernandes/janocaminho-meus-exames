@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Stack, Typography, Box, Grid, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress, Chip, Collapse, IconButton, Tooltip } from '@mui/material';
+import { Stack, Typography, Box, Grid, useTheme, useMediaQuery, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress, Chip, Collapse, IconButton, Tooltip } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
 import { SEM, copperText, tealText, RADIUS } from '../../theme';
@@ -1389,6 +1389,30 @@ const BIO_OFFER_LATER_KEY = 'dx-bio-offer-later';
 /** Id da comemoração do 1º exame na fila única de modais automáticos. */
 const CELEBRATION_QUEUE_ID = 'first-exam';
 
+/**
+ * Seção recolhida em uma linha no celular (27/11/26, Início enxuto): o mapa do corpo ocupava quase
+ * duas telas. Fecha numa linha com título e resumo; o toque abre ali mesmo, sem trocar de tela.
+ */
+const FoldedSection = ({ title, hint, children }: { title: string; hint: string; children: React.ReactNode }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <AppCard sx={{ p: 0, overflow: 'hidden' }}>
+      <Box component="button" type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open}
+        sx={{ all: 'unset', boxSizing: 'border-box', width: '100%', minHeight: 56, px: 2, py: 1.25, display: 'flex', alignItems: 'center', gap: 1.25, cursor: 'pointer',
+          '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 } }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 16, lineHeight: 1.3 }}>{title}</Typography>
+          <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.35 }}>{hint}</Typography>
+        </Box>
+        <ExpandMoreIcon aria-hidden sx={{ color: 'text.secondary', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s ease' }} />
+      </Box>
+      <Collapse in={open} unmountOnExit>
+        <Box sx={{ px: 1, pb: 1 }}>{children}</Box>
+      </Collapse>
+    </AppCard>
+  );
+};
+
 const DashboardV2Inner = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
@@ -1415,6 +1439,10 @@ const DashboardV2Inner = () => {
   const d = demo ? DEMO_DASHBOARD : real;
   const th = useTheme();
   const isDark = th.palette.mode === 'dark';
+  // INÍCIO ENXUTO NO CELULAR (27/11/26, pedido do dono): numa coluna só, o Início media 7,6 telas
+  // com uns 10 botões disputando a atenção. No celular saem os blocos que REPETEM algo que já está
+  // na tela ou na navegação (cada um diz onde continua); no computador (duas colunas) nada muda.
+  const compact = useMediaQuery(th.breakpoints.down('sm'));
   // Badges dos KPI tiles a partir dos tokens SEM (mode-aware — fecha o P10 da review).
   // As tintas de fundo (rgba .12) continuam literais: são deliberadamente mode-agnósticas.
   const semC = (k: 'ok' | 'warn' | 'bad' | 'premium') => SEM[k][isDark ? 'dark' : 'light'];
@@ -1689,7 +1717,7 @@ const DashboardV2Inner = () => {
           }
           onDetails={go('/tendencias')}
           onFirstExam={() => navigate('/exams/create')}
-          onChat={go('/chat')}
+          onChat={compact ? undefined : go('/chat')}
           onDemo={demo ? undefined : () => { setDemo(true); demoEvent('started'); }}
           attention={demo ? [] : real.attention}
           failed={demo ? 0 : d.failed}
@@ -1728,7 +1756,8 @@ const DashboardV2Inner = () => {
       {/* QUIZ RESUMÍVEL (05/10) — card anuncia os metadados ANTES de entrar ("~30s · 3
           perguntas · +Y créditos") e retoma de onde parou com % de progresso. some sozinho
           quando o quiz é concluído/pulado (localStorage) ou já completo no server. */}
-      {!demo && <GoalQuizCard />}
+      {/* Celular: o questionário entra no "próximo passo" único, lá embaixo. */}
+      {!demo && !compact && <GoalQuizCard />}
 
       {/* 2. 4 CARDS DE KPI COM SOFT BADGES (2x2 no mobile, 4x1 no desktop). W4: enquanto
           carrega, TILES EM SHIMMER (mesmo footprint) em vez de '…' — feel de app nativo. */}
@@ -1739,6 +1768,9 @@ const DashboardV2Inner = () => {
           </Box>
         ) : (
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 1.5, mt: 3.5 }}>
+          {/* Celular: "Fora da faixa" repete o herói (que agora lista o que pede atenção) e "Exames" é a
+              aba Exames — ficam só Idade do corpo e Risco cardíaco. */}
+          {!compact && (<>
           {/* Severidade (antes: tile de Score — redundante com o hero logo acima, e o label
               "Alterados" virava termão solto). O score continua no HERO; aqui a métrica usa
               a MESMA taxonomia: Requer atenção (count>0) ou Normal. */}
@@ -1768,6 +1800,7 @@ const DashboardV2Inner = () => {
             spark={demo ? [1, 1, 2, 2, 1, 3, 2, 4, 3, 3, 2, 4] : (d as { examHistogram?: number[] }).examHistogram}
             onClick={go('/exams')}
           />
+          </>)}
           <BiologicalAgeCard idx={2} bio={d.bio} bioKdm={d.bioKdm} bioAvail={d.bioAvail} bioLoaded={d.hsLoaded} chronoAge={demo ? DEMO_CHRONO_AGE : undefined} />
           <IndicatorTile
             idx={3}
@@ -1812,6 +1845,21 @@ const DashboardV2Inner = () => {
               {/* PRÓXIMOS PASSOS (onboarding) — escondido no demo (checklist real não faz
                   sentido). Enquanto carrega: SkeletonCard da marca (nada de estado vazio
                   prematuro "envie o 1º exame" piscando antes dos dados chegarem). */}
+              {compact ? (
+                // UM PRÓXIMO PASSO (celular): pendência do dia > coleta pedida pelo médico > perfil.
+                // Cada cartão some sozinho quando não tem nada; aparece só o primeiro que tiver.
+                !demo && (
+                  // Bloco vazio (cartão sem nada a mostrar) não conta como "primeiro".
+                  <Box sx={{ '& > :empty': { display: 'none' }, '& > :not(:empty) ~ *': { display: 'none' } }}>
+                    <DashboardErrorBoundary>
+                      <PendenciasCard />
+                    </DashboardErrorBoundary>
+                    <UpcomingCollectionsCard />
+                    {d.loaded && <NextStepsCard exams={d.stats.exams} />}
+                    <GoalQuizCard />
+                  </Box>
+                )
+              ) : (<>
               {!demo && (!d.loaded
                 ? <SkeletonCard variant="content" />
                 : <NextStepsCard exams={d.stats.exams} />)}
@@ -1829,11 +1877,12 @@ const DashboardV2Inner = () => {
                   <PendenciasCard />
                 </DashboardErrorBoundary>
               )}
+              </>)}
 
               {/* ANÉIS DE META (lote ReUI 04/11 — chart-8 da maquete, dado REAL): bem-estar
                   (PHQ-9 invertido), exames em dia (janela 180d) e marcadores estáveis.
                   Anel vazio NÃO finge dado: sem medição, vira convite com traço cinza. */}
-              {!d.loaded && !demo ? <SkeletonCard variant="list" /> : (
+              {compact ? null : !d.loaded && !demo ? <SkeletonCard variant="list" /> : (
                 <GoalRingsCard
                   phq9={(d as { mental?: { phq9?: { total?: number } | null } }).mental?.phq9?.total ?? null}
                   lastExamAt={demo ? new Date().toISOString() : d.lastExam}
@@ -1852,6 +1901,20 @@ const DashboardV2Inner = () => {
                 : <ChangesSinceExam worsened={d.worsened} improved={d.improved} onView={go('/tendencias')} loaded={d.loaded} lastExamAt={d.lastExam} />}
 
               {/* MAPA CORPORAL INTERATIVO & SISTEMAS (Com Raio-X GPU Leve, blindado contra crash Web e APK) */}
+              {compact ? (
+                <FoldedSection title="Mapa do seu corpo" hint="Seus exames por órgão — toque para abrir">
+                  <DashboardErrorBoundary>
+                    <BodyMap
+                      regions={d.bodyRegions}
+                      loaded={d.loaded}
+                      onRegionClick={openRegion}
+                      onNavigateToTrend={(canonical) => navigate(`/tendencias?select=${encodeURIComponent(canonical)}`)}
+                      onNavigateToExam={(examId) => navigate(`/exams/${examId}`)}
+                      onUploadExam={go('/exams/create')}
+                    />
+                  </DashboardErrorBoundary>
+                </FoldedSection>
+              ) : (
               <DashboardErrorBoundary>
                 <BodyMap
                   regions={d.bodyRegions}
@@ -1862,6 +1925,7 @@ const DashboardV2Inner = () => {
                   onUploadExam={go('/exams/create')}
                 />
               </DashboardErrorBoundary>
+              )}
 
               {/* PERGUNTAS PRO MÉDICO (clinical-actions determinístico) — promessa da
                   landing "Avaliação de Risco" sem cruzar fronteira SaMD: perguntas
@@ -1898,7 +1962,7 @@ const DashboardV2Inner = () => {
               )}
 
               {/* DR. EXAME IA */}
-              <AiCard tip={tipNode} onChat={go('/chat')} />
+              {!compact && <AiCard tip={tipNode} onChat={go('/chat')} />}
             </Stack>
           </Grid>
 
@@ -1909,16 +1973,19 @@ const DashboardV2Inner = () => {
               {!demo && <TeleconsultaCard />}
 
               {/* PANORAMA DOS MARCADORES */}
-              <MarkerDistributionCard loaded={d.loaded} buckets={markerBuckets} totalMarkers={d.markerCount} scope={markerScope} onOpen={(dest) => go(dest === 'tendencias' ? '/tendencias' : '/exams')()} />
+              {!compact && <MarkerDistributionCard loaded={d.loaded} buckets={markerBuckets} totalMarkers={d.markerCount} scope={markerScope} onOpen={(dest) => go(dest === 'tendencias' ? '/tendencias' : '/exams')()} />}
 
               {/* AÇÕES RÁPIDAS */}
               {/* Estrelinha é o símbolo da IA no app — "Ações rápidas" não é IA, usa ícone neutro. */}
+              {/* Celular: o "+" e o menu já fazem isso; o saldo já está no selo do topo. */}
+              {!compact && (
               <Section label="Ações rápidas" icon={<WidgetsRoundedIcon sx={{ fontSize: 19 }} />}>
                 <QuickActions />
               </Section>
+              )}
 
               {/* CRÉDITOS DO PLANO */}
-              <CreditsCard credits={d.credits} onClick={() => navigate('/planos')} />
+              {!compact && <CreditsCard credits={d.credits} onClick={() => navigate('/planos')} />}
 
               {/* CONVITE SAÚDE ESPORTIVA (07/10, redesign): desceu do topo pro FIM da
                   página (fix #1/#16) — não disputa atenção com dado clínico. Descartável
@@ -1927,7 +1994,8 @@ const DashboardV2Inner = () => {
               {!demo && !sports.profile && sports.eligible === true && <SportsUpsellCard pid={pid} hasExams={(d?.stats?.exams ?? 0) > 0} />}
 
               {/* CONQUISTAS */}
-              <GamificationBadges examsCount={d.stats.exams} score={d.score} />
+              {/* Celular: Conquistas tem tela própria no menu. */}
+              {!compact && <GamificationBadges examsCount={d.stats.exams} score={d.score} />}
 
               {/* COMPARTILHAMENTO DE SAÚDE — JAMAIS no demo (compartilhar score fictício) */}
               {!demo && (
