@@ -51,6 +51,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
   try {
     const message = String((req.body as any)?.message ?? '');
     if (!message) { res.status(400).json({ error: 'message obrigatório' }); return; }
+    const t0 = Date.now(); // tempo que a pessoa esperou: entra no registro de uso e no log
     // "Gerar de novo" (tela): a pessoa viu a resposta reaproveitada e pediu uma NOVA → pula só a
     // busca no cache e segue o caminho normal da IA (cobra e grava como sempre). Só `true` literal
     // liga; app antigo não manda o campo. O pré-roteador local continua valendo.
@@ -324,9 +325,10 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos para conversar. Compre um pacote de créditos.' });
       return;
     }
-    let text: string; let model: string; let sources: { label: string; topic: string }[]; let offline: boolean | undefined; let usage: unknown;
+    let text: string; let model: string; let sources: { label: string; topic: string }[]; let offline: boolean | undefined; let usage: unknown; let ttftMs: number | undefined;
+    const tLlm = Date.now();
     try {
-      ({ text, model, sources, offline, usage } = await streamChat({
+      ({ text, model, sources, offline, usage, ttftMs } = await streamChat({
         res, contextText: fullContext, history, message, guidelineTopics: [...guidelineTopics, ...sports.topics],
         // originNote=true: a tela mostra o selo de origem (app novo). App antigo nao manda o campo e
         // recebe o rodape completo, que explica a indisponibilidade no proprio texto.
@@ -341,7 +343,8 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       // memória do agente; fica no histórico da tela marcado como 'offline' (medição + auditoria).
       await refundCredits(req.userId!, CREDIT_COSTS.chat, 'ai_chat_refund', 'Reembolso: IA indisponível (resposta sem IA)');
       await prisma.aiAnalysis.create({ data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: text, modelUsed: 'offline' } });
-      void logAiUsage({ userId: req.userId!, feature: 'CHAT', model: 'offline' });
+      void logAiUsage({ userId: req.userId!, feature: 'CHAT', model: 'offline', latencyMs: Date.now() - t0 });
+      console.warn(`[chat] sem IA em ${Date.now() - t0} ms (preparo ${tLlm - t0} ms)`);
       return;
     }
     await prisma.aiAnalysis.create({
@@ -349,7 +352,9 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       // (antes não era gravado — sem ele não dá p/ medir economia nem custo por mensagem).
       data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: text, modelUsed: model, structured: { sources: sources ?? [], fp } as any, ...(usage ? { tokenUsage: usage as any } : {}) },
     });
-    void logAiUsage({ userId: req.userId!, feature: 'CHAT', model });
+    void logAiUsage({ userId: req.userId!, feature: 'CHAT', model, latencyMs: Date.now() - t0 });
+    // MEDIÇÃO (27/11): antes o tempo do chat não era registrado — sem isto, "está lento" não tem número.
+    console.log(`[chat] ok modelo=${model} preparo=${tLlm - t0}ms primeiro_texto=${ttftMs ?? '?'}ms total=${Date.now() - t0}ms`);
     // Persiste a conversa em .md (não se perde; vira memória durável do paciente)
     appendConversation(slug, message, text);
   } catch (e) {

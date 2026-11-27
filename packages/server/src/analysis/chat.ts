@@ -16,6 +16,16 @@ function redactPii(s: string): string {
     .replace(/\(?\d{2}\)?\s?9\d{4}-?\d{4}\b/g, '[telefone]');
 }
 
+/** Espera pelo 1º texto do modelo principal antes de passar a pergunta ao reserva. Uma resposta
+ *  normal começa em 1 a 3 s; o modelo engasgado leva ~20 s para devolver erro. Ajustável sem
+ *  deploy de código pela variável CHAT_FIRST_TOKEN_MS (0 desliga). */
+export const CHAT_FIRST_TOKEN_DEADLINE_MS: number | undefined = (() => {
+  const raw = process.env.CHAT_FIRST_TOKEN_MS;
+  if (raw == null || raw === '') return 8000;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : undefined; // 0 ou inválido desliga
+})();
+
 export interface ChatTurn {
   role: 'user' | 'assistant';
   content: string;
@@ -38,7 +48,7 @@ export async function streamChat(opts: {
   /** Resposta SEM IA (dados dos exames) usada quando todos os provedores falham ANTES do 1º
    *  token: a pessoa recebe os fatos em vez de "A IA não respondeu" (24/11). A rota reembolsa. */
   offlineAnswer?: () => string;
-}): Promise<{ text: string; model: string; sources: { label: string; topic: string }[]; offline?: boolean; usage?: unknown }> {
+}): Promise<{ text: string; model: string; sources: { label: string; topic: string }[]; offline?: boolean; usage?: unknown; ttftMs?: number }> {
   const { res, contextText, history, message } = opts;
 
   res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
@@ -56,6 +66,8 @@ export async function streamChat(opts: {
   ];
 
   let full = '';
+  const startedAt = Date.now();
+  let ttftMs: number | undefined;
   // TIMEOUT DUPLA-GARANTIA (auditoria 2026-08-16): provider travado (relay engasga/modelo inválido)
   // deixava o SSE aberto p/ sempre — cliente com dots infinitos, input travado e CRÉDITO debitado
   // sem reembolso. Agora: 35s sem 1º token OU 120s total → aborta, avisa o cliente via SSE e
@@ -74,6 +86,8 @@ export async function streamChat(opts: {
     const s = await getChatLlm().stream({
       maxTokens: 1400, // 18/11: 900 era justo p/ GLM; 1400 dá folga p/ respostas comparativas
       signal: ac.signal,
+      // Modelo principal mudo por mais que isto → o reserva responde (ver GeminiAdapter.stream).
+      firstTokenDeadlineMs: CHAT_FIRST_TOKEN_DEADLINE_MS,
       system: [
         HEALTH_SYSTEM,
         contextText,
@@ -85,7 +99,7 @@ export async function streamChat(opts: {
     });
 
     s.onText((delta) => {
-      if (!gotFirstToken) { gotFirstToken = true; clearTimeout(firstTokenTimer); }
+      if (!gotFirstToken) { gotFirstToken = true; ttftMs = Date.now() - startedAt; clearTimeout(firstTokenTimer); }
       full += delta;
       res.write(`data: ${JSON.stringify({ type: 'delta', delta })}\n\n`);
     });
@@ -105,7 +119,7 @@ export async function streamChat(opts: {
     }
     res.write(`data: ${JSON.stringify({ type: 'done', usage, model })}\n\n`);
     res.end();
-    return { text: guarded.text, model: model ?? getModel() ?? 'glm-4.6', sources, usage };
+    return { text: guarded.text, model: model ?? getModel() ?? 'glm-4.6', sources, usage, ttftMs };
   } catch (e: any) {
     const aborted = ac.signal.aborted || e?.name === 'AbortError';
     // Nada foi escrito ainda → dá p/ trocar o erro pela resposta sem IA. Com texto parcial já

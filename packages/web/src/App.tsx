@@ -2,7 +2,8 @@ import { tealText } from './theme';
 import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useNotify, useTranslate, useSidebarState, useStore, LoadingIndicator } from 'react-admin';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { Activity, memo, useEffect, useMemo, useState, useRef, lazy, Suspense } from 'react';
+import { Activity, memo, useContext, useEffect, useMemo, useState, useRef, lazy, Suspense } from 'react';
+import { MenuSyncContext, groupOpen, menuScrollFor, type GroupChoice } from './utils/menuPosition';
 import { afterPaint, whenIdle, withThemeTransition } from './utils/snappy';
 import { Capacitor } from '@capacitor/core';
 import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, SwipeableDrawer, Avatar, Stack, Link as MuiLink } from '@mui/material';
@@ -387,18 +388,22 @@ const MenuSectionAccordion = ({
   badge?: string;
 }) => {
   const { pathname } = useLocation();
-  const [open, setOpen] = useState(false);
+  const { epoch, syncing } = useContext(MenuSyncContext);
+  const [choice, setChoice] = useState<GroupChoice>(null);
   const hasActiveChild = routes.some((r) => routeMatches(r, pathname));
-
-  useEffect(() => {
-    if (hasActiveChild) setOpen(true);
-  }, [pathname, hasActiveChild]);
+  // ONDE EU ESTOU (27/11/26): antes, todo grupo ABERTO ganhava o destaque teal — com dois ou três
+  // abertos, nada dizia qual era o da tela atual. Agora o destaque (`here`) é só do grupo que
+  // contém a tela aberta; grupo aberto por curiosidade fica neutro. E a cada abertura do menu só
+  // o grupo atual vem aberto (utils/menuPosition.ts).
+  const here = hasActiveChild;
+  const open = groupOpen(choice, epoch, hasActiveChild);
 
   return (
     <Box sx={{ mb: 0.5 }}>
       <ListItemButton
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setChoice({ epoch, current: hasActiveChild, open: !open })}
         aria-expanded={open}
+        data-here={here ? 'true' : undefined}
         sx={{
           borderRadius: '16px',
           m: '3px 8px',
@@ -407,12 +412,12 @@ const MenuSectionAccordion = ({
           minHeight: 48,
           bgcolor: (t) => {
             const isDark = t.palette.mode === 'dark';
-            if (open) return isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.94)';
+            if (here) return isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.94)';
             return 'transparent';
           },
           boxShadow: (t) => {
             const isDark = t.palette.mode === 'dark';
-            if (!open) return 'none';
+            if (!here) return 'none';
             return isDark
               ? 'inset 1px 1px 0 rgba(255,255,255,0.14), 0 10px 22px -12px rgba(0,0,0,0.6)'
               : 'inset 0 0 0 1px rgba(32,178,170,0.25), inset 1px 1px 0 #fff, 0 10px 22px -12px rgba(15,90,86,0.35)';
@@ -434,9 +439,9 @@ const MenuSectionAccordion = ({
             flexShrink: 0,
             display: 'grid',
             placeItems: 'center',
-            background: open ? 'linear-gradient(135deg, #20b2aa, #178f89)' : (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.72)',
-            color: open ? '#fff' : (t) => t.palette.mode === 'dark' ? '#7fe0d9' : '#0e6f69',
-            boxShadow: open
+            background: here ? 'linear-gradient(135deg, #20b2aa, #178f89)' : (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.72)',
+            color: here ? '#fff' : (t) => t.palette.mode === 'dark' ? '#7fe0d9' : '#0e6f69',
+            boxShadow: here
               ? 'inset 1px 1px 0 rgba(255,255,255,0.35), 0 8px 16px -6px rgba(23,143,137,0.6)'
               : (t) => `inset 0 0 0 1px rgba(32,178,170,${t.palette.mode === 'dark' ? 0.3 : 0.22})`,
             transition: 'all .2s ease',
@@ -450,7 +455,7 @@ const MenuSectionAccordion = ({
           sx={{ flex: '1 1 auto', minWidth: 0, mr: 0.5, my: 0 }}
           primaryTypographyProps={{
             fontSize: 14,
-            fontWeight: 600,
+            fontWeight: here ? 700 : 600,
             letterSpacing: '0.01em',
             noWrap: true,
             sx: {
@@ -459,7 +464,7 @@ const MenuSectionAccordion = ({
               whiteSpace: 'nowrap',
               color: (t) => {
                 const isDark = t.palette.mode === 'dark';
-                if (open) return isDark ? '#8ff0e8' : '#0b5c57';
+                if (here) return isDark ? '#8ff0e8' : '#0b5c57';
                 return isDark ? 'rgba(241, 245, 249, 0.9)' : '#1f2d2d';
               },
             },
@@ -501,7 +506,7 @@ const MenuSectionAccordion = ({
           }}
         />
       </ListItemButton>
-      <Collapse in={open} timeout={280} easing="cubic-bezier(.34,1.56,.64,1)" sx={{ pb: 0.25 }}>
+      <Collapse in={open} timeout={syncing ? 0 : 280} easing="cubic-bezier(.34,1.56,.64,1)" sx={{ pb: 0.25 }}>
         <Box
           sx={{
             ml: '12px',
@@ -515,6 +520,22 @@ const MenuSectionAccordion = ({
     </Box>
   );
 };
+
+/** Marca "aqui" no item da tela atual: responde "onde eu estou?" com texto, não só com cor. */
+const HereMark = () => (
+  <Box
+    component="span"
+    aria-hidden
+    sx={{
+      flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 0.5, mx: 0.25,
+      fontSize: 10.5, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1,
+      color: (t) => (t.palette.mode === 'dark' ? '#5eead4' : '#0f766e'),
+    }}
+  >
+    <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'currentColor' }} />
+    aqui
+  </Box>
+);
 
 // Item de navegação Dr. Exame:
 // Ativo = fundo translúcido teal, texto destacado, acento lateral indicador na cor oficial #0d9488.
@@ -555,6 +576,7 @@ const NavItem = ({
       <ListItemButton
         onClick={go}
         selected={active}
+      aria-current={active ? 'page' : undefined}
         sx={{
           borderRadius: '18px',
           m: '6px 8px',
@@ -603,6 +625,7 @@ const NavItem = ({
       <ListItemButton
         onClick={go}
         selected={active}
+      aria-current={active ? 'page' : undefined}
         sx={{
           borderRadius: '16px',
           m: '3px 8px',
@@ -665,6 +688,7 @@ const NavItem = ({
             }}
           />
         )}
+        {active && <HereMark />}
       </ListItemButton>
     );
   }
@@ -673,6 +697,7 @@ const NavItem = ({
     <ListItemButton
       onClick={go}
       selected={active}
+      aria-current={active ? 'page' : undefined}
       sx={{
         borderRadius: '12px',
         m: '2px 8px',
@@ -754,15 +779,16 @@ const NavItem = ({
           }}
         />
       )}
-      <ChevronRightIcon
-        sx={{
-          fontSize: 17,
-          flexShrink: 0,
-          color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.3)' : '#94a3b8',
-          transition: 'all .15s ease',
-          opacity: active ? 0.9 : 0.6,
-        }}
-      />
+      {active ? <HereMark /> : (
+        <ChevronRightIcon
+          sx={{
+            fontSize: 17,
+            flexShrink: 0,
+            color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.3)' : '#94a3b8',
+            opacity: 0.6,
+          }}
+        />
+      )}
     </ListItemButton>
   );
 };
@@ -814,6 +840,7 @@ const FamilyMenuPill = () => {
     <ListItemButton
       onClick={() => go('/familia')}
       selected={active}
+      aria-current={active ? 'page' : undefined}
       sx={{
         m: '4px 8px', px: 1.25, py: 0.75, minHeight: 52, borderRadius: '16px', gap: 1.25,
         bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(167,139,250,0.10)' : 'rgba(124,58,237,0.07)'),
@@ -1108,17 +1135,7 @@ const AppMenu = () => {
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
   const isDesktop = useMediaQuery((t: any) => t.breakpoints.up('sm'));
   const [sidebarOpen] = useSidebarState();
-  // Fix 04/11 (dono: "menu abre com a opção no MEIO da tela — confuso"): o scroll
-  // interno do drawer PRESERVAVA a posição da última visita; agora toda ABERTURA
-  // recomeça do TOPO (mobile). rAF: espera o drawer montar/abrir antes de scrollar.
-  useEffect(() => {
-    if (isDesktop || !sidebarOpen) return;
-    const raf = requestAnimationFrame(() => {
-      const paper = document.querySelector('.MuiDrawer-paper');
-      if (paper) paper.scrollTop = 0;
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [sidebarOpen, isDesktop]);
+  // A posição do menu ao abrir (topo ou item da tela atual) é decidida no AppDrawer.
 
   // 🟢 Admin: nº de usuários online no item "Painel Admin" (mobile+web). Só busca p/ ADMIN,
   // ao montar e a cada abertura do drawer — endpoint leve /admin/presence.
@@ -1220,7 +1237,7 @@ const AppMenu = () => {
       <MenuSectionAccordion
         title="Rotina de saúde"
         icon={<MonitorHeartOutlinedIcon />}
-        routes={['/medicamentos', '/radar-hormonal', '/sinais', '/medicoes', '/composicao', '/alimentacao', '/saude-mental', '/vacinas', '/despesas', '/conquistas', '/emergencia']}
+        routes={['/diario', '/medicamentos', '/radar-hormonal', '/sinais', '/medicoes', '/composicao', '/alimentacao', '/saude-mental', '/vacinas', '/despesas', '/conquistas', '/emergencia']}
       >
         <NavItem to="/alimentacao" primaryText="Alimentação e exames" icon={<RestaurantOutlinedIcon />} badge="Novo" highlight />
         <NavItem to="/saude-mental" primaryText="Saúde Mental & Humor" icon={<PsychologyOutlinedIcon />} highlight />
@@ -1382,6 +1399,33 @@ const AppDrawer = () => {
   // O MESMO elemento a cada render: abrir e fechar o menu (que só muda `open`) não refaz os itens.
   const menu = useMemo(() => <AppMenu />, []);
 
+  // ABRE ANCORADO NA TELA ATUAL (utils/menuPosition.ts): a cada abertura, só o grupo da tela
+  // aberta vem expandido (sem animação — o menu já aparece arrumado) e a rolagem vai para o item
+  // marcado "aqui": no topo se ele cabe na primeira tela, no meio se fica abaixo da dobra.
+  const [menuSync, setMenuSync] = useState({ epoch: 0, syncing: false });
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    setMenuSync((m) => ({ epoch: m.epoch + 1, syncing: true }));
+    const place = () => {
+      const box = scrollRef.current;
+      if (!box) return;
+      const cur = box.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!cur) { box.scrollTop = 0; return; }
+      const b = box.getBoundingClientRect();
+      const c = cur.getBoundingClientRect();
+      box.scrollTop = menuScrollFor({
+        itemTop: c.top - b.top + box.scrollTop, itemHeight: c.height,
+        viewHeight: box.clientHeight, contentHeight: box.scrollHeight,
+      });
+    };
+    // Dois quadros: o 1º aplica os grupos abertos/fechados, o 2º já mede a altura final.
+    let raf = requestAnimationFrame(() => { raf = requestAnimationFrame(place); });
+    const again = window.setTimeout(place, 140);
+    const settle = window.setTimeout(() => setMenuSync((m) => ({ ...m, syncing: false })), 400);
+    return () => { cancelAnimationFrame(raf); window.clearTimeout(again); window.clearTimeout(settle); };
+  }, [open]);
+
   useEffect(() => { closeDrawer(); }, [pathname]);
   useEffect(() => {
     (window as any).__drawerOpen = open;
@@ -1412,7 +1456,7 @@ const AppDrawer = () => {
       }}>
       <UserProfileCard onClose={closeDrawer} />
       <Divider sx={{ borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', mx: 2 }} />
-      <Box sx={{
+      <Box ref={scrollRef} sx={{
         flex: 1, overflowY: 'auto', px: 1, py: 1,
         '& > *': {
           animation: 'dxDrawerItemFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) backwards',
@@ -1428,9 +1472,11 @@ const AppDrawer = () => {
           '100%': { opacity: 1, transform: 'translateX(0)' },
         },
       }}>
-        <Activity mode={open || menuLive ? 'visible' : 'hidden'}>
-          {menu}
-        </Activity>
+        <MenuSyncContext.Provider value={menuSync}>
+          <Activity mode={open || menuLive ? 'visible' : 'hidden'}>
+            {menu}
+          </Activity>
+        </MenuSyncContext.Provider>
       </Box>
     </SwipeableDrawer>
   );

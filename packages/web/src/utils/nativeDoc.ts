@@ -68,6 +68,13 @@ let liveRate: number | null = null; // carregada na primeira leitura
 let rateEpoch = 0;
 /** Há uma fala em andamento (para saber se a troca de velocidade precisa interromper o trecho). */
 let speakingNow = false;
+/**
+ * Solta a espera do trecho que está sendo falado. Necessário no Android: o plugin de voz só avisa
+ * "terminou" ou "deu erro" — quando a fala é INTERROMPIDA, a chamada `speak` fica pendurada para
+ * sempre. Era o travamento ao trocar a velocidade (27/11/26): o áudio parava e a leitura nunca
+ * seguia para o trecho seguinte.
+ */
+let releaseChunk: (() => void) | null = null;
 type TtsPlugin = typeof import('@capacitor-community/text-to-speech')['TextToSpeech'];
 let ttsPlugin: TtsPlugin | null = null;
 let ttsLoading: Promise<void> | null = null;
@@ -109,7 +116,9 @@ export function setSpeechRate(rate: number): void {
   if (!speakingNow) return;
   // Interrompe só o trecho atual (o laço continua vivo e o repete na velocidade nova).
   try {
-    if (Capacitor.isNativePlatform()) void ttsPlugin?.stop().catch(() => {});
+    // Android: não chama stop() — o próximo `speak` já substitui a fala atual (fila em modo
+    // "descarta o anterior"), e stop() + speak() em seguida podiam se atropelar.
+    if (Capacitor.isNativePlatform()) releaseChunk?.();
     else window.speechSynthesis?.cancel();
   } catch { /* ignore */ }
 }
@@ -164,7 +173,10 @@ export async function speakText(
     if (!alive()) return; // parado ou substituído por outra fala
     const epoch = rateEpoch;
     try {
-      await speakOne(chunks[i].text, engineSpeechRate(getSpeechRate()));
+      const released = new Promise<void>((resolve) => { releaseChunk = resolve; });
+      const speaking = speakOne(chunks[i].text, engineSpeechRate(getSpeechRate()));
+      speaking.catch(() => { /* tratado na corrida abaixo; evita rejeição solta se o trecho foi liberado antes */ });
+      await Promise.race([speaking, released]);
     } catch (e) {
       if (!alive()) return;
       // interrompido pela troca de velocidade: não é falha, o trecho é dito de novo
@@ -182,6 +194,7 @@ export async function speakText(
 export async function stopSpeakText(): Promise<void> {
   speechRun += 1; // invalida o laço de trechos em andamento
   speakingNow = false;
+  releaseChunk?.(); // o laço acorda, vê que foi parado e encerra (em vez de ficar pendurado)
   try {
     if (Capacitor.isNativePlatform()) {
       try { await loadTts(); await getTts().stop(); } catch { /* ignore */ }

@@ -1,4 +1,4 @@
-import type { LlmProvider, LlmRequest, LlmStream, LlmResult } from './types';
+import { SLOW_MODEL, type LlmProvider, type LlmRequest, type LlmStream, type LlmResult } from './types';
 import { getActiveConfig, type AiProviderRuntime } from './ai-config';
 import { splitKeys, keyId, classifyError } from './anthropic';
 
@@ -71,10 +71,18 @@ export class GeminiAdapter implements LlmProvider {
     // chaves só gasta tempo — cada 503 levou ~20s no teste ao vivo e o chat espera 35s pelo
     // 1º token. Modelo sobrecarregado → pula direto para o próximo degrau.
     const overloaded = new Set<string>();
-    for (const a of this.attempts(primary)) {
+    const list = this.attempts(primary);
+    for (let i = 0; i < list.length; i++) {
+      const a = list[i];
       if (overloaded.has(a.model)) continue;
+      // LIMITE DE ESPERA (27/11: "o Gemini está demorando"): o modelo principal, quando engasga,
+      // leva ~20 s para devolver o 503 — ou fica mudo. Com um degrau reserva pela frente, espera-se
+      // só `firstTokenDeadlineMs` pelo 1º texto; passou, a tentativa é abandonada e o reserva
+      // responde. Só vale para o modelo principal: o reserva e o modelo único esperam o que precisar.
+      const hasReserve = list.slice(i + 1).some((b) => b.model !== a.model && !overloaded.has(b.model));
+      const deadline = a.model === primary && hasReserve ? req.firstTokenDeadlineMs : undefined;
       try {
-        return await this.streamWith(a.key, a.model, req);
+        return await this.streamWith(a.key, a.model, req, deadline);
       } catch (e) {
         if (req.signal?.aborted) throw e;
         const status = (e as any)?.status;
@@ -85,9 +93,12 @@ export class GeminiAdapter implements LlmProvider {
         if (!c.rotate) throw e;
         if (status === 503 || status === 529) {
           // sobrecarga é do modelo, não da chave: esfria o MODELO (todas as chaves) por 1 min
+          // Lento (sem 1º texto no limite) esfria por 3 min: as próximas perguntas começam direto
+          // no reserva, sem pagar a espera de novo a cada mensagem.
+          const slow = (e as any)?.code === SLOW_MODEL;
           overloaded.add(a.model);
-          geminiCooldowns.set(`*|${a.model}`, Date.now() + c.cooldownMs);
-          console.warn(`[llm] gemini ${a.model} sobrecarregado (${status}) — indo para o próximo degrau`);
+          geminiCooldowns.set(`*|${a.model}`, Date.now() + (slow ? 3 * 60_000 : c.cooldownMs));
+          console.warn(`[llm] gemini ${a.model} ${slow ? 'lento (sem resposta no limite)' : `sobrecarregado (${status})`} — indo para o próximo degrau`);
           continue;
         }
         // cota diária do free tier não informa reset → 10 min de esfriamento (classifyError) e retenta
@@ -98,7 +109,35 @@ export class GeminiAdapter implements LlmProvider {
     throw last;
   }
 
-  private async streamWith(key: string, model: string, req: LlmRequest): Promise<LlmStream> {
+  private async streamWith(key: string, model: string, req: LlmRequest, firstTokenDeadlineMs?: number): Promise<LlmStream> {
+    // Sinal PRÓPRIO da tentativa: o limite de espera corta só ESTA chamada; o cancelamento de
+    // quem chamou (pessoa desistiu, tempo total) continua valendo por cima.
+    const ac = new AbortController();
+    const onOuterAbort = () => ac.abort((req.signal as any)?.reason);
+    if (req.signal?.aborted) onOuterAbort();
+    else req.signal?.addEventListener('abort', onOuterAbort, { once: true });
+    let timedOut = false;
+    const timer = firstTokenDeadlineMs
+      ? setTimeout(() => { timedOut = true; ac.abort(); }, firstTokenDeadlineMs)
+      : undefined;
+    const slowError = () => Object.assign(
+      new Error(`Gemini ${model}: sem resposta em ${firstTokenDeadlineMs} ms`), { status: 503, code: SLOW_MODEL });
+    try {
+      return await this.openStream(key, model, req, ac.signal, firstTokenDeadlineMs != null, () => timedOut, slowError);
+    } catch (e) {
+      if (timedOut && !req.signal?.aborted) throw slowError();
+      throw e;
+    } finally {
+      if (timer) clearTimeout(timer);
+      // Com o stream entregue, o ouvinte segue necessário (cancelar no meio da resposta); ele é
+      // `once` e o sinal de quem chamou morre junto com a requisição.
+    }
+  }
+
+  private async openStream(
+    key: string, model: string, req: LlmRequest, signal: AbortSignal,
+    waitFirstText: boolean, timedOut: () => boolean, slowError: () => Error,
+  ): Promise<LlmStream> {
     const system = sysText(req.system);
     // Gemini usa role 'model' (não 'assistant')
     const contents = req.messages.map((m) => ({
@@ -112,7 +151,7 @@ export class GeminiAdapter implements LlmProvider {
     const post = (noThinking: boolean) => fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      signal: req.signal,
+      signal,
       body: JSON.stringify({
         ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
         contents,
@@ -140,7 +179,11 @@ export class GeminiAdapter implements LlmProvider {
     let usage: any;
     let stopReason: string | undefined;
     let buf = '';
+    // Avisa quando chega o 1º texto (true) ou quando o stream acaba/quebra sem nenhum (false).
+    let settleFirst: (got: boolean) => void = () => {};
+    const firstText = new Promise<boolean>((resolve) => { settleFirst = resolve; });
     const consumed = (async () => {
+     try {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -156,16 +199,28 @@ export class GeminiAdapter implements LlmProvider {
             const j = JSON.parse(data);
             const parts = j.candidates?.[0]?.content?.parts;
             const delta = Array.isArray(parts) ? parts.map((p: any) => p.text ?? '').join('') : '';
-            if (delta) { full += delta; for (const cb of cbs) cb(delta); }
+            if (delta) { full += delta; settleFirst(true); for (const cb of cbs) cb(delta); }
             const fr = j.candidates?.[0]?.finishReason;
             if (fr) stopReason = fr;
             if (j.usageMetadata) usage = j.usageMetadata;
           } catch { /* linha SSE parcial */ }
         }
       }
+     } finally { settleFirst(false); }
     })();
+    if (waitFirstText) {
+      consumed.catch(() => { /* o erro é relançado logo abaixo, por quem espera */ });
+      const got = await firstText;
+      if (!got) {
+        if (timedOut() && !req.signal?.aborted) throw slowError();
+        await consumed; // stream quebrou (ou quem chamou cancelou): sobe o erro real
+        // Terminou sem UMA palavra (visto ao vivo no 3.5-flash): trata como sobrecarga → reserva.
+        throw Object.assign(new Error(`Gemini ${model}: resposta vazia`), { status: 503 });
+      }
+    }
     return {
-      onText(cb) { cbs.push(cb); },
+      // Quem registra depois do 1º texto (caso do limite de espera) recebe o que já chegou.
+      onText(cb) { if (full) cb(full); cbs.push(cb); },
       async final(): Promise<LlmResult> { await consumed; return { text: full, usage, model, stopReason }; },
     };
   }

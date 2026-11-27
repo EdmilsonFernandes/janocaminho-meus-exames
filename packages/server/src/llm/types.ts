@@ -23,6 +23,10 @@ export interface LlmRequest {
   model?: string;
   /** Aborta a chamada (timeout/cancelamento) — adapters repassam ao SDK/fetch quando suportado. */
   signal?: AbortSignal;
+  /** Chat: espera máxima pelo 1º pedaço de texto do modelo PRINCIPAL quando existe um degrau
+   *  reserva (ex.: flash → flash-lite). Passou disso, o adapter abandona a tentativa e segue para
+   *  o reserva em vez de segurar a pessoa. Sem o campo, nada muda (resumos, extração). */
+  firstTokenDeadlineMs?: number;
 }
 
 export interface LlmResult {
@@ -31,6 +35,9 @@ export interface LlmResult {
   model?: string;
   stopReason?: string;
 }
+
+/** Erro "o modelo não começou a responder a tempo" — tratado como sobrecarga (troca de degrau). */
+export const SLOW_MODEL = 'llm_slow_first_token';
 
 /** Stream: registra callback de delta (chat/SSE) e resolve o texto final (todos). */
 export interface LlmStream {
