@@ -1,0 +1,5 @@
+• Início mostra o que pede atenção, com valor e faixa.
+• Exame abre mais rápido e com todos os valores à vista.
+• Setas e textos indicam o que está acima ou abaixo da faixa.
+• Voltar retorna ao ponto da tela em que você estava.
+• Voltar fecha menus abertos antes de trocar de tela.
