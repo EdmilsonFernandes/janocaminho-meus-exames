@@ -1,0 +1,5 @@
+• Início mais curto: o que importa em menos de uma tela.
+• Um só próximo passo, sem cartões repetidos.
+• Data do último exame considera só exames lidos.
+• Se um envio falhar, o app pede para reenviar.
+• Assistente de perfil não reaparece a cada abertura.
