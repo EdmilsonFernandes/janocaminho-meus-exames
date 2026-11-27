@@ -1,0 +1,5 @@
+• Início mostra o que pede atenção, com valor e faixa.
+• Exame abre mais rápido, com todos os valores à vista.
+• Voltar retorna ao ponto da tela em que você estava.
+• Panorama mais enxuto, e o áudio explica cada área.
+• Fonte grande, avisos e lembretes mais bem ajustados.

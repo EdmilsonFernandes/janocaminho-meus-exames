@@ -34,6 +34,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import TodayIcon from '@mui/icons-material/Today';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API_URL, APP_WEB_URL, token, doctorPhotoUrl } from '../config';
+import { askPushPermission } from '../push';
 import { hapticSuccess, hapticError, hapticLight } from '../utils/haptic';
 import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -187,6 +188,8 @@ export const RemindersPage = () => {
       setTitle(''); setDate(''); setTime('09:00'); setOffsets(DEFAULT_OFFSETS); setRecur(null); setLinkUrl(''); setFormOpen(false);
       await load();
       hapticSuccess();
+      // Lembrete salvo: o aviso depende de notificação — pede agora, com o motivo à vista.
+      void askPushPermission();
     } catch {
       hapticError();
       setErr('Sem conexão — verifique sua internet.');

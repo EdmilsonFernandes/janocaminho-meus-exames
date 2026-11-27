@@ -758,7 +758,9 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
         {/* Score Ring — gradiente cônico animado */}
         <Box sx={{
           position: 'relative', display: 'grid', placeItems: 'center',
-          width: { xs: 80, sm: 96 }, height: { xs: 80, sm: 96 }, flexShrink: 0,
+          // Medido em `em` (27/11/26): com a fonte do Android ampliada o número e o "de 100" crescem e
+          // invadiam o anel de 80 px. Em `em` o anel cresce junto (80/96 px na fonte normal).
+          fontSize: 12, width: { xs: '6.667em', sm: '8em' }, height: { xs: '6.667em', sm: '8em' }, flexShrink: 0,
           // Glow estático atrás do ring (dieta de movimento: infinite só em live/processing/play)
           '&::before': {
             content: '""', position: 'absolute', inset: -4,

@@ -249,7 +249,8 @@ const ExamHeroCompact = ({ r, abnCount, onView }: { r: any; abnCount: number | n
               </Typography>
             )}
           </Typography>
-          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 16, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titleInfo.text || 'Exame'}</Typography>
+          {/* Até 2 linhas (27/11/26): com fonte ampliada o nome era cortado já na 1ª ("Check-up de rotina (…"). */}
+          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 16, lineHeight: 1.25, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflowWrap: 'anywhere' }}>{titleInfo.text || 'Exame'}</Typography>
           <Stack direction="row" spacing={1} sx={{ mt: 0.25, alignItems: 'center', flexWrap: 'wrap', rowGap: 0.25 }}>
             <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>{itemCount} resultado{itemCount !== 1 ? 's' : ''}</Typography>
             {abnCount == null ? <CheckingChip height={20} /> : (

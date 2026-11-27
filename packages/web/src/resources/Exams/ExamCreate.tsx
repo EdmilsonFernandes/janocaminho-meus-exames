@@ -19,6 +19,7 @@ import RedeemIcon from '@mui/icons-material/Redeem';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { Title, useNotify, useRedirect, useRefresh, useLogout } from 'react-admin';
 import { API_URL, token, fetchPublicConfig } from '../../config';
+import { askPushPermission } from '../../push';
 import { confirmDialog } from '../../components/ConfirmDialog';
 import { PreSendChecklist, shouldShowPreSendCheck, markPdfCheckSeen } from '../../components/PreSendChecklist';
 import { useSelectedPatient } from '../../patient-context';
@@ -68,6 +69,8 @@ async function uploadOne(file: File | Blob, filename: string, pid: string | null
         err.code = e.error;
         throw err;
       }
+      // Agora o motivo está claro ("avisamos quando ficar pronto"): é a hora de pedir notificações.
+      void askPushPermission();
       return r.json();
     } catch (e: any) {
       lastErr = e;

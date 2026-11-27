@@ -9,6 +9,7 @@ import { API_URL, token } from '../config';
 import { DrExame } from './DrExame';
 import { notifRoute } from '../utils/notifRoute';
 import { autoModalQueue } from '../utils/autoModalQueue';
+import { reminderIsPast } from '../utils/reminderExpiry';
 import { setPendingAlert, usePendingAlert } from '../utils/pendingAlert';
 
 /** Id deste modal na fila única de modais automáticos (prioridade máxima: 'health'). */
@@ -90,7 +91,8 @@ export const NotificationPopup = () => {
           // numa conta que JÁ tem exames) pipocavam como dialog na entrada, meses depois, em estado
           // mentiroso. Só notificação recente (<7d) e que não seja nudge de 1º exame vira popup.
           const FRESH_MS = 7 * 24 * 60 * 60 * 1000;
-          const item = d.items.find((n: any) => n.type !== 'first_exam' && Date.now() - new Date(n.createdAt).getTime() < FRESH_MS);
+          // Lembrete cujo compromisso já passou não abre sozinho (texto "faltam 5 horas" congelado).
+          const item = d.items.find((n: any) => n.type !== 'first_exam' && Date.now() - new Date(n.createdAt).getTime() < FRESH_MS && !reminderIsPast(n));
           if (!item) { autoModalQueue.withdraw(QUEUE_ID); return; }
           // Não reabre notificação já dispensada: o "Depois" persiste o id. Sem isto, todo boot
           // com unread>0 reinterpõe o modal (irritante — sempre há não-lidas no app de saúde).

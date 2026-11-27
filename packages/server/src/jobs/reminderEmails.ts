@@ -308,7 +308,7 @@ export async function sendDueReminders(now: number): Promise<void> {
 
       // push + notificação in-app (sendPushToUser cria a Notification e manda FCM p/ os devices)
       if (owner?.id) {
-        await sendPushToUser(owner.id, `Lembrete: ${r.title}`, `${name}, ${body}`, { type: 'reminder', reminderId: r.id, offset: String(o) }).catch((e) => console.error('[reminders] push falhou:', e?.message));
+        await sendPushToUser(owner.id, `Lembrete: ${r.title}`, `${name}, ${body}`, { type: 'reminder', reminderId: r.id, offset: String(o), dueAt: new Date(r.dueDate).toISOString() }).catch((e) => console.error('[reminders] push falhou:', e?.message));
       }
       // e-mail (cada antecedência avisa por e-mail — iPhone sem push também é lembrado)
       if (owner?.email) {

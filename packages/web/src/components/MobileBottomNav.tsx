@@ -124,10 +124,14 @@ export const MobileBottomNav = () => {
         mt: it.robot ? 0 : 0.2,
         fontFamily: 'Poppins, sans-serif',
         textAlign: 'center',
-        overflow: 'visible',
-        textOverflow: 'clip',
+        // FONTE AMPLIADA (27/11/26, Android a 130%): com 'visible' os rótulos invadiam o vizinho
+        // ("ExamesConsultas", "AgendaMais"). Agora cada rótulo fica na sua coluna e, se não couber,
+        // termina em "…" — o ícone e o nome completo (aria-label) continuam lá.
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
-        px: 0,
+        maxWidth: '100%',
+        px: 0.25,
         letterSpacing: '-0.03em',
         display: it.robot ? 'none' : 'block',
       }}>
@@ -168,10 +172,14 @@ export const MobileBottomNav = () => {
         fontFamily: 'Poppins, sans-serif',
         letterSpacing: '-0.03em',
         textAlign: 'center',
-        overflow: 'visible',
-        textOverflow: 'clip',
+        // FONTE AMPLIADA (27/11/26, Android a 130%): com 'visible' os rótulos invadiam o vizinho
+        // ("ExamesConsultas", "AgendaMais"). Agora cada rótulo fica na sua coluna e, se não couber,
+        // termina em "…" — o ícone e o nome completo (aria-label) continuam lá.
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
-        px: 0,
+        maxWidth: '100%',
+        px: 0.25,
       }}>
         {translate('nav.more')}
       </Typography>
