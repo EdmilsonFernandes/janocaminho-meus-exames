@@ -19,6 +19,23 @@ describe('panoramaSpeech — roteiro do "Ouvir panorama"', () => {
     expect(text).toContain('não substitui a consulta médica');
   });
 
+  it('Mente e humor e Diário de saúde ganham uma frase dizendo o que são, logo antes do dado', () => {
+    const m = model();
+    const text = panoramaSpeech(m, pt);
+    const mind = m.tiles.find((x) => x.key === 'mind');
+    const diary = m.tiles.find((x) => x.key === 'diary');
+    const once = (s: string) => text.split(s).length - 1;
+    if (mind) {
+      expect(text.indexOf('questionário curto sobre humor e ansiedade')).toBeLessThan(text.indexOf(`${mind.name}:`));
+      expect(once('questionário curto sobre humor e ansiedade')).toBe(1); // explica uma vez só
+    }
+    if (diary) {
+      expect(text.indexOf('é onde você anota')).toBeLessThan(text.indexOf(`${diary.name}:`));
+      expect(once('é onde você anota')).toBe(1);
+    }
+    expect(text).not.toMatch(/Remédios:|Consultas e perguntas:|Vacinas:|Cartão de emergência:/);
+  });
+
   it('não deixa chave de tradução crua nem "undefined" no que será falado', () => {
     const text = panoramaSpeech(model(), pt);
     expect(text).not.toMatch(/panorama\.|undefined|null|%\{/);

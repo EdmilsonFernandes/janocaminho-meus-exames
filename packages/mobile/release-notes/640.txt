@@ -1,5 +1,5 @@
 • Início mostra o que pede atenção, com valor e faixa.
-• Exame abre mais rápido e com todos os valores à vista.
-• Setas e textos indicam o que está acima ou abaixo da faixa.
+• Exame abre mais rápido, com todos os valores à vista.
 • Voltar retorna ao ponto da tela em que você estava.
-• Voltar fecha menus abertos antes de trocar de tela.
+• Panorama mais enxuto: só as áreas de saúde.
+• Ouvir panorama explica Mente e humor e Diário.

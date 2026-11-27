@@ -85,9 +85,8 @@ const stringsOf = (v: unknown, into: string[] = []): string[] => {
 describe('idade do dado — nenhuma área sem dizer de quando é', () => {
   it('todo azulejo com dado mostra a idade (ou, na consulta, para quando é)', () => {
     const m = present(load());
-    expect(m.tiles.length).toBe(9);
+    expect(m.tiles.length).toBe(7);
     for (const tile of m.tiles) {
-      if (tile.key === 'care') continue; // data futura: "próxima · daqui a 16 dias"
       expect(tile.when).toMatch(/hoje|ontem|há \d+/);
       expect(tile.when).not.toMatch(/undefined|null|NaN/);
     }
@@ -102,7 +101,6 @@ describe('idade do dado — nenhuma área sem dizer de quando é', () => {
     expect(tileOf(m, 'mind').when).toBe('PHQ-9 · há 3 dias');
     expect(tileOf(m, 'diary').when).toBe('registrado hoje');
     expect(tileOf(m, 'vitality').when).toBe('sincronizado há 2 h');
-    expect(tileOf(m, 'care').when).toBe('próxima · daqui a 16 dias');
   });
 
   it('a idade vem da régua dos gráficos (dias de calendário) e "só data" é dia local, não UTC', () => {
@@ -297,16 +295,6 @@ describe('mente e humor — sempre rastreio, nunca diagnóstico', () => {
 });
 
 describe('contrato atualizado em 26/11', () => {
-  it('cartão de emergência (asOf sempre null): rótulo sem separador pendurado e azulejo sem data', () => {
-    const fx = load();
-    fx.panorama.emergency = { key: 'emergency', status: 'ok', asOf: null, data: { configured: true } };
-    const tile = tileOf(present(fx), 'emergency');
-    expect(tile.big).toBe('Pronto');
-    expect(tile.when).toBe('');
-    expect(tile.when).not.toMatch(/·|há /);
-    expect(tile.story[0]).toMatchObject({ kind: 'number', eyebrow: 'Cartão de emergência' });
-  });
-
   it('sem idade do corpo, a área de coração segue só com a pressão', () => {
     const fx = load();
     (fx.panorama.heart.data as PanoramaHeartData).bodyAge = null;
@@ -320,15 +308,6 @@ describe('contrato atualizado em 26/11', () => {
     expect([tile.big, tile.unit]).toEqual(['27,5', '% de gordura']);
     expect(tile.story[1]).toMatchObject({ kind: 'number', big: '28,4', unit: 'kg de músculo' });
     expect(tile.take).toBe('27,5% de gordura corporal. 28,4 kg de músculo.');
-  });
-
-  it('título do compromisso: contexto quando há médico, nome quando não há', () => {
-    const tile = tileOf(present(load()), 'care');
-    expect(tile.story[0]).toMatchObject({ band: { label: 'Dr. Daniel Cesar · endocrinologia' }, text: 'Retorno com novos exames' });
-    expect(tile.take).toContain('Próxima consulta: Retorno com novos exames — 12 dez, às 14h30.');
-    const fx = load();
-    (fx.panorama.care.data as PanoramaCareData).nextAppointment = { at: new Date(NOW + 16 * DAY).toISOString(), doctor: null, specialty: null, title: 'Consulta no posto' };
-    expect(tileOf(present(fx), 'care').story[0]).toMatchObject({ band: { label: 'Consulta no posto' }, text: '' });
   });
 
   it('exame de 14 meses com valores fora da faixa: stale vence attention e o azulejo mostra dado antigo', () => {
@@ -353,13 +332,11 @@ describe('missing e unavailable', () => {
     const m = present(load());
     expect(m.todo.map((t) => [t.key, t.why, t.cta, t.to])).toEqual([
       ['bodyComp', 'Nunca medida', 'Medir', '/composicao'],
-      ['vaccines', 'Nenhuma vacina registrada', 'Registrar', '/vacinas'],
-      ['emergency', 'Não configurado', 'Configurar', '/emergencia'],
     ]);
     expect(m.unavailable).toEqual([]);
-    expect(m.filled).toBe(9);
-    expect(m.hero.filled).toBe(9);
-    expect(m.hero.ticks.filter((t) => t === 'off').length).toBe(3);
+    expect(m.filled).toBe(7);
+    expect(m.hero.filled).toBe(7);
+    expect(m.hero.ticks.filter((t) => t === 'off').length).toBe(1);
   });
 
   it('unavailable vira aviso discreto: não entra na grade nem nos convites', () => {
@@ -374,11 +351,11 @@ describe('missing e unavailable', () => {
 
   it('status "ok" sem dado, ou área ausente do payload, é "não foi possível carregar"', () => {
     const fx = load();
-    fx.panorama.meds = { key: 'meds', status: 'ok', asOf: null, data: null };
+    fx.panorama.hormones = { key: 'hormones', status: 'ok', asOf: null, data: null };
     const partial = { ...fx.panorama } as Partial<PanoramaResponse>;
     delete partial.diary;
     const m = present({ ...fx, panorama: partial as PanoramaResponse });
-    expect(m.unavailable.map((u) => u.key)).toEqual(['diary', 'meds']);
+    expect(m.unavailable.map((u) => u.key)).toEqual(['hormones', 'diary']);
   });
 
   it('área com dado vazio (status ok, nada dentro) é convite, não número', () => {
@@ -388,7 +365,17 @@ describe('missing e unavailable', () => {
     expect(m.tiles.some((t) => t.key === 'weight')).toBe(false);
     expect(m.todo.find((t) => t.key === 'weight')).toMatchObject({ why: 'Nenhum peso registrado', to: '/medicoes' });
     // E o passo de "Peso e corpo" não aparece — não há azulejo para ele.
-    expect(m.tiles.length).toBe(8);
+    expect(m.tiles.length).toBe(6);
+  });
+
+  it('Remédios, Consultas e perguntas, Vacinas e Emergência ficam fora do Panorama (27/11/26)', () => {
+    const m = present(load());
+    const out = ['meds', 'care', 'vaccines', 'emergency'];
+    expect(AREA_ORDER.some((k) => out.includes(k))).toBe(false);
+    expect(m.tiles.some((t) => out.includes(t.key))).toBe(false);
+    expect(m.todo.some((t) => out.includes(t.key))).toBe(false);
+    expect(m.changes.some((c) => out.includes(c.key))).toBe(false);
+    expect(m.total).toBe(8);
   });
 });
 
@@ -512,10 +499,10 @@ describe('herói — mesmo placar e mesmos rótulos da Home', () => {
     expect(hero.nothingPulls).toBe('Nada puxa o placar para baixo: todos os 38 resultados estão na faixa.');
   });
 
-  it('cobertura: 9 de 12, com um tracinho âmbar para a área em atenção', () => {
+  it('cobertura: 7 de 8, com um tracinho âmbar para a área em atenção', () => {
     const hero = present(load()).hero;
-    expect([hero.filled, hero.total]).toEqual([9, 12]);
-    expect(hero.ticks).toEqual(['warn', 'on', 'on', 'off', 'on', 'on', 'on', 'on', 'on', 'on', 'off', 'off']);
+    expect([hero.filled, hero.total]).toEqual([7, 8]);
+    expect(hero.ticks).toEqual(['warn', 'on', 'on', 'off', 'on', 'on', 'on', 'on']);
   });
 });
 
@@ -534,8 +521,8 @@ describe('cartões por área', () => {
   it('o fim do panorama entra como último cartão da última área', () => {
     const m = present(load());
     const lastTile = m.tiles[m.tiles.length - 1];
-    expect(lastTile.key).toBe('care');
-    expect(lastTile.story[lastTile.story.length - 1]).toMatchObject({ kind: 'end', title: 'Você passou pelas 9 áreas' });
+    expect(lastTile.key).toBe('vitality');
+    expect(lastTile.story[lastTile.story.length - 1]).toMatchObject({ kind: 'end', title: 'Você passou pelas 7 áreas' });
   });
 
   it('pressão: notação do dia a dia no azulejo, valor exato no cartão', () => {
@@ -562,11 +549,6 @@ describe('cartões por área', () => {
     expect(tile.story[1]).toMatchObject({ kind: 'line', ref: [7, 9] });
   });
 
-  it('consultas: dia grande, mês e hora na unidade, perguntas prontas na pílula', () => {
-    const tile = tileOf(present(load()), 'care');
-    expect([tile.big, tile.unit, tile.pill]).toEqual(['12', 'dez · 14h30', '4 perguntas prontas']);
-    expect(tile.story[0]).toMatchObject({ band: { label: 'Dr. Daniel Cesar · endocrinologia' } });
-  });
 });
 
 describe('textos auxiliares', () => {

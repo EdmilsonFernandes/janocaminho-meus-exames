@@ -227,7 +227,9 @@ export interface PresenterOptions {
 
 // ───────────────────────── utilidades ─────────────────────────
 /** Ordem fixa das 12 áreas do panorama. */
-export const AREA_ORDER: PanoramaKey[] = ['exams', 'heart', 'weight', 'bodyComp', 'hormones', 'mind', 'diary', 'vitality', 'meds', 'care', 'vaccines', 'emergency'];
+// 27/11/26 (dono): Remédios, Consultas e perguntas, Vacinas e Emergência saíram do Panorama — são
+// cadastros, não leitura de saúde, e alongavam a tela. Continuam nas próprias telas do menu.
+export const AREA_ORDER: PanoramaKey[] = ['exams', 'heart', 'weight', 'bodyComp', 'hormones', 'mind', 'diary', 'vitality'];
 
 const MONTHS: Record<Locale, string[]> = {
   pt: ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'],
@@ -1264,6 +1266,7 @@ export function presentPanorama(p: PanoramaResponse, health: HealthSummaryLike |
 
   const changes: ChangeCardModel[] = [];
   for (const x of arr<PanoramaChange>(p.changed).slice(0, 6)) {
+    if (x && !AREA_ORDER.includes(x.area)) continue; // área fora do Panorama
     const card = x ? changeCard(x, c) : null;
     if (card) changes.push(card);
     if (changes.length === 3) break;
