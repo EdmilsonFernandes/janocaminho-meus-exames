@@ -70,8 +70,22 @@ let rateEpoch = 0;
 let speakingNow = false;
 type TtsPlugin = typeof import('@capacitor-community/text-to-speech')['TextToSpeech'];
 let ttsPlugin: TtsPlugin | null = null;
-const loadTts = async (): Promise<TtsPlugin> => {
-  if (!ttsPlugin) ttsPlugin = (await import('@capacitor-community/text-to-speech')).TextToSpeech;
+let ttsLoading: Promise<void> | null = null;
+/**
+ * Carrega o plugin nativo UMA vez. Devolve `Promise<void>` de propósito: o plugin do Capacitor é um Proxy que
+ * responde a QUALQUER propriedade — inclusive `then`. Se o objeto for devolvido por uma função `async` (ou
+ * passado a `Promise.resolve`), o JavaScript o trata como "thenable", chama `TextToSpeech.then()` e o Capacitor
+ * responde `"TextToSpeech.then()" is not implemented on android`. Foi o que quebrou o áudio do app em 26/11/26
+ * (AAB 635/636): toda leitura falhava antes de começar. O proxy só sai daqui por `getTts()`.
+ */
+const loadTts = (): Promise<void> => {
+  if (!ttsLoading) {
+    ttsLoading = import('@capacitor-community/text-to-speech').then((m) => { ttsPlugin = m.TextToSpeech; });
+  }
+  return ttsLoading;
+};
+const getTts = (): TtsPlugin => {
+  if (!ttsPlugin) throw new Error('plugin de voz ainda não carregado');
   return ttsPlugin;
 };
 
@@ -126,8 +140,8 @@ export async function speakText(
 
   let speakOne: (chunkText: string, rate: number) => Promise<void>;
   if (Capacitor.isNativePlatform()) {
-    let tts: TtsPlugin;
-    try { tts = await loadTts(); } catch (e) { console.warn('[tts] plugin indisponível:', e); finish('fail'); return; }
+    try { await loadTts(); } catch (e) { console.warn('[tts] plugin indisponível:', e); finish('fail'); return; }
+    const tts = getTts();
     // resolve quando termina de falar o trecho (ou quando é interrompido por stop)
     speakOne = (chunkText, rate) => tts.speak({ text: chunkText, lang, rate, pitch: 1.0, volume: 1.0 });
   } else {
@@ -170,7 +184,7 @@ export async function stopSpeakText(): Promise<void> {
   speakingNow = false;
   try {
     if (Capacitor.isNativePlatform()) {
-      try { await (await loadTts()).stop(); } catch { /* ignore */ }
+      try { await loadTts(); await getTts().stop(); } catch { /* ignore */ }
     } else {
       window.speechSynthesis?.cancel();
     }

@@ -17,10 +17,15 @@ const appVersion = (gradle.match(/versionName\s+"([^"]+)"/) || [])[1] || '1.0.0'
 // que corrompia o <script src> do index.html e deixava o WebView do Capacitor em TELA BRANCA
 // (o JS nunca carregava: 404 em https://localhost/Program Files/Git/assets/...). Base relativa
 // funciona em qualquer origem (https://localhost do Capacitor) e o app só tem rotas de 1 nível.
+//
+// NODE_ENV=production SEMPRE (26/11/26): o Vite respeita um NODE_ENV que já exista no ambiente. Terminais de
+// agente/IDE rodam com NODE_ENV=development, e os AABs montados deles saíam com o React de DESENVOLVIMENTO
+// (chunk principal de 1,9 MB com 4.176 `jsxDEV`, contra 1,45 MB do site) — mais pesado, mais lento e com as
+// checagens de dev ligadas. O site é montado no CI, sem essa variável, e por isso saía certo.
 const r = spawnSync(
   process.platform === 'win32' ? 'npm.cmd' : 'npm',
   ['run', 'build', '--workspace', 'packages/web'],
-  { cwd: repoRoot, stdio: 'inherit', shell: true, env: { ...process.env, MSYS_NO_PATHCONV: '1', MSYS2_ARG_CONV_EXCL: '*', VITE_BASE: './', VITE_PUSH_ENABLED: 'true', VITE_APP_VERSION: appVersion } },
+  { cwd: repoRoot, stdio: 'inherit', shell: true, env: { ...process.env, NODE_ENV: 'production', MSYS_NO_PATHCONV: '1', MSYS2_ARG_CONV_EXCL: '*', VITE_BASE: './', VITE_PUSH_ENABLED: 'true', VITE_APP_VERSION: appVersion } },
 );
 if (r.status !== 0) {
   console.error('[mobile] build do web falhou');

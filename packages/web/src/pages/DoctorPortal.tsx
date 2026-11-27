@@ -166,6 +166,7 @@ const fmtWait = (sec?: number | null) => {
 import { Receipt, Flag, ChartLineUp, FileText, ChatCircle, NotePencil, Stethoscope, CalendarBlank, Diamond, Medal } from '@phosphor-icons/react';
 import { tealText } from '../theme';
 import { ListEmpty } from '@/components/reui/list-empty';
+import { copyText } from '../utils/clipboard';
 
 const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
   prontuario: { label: 'Prontuário', icon: <Stethoscope size={22} weight="duotone" /> },
@@ -2002,7 +2003,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     slotProps={{ paper: { sx: { borderRadius: '14px', minWidth: 230, mt: 1, boxShadow: '0 10px 28px rgba(0,0,0,0.12)' } } }}
                   >
                     {upcoming.linkUrl && (
-                      <MenuItem onClick={() => { navigator.clipboard.writeText(upcoming.linkUrl); snackbar({ message: 'Link da teleconsulta copiado!', severity: 'info' }); setFichaTeleMenu(null); }}>
+                      <MenuItem onClick={() => { copyText(upcoming.linkUrl); snackbar({ message: 'Link da teleconsulta copiado!', severity: 'info' }); setFichaTeleMenu(null); }}>
                         <ListItemIcon><ContentCopyIcon fontSize="small" /></ListItemIcon>
                         <ListItemText>Copiar link da reunião</ListItemText>
                       </MenuItem>
@@ -2527,7 +2528,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <PayCountdown expiresAt={payData.expiresAt} onExpire={() => { setPayOpen(false); setPayData(null); }} />
               </Box>
               <Typography variant="caption" sx={{ display: 'block', mt: 1, color: '#047857', fontWeight: 700 }}>✅ Detecta pagamento automaticamente</Typography>
-              <Button fullWidth size="small" onClick={() => { if (payData.qrCode) { navigator.clipboard.writeText(payData.qrCode); snackbar({ message: 'Código PIX Copia e Cola copiado!', severity: 'info' }); } }} sx={{ mt: 1.25, textTransform: 'none', borderRadius: '999px', fontWeight: 700 }}>📋 Copiar código PIX</Button>
+              <Button fullWidth size="small" onClick={() => { if (payData.qrCode) { copyText(payData.qrCode); snackbar({ message: 'Código PIX Copia e Cola copiado!', severity: 'info' }); } }} sx={{ mt: 1.25, textTransform: 'none', borderRadius: '999px', fontWeight: 700 }}>📋 Copiar código PIX</Button>
               <Divider sx={{ my: 1.5 }}><Typography variant="caption" sx={{ color: 'text.secondary' }}>ou pague com</Typography></Divider>
               <Button fullWidth size="small" variant="outlined" onClick={() => startCheckout('card')} sx={{ textTransform: 'none', borderRadius: '999px', fontWeight: 700 }}>💳 Cartão de crédito / débito</Button>
             </Box>

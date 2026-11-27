@@ -93,6 +93,7 @@ import '../../doctor-v2/tw.css';
 import { snackbar } from '../../components/ConfirmDialog';
 import { ListEmpty } from '@/components/reui/list-empty';
 import { tealText } from '../../theme';
+import { copyText } from '../../utils/clipboard';
 
 /** ReUI DataGrid — cadastros vindos de indicação. Serve a lista geral (com a coluna do
  *  padrinho, quando `onOpenPromoter` vem) e a lista de convidados de um promotor. */
@@ -213,7 +214,7 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
 
   const copy = (txt: string) => {
     try {
-      navigator.clipboard.writeText(txt);
+      copyText(txt);
       setCopiedCode(txt);
       setTimeout(() => setCopiedCode(null), 2000);
     } catch {}

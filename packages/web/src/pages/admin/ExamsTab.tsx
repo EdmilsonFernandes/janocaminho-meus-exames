@@ -47,6 +47,7 @@ import { ListEmpty } from '@/components/reui/list-empty';
 import { tealText } from '../../theme';
 import { ExamFilePreview } from '../../components/ExamFilePreview';
 import { adminExamFileUrl, fetchExamFileBlob, openExamFileBlob } from '../../utils/examFile';
+import { copyText } from '../../utils/clipboard';
 
 const initials = (name?: string | null): string => {
   if (!name) return '?';
@@ -397,7 +398,7 @@ export const ExamsTab = () => {
   };
 
   const copyErrorText = (text: string) => {
-    navigator.clipboard.writeText(text);
+    copyText(text);
     setCopiedError(true);
     setTimeout(() => setCopiedError(false), 2000);
   };
