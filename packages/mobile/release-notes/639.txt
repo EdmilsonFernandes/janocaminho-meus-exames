@@ -1,0 +1,5 @@
+• Menu abre onde você está: grupo atual destacado e item marcado "aqui".
+• Panorama: botão "Ouvir panorama" no topo, grátis.
+• Panorama mais curto: áreas em lista e análise recolhida.
+• Áudio não trava mais ao trocar a velocidade.
+• Chat responde mais rápido quando a IA está sobrecarregada.

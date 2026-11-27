@@ -1,7 +1,9 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import CloudOffOutlinedIcon from '@mui/icons-material/CloudOffOutlined';
 import PublicOutlinedIcon from '@mui/icons-material/PublicOutlined';
@@ -20,13 +22,16 @@ import { useReuiThemeSync } from '../components/reui/useReuiThemeSync';
 import { usePanorama } from '../hooks/usePanorama';
 import { RADIUS, tealText } from '../theme';
 import { ageText, presentPanorama, type PanoramaKey } from '../utils/panoramaPresenter';
+import { panoramaSpeech } from '../utils/panoramaSpeech';
 import { usePlanInfo } from '../utils/planInfo';
 import { ConsolidatedReportSection, type ConsolidatedReportSectionState } from './ConsolidatedReport';
 import { AreaIcon } from '../components/panorama/AreaIcon';
+import { AreaRow } from '../components/panorama/AreaRow';
 import { AreaTile } from '../components/panorama/AreaTile';
 import { ChangeCard } from '../components/panorama/ChangeCard';
 import { PanoramaAiCard } from '../components/panorama/PanoramaAiCard';
 import { PanoramaHero } from '../components/panorama/PanoramaHero';
+import { PanoramaListen } from '../components/panorama/PanoramaListen';
 import { SnapRow } from '../components/panorama/SnapRow';
 import { StorySheet } from '../components/panorama/StorySheet';
 
@@ -55,6 +60,11 @@ const SideNote = ({ children }: { children: string }) => (
  * Tudo aqui é FATO vindo do servidor e frase composta no apresentador (`presentPanorama`); não
  * custa crédito e não chama IA. A única ação paga é a análise — e é o único botão destaque.
  * Computador: duas colunas, com a da direita (completar + análise + perguntar) fixa ao rolar.
+ *
+ * Celular (27/11/26 — "rolagem infinita"): a tela cheia media 3,5 telas ANTES do relatório. Agora
+ * o topo tem as duas ações (ouvir o panorama, ir para a análise), as áreas são uma lista de
+ * linhas em vez de azulejos, o cartão da análise some quando ela já existe (o botão do topo faz
+ * o papel dele) e o relatório abre recolhido, com "Ler a análise completa".
  */
 export const PanoramaPage = () => {
   const navigate = useNavigate();
@@ -69,11 +79,14 @@ export const PanoramaPage = () => {
   const [storyIndex, setStoryIndex] = useState<number | null>(null);
   const [report, setReport] = useState<ConsolidatedReportSectionState>(NO_REPORT);
   const generateRef = useRef<(() => void) | null>(null);
+  // Celular: o relatório (longo) começa recolhido; "Ver análise" e "Ler a análise completa" abrem.
+  const [analysisOpen, setAnalysisOpen] = useState(false);
 
   const model = useMemo(
     () => (data ? presentPanorama(data.panorama, data.health, { t: translate, locale }) : null),
     [data, translate, locale],
   );
+  const speech = useMemo(() => (model ? panoramaSpeech(model, translate) : ''), [model, translate]);
   const cost = CREDIT_COSTS.consolidated;
   // Assinante com o benefício ativo não gasta crédito (o servidor decide no POST; aqui é só o rótulo).
   const free = useMemo(() => hasActivePlan() && (planInfo ? planInfo.premiumPerks.consolidatedFree !== false : false), [planInfo, pid]);
@@ -92,14 +105,22 @@ export const PanoramaPage = () => {
 
   // "Gerar análise" (cartão ou fim da história): fecha a folha, dispara a geração da SEÇÃO e
   // leva a pessoa até o cartão de progresso, que aparece onde o relatório vai ficar.
+  const seeAnalysis = () => {
+    setAnalysisOpen(true);
+    window.setTimeout(() => scrollTo('panorama-analysis'), 60);
+  };
+
   const generate = () => {
     setStoryIndex(null);
+    setAnalysisOpen(true);
     window.setTimeout(() => {
       generateRef.current?.();
       scrollTo('panorama-analysis');
     }, 80);
   };
 
+  const reportBusy = report.loading || report.generating;
+  const analysisCollapsed = !desktop && report.hasReport && !reportBusy && !analysisOpen;
   const nothingToComplete = model ? model.todo.length === 0 : false;
   const allLoaded = model ? model.unavailable.length === 0 : false;
   const subtitle = model ? (
@@ -144,7 +165,20 @@ export const PanoramaPage = () => {
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) 340px' }, gap: { xs: 0, md: 2.75 }, alignItems: 'start' }}>
             {/* ── coluna principal: herói, o que mudou, suas áreas ── */}
             <Box sx={{ minWidth: 0 }}>
-              <PanoramaHero hero={model.hero} onComplete={() => scrollTo('panorama-complete')} />
+              <PanoramaHero
+                hero={model.hero}
+                onComplete={() => scrollTo('panorama-complete')}
+                actions={(
+                  <>
+                    <PanoramaListen text={speech} lang={locale === 'en' ? 'en-US' : 'pt-BR'} />
+                    {report.hasReport && (
+                      <SecondaryButton onClick={seeAnalysis} endIcon={<ArrowDownwardRoundedIcon />} sx={{ minHeight: 44, borderRadius: RADIUS.pill, px: 1.75, fontSize: 14 }}>
+                        {translate('panorama.ai.see_analysis')}
+                      </SecondaryButton>
+                    )}
+                  </>
+                )}
+              />
 
               <Section label={translate('panorama.changes.title')} action={<SideNote>{translate('panorama.changes.since')}</SideNote>}>
                 <SnapRow
@@ -162,9 +196,15 @@ export const PanoramaPage = () => {
               </Section>
 
               <Section label={translate('panorama.areas.title')} action={<SideNote>{translate('panorama.areas.hint')}</SideNote>}>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: '1fr 1fr' }, gap: { xs: 1.25, md: 1.75 } }}>
-                  {model.tiles.map((tile) => <AreaTile key={tile.key} tile={tile} onOpen={openStory} />)}
-                </Box>
+                {desktop ? (
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.75 }}>
+                    {model.tiles.map((tile) => <AreaTile key={tile.key} tile={tile} onOpen={openStory} />)}
+                  </Box>
+                ) : (
+                  <AppCard sx={{ p: 0, overflow: 'hidden' }}>
+                    {model.tiles.map((tile, i) => <AreaRow key={tile.key} tile={tile} onOpen={openStory} last={i === model.tiles.length - 1} />)}
+                  </AppCard>
+                )}
                 {model.unavailable.length > 0 && (
                   <Box role="status" sx={{ mt: 2, border: '1px dashed', borderColor: 'divider', borderRadius: RADIUS.card, p: { xs: 1.5, md: 2 } }}>
                     <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{translate('panorama.unavailable.title')}</Typography>
@@ -226,16 +266,19 @@ export const PanoramaPage = () => {
                 </Box>
               )}
 
-              <Section sx={{ mt: { xs: 3, md: 0 } }}>
-                <PanoramaAiCard
-                  state={report}
-                  cost={cost}
-                  free={free}
-                  onGenerate={generate}
-                  onSeeAnalysis={() => scrollTo('panorama-analysis')}
-                  onUploadExam={() => navigate('/exams')}
-                />
-              </Section>
+              {/* Celular com análise pronta: o botão "Ver análise" do topo substitui este cartão. */}
+              {(desktop || !report.hasReport) && (
+                <Section sx={{ mt: { xs: 3, md: 0 } }}>
+                  <PanoramaAiCard
+                    state={report}
+                    cost={cost}
+                    free={free}
+                    onGenerate={generate}
+                    onSeeAnalysis={seeAnalysis}
+                    onUploadExam={() => navigate('/exams')}
+                  />
+                </Section>
+              )}
 
               <SecondaryButton fullWidth startIcon={<AutoAwesomeIcon />} onClick={() => navigate('/chat')} sx={{ mt: { xs: 1.5, md: 2 } }}>
                 {translate('panorama.ask')}
@@ -245,7 +288,23 @@ export const PanoramaPage = () => {
 
           {/* ── análise do Dr. Exame: o relatório consolidado que já existia, agora como seção ── */}
           <Box id="panorama-analysis" data-testid="panorama-analysis" sx={{ mt: { xs: 3, md: 4 }, scrollMarginTop: { xs: 72, md: 88 } }}>
-            <ConsolidatedReportSection generateRef={generateRef} onState={setReport} noExamsElsewhere />
+            <Box sx={analysisCollapsed ? { position: 'relative', maxHeight: 340, overflow: 'hidden' } : undefined}>
+              <ConsolidatedReportSection generateRef={generateRef} onState={setReport} noExamsElsewhere />
+              {analysisCollapsed && (
+                <Box aria-hidden sx={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 110, pointerEvents: 'none', background: (t) => `linear-gradient(${alpha(t.palette.background.default, 0)}, ${t.palette.background.default})` }} />
+              )}
+            </Box>
+            {!desktop && report.hasReport && !reportBusy && (
+              <SecondaryButton
+                fullWidth
+                aria-expanded={!analysisCollapsed}
+                onClick={() => { if (analysisCollapsed) setAnalysisOpen(true); else { setAnalysisOpen(false); scrollTo('panorama-analysis'); } }}
+                endIcon={<ExpandMoreRoundedIcon sx={{ transform: analysisCollapsed ? 'none' : 'rotate(180deg)' }} />}
+                sx={{ mt: 1.25 }}
+              >
+                {translate(analysisCollapsed ? 'panorama.analysis.expand' : 'panorama.analysis.collapse')}
+              </SecondaryButton>
+            )}
           </Box>
 
           <Typography component="p" sx={{ mt: { xs: 2.25, md: 3 }, mb: 1, px: 0.5, fontSize: 13, lineHeight: 1.5, color: 'text.secondary', textAlign: 'center' }}>

@@ -1,6 +1,8 @@
+import { useState, type ReactNode } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import { useTranslate } from 'react-admin';
 import { AppCard } from '../AppCard';
 import { useCountUp } from '../../hooks/useCountUp';
@@ -41,7 +43,14 @@ const tickColor = (state: TickState, dark: boolean): string => {
  * pílulas "N fora da faixa" / "N na faixa", o que mais puxa o placar para baixo, a nota de idade
  * dos dados e a faixa de cobertura com os tracinhos e o atalho "Completar".
  */
-export const PanoramaHero = ({ hero, onComplete }: { hero: HeroModel; onComplete: () => void }) => {
+export const PanoramaHero = ({ hero, onComplete, actions }: {
+  hero: HeroModel;
+  onComplete: () => void;
+  /** Ações do topo (ouvir o panorama, ir para a análise) — logo abaixo do placar. */
+  actions?: ReactNode;
+}) => {
+  // No celular a explicação de onde vem o número fica recolhida: é lida uma vez, não toda visita.
+  const [about, setAbout] = useState(false);
   const translate = useTranslate();
   const theme = useTheme();
   const reduced = usePrefersReducedMotion();
@@ -112,15 +121,37 @@ export const PanoramaHero = ({ hero, onComplete }: { hero: HeroModel; onComplete
         </Typography>
       )}
 
+      {actions && (
+        <Box sx={{ mt: 1.5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>{actions}</Box>
+      )}
+
       {(hero.scoreSource || hero.newest) && (
-        <Typography sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider', fontSize: 13, lineHeight: 1.5, color: 'text.secondary' }}>
+        <Box
+          component="button"
+          type="button"
+          onClick={() => setAbout((v) => !v)}
+          aria-expanded={about}
+          sx={{
+            display: { xs: 'inline-flex', md: 'none' }, alignItems: 'center', gap: 0.25, minHeight: 44, mt: 0.5, p: 0,
+            font: 'inherit', fontSize: 13, fontWeight: 700, color: 'text.secondary', bgcolor: 'transparent', border: 0,
+            borderRadius: RADIUS.sm, cursor: 'pointer', appearance: 'none',
+            '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
+          }}
+        >
+          {translate('panorama.hero.about')}
+          <ExpandMoreRoundedIcon sx={{ fontSize: 18, transform: about ? 'rotate(180deg)' : 'none' }} />
+        </Box>
+      )}
+
+      {(hero.scoreSource || hero.newest) && (
+        <Typography sx={{ display: { xs: about ? 'block' : 'none', md: 'block' }, mt: { xs: 0, md: 1.5 }, pt: { xs: 0, md: 1.5 }, borderTop: { xs: 0, md: '1px solid' }, borderColor: { md: 'divider' }, fontSize: 13, lineHeight: 1.5, color: 'text.secondary' }}>
           {hero.scoreSource}
           {hero.newest && <> {translate('panorama.hero.newest', { area: hero.newest.area, when: hero.newest.when })}</>}
           {hero.oldest && <> {translate('panorama.hero.oldest', { area: hero.oldest.area, when: hero.oldest.when })}</>}
         </Typography>
       )}
 
-      <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+      <Box sx={{ mt: { xs: 1, md: 2 }, pt: { xs: 1.5, md: 2 }, borderTop: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
           <Typography component="span" sx={{ fontSize: 14, fontWeight: 600, lineHeight: 1.35 }}>
             {translate('panorama.hero.coverage', { filled: hero.filled, total: hero.total })}

@@ -73,7 +73,7 @@ export const PanoramaAiCard = ({ state, cost, free, onGenerate, onSeeAnalysis, o
 
       <Typography sx={{ mt: 1.25, fontSize: 14, lineHeight: 1.5, color: 'text.primary' }}>{translate('panorama.ai.desc')}</Typography>
 
-      <Box role="list" sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+      <Box role="list" sx={{ mt: 1, display: { xs: 'none', md: 'flex' }, flexWrap: 'wrap', gap: 0.75 }}>
         {features.map((f) => (
           <Box
             key={f}

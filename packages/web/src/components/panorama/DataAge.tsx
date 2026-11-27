@@ -25,7 +25,9 @@ export const DataAge = ({ age, iso, prefix, suffix, component = 'span', sx }: {
   const text = ageText(age, translate);
   if (!text) return null;
   return (
-    <Typography component={component} sx={{ fontVariantNumeric: 'tabular-nums', ...sx }}>
+    // Herda tipografia de quem está em volta: sem isto a idade saía no tamanho padrão do corpo e
+    // ficava MAIOR que a data ao lado ("exame de 21 nov · HÁ 6 DIAS").
+    <Typography component={component} sx={{ font: 'inherit', color: 'inherit', fontVariantNumeric: 'tabular-nums', ...sx }}>
       {prefix}
       <time dateTime={iso ?? undefined}>{text}</time>
       {suffix}
