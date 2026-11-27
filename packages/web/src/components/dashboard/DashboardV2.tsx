@@ -51,6 +51,11 @@ import { track } from '../../utils/analytics';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
+import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
+import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
+import { prefetchExam } from '../../utils/examPrefetch';
+import { attentionDir, refRange, type AttentionItem } from '../../utils/attention';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
@@ -169,6 +174,7 @@ function useDashboardData(pid: string | null) {
   // CONTRATO item 3: histograma de exames/mês (sparkline do KPI "Exames") — dado
   // real do server; sem dado (conta nova) a sparkline simplesmente não desenha.
   const [examHistogram, setExamHistogram] = useState<number[]>([]);
+  const [attention, setAttention] = useState<AttentionItem[]>([]);
 
   useEffect(() => {
     if (!pid) {
@@ -264,6 +270,7 @@ function useDashboardData(pid: string | null) {
             // "Pioraram" = trend PIOROU mesmo (worsening) — nunca topAttention (bug da Heloisa).
             setWorsened(Array.isArray(hd.worsening) ? hd.worsening.slice(0, 3) : []);
             setImproved(Array.isArray(hd.improving) ? hd.improving.slice(0, 3) : []);
+            setAttention(Array.isArray(hd.attention) ? hd.attention.filter((a: any) => a && a.name).slice(0, 3) : []);
           }
           setMe(d.me ?? null);
           setCredits(typeof d.credits === 'number' ? d.credits : null);
@@ -279,7 +286,7 @@ function useDashboardData(pid: string | null) {
     })();
   }, [pid]);
 
-  return { stats, failed, lastExam, buckets, currentBuckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioKdm, bioAvail, hsLoaded, processing, mental, mentalOffline, indices, actions, bodyRegions, examHistogram };
+  return { stats, failed, lastExam, buckets, currentBuckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioKdm, bioAvail, hsLoaded, processing, mental, mentalOffline, indices, actions, bodyRegions, examHistogram, attention };
 }
 
 const statusFromScore = (s: number | null): { label: string; tone: 'primary' | 'success' | 'warning' | 'error' } => {
@@ -540,8 +547,62 @@ const GoalRingsCard = ({ phq9, lastExamAt, markerCount, altered, onMental, onUpl
 /** HERO — score ring com gradiente cônico animado, countup, mesh gradient bg. */
 /** Circunferência do ring do hero (r=42) — o arco do score é fração dela via dashoffset. */
 const RING_CIRC = 2 * Math.PI * 42;
-const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, staleWarning, scoreGain = 0, audioSummary, onDetails, onFirstExam, onChat, onDemo }: {
+/**
+ * O QUE PEDE ATENÇÃO (27/11/26): o herói dizia "Precisa de cuidados · 1 Leve" sem dizer o quê.
+ * Até 3 linhas com nome, valor e unidade, a direção (seta + palavra, não só cor) e a faixa; o toque
+ * abre o exame de onde o valor veio (a busca do exame começa no toque).
+ */
+const AttentionList = ({ items, onOpen }: { items: AttentionItem[]; onOpen: (examId: string) => void }) => (
+  <Box component="section" aria-label="O que pede atenção" sx={{ mt: 1.75, position: 'relative', zIndex: 1 }}>
+    <Typography component="h3" sx={{ fontSize: 13, fontWeight: 800, color: 'text.secondary', mb: 0.75 }}>O que pede atenção</Typography>
+    <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '14px', overflow: 'hidden', bgcolor: 'background.paper' }}>
+      {items.map((a, i) => {
+        const dir = attentionDir(a);
+        const strong = a.priority === 'importante';
+        const tone = (th: any) => (strong ? SEM.bad : SEM.warn)[th.palette.mode as 'light' | 'dark'];
+        const label = dir === 'up' ? 'Acima' : dir === 'down' ? 'Abaixo' : 'Fora';
+        const value = a.valueText ?? (a.valueNumeric != null ? String(a.valueNumeric).replace('.', ',') : '—');
+        const canOpen = !!a.examId;
+        return (
+          <Box
+            key={`${a.name}-${i}`}
+            component={canOpen ? 'button' : 'div'}
+            type={canOpen ? 'button' : undefined}
+            onPointerDown={canOpen ? () => prefetchExam(a.examId) : undefined}
+            onClick={canOpen ? () => onOpen(a.examId as string) : undefined}
+            aria-label={`${a.name}: ${value}${a.unit ? ` ${a.unit}` : ''}, ${label.toLowerCase()} da faixa. ${refRange(a)}.${canOpen ? ' Abrir o exame.' : ''}`}
+            sx={{
+              all: 'unset', boxSizing: 'border-box', width: '100%', display: 'flex', alignItems: 'center', gap: 1.25,
+              minHeight: 56, px: 1.5, py: 1, cursor: canOpen ? 'pointer' : 'default',
+              borderTop: i > 0 ? '1px solid' : 0, borderColor: 'divider',
+              '&:active': canOpen ? { bgcolor: (th) => alpha(th.palette.primary.main, 0.08) } : undefined,
+              '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
+            }}
+          >
+            <Box aria-hidden sx={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, display: 'grid', placeItems: 'center', color: tone, bgcolor: (th) => alpha((strong ? SEM.bad : SEM.warn)[th.palette.mode as 'light' | 'dark'], 0.12) }}>
+              {dir === 'up' ? <ArrowUpwardRoundedIcon sx={{ fontSize: 18 }} /> : dir === 'down' ? <ArrowDownwardRoundedIcon sx={{ fontSize: 18 }} /> : <ErrorOutlineRoundedIcon sx={{ fontSize: 18 }} />}
+            </Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography sx={{ fontSize: 15, fontWeight: 700, lineHeight: 1.25, color: 'text.primary', overflowWrap: 'anywhere' }}>{a.name}</Typography>
+              <Typography sx={{ fontSize: 13, lineHeight: 1.35, color: 'text.secondary' }}>
+                <Box component="span" sx={{ color: tone, fontWeight: 800 }}>{label} da faixa</Box> · {refRange(a)}
+              </Typography>
+            </Box>
+            <Typography component="span" sx={{ flexShrink: 0, fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 18, lineHeight: 1.1, color: 'text.primary', fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>
+              {value}
+              {a.unit && <Box component="span" sx={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, color: 'text.secondary' }}>{a.unit}</Box>}
+            </Typography>
+            {canOpen && <ChevronRightIcon aria-hidden sx={{ fontSize: 20, color: 'text.disabled', flexShrink: 0 }} />}
+          </Box>
+        );
+      })}
+    </Box>
+  </Box>
+);
+
+const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, staleWarning, scoreGain = 0, audioSummary, onDetails, onFirstExam, onChat, onDemo, attention = [], onOpenExam }: {
   loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; staleWarning: string; scoreGain?: number; audioSummary?: string; onDetails: () => void; onFirstExam: () => void; onChat?: () => void; onDemo?: () => void;
+  attention?: AttentionItem[]; onOpenExam?: (examId: string) => void;
 }) => {
   const t = useTheme();
   const st = statusFromScore(score);
@@ -843,7 +904,10 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
               <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>
                 {goalSubtitle(getGoals()) ?? 'Envie um exame pra começarmos a construir sua visão de saúde.'}
               </Typography>
-            ) : score != null ? (
+            // FALSA CALMA (27/11/26, vista no Android): o placar vem do cache do aparelho na hora, mas
+            // a contagem de atenção só chega com o servidor — antes disso, "placar + zero alertas" dizia
+            // "Todos marcadores normais" para quem tinha valores acima da faixa. Só afirma depois de carregar.
+            ) : score != null && loaded ? (
               <Box
                 sx={{
                   display: 'inline-flex',
@@ -867,6 +931,8 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
           </Stack>
         </Box>
       </Stack>
+
+      {!noData && attention.length > 0 && onOpenExam && <AttentionList items={attention} onOpen={onOpenExam} />}
 
       {/* Faixa contextual isolada (Honestidade Clínica): dados antigos avisam com calma sem quebrar o layout */}
       {heroNotice && !noData && (
@@ -1621,6 +1687,8 @@ const DashboardV2Inner = () => {
           onFirstExam={() => navigate('/exams/create')}
           onChat={go('/chat')}
           onDemo={demo ? undefined : () => { setDemo(true); demoEvent('started'); }}
+          attention={demo ? [] : real.attention}
+          onOpenExam={(examId) => navigate(`/exams/${examId}/show`)}
         />
       </StaggerIn>
 

@@ -5,7 +5,7 @@
  * parte pura (`resetScroll`), que é a que efetivamente zera a posição.
  */
 import { describe, expect, it, vi } from 'vitest';
-import { resetScroll } from './ScrollToTopOnNavigate';
+import { planScroll, resetScroll, savedScroll, saveScroll } from './ScrollToTopOnNavigate';
 
 /** Cadeia fake de elementos: cada um com `scrollTop` e `parentElement`. */
 const el = (scrollTop: number, parentElement: Element | null) => ({ scrollTop, parentElement }) as unknown as Element;
@@ -34,3 +34,33 @@ describe('resetScroll', () => {
     expect(scrollTo).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('planScroll — Voltar devolve a pessoa onde estava (27/11/26)', () => {
+  it('avançar para uma tela (link, menu, rodapé) sempre começa no topo', () => {
+    expect(planScroll('PUSH', 900)).toEqual({ mode: 'top' });
+    expect(planScroll('REPLACE', 900)).toEqual({ mode: 'top' });
+  });
+
+  it('voltar restaura a posição guardada daquela entrada do histórico', () => {
+    expect(planScroll('POP', 1240)).toEqual({ mode: 'restore', y: 1240 });
+  });
+
+  it('voltar para uma tela que estava no topo (ou sem posição guardada) fica no topo', () => {
+    expect(planScroll('POP', 0)).toEqual({ mode: 'top' });
+    expect(planScroll('POP', undefined)).toEqual({ mode: 'top' });
+  });
+});
+
+describe('saveScroll', () => {
+  it('guarda a última posição de cada entrada e no máximo 60 entradas', () => {
+    savedScroll.clear();
+    saveScroll('a', 10.6);
+    saveScroll('a', 500);
+    expect(savedScroll.get('a')).toBe(500);
+    for (let i = 0; i < 70; i++) saveScroll(`k${i}`, i);
+    expect(savedScroll.size).toBe(60);
+    expect(savedScroll.has('a')).toBe(false);
+    expect(savedScroll.get('k69')).toBe(69);
+  });
+});
+

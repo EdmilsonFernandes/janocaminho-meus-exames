@@ -59,6 +59,30 @@ describe('GET /api/patients/:id/dashboard-summary', () => {
     expect(user).toBeTruthy();
   });
 
+  it('health.attention: o que pede atenção, com o exame de onde veio o valor (no máximo 3)', async () => {
+    const { token, patient } = await createUser();
+    const recent = new Date(Date.now() - 20 * 86_400_000);
+    const e = await createExam(patient.id, { performedAt: recent });
+    // Bem acima da faixa (1..100) → entra como atenção; normal → não entra.
+    await seedItem(e.id, 'LDL', 'HIGH', 190);
+    await seedItem(e.id, 'Triglicerides', 'HIGH', 240);
+    await seedItem(e.id, 'Glicose', 'NORMAL', 50);
+
+    const r = await api().get(`/api/patients/${patient.id}/dashboard-summary`).set(H(token));
+    expect(r.status).toBe(200);
+    const att = r.body.health.attention as any[];
+    expect(Array.isArray(att)).toBe(true);
+    expect(att.length).toBeLessThanOrEqual(3);
+    // Só o que o herói já conta como atenção (importante + moderada) — nunca um valor normal.
+    for (const a of att) {
+      expect(['importante', 'moderada']).toContain(a.priority);
+      expect(a.examId).toBe(e.id);
+      expect(a.name).not.toBe('Glicose');
+    }
+    const counted = (r.body.health.byPriority?.importante ?? 0) + (r.body.health.byPriority?.moderada ?? 0);
+    expect(att.length).toBe(Math.min(3, counted));
+  });
+
   it('403 para paciente de outro usuário', async () => {
     const a = await createUser();
     const b = await createUser();

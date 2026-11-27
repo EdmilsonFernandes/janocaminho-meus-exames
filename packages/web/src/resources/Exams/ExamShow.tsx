@@ -3,8 +3,14 @@ import { photoReadNotice } from '../../utils/photoReadNotice';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box, Card, CardContent, Typography, Chip, Button, CircularProgress, Alert, Divider, Stack,
-  Accordion, AccordionSummary, AccordionDetails, Tooltip as MuiTooltip,
+  Accordion, AccordionSummary, AccordionDetails, Tooltip as MuiTooltip, Skeleton,
 } from '@mui/material';
+import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
+import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
+import RemoveRoundedIcon from '@mui/icons-material/RemoveRounded';
+import { lastKnownExam, rememberExam, takePrefetched } from '../../utils/examPrefetch';
 import { alpha, keyframes, lighten } from '@mui/material/styles';
 import type { Theme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -143,12 +149,72 @@ function fmtRef(it: any): string {
   return 'não informada';
 }
 
+/**
+ * Ícone do estado de um resultado (27/11/26): seta para cima/baixo quando o valor passa da faixa,
+ * círculo de "ok" na faixa, alerta quando é alterado sem direção, traço sem faixa. Junto com o
+ * texto e a cor — quem não distingue cores lê o estado pelo ícone e pela palavra.
+ */
+const StatusIcon = ({ it, color }: { it: any; color: string }) => {
+  const sx = { fontSize: 16 };
+  if (color === 'success') return <CheckCircleRoundedIcon sx={sx} />;
+  if (color === 'default') return <RemoveRoundedIcon sx={sx} />;
+  const v = it?.valueNumeric;
+  if (v != null && it?.refHigh != null && v > it.refHigh) return <ArrowUpwardRoundedIcon sx={sx} />;
+  if (v != null && it?.refLow != null && v < it.refLow) return <ArrowDownwardRoundedIcon sx={sx} />;
+  const f = String(it?.flag ?? '').toUpperCase();
+  if (f === 'HIGH') return <ArrowUpwardRoundedIcon sx={sx} />;
+  if (f === 'LOW') return <ArrowDownwardRoundedIcon sx={sx} />;
+  return <ErrorOutlineRoundedIcon sx={sx} />;
+};
+
+/**
+ * Carregando o exame: o esqueleto tem o formato da tela que vai chegar (cabeçalho, resumo, linhas
+ * de valor). Antes era um círculo girando no meio de uma tela vazia por ~1 s no Android.
+ */
+export const ExamShowSkeleton = () => (
+  <Box aria-busy="true" aria-label="Carregando o exame" sx={{ width: '100%', maxWidth: 1080, mx: 'auto', p: { xs: 1, md: 2 } }}>
+    <Card>
+      <CardContent>
+        <Skeleton variant="text" sx={{ fontSize: '1.4rem', width: '82%' }} />
+        <Skeleton variant="text" sx={{ fontSize: '1.4rem', width: '46%' }} />
+        <Skeleton variant="rounded" width={170} height={26} sx={{ mt: 1, borderRadius: 999 }} />
+        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+          <Skeleton variant="rounded" width={132} height={44} sx={{ borderRadius: '12px' }} />
+          <Skeleton variant="rounded" width={132} height={44} sx={{ borderRadius: '12px' }} />
+        </Stack>
+      </CardContent>
+    </Card>
+    <Card sx={{ mt: 2 }}>
+      <CardContent>
+        <Skeleton variant="text" sx={{ fontSize: '1.1rem', width: '58%' }} />
+        <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+          <Skeleton variant="rounded" width={120} height={36} sx={{ borderRadius: 999 }} />
+          <Skeleton variant="rounded" width={140} height={36} sx={{ borderRadius: 999 }} />
+        </Stack>
+      </CardContent>
+    </Card>
+    <Box sx={{ mt: 2, borderRadius: '16px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+      {[0, 1, 2, 3].map((i) => (
+        <Box key={i} sx={{ px: 2, py: 1.5, borderBottom: i < 3 ? '1px solid' : 0, borderColor: 'divider' }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Skeleton variant="text" sx={{ fontSize: '1rem', width: '48%' }} />
+            <Skeleton variant="rounded" width={72} height={24} sx={{ borderRadius: 999 }} />
+          </Stack>
+          <Skeleton variant="text" sx={{ fontSize: '1.6rem', width: 96 }} />
+          <Skeleton variant="rounded" height={8} sx={{ mt: 0.75, borderRadius: 4 }} />
+        </Box>
+      ))}
+    </Box>
+  </Box>
+);
+
 export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   const { id: routeId } = useParams();
   const id = inlineId ?? routeId;
   const navigate = useNavigate();
   const notify = useNotify();
-  const [exam, setExam] = useState<any>(null);
+  // Reabrir um exame já visto mostra os valores na hora; a busca abaixo confere com o servidor.
+  const [exam, setExam] = useState<any>(() => lastKnownExam(id));
   // AUD-011: falha de rede/4xx deixava o spinner rodando pra sempre — o usuário
   // ficava preso sem saber se esperava ou desistia. Erro vira tela com saída.
   const [loadErr, setLoadErr] = useState<null | 'network' | 'notfound' | 'server'>(null);
@@ -190,16 +256,23 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
     const load = async () => {
       attempts++;
       if (attempts > 60) { notify('A extração está demorando mais que o normal. Pode continuar usando o app — avisamos quando terminar.', { type: 'warning' }); return; }
-      let r: Response;
-      try {
-        r = await fetch(`${API_URL}/exams/${id}`, { headers: { Authorization: `Bearer ${token()}` } });
-      } catch { if (active) setLoadErr('network'); return; } // AUD-011: offline não é spinner eterno
+      // Busca antecipada (começou no toque da lista/do Início): usa o que já chegou. Sem ela, ou se
+      // falhou, faz a busca normal — erro continua indo para a tela de erro abaixo.
+      let d: any = attempts === 1 && id ? await takePrefetched(id) : null;
       if (!active) return;
-      if (!r.ok) { setLoadErr(r.status === 404 || r.status === 403 ? 'notfound' : 'server'); return; }
+      if (!d) {
+        let r: Response;
+        try {
+          r = await fetch(`${API_URL}/exams/${id}`, { headers: { Authorization: `Bearer ${token()}` } });
+        } catch { if (active && !lastKnownExam(id)) setLoadErr('network'); return; } // AUD-011: offline não é spinner eterno
+        if (!active) return;
+        if (!r.ok) { setLoadErr(r.status === 404 || r.status === 403 ? 'notfound' : 'server'); return; }
+        d = await r.json();
+        if (!active) return;
+      }
       setLoadErr(null);
-      const d = await r.json();
-      if (!active) return;
       setExam(d);
+      if (id) rememberExam(id, d);
       const prev = prevStatusRef.current;
       prevStatusRef.current = d.status;
       if (d.status === 'UPLOADED' || d.status === 'EXTRACTING') {
@@ -411,7 +484,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
         </Box>
       );
     }
-    return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
+    return <ExamShowSkeleton />;
   }
 
   const items: any[] = exam.items ?? [];
@@ -654,8 +727,11 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                   </Typography>
                   <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
                     {abnormal.map((i) => (
-                      <Chip key={i.id} color="warning" variant="outlined" sx={{ minHeight: 44, fontSize: 13.5 }}
-                        label={`${i.flag === 'HIGH' ? '↑ ' : i.flag === 'LOW' ? '↓ ' : ''}${i.name}: ${i.valueText ?? ''}`} onClick={() => openCitation(i.extractedPage)} />
+                      <Chip key={i.id} color="warning" variant="outlined" sx={{ minHeight: 48, fontSize: 14, fontWeight: 700 }}
+                        icon={<StatusIcon it={i} color="warning" />}
+                        label={`${i.name}: ${i.valueText ?? ''}${unitSuffix(i) ? ` ${unitSuffix(i)}` : ''}`}
+                        // O toque leva ao valor nesta tela (faixa, régua, evolução). O laudo continua no "pág." da linha.
+                        onClick={() => document.getElementById(`resultado-${i.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
                     ))}
                   </Stack>
                 </>
@@ -678,13 +754,17 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
           <Box sx={{ mt: 2, borderRadius: RADIUS.sectionCard, border: '1px solid', borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper' }}>
           {Object.entries(grouped).map(([panel, list]: any, panelIdx: number, panelList: any[]) => {
             const abn = (list as any[]).filter((i: any) => i.isAbnormal).length;
-            const fewPanels = Object.keys(grouped).length <= 2;
+            // VALORES À VISTA (27/11/26): antes, com 3+ grupos, todos vinham fechados e a pessoa tocava em
+            // cada um para ver um número. Agora grupo com valor fora da faixa sempre abre, e exame pequeno
+            // (até 24 itens) abre inteiro; só grupos todos na faixa de exames grandes ficam fechados.
+            const fewPanels = Object.keys(grouped).length <= 2 || abn > 0 || items.length <= 24;
             return (
             <Accordion key={panel} disableGutters elevation={0} defaultExpanded={fewPanels}
               sx={{ mt: 0, backgroundColor: 'transparent', borderRadius: '0 !important', overflow: 'hidden', border: 0, borderBottom: panelIdx < panelList.length - 1 ? '1px solid' : 0, borderColor: 'divider', '&:before': { display: 'none' } }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '48px !important', px: 2, '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
                 <Typography component="h3" sx={{ fontWeight: 700, fontSize: '1rem', flex: '1 1 auto', minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere', pr: 1 }}>{panel}</Typography>
-                {abn > 0 && <Chip size="small" color="error" variant="outlined" label={`${abn} fora da faixa`} sx={{ ml: 0.5, height: 22, flexShrink: 0 }} />}
+                {/* Mesma cor do resumo "fora da faixa" acima (antes: laranja lá, vermelho aqui, para o mesmo estado). */}
+                {abn > 0 && <Chip size="small" color="warning" variant="outlined" label={`${abn} fora da faixa`} sx={{ ml: 0.5, height: 22, flexShrink: 0 }} />}
                 <Chip size="small" label={`${(list as any[]).length} ${(list as any[]).length === 1 ? 'item' : 'itens'}`} sx={{ ml: 0.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.primary', height: 20, fontWeight: 600, flexShrink: 0 }} />
               </AccordionSummary>
               {/* p: 0 — o respiro fica em cada linha (px/py abaixo), assim a lavagem do valor fora da faixa e as
@@ -698,7 +778,8 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                     const goal: ClinicalGoalView | null = goalFor(clinicalGoals, it.nameCanonical, exam.patientId);
                     const goalText = goal ? dualStatusText(withinGoal(it.valueNumeric, goal), withinRef(it.valueNumeric, it.refLow, it.refHigh)) : null;
                     return (
-                      <Box key={it.id} sx={{
+                      <Box key={it.id} id={`resultado-${it.id}`} sx={{
+                        scrollMarginTop: 96,
                         py: 1.25, px: 2,
                         // Fora da faixa = só a lavagem (é um estado), de borda a borda da seção (25/11/26). A faixa
                         // lateral grossa de 5px saiu: é o mesmo "side-tab" que o design-system bane nos cartões.
@@ -708,7 +789,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                         <Stack direction="row" alignItems="flex-start" useFlexGap spacing={0.5} sx={{ mb: 0.25 }}>
                           <Typography sx={{ fontWeight: 700, fontSize: '1.05rem', flex: 1, minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.3 }}>{it.name}</Typography>
                           <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
-                          <Chip color={m.color} label={m.label} size="small" sx={{ flexShrink: 0 }} />
+                          <Chip color={m.color} icon={<StatusIcon it={it} color={m.color} />} label={String(m.label).replace(/^[↑↓]\s*/, '')} size="small" sx={{ flexShrink: 0, fontWeight: 700 }} />
                           {goal && (
                             <MuiTooltip
                               title={
@@ -728,13 +809,13 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                         {/* Valor grande + cor (vermelho alterado, laranja alerta, verde normal) + unidade + pág */}
                         <Stack direction="row" spacing={1} alignItems="baseline" useFlexGap flexWrap="wrap">
                           <EditableItemValue it={it} color={valColor} onSaved={(u) => setExam((e: any) => e ? { ...e, items: (e.items ?? []).map((i: any) => i.id === u.id ? { ...i, ...u } : i) } : e)} />
-                          {unitSuffix(it) ? <UnitLabel unit={unitSuffix(it)} /> : null}
+                          {unitSuffix(it) ? <UnitLabel unit={unitSuffix(it)} fontSize={15} /> : null}
                           {/* Link pequeno, alvo de 44px (abre o laudo nesta página — em cima do dedo não dá pra acertar 20px). */}
                           <Button size="small" sx={{ fontSize: '0.85rem', minWidth: 0, p: 0, position: 'relative', '&::before': { content: '""', position: 'absolute', inset: '-12px -8px' } }} onClick={() => openCitation(it.extractedPage)}>pág. {it.extractedPage}</Button>
                         </Stack>
                         {/* Referência + barra visual */}
-                        <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mt: 0.25, wordBreak: 'break-word' }}>
-                          <strong>Referência:</strong> {fmtRef(it)}
+                        <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 0.25, wordBreak: 'break-word' }}>
+                          <strong>Faixa de referência:</strong> {fmtRef(it)}
                         </Typography>
                         {/* Régua pediátrica em uso (transparência: por que está marcado) */}
                         {String(it.refAppliesTo || '').startsWith('Pediátrico') && (

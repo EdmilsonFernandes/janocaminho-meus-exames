@@ -134,7 +134,7 @@ import { readsOf, useReadsDivisor } from './utils/creditsLabel';
 import { NudgeQueueProvider } from './hooks/useNudgeQueue';
 import { ForceUpdate } from './components/ForceUpdate';
 import { checkAppUpdate, checkPlayUpdate } from './utils/version';
-import { decideBackAction } from './utils/backNavigation';
+import { closeTopModal, decideBackAction } from './utils/backNavigation';
 import { NotificationBell } from './components/NotificationBell';
 import { NotificationPopup } from './components/NotificationPopup';
 import { OfflineBanner } from './components/OfflineBanner';
@@ -1860,7 +1860,8 @@ export const App = () => {
         })
         .catch(() => { });
     }
-    // Botão/gesto de voltar do Android (Capacitor) — volta no histórico IN-APP ou engole o back na raiz (NUNCA sai do app).
+    // Botão/gesto de voltar do Android (Capacitor) — fecha o que estiver aberto, volta no histórico IN-APP
+    // ou, na tela inicial, manda o app para segundo plano (nunca fecha o app).
     let remove: (() => void) | undefined;
     (async () => {
       try {
@@ -1873,6 +1874,8 @@ export const App = () => {
             if (ev.defaultPrevented) return;
             // Drawer aberto? → fecha (AppDrawer via drawerState)
             if ((window as any).__drawerOpen) { window.dispatchEvent(new Event('app:closeDrawer')); return; }
+            // Diálogo/folha/menu aberto? → fecha o de cima, e NÃO navega por baixo dele (27/11/26).
+            if (closeTopModal()) return;
             // Decisão (lógica pura, testada em utils/backNavigation.test.ts):
             //   back     → tem histórico in-app (idx > 0) → volta
             //   go-home  → sem histórico mas fora da raiz (deep link) → dashboard
@@ -1887,7 +1890,10 @@ export const App = () => {
             });
             if (action === 'back') { window.history.back(); return; }
             if (action === 'go-home') { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); return; }
-            // action === 'stay' → já no dashboard: engole o back (sai só pelo botão home do Android).
+            // action === 'stay' → tela inicial sem nada para voltar: o app vai para segundo plano, como
+            // todo app Android (27/11/26). Antes o Voltar era engolido e a pessoa ficava presa na tela
+            // inicial; minimizar não fecha o app nem perde nada (ele continua onde estava ao reabrir).
+            void App.minimizeApp().catch(() => { /* versão sem o método: fica como estava */ });
           });
           remove = () => { h.remove(); };
         }

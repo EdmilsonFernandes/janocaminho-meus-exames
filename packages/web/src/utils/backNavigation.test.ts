@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { decideBackAction } from './backNavigation';
+import { describe, it, expect, vi } from 'vitest';
+import { closeTopModal, decideBackAction } from './backNavigation';
 
 /**
  * Testa a LÓGICA do handler de voltar do Android (extraída p/ decideBackAction).
@@ -33,5 +33,33 @@ describe('decideBackAction — handler do voltar (Android/Capacitor)', () => {
 
   it('engole o back no dashboard mesmo sem idx nem histórico', () => {
     expect(decideBackAction({ historyState: null, pathname: '/', inAppStackLength: 1 })).toBe('stay');
+  });
+});
+
+describe('closeTopModal — Voltar fecha o diálogo do topo', () => {
+  const modal = (hidden = false, ariaHidden = false) => ({
+    classList: { contains: (c: string) => hidden && c === 'MuiModal-hidden' },
+    getAttribute: (a: string) => (a === 'aria-hidden' && ariaHidden ? 'true' : null),
+    dispatchEvent: vi.fn(() => true),
+  });
+  const esc = () => ({ type: 'keydown', key: 'Escape' }) as unknown as Event;
+
+  it('sem diálogo aberto: não faz nada (o Voltar segue o caminho normal)', () => {
+    const fechado = modal(true);
+    expect(closeTopModal({ querySelectorAll: () => [fechado] }, esc)).toBe(false);
+    expect(fechado.dispatchEvent).not.toHaveBeenCalled();
+  });
+
+  it('com diálogos empilhados: manda Esc só para o de cima', () => {
+    const baixo = modal();
+    const cima = modal();
+    expect(closeTopModal({ querySelectorAll: () => [baixo, cima] }, esc)).toBe(true);
+    expect(cima.dispatchEvent).toHaveBeenCalledTimes(1);
+    expect(baixo.dispatchEvent).not.toHaveBeenCalled();
+  });
+
+  it('ignora modal escondido para leitor de tela (fica por trás de outro)', () => {
+    const atras = modal(false, true);
+    expect(closeTopModal({ querySelectorAll: () => [atras] }, esc)).toBe(false);
   });
 });

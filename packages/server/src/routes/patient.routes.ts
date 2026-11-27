@@ -245,6 +245,25 @@ router.get('/:id/dashboard-summary', async (req: AuthedRequest, res, next) => {
         clinicalIndices: hd.clinicalIndices ?? [],
         clinicalActions: hd.clinicalActions ?? [],
         bodyRegions: hd.bodyRegions ?? [],
+        // O QUE PEDE ATENÇÃO (27/11/26): o herói da Home dizia "Precisa de cuidados · 1 Leve" sem
+        // dizer O QUÊ — a pessoa precisava abrir outra tela para descobrir. São os mesmos marcadores
+        // que o herói já conta (importante + moderada), com o exame de onde veio o valor, para o
+        // toque ir direto ao resultado. Campo novo: app antigo ignora.
+        attention: (hd.topAttention ?? [])
+          .filter((m: any) => m?.priority === 'importante' || m?.priority === 'moderada')
+          .slice(0, 3)
+          .map((m: any) => ({
+            name: m.name,
+            valueText: m.latest?.valueText ?? null,
+            valueNumeric: m.latest?.valueNumeric ?? null,
+            unit: m.unit ?? null,
+            refLow: m.refLow ?? null,
+            refHigh: m.refHigh ?? null,
+            flag: m.flag ?? null,
+            priority: m.priority,
+            examId: m.latest?.examId ?? null,
+            performedAt: m.latest?.performedAt ?? null,
+          })),
       } : null,
       me,
       credits: user?.credits ?? null,

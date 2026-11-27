@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState, useRef, type ReactNode } from 'react';
 import { plural, fmtDateShort, timeAgo } from '../../utils/format';
+import { prefetchExam } from '../../utils/examPrefetch';
 import { List, useListContext, useRefresh, useNotify, useTranslate } from 'react-admin';
 import { track } from '../../utils/analytics';
 import { chipA11y } from '../../utils/chipA11y';
@@ -144,6 +145,7 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
     <AppCard
       kind="interactive"
       onClick={() => navigate(`/exams/${r.id}/show`)}
+      onPointerDown={() => prefetchExam(r.id)}
       sx={{
         overflow: 'hidden',
         // Entrada suave (audit motion 17/11): o card nasce 8px abaixo/97% e assenta —
@@ -190,8 +192,13 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
   );
 };
 
+/** Enquanto a contagem de valores fora da faixa não chega: selo neutro, sem dizer "na faixa". */
+const CheckingChip = ({ height = 22 }: { height?: number }) => (
+  <Chip size="small" label="conferindo valores…" sx={{ height, fontSize: 12, fontWeight: 600, borderRadius: RADIUS.pill, bgcolor: 'action.hover', color: 'text.secondary' }} />
+);
+
 /** HERO — último exame (mais recente extraído). Âncora de "qual é a situação agora". */
-const ExamHero = ({ r, abnCount, onView, onPdf }: { r: any; abnCount: number; onView: () => void; onPdf: () => void }) => {
+const ExamHero = ({ r, abnCount, onView, onPdf }: { r: any; abnCount: number | null; onView: () => void; onPdf: () => void }) => {
   const titleInfo = cleanExtractedLabel(r.title, kindLabel[r.kind] ?? 'Exame', 60);
   const itemCount: number = r._count?.items ?? 0;
   return (
@@ -203,7 +210,7 @@ const ExamHero = ({ r, abnCount, onView, onPdf }: { r: any; abnCount: number; on
       <Box sx={{ mt: 0.5 }}><DateLabel date={r.performedAt} fallback="Sem data no laudo — abra para conferir" sx={{ fontSize: '0.82rem' }} /></Box>
       <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5, alignItems: 'center' }}>
         <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{itemCount} resultado{itemCount !== 1 ? 's' : ''}</Typography>
-        {abnCount > 0 ? (
+        {abnCount == null ? <CheckingChip /> : abnCount > 0 ? (
           <Chip size="small" label={`${abnCount} fora da faixa`} sx={{ height: 22, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.14), color: warnText }} />
         ) : (
           <Chip size="small" label="Todos na faixa" sx={{ height: 22, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: (t) => alpha(SEM.ok[t.palette.mode], 0.14), color: okText }} />
@@ -223,12 +230,12 @@ const ExamHero = ({ r, abnCount, onView, onPdf }: { r: any; abnCount: number; on
  * tela inteira e a lista de exames só aparecia rolando (dono, 16/11). O "O que mudou" continua
  * no Início; aqui a pessoa veio para ver os exames.
  */
-const ExamHeroCompact = ({ r, abnCount, onView }: { r: any; abnCount: number; onView: () => void }) => {
+const ExamHeroCompact = ({ r, abnCount, onView }: { r: any; abnCount: number | null; onView: () => void }) => {
   const titleInfo = cleanExtractedLabel(r.title, kindLabel[r.kind] ?? 'Exame', 60);
   const itemCount: number = r._count?.items ?? 0;
   return (
     <AppCard sx={{ p: 0 }}>
-      <Box component="button" type="button" onClick={onView} aria-label={`Abrir a análise do último exame: ${titleInfo.text || 'Exame'}`}
+      <Box component="button" type="button" onClick={onView} onPointerDown={() => prefetchExam(r.id)} aria-label={`Abrir a análise do último exame: ${titleInfo.text || 'Exame'}`}
         sx={{ all: 'unset', boxSizing: 'border-box', width: '100%', minHeight: 72, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.25, borderRadius: 'inherit',
           '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 }, '&:active': { transform: 'scale(0.99)' }, transition: 'transform 160ms cubic-bezier(0.22,1,0.36,1)' }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -245,8 +252,10 @@ const ExamHeroCompact = ({ r, abnCount, onView }: { r: any; abnCount: number; on
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 16, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titleInfo.text || 'Exame'}</Typography>
           <Stack direction="row" spacing={1} sx={{ mt: 0.25, alignItems: 'center', flexWrap: 'wrap', rowGap: 0.25 }}>
             <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>{itemCount} resultado{itemCount !== 1 ? 's' : ''}</Typography>
+            {abnCount == null ? <CheckingChip height={20} /> : (
             <Chip size="small" label={abnCount > 0 ? `${abnCount} fora da faixa` : 'Todos na faixa'}
               sx={{ height: 20, fontSize: 12, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: (t) => alpha((abnCount > 0 ? SEM.warn : SEM.ok)[t.palette.mode], 0.14), color: (t) => (abnCount > 0 ? warnText(t) : okText(t)) }} />
+            )}
           </Stack>
         </Box>
         <Box aria-hidden sx={{ flexShrink: 0, width: 40, height: 40, borderRadius: '50%', display: 'grid', placeItems: 'center', color: '#fff', background: 'linear-gradient(135deg,#20b2aa,#178f89)' }}>
@@ -519,6 +528,11 @@ const ExamCards = () => {
   // "o que mudou" (health-summary topAttention/improving). Re-busca quando um processamento
   // termina (bump) — assim o hero e o filtro Alterados refletem o exame recém-extraído.
   const [abnByExam, setAbnByExam] = useState<Record<string, number>>({});
+  // FALSA CALMA (27/11/26, medido no Android): antes da contagem chegar, `abnByExam[id] ?? 0` dava 0
+  // e o cartão dizia "Todos na faixa" por ~600 ms — para um exame com 4 valores fora da faixa.
+  // Sem a contagem, a tela não afirma nada sobre o resultado.
+  const [abnReady, setAbnReady] = useState(false);
+  const abnOf = (id: string): number | null => (abnReady ? (abnByExam[id] ?? 0) : null);
   const [worsened, setWorsened] = useState<Marker[]>([]);
   const [improved, setImproved] = useState<Marker[]>([]);
   const [hsLoaded, setHsLoaded] = useState(false);
@@ -556,7 +570,7 @@ const ExamCards = () => {
           const arr = (await a.json())?.items ?? [];
           const m: Record<string, number> = {};
           for (const it of arr) { const eid = it?.examId; if (eid) m[eid] = (m[eid] ?? 0) + 1; }
-          if (!cancelled) setAbnByExam(m);
+          if (!cancelled) { setAbnByExam(m); setAbnReady(true); }
         }
       } catch { /* ignore */ }
       if (pid) {
@@ -665,11 +679,12 @@ const ExamCards = () => {
     // e o olho pula direto nos recentes.
     const isOld = (() => { const d = r.performedAt ?? r.createdAt; return !!d && Date.now() - new Date(d).getTime() > 365 * 86400000; })();
     const altered = abnByExam[r.id] ?? 0;
+    const alteredKnown = abnReady;
     const itemCount: number = r._count?.items ?? 0;
     const Icon = r.kind === 'IMAGING' ? ImageIcon : r.kind === 'LAB_PANEL' ? ScienceIcon : DescriptionOutlinedIcon;
     const CatIcon = cc.icon;
     return (
-      <AppCard key={r.id} kind="interactive" onClick={() => isMd ? setSelected(r.id) : navigate(`/exams/${r.id}/show`)} sx={{
+      <AppCard key={r.id} kind="interactive" onPointerDown={() => prefetchExam(r.id)} onClick={() => isMd ? setSelected(r.id) : navigate(`/exams/${r.id}/show`)} sx={{
         position: 'relative',
         overflow: 'hidden',
         border: '1px solid',
@@ -979,7 +994,7 @@ const ExamCards = () => {
   // Mobile (<md) cai no `return` abaixo (lista → navega pra /exams/:id/show).
   const heroMd = isDefaultView && lastExam ? (
     <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: '1fr', alignItems: 'stretch' }}>
-      <ExamHero r={lastExam} abnCount={abnByExam[lastExam.id] ?? 0} onView={() => setSelected(lastExam.id)} onPdf={() => openPdf(lastExam.id)} />
+      <ExamHero r={lastExam} abnCount={abnOf(lastExam.id)} onView={() => setSelected(lastExam.id)} onPdf={() => openPdf(lastExam.id)} />
       <ChangesSinceExam worsened={worsened} improved={improved} loaded={hsLoaded} onView={() => navigate('/tendencias')} />
     </Box>
   ) : null;
@@ -1130,12 +1145,12 @@ const ExamCards = () => {
       {/* HERO + "O que mudou" — só no modo padrão (sem busca/filtro), resumo de entrada. */}
       {isDefaultView && lastExam && (
         <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
-          <ExamHeroCompact r={lastExam} abnCount={abnByExam[lastExam.id] ?? 0} onView={() => navigate(`/exams/${lastExam.id}/show`)} />
+          <ExamHeroCompact r={lastExam} abnCount={abnOf(lastExam.id)} onView={() => navigate(`/exams/${lastExam.id}/show`)} />
         </Box>
       )}
       {isDefaultView && lastExam && (
         <Box sx={{ display: { xs: 'none', sm: 'grid' }, gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: '1.6fr 1fr' }, alignItems: 'stretch' }}>
-          <ExamHero r={lastExam} abnCount={abnByExam[lastExam.id] ?? 0} onView={() => navigate(`/exams/${lastExam.id}/show`)} onPdf={() => openPdf(lastExam.id)} />
+          <ExamHero r={lastExam} abnCount={abnOf(lastExam.id)} onView={() => navigate(`/exams/${lastExam.id}/show`)} onPdf={() => openPdf(lastExam.id)} />
           <ChangesSinceExam worsened={worsened} improved={improved} loaded={hsLoaded} onView={() => navigate('/tendencias')} />
         </Box>
       )}
