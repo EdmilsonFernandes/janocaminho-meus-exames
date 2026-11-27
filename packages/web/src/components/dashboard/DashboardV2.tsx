@@ -600,9 +600,11 @@ const AttentionList = ({ items, onOpen }: { items: AttentionItem[]; onOpen: (exa
   </Box>
 );
 
-const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, staleWarning, scoreGain = 0, audioSummary, onDetails, onFirstExam, onChat, onDemo, attention = [], onOpenExam }: {
+const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, staleWarning, scoreGain = 0, audioSummary, onDetails, onFirstExam, onChat, onDemo, attention = [], onOpenExam, failed = 0 }: {
   loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; staleWarning: string; scoreGain?: number; audioSummary?: string; onDetails: () => void; onFirstExam: () => void; onChat?: () => void; onDemo?: () => void;
   attention?: AttentionItem[]; onOpenExam?: (examId: string) => void;
+  /** Exames com falha de leitura: muda o aviso de "envie um exame recente" para "reenvie". */
+  failed?: number;
 }) => {
   const t = useTheme();
   const st = statusFromScore(score);
@@ -612,7 +614,7 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
   const rec = homeExamRecency(lastExam);
   // Aviso do herói: o do servidor (marcadores fora do score) ou, na falta dele, exames fora da
   // janela de "em dia" (utils/homeRecency).
-  const heroNotice = staleWarning || (rec.due && rec.relative ? examDueNote(rec.relative) : '');
+  const heroNotice = staleWarning || (rec.due && rec.relative ? examDueNote(rec.relative, failed > 0) : '');
   const totalAtt = importante + moderada;
   // Antes do load NÃO existe "vazio" (score null + 0 exames é o estado inicial do hook).
   const phase = heroPhase(loaded, score, exams);
@@ -1690,6 +1692,7 @@ const DashboardV2Inner = () => {
           onChat={go('/chat')}
           onDemo={demo ? undefined : () => { setDemo(true); demoEvent('started'); }}
           attention={demo ? [] : real.attention}
+          failed={demo ? 0 : d.failed}
           onOpenExam={(examId) => navigate(`/exams/${examId}/show`)}
         />
       </StaggerIn>

@@ -24,8 +24,11 @@ export interface HomeExamRecency {
 }
 
 /** Frase do aviso do herói quando os exames não estão em dia. */
-export const examDueNote = (relative: string): string =>
-  `Seu último exame foi ${relative} — esta leitura mostra aquele momento, não hoje.`;
+export const examDueNote = (relative: string, lastUploadFailed = false): string =>
+  lastUploadFailed
+    // O envio mais recente falhou: pedir "um exame recente" seria pedir o que a pessoa acabou de mandar.
+    ? `Seus valores são de um exame de ${relative} e o seu último envio não pôde ser lido — reenvie para atualizar.`
+    : `Seu último exame foi ${relative} — esta leitura mostra aquele momento, não hoje.`;
 
 export function homeExamRecency(lastExamAt: string | number | Date | null | undefined, now: number = Date.now()): HomeExamRecency {
   const r = describeRecency(lastExamAt, { now });

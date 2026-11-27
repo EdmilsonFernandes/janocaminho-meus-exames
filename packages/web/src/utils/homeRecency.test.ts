@@ -51,4 +51,8 @@ describe('examDueNote — frase do aviso', () => {
   it('diz a idade e que a leitura não é de hoje', () => {
     expect(examDueNote('há 8 meses')).toBe('Seu último exame foi há 8 meses — esta leitura mostra aquele momento, não hoje.');
   });
+
+  it('último envio com falha: pede reenvio, não "um exame recente"', () => {
+    expect(examDueNote('há 8 meses', true)).toBe('Seus valores são de um exame de há 8 meses e o seu último envio não pôde ser lido — reenvie para atualizar.');
+  });
 });

@@ -212,7 +212,11 @@ router.get('/:id/dashboard-summary', async (req: AuthedRequest, res, next) => {
       // DESC no Postgres = NULLS FIRST: sem o filtro, um exame sem data "rouba" a
       // primeira posição e lastExamAt volta null mesmo com exames datados (bug
       // pego na bateria de regressão 06/10 — ActivityCard perdia o marcador).
-      prisma.exam.findFirst({ where: { patientId: id, performedAt: { not: null } }, orderBy: { performedAt: 'desc' }, select: { performedAt: true } }),
+      // Só exame LIDO (27/11/26, decisão do dono): é a data dos valores que a Home mostra. Exame com
+      // falha, rejeitado (CPF de outra pessoa) ou em leitura não tem valor nenhum — antes virava o
+      // "último exame" e a Home dizia "hoje" sobre resultados de meses atrás. A falha aparece à parte
+      // (exams.failed + faixa de reenvio).
+      prisma.exam.findFirst({ where: { patientId: id, status: 'EXTRACTED', performedAt: { not: null } }, orderBy: { performedAt: 'desc' }, select: { performedAt: true } }),
       prisma.exam.count({ where: { patientId: id, status: 'FAILED' } }),
       prisma.exam.count({ where: { patientId: id, status: 'REJECTED' } }),
       // Em processamento (E1): alimenta a strip "analisando… há 1:32" do dashboard.

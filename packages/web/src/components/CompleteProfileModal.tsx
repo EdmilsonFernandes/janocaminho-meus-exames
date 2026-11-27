@@ -18,6 +18,17 @@ import { autoModalQueue } from '../utils/autoModalQueue';
 // real é avaliada pelo SERVER (profileCompleteness), então usuário que completa em outro
 // dispositivo não é re-perguntado. O Dashboard (NextStepsCard) continua orientando depois.
 const SKIP_FLAG = 'profileSkippedSession';
+/**
+ * "Agora não" vale 7 DIAS (27/11/26, visto no Android): por sessão, o app de celular perguntava a
+ * cada abertura — cada abertura é sessão nova. Permanente (o antigo) nunca mais perguntava. Sete dias
+ * é o meio-termo, como a oferta de biometria (30 dias).
+ */
+const SKIP_AT_KEY = 'profileSkippedAt';
+export const PROFILE_SKIP_DAYS = 7;
+export const profileSkippedRecently = (skippedAt: string | null, now = Date.now()): boolean => {
+  const at = Number(skippedAt);
+  return Number.isFinite(at) && at > 0 && now - at < PROFILE_SKIP_DAYS * 86_400_000;
+};
 /** Id deste modal na fila única de modais automáticos (grupo "cadastro", menor prioridade). */
 const PROFILE_QUEUE_ID = 'profile';
 
@@ -68,7 +79,9 @@ export const CompleteProfileModal = () => {
 
   useEffect(() => {
     if (!pid) return;
-    if (sessionStorage.getItem(SKIP_FLAG) === '1') { setLoading(false); return; }
+    let skippedAt: string | null = null;
+    try { skippedAt = localStorage.getItem(SKIP_AT_KEY); } catch { /* sem armazenamento */ }
+    if (sessionStorage.getItem(SKIP_FLAG) === '1' || profileSkippedRecently(skippedAt)) { setLoading(false); return; }
     let cancelled = false;
     // FILA ÚNICA (25/11/26): este modal (tela cheia no celular) cobria a Agenda e depois a
     // Home. Agora só abre sozinho pela autoModalQueue: 1 modal automático por sessão, só na
@@ -120,7 +133,11 @@ export const CompleteProfileModal = () => {
     return () => { cancelled = true; autoModalQueue.withdraw(PROFILE_QUEUE_ID); };
   }, [pid]);
 
-  const close = () => { sessionStorage.setItem(SKIP_FLAG, '1'); setOpen(false); };
+  const close = () => {
+    sessionStorage.setItem(SKIP_FLAG, '1');
+    try { localStorage.setItem(SKIP_AT_KEY, String(Date.now())); } catch { /* sem armazenamento: vale a sessão */ }
+    setOpen(false);
+  };
 
   const current: StepKey | undefined = steps[step];
   const stepCount = Math.max(steps.length, 1);

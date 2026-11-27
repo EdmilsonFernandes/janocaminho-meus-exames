@@ -37,9 +37,10 @@ describe('GET /api/patients/:id/dashboard-summary', () => {
 
     const r = await api().get(`/api/patients/${patient.id}/dashboard-summary`).set(H(token));
     expect(r.status).toBe(200);
-    // exams: total = TODOS (qualquer status, como a lista); lastExamAt = performedAt desc.
+    // exams: total = TODOS (qualquer status, como a lista); lastExamAt = o exame LIDO mais recente
+    // (27/11/26): o FAILED de 01/03 não tem valor nenhum, então não é "o último exame" da Home.
     expect(r.body.exams.total).toBe(5); // 4 anteriores + 1 EXTRACTING (strip E1)
-    expect(new Date(r.body.exams.lastExamAt).toISOString()).toBe('2026-03-01T00:00:00.000Z');
+    expect(new Date(r.body.exams.lastExamAt).toISOString()).toBe('2026-02-20T00:00:00.000Z');
     expect(r.body.exams.failed).toBe(1);
     expect(r.body.exams.rejected).toBe(1);
     // E1 — processando: count + createdAt do mais antigo (elapsed real na UI).
