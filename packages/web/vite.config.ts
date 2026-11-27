@@ -6,6 +6,13 @@ import path from 'node:path';
 
 const require = createRequire(import.meta.url);
 
+// BUILD É SEMPRE DE PRODUÇÃO (26/11/26). O Vite respeita um NODE_ENV que já exista no ambiente, e os
+// terminais de agente/IDE rodam com NODE_ENV=development: `vite build` neles empacotava o React de
+// DESENVOLVIMENTO (jsxDEV, checagens, medições) — os AABs 622 a 636 saíram assim, várias vezes mais
+// lentos a cada toque. O script do app (packages/mobile/scripts/build-web.js) já força produção; esta
+// trava cobre QUALQUER `vite build` chamado direto. `vite` (dev) e `vitest` não passam por aqui.
+if (process.argv.includes('build')) process.env.NODE_ENV = 'production';
+
 // Os plugins @capacitor/* (app, browser, camera...) têm @capacitor/core como *peer* dep.
 // No build Docker, o npm hoista os plugins p/ /app/node_modules/ mas deixa o core aninhado
 // no workspace → o rolldown, ao empacotar um plugin (na raiz), não resolve `import "@capacitor/core"`

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslate } from 'react-admin';
@@ -16,6 +16,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import AlarmOnIcon from '@mui/icons-material/AlarmOn';
 import AlarmOutlinedIcon from '@mui/icons-material/AlarmOutlined';
 import { hapticNav } from '../utils/haptic';
+import { afterPaint } from '../utils/snappy';
 import { NAV_PILL } from '../theme';
 
 /**
@@ -55,15 +56,27 @@ export const MobileBottomNav = () => {
     return () => { ro.disconnect(); document.documentElement.style.removeProperty('--me-bottom-nav-h'); };
   }, []);
 
+  // ABA ACENDE NO TOQUE: a tela nova pode levar centenas de ms para montar; sem isto a barra só
+  // mudava quando a tela inteira ficava pronta ("toquei e demorou"). A aba tocada acende já, a
+  // navegação começa no quadro seguinte, e o estado otimista sai quando a rota muda de fato.
+  const [pendingTo, setPendingTo] = useState<string | null>(null);
+  useEffect(() => { setPendingTo(null); }, [pathname]);
+  const go = (to: string) => {
+    if (to === pathname) return;
+    setPendingTo(to);
+    afterPaint(() => navigate(to));
+  };
+
   if (!isMobile) return null;
-  const active = (to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to));
+  const shownPath = pendingTo ?? pathname;
+  const active = (to: string) => (to === '/' ? shownPath === '/' : shownPath.startsWith(to));
   // "Mais" só acende quando a rota NÃO é uma das abas principais (antes /lembretes acendia Agenda e Mais juntos).
   const maisActive = !NAV.some((it) => active(it.to)) && SECONDARY_ROUTES.some((r) => active(r));
 
   const item = (it: { icon: string; label: string; to: string; robot?: boolean }, onClick?: () => void, on?: boolean) => (
     <Box key={it.to} component="button" type="button" aria-current={on ? 'page' : undefined}
       aria-label={it.robot ? 'Dr. Exame — conversar com a IA' : translate(it.label)}
-      onClick={() => { hapticNav(); (onClick ?? (() => navigate(it.to)))(); }} sx={{
+      onClick={() => { hapticNav(); (onClick ?? (() => go(it.to)))(); }} sx={{
       // largura pelo conteúdo + sobra dividida: em 320px 'Consultas' não invade 'Exames'
       flex: '1 1 auto', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.5, cursor: 'pointer', userSelect: 'none',

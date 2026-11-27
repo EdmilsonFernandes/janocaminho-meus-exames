@@ -14,7 +14,7 @@ describe('resetScroll', () => {
   it('zera a rolagem da janela', () => {
     const scrollTo = vi.fn();
     resetScroll(null, { scrollTo });
-    expect(scrollTo).toHaveBeenCalledWith(0, 0);
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'instant' });
   });
 
   it('zera a rolagem de todos os ancestrais roláveis (shell que rola dentro de um elemento)', () => {

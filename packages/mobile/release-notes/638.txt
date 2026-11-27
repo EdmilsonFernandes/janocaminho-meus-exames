@@ -1,0 +1,4 @@
+• App bem mais rápido: a tela responde na hora em que você toca.
+• A aba do rodapé acende no toque e o menu fecha sem travar.
+• Trocar entre tema claro e escuro ficou imediato.
+• Ao abrir uma tela, ela já começa no topo, sem deslizar.

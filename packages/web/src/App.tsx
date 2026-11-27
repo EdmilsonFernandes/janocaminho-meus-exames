@@ -2,7 +2,8 @@ import { tealText } from './theme';
 import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useNotify, useTranslate, useSidebarState, useStore, LoadingIndicator } from 'react-admin';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { useEffect, useState, useRef, lazy, Suspense } from 'react';
+import { Activity, memo, useEffect, useMemo, useState, useRef, lazy, Suspense } from 'react';
+import { afterPaint, whenIdle, withThemeTransition } from './utils/snappy';
 import { Capacitor } from '@capacitor/core';
 import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, SwipeableDrawer, Avatar, Stack, Link as MuiLink } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -541,8 +542,10 @@ const NavItem = ({
 
   const go = () => {
     hapticNav();
+    // O menu começa a fechar NA HORA; a tela nova (trabalho pesado) começa no quadro seguinte,
+    // com a animação de fechar já rodando — antes as duas coisas travavam juntas.
     window.dispatchEvent(new CustomEvent('app:closeDrawer'));
-    navigate(to);
+    afterPaint(() => navigate(to));
   };
 
   if (isSos) {
@@ -1039,6 +1042,60 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
   );
 };
 
+/**
+ * Claro / Escuro. Componente próprio DE PROPÓSITO: o botão tocado marca na hora (só este pedaço
+ * redesenha) e a troca real — que refaz a tela inteira — começa no quadro seguinte, com um
+ * esmaecer único. Antes o botão só marcava quando o app todo terminava de trocar de tema.
+ */
+const ThemeModeToggle = memo(() => {
+  const [themeMode, setThemeMode] = useStore<'light' | 'dark'>('theme', 'light');
+  const [pending, setPending] = useState<'light' | 'dark' | null>(null);
+  useEffect(() => { setPending(null); }, [themeMode]);
+  const choose = (m: 'light' | 'dark') => {
+    if (m === (pending ?? themeMode)) return;
+    hapticNav();
+    setPending(m);
+    afterPaint(() => withThemeTransition(() => setThemeMode(m)));
+  };
+  return (
+  <Box sx={{ mx: 2, mt: 0.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+    <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary' }}>Aparência</Typography>
+    <Box role="group" aria-label="Aparência" sx={{ display: 'flex', p: '3px', borderRadius: 99, bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,90,86,0.07)' }}>
+      {(['light', 'dark'] as const).map((m) => {
+        const sel = (pending ?? themeMode) === m;
+        const MIcon = m === 'light' ? LightModeOutlinedIcon : DarkModeOutlinedIcon;
+        return (
+          <Box
+            key={m}
+            component="button"
+            type="button"
+            aria-pressed={sel}
+            onClick={() => choose(m)}
+            sx={{
+              display: 'flex', alignItems: 'center', gap: 0.6, height: 34, px: 1.5,
+              border: 0, borderRadius: 99, cursor: 'pointer', fontFamily: 'inherit',
+              fontSize: 12.5, fontWeight: sel ? 700 : 500,
+              bgcolor: sel ? ((t: any) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : '#ffffff') : 'transparent',
+              color: sel
+                ? ((t: any) => t.palette.mode === 'dark' ? '#ffffff' : '#0b5c57')
+                : ((t: any) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.65)' : '#556b6b'),
+              boxShadow: sel
+                ? ((t: any) => t.palette.mode === 'dark' ? 'inset 1px 1px 0 rgba(255,255,255,0.14)' : '0 1px 2px rgba(0,0,0,0.12), inset 1px 1px 0 #fff')
+                : 'none',
+              transition: 'all .15s ease',
+              '& svg': { fontSize: 15 },
+            }}
+          >
+            <MIcon />
+            {m === 'light' ? 'Claro' : 'Escuro'}
+          </Box>
+        );
+      })}
+    </Box>
+  </Box>
+  );
+});
+
 // Menu lateral — com agrupamento clínico de alta clareza e autoridade
 const AppMenu = () => {
   const logout = useLogout();
@@ -1046,8 +1103,6 @@ const AppMenu = () => {
   const translate = useTranslate();
   const { pathname } = useLocation();
   const [aboutOpen, setAboutOpen] = useState(false);
-  // Mesmo estado do toggle do AppBar (PatientSwitcher) — o rodapé do menu só o expõe (mock A).
-  const [themeMode, setThemeMode] = useStore<'light' | 'dark'>('theme', 'light');
   const tele = useUpcomingTeleconsulta();
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
@@ -1242,41 +1297,7 @@ const AppMenu = () => {
       </MenuItem>
 
       {/* Aparência (mock A): expõe no menu o MESMO toggle de tema do AppBar (useStore 'theme'). */}
-      <Box sx={{ mx: 2, mt: 0.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-        <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary' }}>Aparência</Typography>
-        <Box role="group" aria-label="Aparência" sx={{ display: 'flex', p: '3px', borderRadius: 99, bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,90,86,0.07)' }}>
-          {(['light', 'dark'] as const).map((m) => {
-            const sel = themeMode === m;
-            const MIcon = m === 'light' ? LightModeOutlinedIcon : DarkModeOutlinedIcon;
-            return (
-              <Box
-                key={m}
-                component="button"
-                type="button"
-                aria-pressed={sel}
-                onClick={() => setThemeMode(m)}
-                sx={{
-                  display: 'flex', alignItems: 'center', gap: 0.6, height: 34, px: 1.5,
-                  border: 0, borderRadius: 99, cursor: 'pointer', fontFamily: 'inherit',
-                  fontSize: 12.5, fontWeight: sel ? 700 : 500,
-                  bgcolor: sel ? ((t: any) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : '#ffffff') : 'transparent',
-                  color: sel
-                    ? ((t: any) => t.palette.mode === 'dark' ? '#ffffff' : '#0b5c57')
-                    : ((t: any) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.65)' : '#556b6b'),
-                  boxShadow: sel
-                    ? ((t: any) => t.palette.mode === 'dark' ? 'inset 1px 1px 0 rgba(255,255,255,0.14)' : '0 1px 2px rgba(0,0,0,0.12), inset 1px 1px 0 #fff')
-                    : 'none',
-                  transition: 'all .15s ease',
-                  '& svg': { fontSize: 15 },
-                }}
-              >
-                <MIcon />
-                {m === 'light' ? 'Claro' : 'Escuro'}
-              </Box>
-            );
-          })}
-        </Box>
-      </Box>
+      <ThemeModeToggle />
 
       <Box sx={{ px: 2, pt: 1.5, pb: { xs: 'calc(1.5rem + env(safe-area-inset-bottom, 16px))', sm: 2 }, textAlign: 'center' }}>
         <Box sx={{
@@ -1348,6 +1369,18 @@ const AppMenu = () => {
 const AppDrawer = () => {
   const { open, closeDrawer } = useAppDrawer();
   const { pathname } = useLocation();
+  // MENU FECHADO NÃO TRABALHA: ele fica montado (para abrir rápido), e cada item lê a rota — então
+  // o menu INTEIRO era refeito a cada troca de tela, invisível. Com <Activity mode="hidden"> o
+  // React adia isso para quando o aparelho está ocioso. Continua "visível" durante a animação de fechar.
+  const [menuLive, setMenuLive] = useState(open);
+  useEffect(() => {
+    if (open) { setMenuLive(true); return; }
+    const timer = window.setTimeout(() => setMenuLive(false), 450);
+    return () => window.clearTimeout(timer);
+  }, [open]);
+
+  // O MESMO elemento a cada render: abrir e fechar o menu (que só muda `open`) não refaz os itens.
+  const menu = useMemo(() => <AppMenu />, []);
 
   useEffect(() => { closeDrawer(); }, [pathname]);
   useEffect(() => {
@@ -1395,7 +1428,9 @@ const AppDrawer = () => {
           '100%': { opacity: 1, transform: 'translateX(0)' },
         },
       }}>
-        <AppMenu />
+        <Activity mode={open || menuLive ? 'visible' : 'hidden'}>
+          {menu}
+        </Activity>
       </Box>
     </SwipeableDrawer>
   );
@@ -1529,6 +1564,21 @@ const ScreenBackdrop = () => {
   );
 };
 
+/** Conta a tela aberta a cada troca de rota (só o caminho; ids viram ":id"). Não desenha nada. */
+const ScreenTracker = () => {
+  const { pathname } = useLocation();
+  useEffect(() => { trackScreen(pathname); }, [pathname]);
+  // Com o app parado, baixa os pedaços das telas do rodapé: o 1º toque em cada aba não espera download.
+  useEffect(() => {
+    whenIdle(() => {
+      void import('./pages/Chat');
+      void import('./pages/Reminders');
+      void import('./pages/MinhasConsultas');
+    });
+  }, []);
+  return null;
+};
+
 const AppLayout = (props: any) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
@@ -1538,8 +1588,8 @@ const AppLayout = (props: any) => {
   useEffect(() => { if (isDesktop && !sidebarOpen) setSidebarOpen(true); }, [isDesktop]); // eslint-disable-line react-hooks/exhaustive-deps
   // MEDIDOR DE TELAS (25/11): conta a tela aberta a cada troca de rota — só o caminho, ids viram ":id".
   // Hook ANTES do return do guard abaixo (regra de hooks); sem token o trackScreen não faz nada.
-  const { pathname: trackedPath } = useLocation();
-  useEffect(() => { trackScreen(trackedPath); }, [trackedPath]);
+  // Num componente-filho: lido aqui, o `useLocation` refazia o layout inteiro (e o `sx` enorme
+  // abaixo) a cada troca de tela.
   // GUARD (bug do dono: deslogado entrava na área do usuário e via telas vazias): sem token,
   // nenhuma tela autenticada renderiza — vai pro login (que volta pro destino via dxAfterLogin).
   // Rotas públicas vivem no CustomRoutes noLayout (fora deste shell).
@@ -1554,6 +1604,7 @@ const AppLayout = (props: any) => {
             <ScreenBackdrop />
             {/* Toda troca de tela começa no topo (dono, 26/11/26): antes a tela nova herdava a rolagem da anterior. */}
             <ScrollToTopOnNavigate />
+            <ScreenTracker />
             {/* gap reduzido + espaço pra não cobrir conteúdo com o menu rodapé (mobile) */}
             <Layout {...props} menu={AppMenu} appBar={CustomAppBar} error={AppCrashPage}
               sx={{

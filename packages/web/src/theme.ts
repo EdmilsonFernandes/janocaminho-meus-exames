@@ -181,8 +181,11 @@ export const buildTheme = (mode: ThemeMode, textScale: TextScale = 'normal'): Th
           // valores desalinhadas). Dígito tabular GERAL: exames, datas e contagens alinham
           // em qualquer contexto, herança global pela body.
           body: { fontVariantNumeric: 'tabular-nums', WebkitFontSmoothing: 'antialiased' },
-          // Transição suave ao trocar de modo (apenas cores — sem afetar layout/scroll).
-          '*': { transition: 'background-color 180ms ease, border-color 180ms ease, color 120ms ease' },
+          // TROCA DE TEMA: nada de `'*': { transition }` (26/11/26). Aquela regra animava fundo, borda
+          // e texto de CADA elemento da página ao mesmo tempo e ainda atrasava em 180 ms toda resposta
+          // de toque (o "pressionado" esmaecia em vez de aparecer). A troca agora é um esmaecer único
+          // da tela (View Transition, utils/snappy.ts), feito pela placa de vídeo.
+          '::view-transition-old(root), ::view-transition-new(root)': { animationDuration: '170ms', animationTimingFunction: 'ease-out' },
           // Focus ring teal global (a11y WCAG 2.4.7) — antes: zero focus rings visíveis (MUI default é azul).
           '*:focus-visible': { outline: `2px solid ${isDark ? '#5fc9c3' : '#178f89'}`, outlineOffset: 2 },
           'button:focus-visible, a:focus-visible, [role="button"]:focus-visible': { outlineOffset: 3 },
@@ -213,6 +216,18 @@ export const buildTheme = (mode: ThemeMode, textScale: TextScale = 'normal'): Th
           // desenho fino). Zoom do usuário NUNCA é desativado (regra de acessibilidade).
           '@media (hover: none) and (pointer: coarse)': {
             'input, textarea, select, .MuiInputBase-input': { fontSize: 16 },
+          },
+        },
+      },
+      // RESPOSTA AO TOQUE: a ondulação do MUI espera ~80 ms para começar (para não disparar ao rolar).
+      // Em tela de toque, o botão também escurece NA HORA em que o dedo encosta, como botão nativo.
+      MuiButtonBase: {
+        styleOverrides: {
+          root: {
+            '@media (hover: none) and (pointer: coarse)': {
+              transition: 'opacity 90ms ease-out',
+              '&:active': { opacity: 0.72 },
+            },
           },
         },
       },

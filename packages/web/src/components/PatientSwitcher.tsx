@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { afterPaint, withThemeTransition } from '../utils/snappy';
 import { UserTrigger, useOnline } from '@/components/reui/app-header';
 import { useNavigate } from 'react-router-dom';
 import { useLogout, useLocale, useSetLocale, useStore, useNotify } from 'react-admin';
@@ -42,7 +43,8 @@ export const PatientSwitcher = () => {
   const [err, setErr] = useState('');
   const close = () => setAnchor(null);
   const toggleLang = () => { const l = locale === 'pt' ? 'en' : 'pt'; setLocale(l); try { localStorage.setItem('lang', l); } catch {} close(); };
-  const toggleTheme = () => { setThemeMode(themeMode === 'dark' ? 'light' : 'dark'); close(); };
+  // Fecha o menu primeiro (resposta imediata); a troca de tema — que refaz a tela toda — vem no quadro seguinte.
+  const toggleTheme = () => { const next = themeMode === 'dark' ? 'light' : 'dark'; close(); afterPaint(() => withThemeTransition(() => setThemeMode(next))); };
 
   const photoFor = (p?: any) => (p?.photoUrl ? photoUrlFor(p.id) : undefined);
 

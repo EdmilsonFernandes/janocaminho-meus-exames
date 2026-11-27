@@ -16,8 +16,10 @@ import { useLocation } from 'react-router-dom';
  *   documento), o corpo não aceita `scrollTo` enquanto estiver travado: espera a trava sair e
  *   zera na sequência, senão a tela nova "gruda" na posição antiga quando a gaveta fecha.
  */
-export const resetScroll = (host: Element | null, win?: Pick<Window, 'scrollTo'>, roots: Element[] = []) => {
-  (win ?? window).scrollTo(0, 0);
+export const resetScroll = (host: Element | null, win?: { scrollTo: (options: ScrollToOptions) => void }, roots: Element[] = []) => {
+  // 'instant': o <html> tem scroll-behavior: smooth, então scrollTo(0, 0) ANIMAVA a subida —
+  // a tela nova aparecia no meio e deslizava até o topo, o que parecia lentidão.
+  (win ?? window).scrollTo({ top: 0, left: 0, behavior: 'instant' });
   const zero = (node: Element | null) => { if (node && node.scrollTop) node.scrollTop = 0; };
   // Quando o shell rola dentro de um elemento (em vez do documento), zera cada ancestral rolável…
   for (let node = host?.parentElement ?? null; node; node = node.parentElement) zero(node);
