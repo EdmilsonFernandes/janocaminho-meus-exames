@@ -3,7 +3,7 @@ import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslate } from 'react-admin';
 import { useAppDrawer } from './drawerState';
-import { DrExame } from './DrExame';
+import { RobotOrb } from './RobotOrb';
 // Uma família só (Material Symbols "Rounded" cheio na aba ativa, "Outlined" nas outras): mesmo
 // traço, mesmo canto e mesma caixa de 24px — antes misturava Alarm/Videocam/Menu de famílias
 // diferentes e cada ícone parecia de um app.
@@ -87,20 +87,11 @@ export const MobileBottomNav = () => {
       transition: 'color .18s ease, transform .12s ease, background-color .25s cubic-bezier(.16,1,.3,1), padding .25s cubic-bezier(.16,1,.3,1), border-radius .25s cubic-bezier(.16,1,.3,1)',
       '&:active': { transform: 'scale(.94)' },
       // Pill da tab ativa (polish 10/26): fundo teal translúcido + padding generoso.
-      ...(on ? { background: NAV_PILL.bg, padding: NAV_PILL.padding, borderRadius: NAV_PILL.radius, alignSelf: 'stretch' } : {}),
+      // O robô não ganha a pílula: o "aceso" dele é a própria aura (RobotOrb).
+      ...(on && !it.robot ? { background: NAV_PILL.bg, padding: NAV_PILL.padding, borderRadius: NAV_PILL.radius, alignSelf: 'stretch' } : {}),
     }}>
       {it.robot ? (
-        <Box sx={{
-          width: 48, height: 48, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #20b2aa, #178f89)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          border: '2.5px solid', borderColor: isDark ? 'rgba(20,30,30,0.9)' : '#ffffff',
-          boxShadow: '0 8px 22px rgba(32,178,170,.5), 0 2px 6px rgba(32,178,170,.3)',
-          transform: on ? 'translateY(-12px) scale(1.08)' : 'translateY(-8px)',
-          transition: 'transform .22s cubic-bezier(.16,1,.3,1), box-shadow .2s ease',
-        }}>
-          <DrExame size={34} sx={{ borderRadius: '50%' }} />
-        </Box>
+        <RobotOrb on={!!on} dark={isDark} />
       ) : (
         <Box sx={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
