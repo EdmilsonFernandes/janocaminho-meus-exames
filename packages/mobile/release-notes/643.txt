@@ -1,0 +1,5 @@
+• Perfil novo: foto com anel de progresso e ficha de saúde (idade, altura, peso, IMC).
+• Perfil em 3 abas simples: Meus dados, Preferências e Conta.
+• Idade do corpo e Risco cardíaco com medidores fáceis de ler.
+• Mapa do corpo mostra seus órgãos e o estado de cada um logo de cara.
+• Barra inferior mais limpa — Consultas segue no menu Mais.

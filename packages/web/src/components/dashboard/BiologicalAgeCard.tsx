@@ -5,14 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { useEffect, useState } from 'react';
-import { AppCard } from '../AppCard';
+import { SignalTile, SignalValue, SignalNote, AgeTrack, PrecisionDots, type SignalTone } from './SignalTile';
 import { SEM, RADIUS } from '../../theme';
 import { Dna } from '@phosphor-icons/react';
 
 type BioData = { age: number; confidence: string; markersUsed: number; missing?: string[] | null; method?: string; assumptions?: string[]; excludesHormonalMarkers?: boolean };
 
-/** Reduced-motion avaliado 1x na carga do módulo (guarda o spring do tile). */
-const REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Accent único da feature (tile E dialog): esmeralda — antes o tile era esmeralda e o dialog, indigo.
 // Mode-aware via SEM.ok (o literal #059669 perdia contraste no dark).
@@ -84,67 +82,36 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
   // Estado vazio HONESTO: o tile explica o que falta em vez de prometer um "Em breve" sem prazo.
   const missingProfile = avail?.status === 'missing_profile';
   const noExams = avail?.status === 'no_data';
-  const value = data ? `${data.age}a` : loaded ? '—' : '…';
   const sub = data
-    ? (diff === null ? 'estimativa corporal' : diff === 0 ? 'em equilíbrio' : diff < 0 ? `${Math.abs(diff)}a mais jovem` : `${diff}a mais velho`)
+    ? (diff === null ? `estimativa com ${plural(data.markersUsed ?? 0, 'marcador')} de 9` : diff === 0 ? 'igual à sua idade real' : diff < 0 ? `${plural(Math.abs(diff), 'ano')} mais jovem` : `${plural(diff, 'ano')} acima da sua idade`)
     : missingProfile ? 'complete seu perfil'
     : noExams ? 'após o 1º exame'
     : loaded && avail ? 'precisa de mais marcadores'
     : '';
   // SEM: verde/vermelho AA nos DOIS modos (o hardcode falhava contraste no dark).
-  const subColor = diff !== null && diff < 0 ? SEM.ok[isDark ? 'dark' : 'light'] : diff !== null && diff > 0 ? SEM.bad[isDark ? 'dark' : 'light'] : 'text.secondary';
+  // Acima da idade real: 1–4 anos é atenção (âmbar), 5+ é alerta — sem falsa urgência por 1 ano.
+  const tileTone: SignalTone = !data ? 'neutral' : diff === null || diff === 0 ? 'brand' : diff < 0 ? 'ok' : diff >= 5 ? 'bad' : 'warn';
+  const subColor = diff !== null && diff !== 0 ? SEM[tileTone === 'ok' ? 'ok' : tileTone === 'bad' ? 'bad' : 'warn'][isDark ? 'dark' : 'light'] : 'text.secondary';
 
   return (
     <>
-      <AppCard
-        kind="interactive"
+      {/* Idade do corpo premium (28/11/26): número grande + régua "corpo x idade real" (SignalTile). */}
+      <SignalTile
+        idx={idx}
+        label="Idade do corpo"
+        tone={tileTone}
+        icon={<Dna size={21} weight="duotone" />}
         onClick={() => setExplain(true)}
-        sx={{
-          p: { xs: 1.75, sm: 2 },
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-start',
-          gap: 1,
-          transition: 'transform .25s cubic-bezier(.16,1,.3,1), border-color .2s ease',
-          // Mesmo spring escalonado dos IndicatorTiles (idx=2 → 3º da linha de KPI).
-          animation: REDUCED_MOTION ? 'none' : `dxTileSpring .45s cubic-bezier(.16,1,.3,1) ${idx * 0.08}s both`,
-          '@keyframes dxTileSpring': {
-            from: { opacity: 0, transform: 'translateY(14px) scale(.96)' },
-            to: { opacity: 1, transform: 'translateY(0) scale(1)' },
-          },
-          '&:hover': {
-            borderColor: (t) => t.palette.primary.main,
-            transform: 'translateY(-2px)',
-          },
-          '&:active': { transform: 'scale(.98)' },
-        }}
+        ariaLabel={data ? `Idade do corpo ${data.age} anos${sub ? ` — ${sub}` : ''}. Ver como calculamos` : `Idade do corpo sem leitura — ${sub || 'carregando'}`}
       >
-        {/* Mesmo desenho dos IndicatorTiles (25/11/26): rótulo + ícone na primeira linha e valor
-            na largura inteira — os quatro tiles da grade ficam alinhados entre si. */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-          <Typography sx={{ fontSize: 13, lineHeight: 1.25, color: 'text.secondary', fontWeight: 700, textWrap: 'balance' }}>
-            Idade do corpo
-          </Typography>
-          <Box className="dx-tile-icon" sx={{
-            width: 38, height: 38, borderRadius: '12px',
-            display: 'grid', placeItems: 'center', flexShrink: 0,
-            bgcolor: 'rgba(16, 185, 129, 0.12)', color: accent,
-          }}>
-            <Dna size={22} weight="duotone" />
-          </Box>
-        </Stack>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5vw, 1.375rem)', sm: 22 }, color: 'text.primary', lineHeight: 1.2, fontVariantNumeric: 'tabular-nums' }}>
-            {value}
-          </Typography>
-          {sub && (
-            <Typography sx={{ fontSize: 13, lineHeight: 1.35, color: subColor, fontWeight: 600, mt: 0.5 }}>
-              {sub}
-            </Typography>
-          )}
-        </Box>
-      </AppCard>
+        {data
+          ? <SignalValue value={String(data.age)} unit="anos" />
+          : <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 18, lineHeight: 1.2, color: 'text.secondary' }}>{loaded ? 'Sem leitura' : '…'}</Typography>}
+        {data && diff !== null && <AgeTrack diff={diff} />}
+        {/* Sem idade real para comparar: mostra a PRECISÃO da estimativa (marcadores usados de 9 do PhenoAge). */}
+        {data && diff === null && <PrecisionDots used={data.markersUsed ?? 0} />}
+        {sub && <SignalNote color={diff !== null && diff !== 0 ? subColor : undefined}>{sub}</SignalNote>}
+      </SignalTile>
 
       <Dialog open={explain} onClose={() => setExplain(false)} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: '12px' } } }}>
         <DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>🧬 Idade biológica</DialogTitle>

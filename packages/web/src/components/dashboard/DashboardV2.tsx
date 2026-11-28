@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Stack, Typography, Box, Grid, useTheme, useMediaQuery, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress, Chip, Collapse, IconButton, Tooltip } from '@mui/material';
+import { Stack, Typography, Box, Grid, useTheme, useMediaQuery, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress, Chip, IconButton, Tooltip } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
 import { SEM, copperText, tealText, RADIUS } from '../../theme';
@@ -8,7 +8,7 @@ import { useCountUp } from '../../hooks/useCountUp';
 import { ActivationChecklist } from './ActivationChecklist';
 import { deltaEntre, deltaLabel, diasAteJanela } from '../../utils/mental-delta';
 import { SeverityBar } from '../mental/SeverityBar';
-import { Heartbeat, Stethoscope, ChartLineUp, ChatCircle, Sparkle } from '@phosphor-icons/react';
+import { Heartbeat, Stethoscope, ChatCircle, Sparkle } from '@phosphor-icons/react';
 import { useSelectedPatient } from '../../patient-context';
 import { syncPushToken } from '../../push';
 import { BiometricService } from '../BiometricService';
@@ -30,6 +30,8 @@ import { ActivityCard } from './ActivityCard';
 import { RestingHeartCard } from './RestingHeartCard';
 import { CreditsCard } from './CreditsCard';
 import { BiologicalAgeCard } from './BiologicalAgeCard';
+import { CardioRiskTile } from './SignalTile';
+import { BodyMapPreview } from './BodyMapPreview';
 import type { ClinicalIndexView } from './ClinicalIndicesCard';
 import { ClinicalActionsCard, type ClinicalActionView } from './ClinicalActionsCard';
 import { BodyMap, type BodyRegionView } from '../BodyMap';
@@ -56,7 +58,6 @@ import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import { prefetchExam } from '../../utils/examPrefetch';
 import { attentionDir, refRange, type AttentionItem } from '../../utils/attention';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { DrExameRobot } from '../DrExameRobot';
@@ -1389,30 +1390,6 @@ const BIO_OFFER_LATER_KEY = 'dx-bio-offer-later';
 /** Id da comemoração do 1º exame na fila única de modais automáticos. */
 const CELEBRATION_QUEUE_ID = 'first-exam';
 
-/**
- * Seção recolhida em uma linha no celular (27/11/26, Início enxuto): o mapa do corpo ocupava quase
- * duas telas. Fecha numa linha com título e resumo; o toque abre ali mesmo, sem trocar de tela.
- */
-const FoldedSection = ({ title, hint, children }: { title: string; hint: string; children: React.ReactNode }) => {
-  const [open, setOpen] = useState(false);
-  return (
-    <AppCard sx={{ p: 0, overflow: 'hidden' }}>
-      <Box component="button" type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open}
-        sx={{ all: 'unset', boxSizing: 'border-box', width: '100%', minHeight: 56, px: 2, py: 1.25, display: 'flex', alignItems: 'center', gap: 1.25, cursor: 'pointer',
-          '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 } }}>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 16, lineHeight: 1.3 }}>{title}</Typography>
-          <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.35 }}>{hint}</Typography>
-        </Box>
-        <ExpandMoreIcon aria-hidden sx={{ color: 'text.secondary', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s ease' }} />
-      </Box>
-      <Collapse in={open} unmountOnExit>
-        <Box sx={{ px: 1, pb: 1 }}>{children}</Box>
-      </Collapse>
-    </AppCard>
-  );
-};
-
 const DashboardV2Inner = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
@@ -1802,22 +1779,8 @@ const DashboardV2Inner = () => {
           />
           </>)}
           <BiologicalAgeCard idx={2} bio={d.bio} bioKdm={d.bioKdm} bioAvail={d.bioAvail} bioLoaded={d.hsLoaded} chronoAge={demo ? DEMO_CHRONO_AGE : undefined} />
-          <IndicatorTile
-            idx={3}
-            icon={<ChartLineUp size={22} weight="duotone" />}
-            badgeBg={!cardioLevel ? 'rgba(100, 116, 139, 0.14)' : cardioLevel === 'alto' ? 'rgba(239, 68, 68, 0.12)' : cardioLevel === 'moderado' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)'}
-            badgeColor={!cardioLevel ? 'text.secondary' : cardioLevel === 'alto' ? semC('bad') : cardioLevel === 'moderado' ? semC('warn') : semC('ok')}
-            tone={cardioLevel ? (cardioFactors > 0 ? 'error' : 'success') : 'info'}
-            label="Risco cardíaco"
-            value={cardioLevel || (d.loaded ? 'Sem dados' : '—')}
-            sub={cardioLevel
-              ? (cardioFactors > 0 ? `${cardioFactors} fator${cardioFactors > 1 ? 'es' : ''} de risco` : 'sem fatores')
-              : (d.loaded ? (d.stats.exams > 0 ? 'sem colesterol, peso ou pressão' : 'envie um exame') : '')}
-            progressBar={cardioLevel ? { percent: cardioLevel === 'baixo' ? 25 : cardioLevel === 'moderado' ? 55 : 85, color: cardioArcColor } : undefined}
-            /* 28/09 (bug bash do dono): levava a Tendências — incoerente. Agora abre os
-               FATORES que dimensionam o risco (o que o tile promete). */
-            onClick={() => setCardioOpen(true)}
-          />
+          {/* Risco cardíaco premium (28/11/26): nível em palavra + medidor de 3 faixas (SignalTile). */}
+          <CardioRiskTile idx={3} risk={d.cardioRisk} loaded={d.loaded} hasExams={d.stats.exams > 0} onClick={() => setCardioOpen(true)} />
         </Box>
         )}
       </StaggerIn>
@@ -1902,7 +1865,7 @@ const DashboardV2Inner = () => {
 
               {/* MAPA CORPORAL INTERATIVO & SISTEMAS (Com Raio-X GPU Leve, blindado contra crash Web e APK) */}
               {compact ? (
-                <FoldedSection title="Mapa do seu corpo" hint="Seus exames por órgão — toque para abrir">
+                <BodyMapPreview regions={d.bodyRegions} loaded={d.loaded}>
                   <DashboardErrorBoundary>
                     <BodyMap
                       regions={d.bodyRegions}
@@ -1913,7 +1876,7 @@ const DashboardV2Inner = () => {
                       onUploadExam={go('/exams/create')}
                     />
                   </DashboardErrorBoundary>
-                </FoldedSection>
+                </BodyMapPreview>
               ) : (
               <DashboardErrorBoundary>
                 <BodyMap

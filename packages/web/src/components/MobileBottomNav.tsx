@@ -4,17 +4,17 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslate } from 'react-admin';
 import { useAppDrawer } from './drawerState';
 import { DrExame } from './DrExame';
+// Uma família só (Material Symbols "Rounded" cheio na aba ativa, "Outlined" nas outras): mesmo
+// traço, mesmo canto e mesma caixa de 24px — antes misturava Alarm/Videocam/Menu de famílias
+// diferentes e cada ícone parecia de um app.
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
-import HomeIcon from '@mui/icons-material/Home';
+import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
-import DescriptionIcon from '@mui/icons-material/Description';
-import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined';
-import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
-import MenuIcon from '@mui/icons-material/Menu';
-import AlarmOnIcon from '@mui/icons-material/AlarmOn';
-import AlarmOutlinedIcon from '@mui/icons-material/AlarmOutlined';
+import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
+import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
+import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined';
+import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded';
 import { hapticNav } from '../utils/haptic';
 import { afterPaint } from '../utils/snappy';
 import { NAV_PILL } from '../theme';
@@ -26,15 +26,14 @@ import { NAV_PILL } from '../theme';
 const NAV = [
   { icon: 'home', label: 'nav.home', to: '/' },
   { icon: 'exam', label: 'nav.exams', to: '/exams' },
-  // Minhas Consultas (mock aprovado): posição 3 da nav — teleconsultas do paciente.
-  { icon: 'consultas', label: 'nav.consultas', to: '/consultas' },
   { icon: '', label: 'Dr. Exame', to: '/chat', robot: true },
-  // Lembretes volta pra barra (dono 24/10: "sumiu" no drawer). 5 abas + Mais = o limite
-  // do pill em 390px (6 slots × ~61px): com a 6ª aba o "Mais" era espremido a 37px e
-  // saía 100px da tela (incidente 25/10). Evolução fica no menu vertical (AppMenu).
+  // Lembretes volta pra barra (dono 24/10: "sumiu" no drawer).
   { icon: 'lembretes', label: 'nav.reminders', to: '/lembretes' },
 ] as const;
-const SECONDARY_ROUTES = ['/alterados', '/tendencias', '/evolucao', '/linha-do-tempo', '/medicoes', '/composicao', '/medicamentos', '/vacinas', '/lembretes', '/emergencia', '/conquistas', '/familia', '/patients', '/medicos', '/perguntas', '/relatorio', '/despesas', '/perfil', '/seguranca', '/privacidade', '/planos', '/suporte', '/admin'];
+// BARRA MAIS LIMPA (28/11/26, pedido do dono): Consultas saiu da barra — 2 abas de cada lado do
+// robô, que agora fica no centro exato. Consultas continua no menu ("Consultas e médicos", com o
+// selo "hoje"/"ao vivo") e na aba Consultas da Agenda; a teleconsulta do dia segue no Início.
+const SECONDARY_ROUTES = ['/consultas', '/teleconsulta', '/alterados', '/tendencias', '/evolucao', '/linha-do-tempo', '/medicoes', '/composicao', '/medicamentos', '/vacinas', '/lembretes', '/emergencia', '/conquistas', '/familia', '/patients', '/medicos', '/perguntas', '/relatorio', '/despesas', '/perfil', '/seguranca', '/privacidade', '/planos', '/suporte', '/admin'];
 
 export const MobileBottomNav = () => {
   const theme = useTheme();
@@ -77,8 +76,8 @@ export const MobileBottomNav = () => {
     <Box key={it.to} component="button" type="button" aria-current={on ? 'page' : undefined}
       aria-label={it.robot ? 'Dr. Exame — conversar com a IA' : translate(it.label)}
       onClick={() => { hapticNav(); (onClick ?? (() => go(it.to)))(); }} sx={{
-      // largura pelo conteúdo + sobra dividida: em 320px 'Consultas' não invade 'Exames'
-      flex: '1 1 auto', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      // 5 colunas iguais: o robô fica no centro exato e cada ícone na mesma posição em toda tela.
+      flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.5, cursor: 'pointer', userSelect: 'none',
       background: 'transparent', border: 'none', fontFamily: 'inherit', textAlign: 'center',
       borderRadius: '12px', outline: 'none',
@@ -111,11 +110,9 @@ export const MobileBottomNav = () => {
           transition: 'transform .2s cubic-bezier(.16,1,.3,1), filter .2s ease',
           '& svg': { fontSize: 22 }
         }}>
-          {it.icon === 'home' && (on ? <HomeIcon /> : <HomeOutlinedIcon />)}
-          {it.icon === 'exam' && (on ? <DescriptionIcon /> : <DescriptionOutlinedIcon />)}
-          {it.icon === 'consultas' && (on ? <VideocamRoundedIcon /> : <VideocamOutlinedIcon />)}
-          {it.icon === 'lembretes' && (on ? <AlarmOnIcon /> : <AlarmOutlinedIcon />)}
-          {it.icon === 'trend' && (on ? <TrendingUpIcon /> : <TrendingUpOutlinedIcon />)}
+          {it.icon === 'home' && (on ? <HomeRoundedIcon /> : <HomeOutlinedIcon />)}
+          {it.icon === 'exam' && (on ? <DescriptionRoundedIcon /> : <DescriptionOutlinedIcon />)}
+          {it.icon === 'lembretes' && (on ? <CalendarMonthRoundedIcon /> : <CalendarMonthOutlinedIcon />)}
         </Box>
       )}
       <Typography sx={{
@@ -142,8 +139,8 @@ export const MobileBottomNav = () => {
 
   const maisItem = (on: boolean, onClick?: () => void) => (
     <Box component="button" type="button" aria-label={translate('nav.more')} onClick={() => { hapticNav(); onClick?.(); }} sx={{
-      // largura pelo conteúdo + sobra dividida: em 320px 'Consultas' não invade 'Exames'
-      flex: '1 1 auto', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      // 5 colunas iguais: o robô fica no centro exato e cada ícone na mesma posição em toda tela.
+      flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.5, cursor: 'pointer', userSelect: 'none',
       background: 'transparent', border: 'none', fontFamily: 'inherit', textAlign: 'center',
       borderRadius: '12px', outline: 'none',
@@ -158,12 +155,12 @@ export const MobileBottomNav = () => {
       <Box sx={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         height: 24,
-        transform: on ? 'scale(1.05)' : 'scale(1)',
+        transform: on ? 'scale(1.12) translateY(-1px)' : 'scale(1)',
         filter: on ? 'drop-shadow(0 2px 8px rgba(32,178,170,0.45))' : 'none',
         transition: 'transform .25s cubic-bezier(.16,1,.3,1), filter .25s ease',
         '& svg': { fontSize: 22 }
       }}>
-        {on ? <MenuIcon /> : <MenuIcon sx={{ opacity: 0.65 }} />}
+        {on ? <GridViewRoundedIcon /> : <GridViewOutlinedIcon />}
       </Box>
       <Typography sx={{
         fontSize: 12, // floor de leitura (antes xs:10)
