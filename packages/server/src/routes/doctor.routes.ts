@@ -1161,6 +1161,13 @@ router.get('/patients/:patientId/vitals', requireDoctor, async (req: any, res, n
     // explícito e best-effort: tabela nova, não pode derrubar o brief se faltar em algum banco.
     const BC_SELECT = { measuredAt: true, source: true, deviceBrand: true, deviceModel: true, weightKg: true, bodyFatPct: true, fatMassKg: true, skeletalMuscleKg: true, fatFreeMassKg: true, needsReview: true } as const;
     const bodyRows = await prisma.bodyComposition.findMany({ where: { patientId: pid }, orderBy: { measuredAt: 'desc' }, take: 2, select: BC_SELECT }).catch(() => []);
+    // FICHA DA CONSULTA (28/11/26): pressão aferida pelo paciente (value = sistólica,
+    // valueSecondary = diastólica — mesma convenção do panorama) + altura p/ o IMC.
+    // Best-effort: nunca derruba o brief.
+    const [bpRows, heightRow] = await Promise.all([
+      prisma.measurement.findMany({ where: { patientId: pid, type: 'BLOOD_PRESSURE', valueSecondary: { not: null } }, orderBy: { measuredAt: 'desc' }, take: 10, select: { value: true, valueSecondary: true, measuredAt: true } }).catch(() => []),
+      prisma.patient.findUnique({ where: { id: pid }, select: { heightCm: true } }).catch(() => null),
+    ]);
 
     // Summary: médias 30d sobre os dias COM dado da métrica (zero = sem registro, não conta).
     const cutoff = Date.now() - 30 * 86400000;
@@ -1182,6 +1189,8 @@ router.get('/patients/:patientId/vitals', requireDoctor, async (req: any, res, n
       },
       lastSyncAt,
       bodyComposition: bodyRows[0] ? { latest: bodyRows[0], previous: bodyRows[1] ?? null } : null,
+      bloodPressure: bpRows.map((r) => ({ systolic: r.value, diastolic: r.valueSecondary as number, at: r.measuredAt })),
+      heightCm: heightRow?.heightCm ?? null,
     });
   } catch (e) { next(e); }
 });

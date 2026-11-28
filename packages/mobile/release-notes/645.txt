@@ -1,0 +1,5 @@
+• Portal do Médico novo: ficha da consulta em 15 segundos.
+• Alergia e doenças do paciente sempre no topo.
+• Alerta só do que importa: remédio em interação com exame alterado.
+• O que mudou desde a última consulta, com a sua nota.
+• Copiar resumo pronto para o prontuário e pedir exames em um toque.

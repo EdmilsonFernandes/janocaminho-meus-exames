@@ -36,7 +36,6 @@ import { API_URL, photoUrlFor, doctorPhotoUrl } from '../config';
 import { AppCard } from '../components/AppCard';
 import { LAYOUT, COPPER, copperText, SEM } from '../theme';
 import { premiumText, badDot } from '../components/doctors/portal/shared';
-import { priorityOf, refScaleSuspect } from '../utils/alertPriority';
 import { QuestionStatusBadge } from '../components/QuestionStatusBadge';
 import { confirmDialog, snackbar } from '../components/ConfirmDialog';
 import VideocamIcon from '@mui/icons-material/Videocam';
@@ -72,9 +71,7 @@ import { DoctorValoresAlterados } from '../components/doctors/DoctorValoresAlter
 import { DoctorConsolidatedReport } from '../components/doctors/DoctorConsolidatedReport';
 import { DoctorTrends } from '../components/doctors/DoctorTrends';
 import { SportsPanel } from '../components/doctors/portal/SportsPanel';
-import { PatientSummary } from '../components/doctors/PatientSummary';
-import { ClinicalRiskCard } from '../components/doctors/ClinicalRiskCard';
-import { ProntuarioTab } from '../components/doctors/portal/ProntuarioTab';
+import { ConsultaFicha } from '../components/doctors/ficha/ConsultaFicha';
 // F3 (20/10) — área pós-consulta + pedidos de exame (doc 2026-10-20-f3-ux.md).
 import { TranscriptView } from '../components/teleconsulta/TranscriptView';
 import { ExamRequestCard } from '../components/teleconsulta/ExamRequestCard';
@@ -169,7 +166,7 @@ import { ListEmpty } from '@/components/reui/list-empty';
 import { copyText } from '../utils/clipboard';
 
 const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
-  prontuario: { label: 'Prontuário', icon: <Stethoscope size={22} weight="duotone" /> },
+  resumo: { label: 'Resumo', icon: <Stethoscope size={22} weight="duotone" /> },
   exams: { label: 'Exames', icon: <Receipt size={22} weight="duotone" /> },
   alterados: { label: 'Alterados', icon: <Flag size={22} weight="duotone" /> },
   tendencias: { label: 'Tendências', icon: <ChartLineUp size={22} weight="duotone" /> },
@@ -187,10 +184,14 @@ const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
  *  aparece no portal (gate único aqui). */
 const computeTabs = (scopes: string[]): string[] => {
   const t: string[] = [];
-  // PRONTUÁRIO (dono 05/11): sempre primeiro — é o documento clínico consolidado
-  if (scopes.includes('exams')) t.push('prontuario', 'exams', 'alterados', 'tendencias');
+  // FICHA DA CONSULTA (28/11/26): "Resumo" sempre primeiro — é o que o médico vê quando o
+  // paciente senta. Anotações e Perguntas voltaram à barra (os quadrinhos que levavam até
+  // elas saíram com o cabeçalho antigo).
+  t.push('resumo');
+  if (scopes.includes('exams')) t.push('exams', 'alterados', 'tendencias');
   if (scopes.includes('summary')) t.push('relatorio');
   if (scopes.includes('sports')) t.push('sports');
+  t.push('notes', 'questions');
   return t;
 };
 
@@ -414,7 +415,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [abnormalItems, setAbnormalItems] = useState<any[]>([]);
   // Remédios ativos + interações críticas do paciente (tile 6 do hero; dialog no clique).
   const [medsInfo, setMedsInfo] = useState<{ medications: any[]; critical: any[] } | null>(null);
-  const [medsOpen, setMedsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   // TELECONSULTA (lote "estilo Teams" 18/10): o médico marca data/hora + cola o link
@@ -440,7 +440,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [telePatId, setTelePatId] = useState<string>('');
   const [teleFilter, setTeleFilter] = useState<'all' | 'today' | 'upcoming' | 'past'>('all');
   const [teleSearch, setTeleSearch] = useState('');
-  const [fichaTeleMenu, setFichaTeleMenu] = useState<HTMLElement | null>(null); // overflow (⋮) da teleconsulta em destaque na ficha
 
   /** Abre o dialog de teleconsulta já com AMANHÃ pré-marcado — botão de agendar
    *  nasce clicável (vazio antes = desabilitado em silêncio, parecia "morto"). */
@@ -488,7 +487,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   // §12.4 (spec teleconsulta): "Novos dados recebidos — atualizando análise" — true quando
   // o último exame extraído é mais recente que a última análise de risco (server já recalcula
   // no GET /risk; o banner avisa o médico de que a prioridade mudou com dados novos).
-  const [riskInfo, setRiskInfo] = useState<{ newDataReceived: boolean; createdAt: string | null } | null>(null);
   // Funil do médico: convidar paciente (pré-cadastro) + lista de convites pendentes.
   const [invites, setInvites] = useState<any[]>([]);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -651,36 +649,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const scopes: string[] = selected?.scopes ?? [];
   const supportedTabs = computeTabs(scopes);
 
-  /** Estratificação por prioridade (mesma régua da aba Alterados: suspect de escala fora). */
-  const abnormalStats = useMemo(() => {
-    const c = { total: 0, importante: 0, moderada: 0, leve: 0 };
-    for (const it of abnormalItems) {
-      if (refScaleSuspect(it)) continue;
-      c[priorityOf(it)]++; c.total++;
-    }
-    return c;
-  }, [abnormalItems]);
-
-  /** PRIORIDADE CLÍNICA = SÓ O ÚLTIMO EXAME (dono 05/11: "todos mostram e assusta o
-   *  médico"): alterados históricos inflavam o card de risco com o passado. Aqui ficam
-   *  apenas os itens do exame MAIS RECENTE — a régua de "preciso agir agora". A aba
-   *  Alterados continua mostrando o histórico completo. */
-  const itemExamTime = (it: any) => new Date(it.examDate || it.performedAt || it.createdAt || 0).getTime();
-  const latestAbnormalItems = useMemo(() => {
-    if (abnormalItems.length <= 1) return abnormalItems;
-    const latest = Math.max(...abnormalItems.map(itemExamTime));
-    return abnormalItems.filter((it) => itemExamTime(it) === latest);
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [abnormalItems]);
-  const latestAbnormalStats = useMemo(() => {
-    const c = { total: 0, importante: 0, moderada: 0, leve: 0 };
-    for (const it of latestAbnormalItems) {
-      if (refScaleSuspect(it)) continue;
-      c[priorityOf(it)]++; c.total++;
-    }
-    return c;
-  }, [latestAbnormalItems]);
-
   // --- Anotações ---
   const addNote = async () => {
     const content = newNote.trim();
@@ -712,7 +680,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     if (tabOverride && pTabs.includes(tabOverride)) initial = tabOverride;
     setTab(initial);
     setSelExam(null);
-    setDetailLoading(true); setExams([]); setAbnormalItems([]); setNotes([]); setQuestions([]); setMedsInfo(null); setPatientTele([]); setRiskInfo(null);
+    setDetailLoading(true); setExams([]); setAbnormalItems([]); setNotes([]); setQuestions([]); setMedsInfo(null); setPatientTele([]);
     const mySeq = ++openSeq.current;
     const mine = () => mySeq === openSeq.current;
     const pid = p.patient.id;
@@ -724,7 +692,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       // Atividade 30d (Health Connect do paciente) p/ o tile do resumo — silencioso se não houver.
       ...(wantExams ? [get('/activity').then((d) => { if (d && mine()) setActivity(d?.days ? d : null); })] : []),
       // §12.4: análise de risco + flag "dados novos desde a última análise" (banner no prontuário).
-      ...(wantExams ? [get('/risk').then((d) => { if (d && mine()) setRiskInfo({ newDataReceived: !!d.newDataReceived, createdAt: d.createdAt ?? null }); })] : []),
       get('/questions').then((d) => { if (d && mine()) setQuestions(d.items ?? []); }),
       get('/notes').then((d) => { if (d && mine()) setNotes(d.items ?? []); }),
       get('/medications').then((d) => { if (d && mine()) setMedsInfo({ medications: d.medications ?? [], critical: d.critical ?? [] }); }),
@@ -764,7 +731,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       ...(wantExams ? [get('/exams').then((d) => { if (d) setExams(d.items ?? []); })] : []),
       ...(wantExams ? [get('/items/abnormal').then((d) => { if (d) setAbnormalItems(d.current ?? d.items ?? []); })] : []),
       ...(wantExams ? [get('/activity').then((d) => { if (d) setActivity(d?.days ? d : null); })] : []),
-      ...(wantExams ? [get('/risk').then((d) => { if (d) setRiskInfo({ newDataReceived: !!d.newDataReceived, createdAt: d.createdAt ?? null }); })] : []),
       get('/questions').then((d) => { if (d) setQuestions(d.items ?? []); }),
       get('/notes').then((d) => { if (d) setNotes(d.items ?? []); }),
       get('/medications').then((d) => { if (d) setMedsInfo({ medications: d.medications ?? [], critical: d.critical ?? [] }); }),
@@ -1355,8 +1321,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         <MenuItem onClick={() => { setView('profile'); setAvatarEl(null); }}><ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon><ListItemText>Meu perfil</ListItemText></MenuItem>
         <MenuItem onClick={() => { setView('password'); setAvatarEl(null); }}><ListItemIcon><LockIcon fontSize="small" /></ListItemIcon><ListItemText>Trocar senha</ListItemText></MenuItem>
         <FeedbackAvatarMenuItem onDone={() => setAvatarEl(null)} />
-        <Divider sx={{ my: 0.5 }} />
-        <MenuItem onClick={() => { setAvatarEl(null); onLogout(); }} sx={{ color: 'error.main' }}><ListItemIcon><LogoutIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon><ListItemText>Sair</ListItemText></MenuItem>
       </Menu>
       {/* MENU vertical PERMANENTE (web/desktop) — abre igual ao app do paciente. Mobile usa o Drawer abaixo. */}
       {isDesktop && (
@@ -1365,8 +1329,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         </Box>
       )}
       <Box sx={{ flex: 1, minWidth: 0 }}>
-      {/* Header profissional — limpo, sem gradiente (inspirado em Linear/Stripe) */}
-      <Box sx={{ bgcolor: 'background.paper', px: { xs: 2, md: 3 }, pt: 'calc(env(safe-area-inset-top) + 10px)', pb: 1.5, display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: '1px solid', borderColor: 'rgba(0,0,0,.06)', boxShadow: '0 1px 3px rgba(0,0,0,.03)' }}>
+      {/* Header profissional — limpo, sem gradiente (inspirado em Linear/Stripe).
+          Com paciente aberto ele SAI: no lugar entra a barra fixa do paciente (ficha) —
+          o médico não precisa ver o próprio nome; precisa ver quem está na cadeira. */}
+      <Box sx={{ display: view === 'patients' && selected ? 'none' : 'flex', bgcolor: 'background.paper', px: { xs: 2, md: 3 }, pt: 'calc(env(safe-area-inset-top) + 10px)', pb: 1.5, alignItems: 'center', gap: 1.5, borderBottom: '1px solid', borderColor: 'rgba(0,0,0,.06)', boxShadow: '0 1px 3px rgba(0,0,0,.03)' }}>
         {(selected || selExam) && (
           <IconButton onClick={goBack} size="small" aria-label="Voltar" sx={{ color: 'text.secondary', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' }, flexShrink: 0 }}><ArrowBackIcon fontSize="small" /></IconButton>
         )}
@@ -1376,8 +1342,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, color: 'text.primary', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{view === 'overview' ? 'Painel' : view === 'patients' ? (selected ? 'Detalhe do paciente' : 'Pacientes') : view === 'teleconsultas' ? 'Agenda de Teleconsultas' : view === 'finance' ? 'Financeiro' : view === 'invites' ? 'Convites' : view === 'questions' ? 'Perguntas' : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
               {planInfo?.isPremium && <Chip size="small" icon={<Diamond size={12} weight="fill" />} label="Pro" sx={{ bgcolor: 'rgba(99,102,241,.10)', color: (t: Theme) => premiumText(t.palette.mode), fontWeight: 700, height: 22, fontSize: 12, flexShrink: 0, '& .MuiChip-icon': { color: (t: Theme) => premiumText(t.palette.mode) } }} />}
             </Stack>
-            {/* Assinatura do portal: cobre = modo médico (viewer clínico somente leitura). */}
-            <Chip size="small" icon={<Stethoscope size={13} />} label="Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 22, fontSize: 12, fontWeight: 700, bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode), '& .MuiChip-icon': { color: (t: Theme) => copperText(t.palette.mode) } }} />
           </Box>
         ) : (
           <>
@@ -1389,10 +1353,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary', lineHeight: 1.2 }}>{doctor?.name || 'Médico'}</Typography>
               <Typography variant="caption" noWrap sx={{ color: 'text.secondary', display: 'block' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
-              {/* Assinatura do portal: cobre = modo médico (viewer clínico somente leitura). */}
-              {/* maxWidth + noWrap no caption acima: a 390px o chip estourava a coluna e
-                  sobrepunha o CRM (auditoria 29/10) — agora trunca com ellipsis do MuiChip. */}
-              <Chip size="small" icon={<Stethoscope size={13} />} label="Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 20, fontSize: 12, fontWeight: 700, maxWidth: '100%', bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode), '& .MuiChip-icon': { color: (t: Theme) => copperText(t.palette.mode) } }} />
             </Box>
           </>
         )}
@@ -1625,6 +1585,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
       <Box sx={{ maxWidth: LAYOUT.content, mx: 'auto', p: { xs: 2, md: 3 }, pb: { xs: 11, md: 4 }, bgcolor: 'background.default', minHeight: '100dvh', overflowX: 'hidden', width: '100%' }}>
         {view === 'profile' && <DoctorProfileForm token={token} doctor={doctor} onBack={() => setView('patients')} onSaved={(d) => setDoctor(d)} onPhoto={() => setPhotoVer((v) => v + 1)} photoVer={photoVer} isPremium={!!planInfo?.isPremium} />}
+        {view === 'profile' && (
+          <Box sx={{ maxWidth: 720, mx: 'auto', mt: 2, mb: 2 }}>
+            <Button fullWidth variant="outlined" color="error" startIcon={<LogoutIcon />}
+              onClick={async () => { if (await confirmDialog({ title: 'Sair da conta?', message: 'Você vai precisar entrar de novo com e-mail ou CRM.', confirmLabel: 'Sair' })) onLogout(); }}
+              sx={{ minHeight: 48, borderRadius: '12px', textTransform: 'none', fontWeight: 700 }}>
+              Sair da conta
+            </Button>
+          </Box>
+        )}
         {view === 'password' && <DoctorChangePasswordForm token={token} onBack={() => setView('patients')} />}
 
         {/* CONVITES — gestão dedicada */}
@@ -1816,288 +1785,37 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         {/* DETALHE DO PACIENTE — desktop: LARGA TOTAL (sem rail de pacientes); mobile: coluna única */}
         {view === 'patients' && selected && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minWidth: 0, maxWidth: { md: '100%', lg: 1040, xl: 1240 }, mx: 'auto', width: '100%' }}>
-            {isDesktop && (
-              <Button size="small" onClick={() => { setSelected(null); setSelExam(null); }} startIcon={<ArrowBackIcon />}
-                sx={{ alignSelf: 'flex-start', textTransform: 'none', fontWeight: 700, color: 'text.secondary', mb: -1 }}>
-                Voltar aos pacientes
-              </Button>
-            )}
-
-            {riskInfo?.newDataReceived && (
-          <Alert severity="info" sx={{ py: 0.75, borderRadius: '12px', '& .MuiAlert-message': { fontSize: 13, fontWeight: 600 } }}>
-            Novos dados recebidos — atualizando análise: a prioridade clínica foi recalculada com os exames mais recentes.
-          </Alert>
-        )}
-        {/* HERO DO PACIENTE — Identidade, Dados Vitais e Atalhos de Ação Imediata */}
-            <PatientSummary
+            {/* FICHA DA CONSULTA (28/11/26) — barra fixa do paciente + segurança + resumo.
+                Substitui o cabeçalho de quadrinhos, a faixa de teleconsulta e o cartão
+                "Prioridade 100/100" (decisão do painel de médicos: nada de escore inventado). */}
+            <ConsultaFicha
+              token={token}
               patient={selected}
-              loading={detailLoading}
-              exams={exams}
-              abnormal={abnormalStats}
-              questions={questions}
-              notes={notes}
               patients={patients}
-              onSwitchPatient={(pid) => { const np = patients.find((x: any) => (x.patient?.id || x.id) === pid); if (np) openPatient(np); }}
-              onOpenExam={(id) => { setSelExam(id); focusTab('exams'); }}
-              onAlterados={() => focusTab('alterados')}
-              onOpenExams={() => focusTab('exams')}
-              onOpenQuestions={() => focusTab('questions')}
-              onOpenNotes={() => focusTab('notes')}
-              onOpenActivity={() => focusTab('exams')}
-              medsCount={medsInfo ? medsInfo.medications.filter((m: any) => m.active).length : 0}
-              criticalMeds={medsInfo?.critical?.length ?? 0}
-              onOpenMeds={() => setMedsOpen(true)}
-              activity={activity}
-              onScheduleTele={openTele}
-            />
-
-            {/* FAIXA EXECUTIVA DE TELECONSULTA DO PACIENTE — sem repetir foto/nome do paciente já presentes no cabeçalho */}
-            {patientTele.length > 0 && (() => {
-              const nowMs = Date.now();
-              const upcoming = patientTele.find((t) => !t.endedAt && new Date(t.dueDate).getTime() >= nowMs - 1800000)
-                || patientTele.find((t) => !t.endedAt)
-                || patientTele[0];
-              const teleEnded = !!upcoming.endedAt;
-              const pName = selected?.patient?.fullName || selected?.patient?.name || 'Paciente';
-              const dt = new Date(upcoming.dueDate).toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-              const isFuture = !teleEnded && new Date(upcoming.dueDate).getTime() >= nowMs;
-
-              return (
-                <AppCard
-                  kind="elevated"
-                  sx={{
-                    p: { xs: 1.5, sm: 2 },
-                    borderRadius: '14px',
-                    border: '1px solid',
-                    borderColor: isFuture ? 'rgba(15,118,110,0.35)' : 'rgba(212,165,116,0.28)',
-                    bgcolor: 'background.paper',
-                    boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
-                  }}
-                >
-                  <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    alignItems={{ xs: 'stretch', sm: 'center' }}
-                    justifyContent="space-between"
-                    spacing={1.25}
-                  >
-                    <Stack direction="row" alignItems="center" spacing={1.25} flexWrap="wrap" useFlexGap sx={{ minWidth: 0, flex: 1 }}>
-                      <Box sx={{ width: 32, height: 32, borderRadius: '9px', bgcolor: isFuture ? 'rgba(15,118,110,0.12)' : 'rgba(212,165,116,0.14)', display: 'grid', placeItems: 'center', color: isFuture ? '#178f89' : 'secondary.dark', flexShrink: 0 }}>
-                        <VideocamIcon sx={{ fontSize: 18 }} />
-                      </Box>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Stack direction="row" alignItems="center" spacing={0.75} flexWrap="wrap" useFlexGap>
-                          <Typography sx={{ fontWeight: 800, fontSize: 13.5, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1.2 }}>
-                            {isFuture ? 'Próxima Teleconsulta' : 'Última Teleconsulta'}
-                          </Typography>
-                          <Chip size="small" label={`Sala ${String(upcoming.id).slice(-5).toUpperCase()}`} sx={{ height: 20, fontSize: 12, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.15)', color: 'secondary.dark' }} />
-                          {!teleEnded ? (
-                            <Chip
-                              size="small"
-                              label={upcoming.consentAt ? '✓ Autorizado (CFM)' : '⏳ Aguardando aceite'}
-                              sx={{
-                                height: 20, fontSize: 12, fontWeight: 700,
-                                bgcolor: upcoming.consentAt ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
-                                color: upcoming.consentAt ? '#059669' : '#d97706',
-                              }}
-                            />
-                          ) : (
-                            <Chip
-                              size="small"
-                              label="✓ Concluída"
-                              sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: (t) => tealText(t.palette.mode) }}
-                            />
-                          )}
-                        </Stack>
-                        <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>
-                          {dt}
-                          {upcoming.title && upcoming.title !== 'Teleconsulta médica' ? ` · 📌 ${upcoming.title}` : ''}
-                          {patientTele.length > 1 ? ` · +${patientTele.length - 1} no histórico` : ''}
-                        </Typography>
-                      </Box>
-                    </Stack>
-
-                    <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap" useFlexGap sx={{ flexShrink: 0 }}>
-                      {teleEnded ? (
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<SummarizeIcon />}
-                          onClick={() => void openPost(upcoming.id)}
-                          sx={{
-                            borderRadius: '999px', textTransform: 'none', fontWeight: 800,
-                            borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode),
-                            px: 1.5, py: 0.4, fontSize: 12,
-                          }}
-                        >
-                          Resumo da consulta
-                        </Button>
-                      ) : (
-                        <>
-                          <Button
-                            variant="contained"
-                            size="small"
-                            startIcon={<VideocamIcon />}
-                            onClick={() => handleEnterTele(upcoming, pName)}
-                            sx={{
-                              borderRadius: '999px', textTransform: 'none', fontWeight: 800,
-                              background: 'linear-gradient(135deg, #178f89 0%, #0d5f5a 100%)',
-                              px: 1.75, py: 0.5, fontSize: 12, color: '#ffffff',
-                            }}
-                          >
-                            Entrar
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={<AssignmentAddIcon />}
-                            onClick={() => setReqOpenId(upcoming.id)}
-                            sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, borderRadius: '999px', borderColor: 'rgba(32,178,170,0.35)', color: (t) => tealText(t.palette.mode) }}
-                          >
-                            Pedir exame
-                          </Button>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<SummarizeIcon />}
-                            onClick={() => void openPost(upcoming.id)}
-                            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12, borderColor: 'divider', color: 'text.secondary' }}
-                          >
-                            Resumo
-                          </Button>
-                        </>
-                      )}
-                      <Button
-                        size="small"
-                        variant="text"
-                        onClick={() => {
-                          setTeleSearch(pName);
-                          setView('teleconsultas');
-                          setSelected(null);
-                          setSelExam(null);
-                        }}
-                        sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, borderRadius: '999px', color: (t) => tealText(t.palette.mode) }}
-                      >
-                        Agenda ({patientTele.length}) →
-                      </Button>
-                      <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={() => openTele()} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', borderColor: 'secondary.dark', color: 'secondary.dark', fontSize: 12 }}>
-                        + Nova
-                      </Button>
-                      <Tooltip title="Mais ações">
-                        <IconButton
-                          size="small"
-                          aria-label="Mais ações da teleconsulta"
-                          aria-haspopup="menu"
-                          onClick={(e) => setFichaTeleMenu(e.currentTarget)}
-                          sx={{ color: 'text.secondary', border: '1px solid', borderColor: 'divider' }}
-                        >
-                          <MoreVertIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                  </Stack>
-
-                  <Menu
-                    anchorEl={fichaTeleMenu}
-                    open={!!fichaTeleMenu}
-                    onClose={() => setFichaTeleMenu(null)}
-                    slotProps={{ paper: { sx: { borderRadius: '14px', minWidth: 230, mt: 1, boxShadow: '0 10px 28px rgba(0,0,0,0.12)' } } }}
-                  >
-                    {upcoming.linkUrl && (
-                      <MenuItem onClick={() => { copyText(upcoming.linkUrl); snackbar({ message: 'Link da teleconsulta copiado!', severity: 'info' }); setFichaTeleMenu(null); }}>
-                        <ListItemIcon><ContentCopyIcon fontSize="small" /></ListItemIcon>
-                        <ListItemText>Copiar link da reunião</ListItemText>
-                      </MenuItem>
-                    )}
-                    <MenuItem onClick={() => { setFichaTeleMenu(null); cancelTele(upcoming.id, selected.patient.id); }} sx={{ color: 'error.main' }}>
-                      <ListItemIcon><DeleteOutlinedIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
-                      <ListItemText>Cancelar consulta</ListItemText>
-                    </MenuItem>
-                  </Menu>
-                </AppCard>
-              );
-            })()}
-
-
-
-            {/* REMÉDIOS do paciente (read-only) + interações críticas — contexto farmacológico. */}
-            <Dialog open={medsOpen} onClose={() => setMedsOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '12px' } }}>
-              <DialogTitle sx={{ fontWeight: 800 }}>💊 Remédios de {selected.patient?.fullName ?? 'paciente'}</DialogTitle>
-              <DialogContent>
-                {(!medsInfo || medsInfo.medications.length === 0) && (
-                  <ListEmpty title="Nenhum remédio cadastrado pelo paciente" />
-                )}
-                {medsInfo && medsInfo.medications.length > 0 && (
-                  <Stack spacing={0.75} sx={{ mt: 1 }}>
-                    {medsInfo.medications.map((m: any) => (
-                      <Box key={m.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1, borderRadius: '12px', bgcolor: 'action.hover', opacity: m.active ? 1 : 0.55 }}>
-                        {/* FOTO do produto (catálogo/snapshot) — mesma régua da página Remédios */}
-                        {m.catalogPhotoUrl ? (
-                          <Box component="img" src={m.catalogPhotoUrl} alt={m.name} loading="lazy"
-                            sx={{ width: 40, height: 40, borderRadius: '8px', objectFit: 'contain', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} />
-                        ) : (
-                          <Box sx={{ width: 40, height: 40, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: 'rgba(32,178,170,.1)', color: (t) => tealText(t.palette.mode), fontWeight: 800, fontSize: 16, fontFamily: 'Poppins, sans-serif' }}>
-                            {String(m.name || '?').trim().charAt(0).toUpperCase()}
-                          </Box>
-                        )}
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{m.name}</Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ')}{m.active ? '' : ' · suspenso'}</Typography>
-                        </Box>
-                      </Box>
-                    ))}
-                    {medsInfo.critical.length > 0 && (
-                      <Box sx={{ mt: 1.5 }}>
-                        <Typography sx={{ fontWeight: 800, color: 'error.main', fontSize: 14, mb: 0.5 }}>⚠️ Interações críticas</Typography>
-                        {medsInfo.critical.map((c: any, i: number) => (
-                          <Box key={i} sx={{ p: 1, borderRadius: '8px', bgcolor: 'rgba(185,28,28,.08)', mb: 0.75 }}>
-                            <Typography sx={{ fontWeight: 700, fontSize: 13 }}>{c.drugA} + {c.drugB} ({c.severity})</Typography>
-                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>{c.effect}</Typography>
-                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>💡 {c.recommendation}</Typography>
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
-                    <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1 }}>Cadastro do paciente · leitura educativa, não substitui julgamento clínico.</Typography>
-                  </Stack>
-                )}
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setMedsOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Fechar</Button>
-              </DialogActions>
-            </Dialog>
-
-            {/* AVALIAÇÃO DE RISCO CLÍNICO — Estratificação imediata para o médico */}
-            <ClinicalRiskCard
-              patient={selected}
-              abnormalItems={latestAbnormalItems}
-              abnormalStats={latestAbnormalStats}
-              exams={exams}
-              medsCount={medsInfo ? medsInfo.medications.filter((m: any) => m.active).length : 0}
-              criticalMeds={medsInfo?.critical?.length ?? 0}
-              onNavigateToAlterados={(targetTab) => {
-                // Fix 04/11 (dono: "Ver dados não faz nada"): o clique trocava a tab
-                // mas (a) quando o paciente NÃO tem a aba alvo, morria em silêncio;
-                // (b) quando tinha, a troca acontecia FORA da vista (tabs sticky acima).
-                // Agora: troca + scroll suave até as tabs; sem destino → alerta claro.
-                const target = targetTab || 'alterados';
-                const dest = supportedTabs.includes(target) ? target : supportedTabs.includes('alterados') ? 'alterados' : null;
-                if (dest) {
-                  setTab(dest);
-                  setSelExam(null);
-                  requestAnimationFrame(() => {
-                    document.getElementById('patient-tabs-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  });
-                } else {
-                  snackbar({ message: 'Este paciente ainda não compartilhou exames com você. A aba "Alterados" aparece depois do compartilhamento.', severity: 'info' });
-                }
-              }}
-              onRefreshAnalysis={refreshPatientDetail}
-              refreshing={detailLoading}
+              canSeeHealth={scopes.includes('exams')}
+              abnormalItems={abnormalItems}
+              medsInfo={medsInfo}
+              notes={notes}
+              questions={questions}
+              teleconsultas={patientTele}
               loading={detailLoading}
-            />
-
-            {supportedTabs.length > 0 && (
-              <Box id="patient-tabs-section" sx={{ position: 'sticky', top: 'env(safe-area-inset-top)', zIndex: 10, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', mx: -2, px: { xs: 1, sm: 2 }, mt: { xs: -0.5, lg: 0 }, mb: 2 }}>
+              showBody={tab === 'resumo' && !selExam}
+              onBack={() => { setSelected(null); setSelExam(null); }}
+              onSwitchPatient={(pid) => { const np = patients.find((x: any) => (x.patient?.id || x.id) === pid); if (np) openPatient(np); }}
+              onOpenTab={(k) => focusTab(k)}
+              onEnterTele={(tc) => handleEnterTele(tc, selected?.patient?.fullName || 'Paciente')}
+              onTeleMenu={(action, tc) => {
+                if (!tc) return;
+                if (action === 'request') setReqOpenId(tc.id);
+                else if (action === 'summary') void openPost(tc.id);
+                else if (action === 'copy') { copyText(tc.linkUrl); snackbar({ message: 'Link da teleconsulta copiado!', severity: 'info' }); }
+                else if (action === 'agenda') { setTeleSearch(selected?.patient?.fullName || ''); setView('teleconsultas'); setSelected(null); setSelExam(null); }
+                else if (action === 'new') openTele();
+                else if (action === 'cancel') cancelTele(tc.id, selected.patient.id);
+              }}
+              onNotify={(message, severity = 'info') => snackbar({ message, severity })}
+              tabs={supportedTabs.length > 1 ? (
+              <Box id="patient-tabs-section" sx={{ bgcolor: 'background.paper', border: { xs: 0, md: '1px solid' }, borderBottom: '1px solid', borderColor: 'divider', mx: { xs: -2, md: 0 }, px: { xs: 1, sm: 2 }, borderRadius: { md: '14px' }, scrollMarginTop: '120px' }}>
                 <Tabs
                   /* A aba ativa pode ser um destino de TILE (questions/notes) que não está na
                      barra — value=false evita warning do MUI e mantém nenhuma aba marcada. */
@@ -2145,7 +1863,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 >
                   {supportedTabs.map((s) => {
                     const meta = SCOPE_META[s] || { icon: <DescriptionIcon />, label: s };
-                    const count = s === 'exams' ? exams.length : s === 'alterados' ? abnormalStats.total : 0;
+                    const count = s === 'questions' ? questions.filter((q: any) => q.status !== 'answered').length : 0; // um número só, onde ele pede ação
                     return (
                       <Tab
                         key={s}
@@ -2167,8 +1885,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                   px: 0.65,
                                   py: 0.2,
                                   borderRadius: '999px',
-                                  bgcolor: s === 'alterados' && abnormalStats.total > 0 ? 'rgba(239, 68, 68, 0.12)' : 'rgba(100, 116, 139, 0.12)',
-                                  color: s === 'alterados' && abnormalStats.total > 0 ? 'error.main' : 'text.secondary',
+                                  bgcolor: 'rgba(212,165,116,.2)',
+                                  color: (t: Theme) => copperText(t.palette.mode),
                                 }}
                               >
                                 {count}
@@ -2181,24 +1899,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   })}
                 </Tabs>
               </Box>
-            )}
+              ) : null}
+            />
 
             {/* NOVOS BODIES (espelham o app do paciente) — Exames / Alterados / Relatório via
                 componentes dedicados em components/doctors. Perguntas e Anotações seguem inline. */}
             {/* PRONTUÁRIO (dono 05/11): documento clínico consolidado — primeiro tab */}
-            {tab === 'prontuario' && !selExam && (
-              <ProntuarioTab
-                patient={selected}
-                abnormalItems={abnormalItems}
-                abnormalStats={abnormalStats}
-                exams={exams}
-                medsInfo={medsInfo}
-                notes={notes}
-                teleconsultas={patientTele}
-                questions={questions}
-                loading={detailLoading}
-              />
-            )}
             {tab === 'exams' && !selExam && (
               <DoctorExamList patientId={selected.patient.id} token={token} onOpen={(id) => setSelExam(id)} />
             )}
@@ -2290,7 +1996,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     lembrete c/ push e ✓ automático quando o exame chega. Junto das notas
                     (mesmo contexto clínico do painel do paciente). */}
                 {tab === 'notes' && !selExam && selected?.patient && (
-                  <CollectionChecklistPanel patientId={selected.patient.id} token={token} />
+                  <Box id="plano-coleta" sx={{ scrollMarginTop: '140px' }}>
+                    <CollectionChecklistPanel patientId={selected.patient.id} token={token} />
+                  </Box>
                 )}
           </Box>
         )}
@@ -2544,13 +2252,20 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
       {/* MENU RODAPÉ (mobile) — Pacientes · Perguntas · Perfil · Mais. Botões acessíveis (aria + button nativo). */}
       <Box component="nav" sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, display: { xs: 'flex', md: 'none' }, justifyContent: 'space-around', bgcolor: 'background.paper', backdropFilter: 'blur(14px)', borderTop: '1px solid', borderTopColor: 'divider', pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -6px 24px rgba(32,178,170,.10)' }}>
-        {([
+        {(view === 'patients' && selected ? ([
+          // PACIENTE ABERTO: a barra vira AÇÕES no polegar (painel de médicos: "pedir exame e
+          // anotar resolvem 80% do que eu faço"). Voltar = seta da barra do paciente.
+          { label: 'Resumo', on: tab === 'resumo' && !selExam, onClick: () => focusTab('resumo'), icon: <Stethoscope size={22} weight="duotone" />, badge: 0 },
+          { label: 'Pedir exame', on: false, onClick: () => { focusTab('notes'); setTimeout(() => document.getElementById('plano-coleta')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250); }, icon: <AssignmentAddIcon />, badge: 0 },
+          { label: 'Anotar', on: tab === 'notes' && !selExam, onClick: () => focusTab('notes'), icon: <NotePencil size={22} weight="duotone" />, badge: 0 },
+          { label: 'Responder', on: tab === 'questions' && !selExam, onClick: () => focusTab('questions'), icon: <QuestionAnswerIcon />, badge: questions.filter((q: any) => q.status !== 'answered').length },
+        ] as const) : ([
           { label: 'Início', on: view === 'overview', onClick: () => { setView('overview'); setSelected(null); setSelExam(null); }, icon: <SpaceDashboardIcon />, badge: 0 },
           { label: 'Pacientes', on: view === 'patients', onClick: () => { setView('patients'); setSelected(null); setSelExam(null); }, icon: <GroupsIcon />, badge: 0 },
           { label: 'Consultas', on: view === 'teleconsultas', onClick: () => { setView('teleconsultas'); setSelected(null); setSelExam(null); }, icon: <VideocamIcon />, badge: doctorTele.length },
           { label: 'Perguntas', on: view === 'questions', onClick: () => { setView('questions'); loadAllQ(); }, icon: <QuestionAnswerIcon />, badge: unreadQ },
           { label: 'Perfil', on: view === 'profile' || view === 'password', onClick: () => setView('profile'), icon: <PersonIcon />, badge: 0 },
-        ] as const).map((it) => (
+        ] as const)).map((it) => (
           <Box
             key={it.label}
             component="button"

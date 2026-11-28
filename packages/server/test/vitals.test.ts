@@ -94,4 +94,22 @@ describe('GET /api/doctor/patients/:patientId/vitals — sinais vitais no brief'
     expect(r.body.summary.restingHrAvg30d).toBe(62); // (60+64)/2 — manual 99 ignorada
     expect(r.body.summary.sleepAvg30dMin).toBe(440); // (420+460)/2
   });
+
+  it('ficha da consulta: PA domiciliar (só aferição completa, mais recente primeiro) + altura p/ IMC', async () => {
+    const { patient, token } = await createUser();
+    const crm = '77781-SP';
+    const { token: docToken } = await createDoctor({ crm, email: 'vitalsbp@t.com' });
+    await api().post('/api/doctor-shares').set(authHeader(token)).send({ doctorCrm: crm, scopes: ['exams'], patientId: patient.id });
+    await prisma.patient.update({ where: { id: patient.id }, data: { heightCm: 177 } });
+    await prisma.measurement.createMany({ data: [
+      { patientId: patient.id, type: 'BLOOD_PRESSURE', value: 142, valueSecondary: 88, unit: 'mmHg', measuredAt: new Date(Date.now() - 1 * 86400000) },
+      { patientId: patient.id, type: 'BLOOD_PRESSURE', value: 130, valueSecondary: 80, unit: 'mmHg', measuredAt: new Date(Date.now() - 3 * 86400000) },
+      { patientId: patient.id, type: 'BLOOD_PRESSURE', value: 150, unit: 'mmHg', measuredAt: new Date() }, // incompleta: fica de fora
+    ] });
+    const r = await api().get(`/api/doctor/patients/${patient.id}/vitals`).set(H2(docToken));
+    expect(r.status).toBe(200);
+    expect(r.body.heightCm).toBe(177);
+    expect(r.body.bloodPressure).toHaveLength(2);
+    expect(r.body.bloodPressure[0]).toMatchObject({ systolic: 142, diastolic: 88 });
+  });
 });
